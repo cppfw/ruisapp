@@ -3,7 +3,7 @@ Section: misc
 Priority: extra
 Maintainer: Ivan Gagis <igagis@gmail.com>
 Build-Depends: debhelper (>= 9), prorab,
-		libc6-dev, libutki-dev, libpapki-dev, libpugixml-dev
+		libc6-dev, libutki-dev, libpapki-dev, libpugixml-dev, libmorda-dev
 Build-Depends-Indep: doxygen
 Standards-Version: 3.9.2
 
@@ -23,7 +23,8 @@ Description: debugging symbols for lib%NAME%$(soname) package.
 Package: libmordavokne-dev
 Section: devel
 Architecture: all
-Depends: libmordavokne$(soname) (= ${binary:Version}), libmordavokne$(soname)-dbg (= ${binary:Version}), ${misc:Depends}
+Depends: libmordavokne$(soname) (= ${binary:Version}), libmordavokne$(soname)-dbg (= ${binary:Version}), ${misc:Depends},
+		libmorda-dev
 Suggests: libmordavokne-doc
 Description: cross-platform C++ library.
  Some library.
