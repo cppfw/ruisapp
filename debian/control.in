@@ -1,0 +1,36 @@
+Source: libmordavokne
+Section: misc
+Priority: extra
+Maintainer: Ivan Gagis <igagis@gmail.com>
+Build-Depends: debhelper (>= 9), prorab,
+		libc6-dev, libutki-dev, libpapki-dev, libpugixml-dev
+Build-Depends-Indep: doxygen
+Standards-Version: 3.9.2
+
+Package: libmordavokne$(soname)
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: cross-platform C++ library.
+ Some library.
+
+Package: libmordavokne$(soname)-dbg
+Section: libdevel
+Architecture: any
+Depends: libmordavokne$(soname) (= ${binary:Version}), ${misc:Depends}
+Description: debugging symbols for lib%NAME%$(soname) package.
+
+Package: libmordavokne-dev
+Section: devel
+Architecture: all
+Depends: libmordavokne$(soname) (= ${binary:Version}), libmordavokne$(soname)-dbg (= ${binary:Version}), ${misc:Depends}
+Suggests: libmordavokne-doc
+Description: cross-platform C++ library.
+ Some library.
+
+Package: libmordavokne-doc
+Section: devel
+Architecture: all
+Depends: ${misc:Depends}
+Description: documentation for libmordavokne library.
+ For more details see description to libmordavokne-dev package.
