@@ -3,6 +3,9 @@
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <df root="src" name="0">
       <df name="mordavokne">
+        <df name="glue">
+          <in>main.cpp</in>
+        </df>
         <in>App.cpp</in>
       </df>
     </df>
@@ -10,8 +13,10 @@
                    displayName="Важные файлы"
                    projectFiles="false"
                    kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>.travis.yml</itemPath>
+      <itemPath>appveyor.yml</itemPath>
       <itemPath>nbproject/private/launcher.properties</itemPath>
-      <itemPath>src/makefile</itemPath>
+      <itemPath>makefile</itemPath>
     </logicalFolder>
   </logicalFolder>
   <sourceFolderFilter>^(nbproject)$</sourceFolderFilter>
@@ -39,7 +44,6 @@
           <executablePath></executablePath>
           <ccTool>
             <incDir>
-              <pElem>/usr/include/freetype2</pElem>
               <pElem>.</pElem>
             </incDir>
             <preprocessorList>
@@ -53,6 +57,10 @@
         </preBuild>
       </makefileType>
       <item path="src/mordavokne/App.cpp" ex="false" tool="1" flavor2="8">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
+      <item path="src/mordavokne/glue/main.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="0">
         </ccTool>
       </item>
