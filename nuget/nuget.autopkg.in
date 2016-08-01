@@ -1,0 +1,62 @@
+nuget{
+	nuspec{
+		id = libmordavokne;
+		version : $(version);
+		title: C++ GUI library;
+		authors: {Ivan Gagis};
+		owners: {Ivan Gagis};
+		licenseUrl: "https://raw.githubusercontent.com/igagis/mordavokne/master/LICENSE";
+		projectUrl: "https://github.com/igagis/mordavokne";
+		iconUrl: "https://github.com/igagis/mordavokne/blob/master/logo.svg";
+		requireLicenseAcceptance:false;
+		summary: C++ GUI library;
+
+		description: @"C++ GUI library";
+		releaseNotes: "Initial release";
+		copyright: Copyright 2016 Ivan Gagis;
+		tags: { native};
+	}
+	dependencies {
+		packages : {
+			libkolme/1.0.0.1;
+			freetype2/2.6.0.1;
+			glew.v140/1.12.0;
+			libaika/1.0.1.3;
+			libjpeg/9.0.1.4;
+			libpapki/1.0.2.2;
+			libpng/1.5.10.13;
+			libpogodi/1.0.1.8;
+			libstob/3.1.0.1;
+			libunikod/1.0.2.2;
+			libutki/1.0.20;
+			zlib/1.2.8.8;
+		};
+	}
+	files {
+		include: { "..\src\**\*.hpp" };
+		
+		[x86,release] { 
+			lib: ..\msvs_solution\Release\libmordavokne.lib;
+			symbols: ..\msvs_solution\libmorda\Release\libmordavokne.pdb;
+//			bin: ..\morda_res;
+		}
+
+		[x86,debug] { 
+			lib: ..\msvs_solution\Debug\libmordavokne.lib;
+			symbols: ..\msvs_solution\libmorda\Debug\libmordavokne.pdb;
+//			bin: ..\morda_res;
+		}
+
+		[x64,release] { 
+			lib: ..\msvs_solution\x64\Release\libmordavokne.lib;
+			symbols: ..\msvs_solution\libmorda\x64\Release\libmordavokne.pdb;
+//			bin: ..\morda_res;
+		}
+
+		[x64,debug] { 
+			lib: ..\msvs_solution\x64\Debug\libmordavokne.lib;
+			symbols: ..\msvs_solution\libmorda\x64\Debug\libmordavokne.pdb;
+//			bin: ..\morda_res;
+		}  
+	}
+}

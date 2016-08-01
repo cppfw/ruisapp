@@ -1,0 +1,9 @@
+Name: mordavokne   # human-readable name
+Description: C++ OpenGL GUI library
+Version: $(version)
+URL: https://github.com/igagis/mordavokne
+Requires:
+Conflicts:
+Libs: -lmordavokne
+Libs.private:
+Cflags:
