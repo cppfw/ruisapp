@@ -157,10 +157,10 @@
     <Import Project="..\packages\pugixml.1.7.0\build\native\pugixml.targets" Condition="Exists('..\packages\pugixml.1.7.0\build\native\pugixml.targets')" />
     <Import Project="..\packages\libsvgdom.0.2.13\build\native\libsvgdom.targets" Condition="Exists('..\packages\libsvgdom.0.2.13\build\native\libsvgdom.targets')" />
     <Import Project="..\packages\libsvgren.0.3.13\build\native\libsvgren.targets" Condition="Exists('..\packages\libsvgren.0.3.13\build\native\libsvgren.targets')" />
-    <Import Project="..\packages\libmorda.symbols.0.4.5\build\native\libmorda.symbols.targets" Condition="Exists('..\packages\libmorda.symbols.0.4.5\build\native\libmorda.symbols.targets')" />
-    <Import Project="..\packages\pixman_static.0.32.4.1\build\native\pixman_static.targets" Condition="Exists('..\packages\pixman_static.0.32.4.1\build\native\pixman_static.targets')" />
-    <Import Project="..\packages\cairo_static.1.12.8.1\build\native\cairo_static.targets" Condition="Exists('..\packages\cairo_static.1.12.8.1\build\native\cairo_static.targets')" />
-    <Import Project="..\packages\libmorda.0.4.5\build\native\libmorda.targets" Condition="Exists('..\packages\libmorda.0.4.5\build\native\libmorda.targets')" />
+    <Import Project="..\packages\libmorda.symbols.0.4.6\build\native\libmorda.symbols.targets" Condition="Exists('..\packages\libmorda.symbols.0.4.6\build\native\libmorda.symbols.targets')" />
+    <Import Project="..\packages\pixman_static.0.32.4.2\build\native\pixman_static.targets" Condition="Exists('..\packages\pixman_static.0.32.4.2\build\native\pixman_static.targets')" />
+    <Import Project="..\packages\cairo_static.1.12.8.2\build\native\cairo_static.targets" Condition="Exists('..\packages\cairo_static.1.12.8.2\build\native\cairo_static.targets')" />
+    <Import Project="..\packages\libmorda.0.4.6\build\native\libmorda.targets" Condition="Exists('..\packages\libmorda.0.4.6\build\native\libmorda.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -185,9 +185,9 @@
     <Error Condition="!Exists('..\packages\pugixml.1.7.0\build\native\pugixml.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\pugixml.1.7.0\build\native\pugixml.targets'))" />
     <Error Condition="!Exists('..\packages\libsvgdom.0.2.13\build\native\libsvgdom.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libsvgdom.0.2.13\build\native\libsvgdom.targets'))" />
     <Error Condition="!Exists('..\packages\libsvgren.0.3.13\build\native\libsvgren.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libsvgren.0.3.13\build\native\libsvgren.targets'))" />
-    <Error Condition="!Exists('..\packages\libmorda.symbols.0.4.5\build\native\libmorda.symbols.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libmorda.symbols.0.4.5\build\native\libmorda.symbols.targets'))" />
-    <Error Condition="!Exists('..\packages\pixman_static.0.32.4.1\build\native\pixman_static.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\pixman_static.0.32.4.1\build\native\pixman_static.targets'))" />
-    <Error Condition="!Exists('..\packages\cairo_static.1.12.8.1\build\native\cairo_static.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cairo_static.1.12.8.1\build\native\cairo_static.targets'))" />
-    <Error Condition="!Exists('..\packages\libmorda.0.4.5\build\native\libmorda.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libmorda.0.4.5\build\native\libmorda.targets'))" />
+    <Error Condition="!Exists('..\packages\libmorda.symbols.0.4.6\build\native\libmorda.symbols.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libmorda.symbols.0.4.6\build\native\libmorda.symbols.targets'))" />
+    <Error Condition="!Exists('..\packages\pixman_static.0.32.4.2\build\native\pixman_static.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\pixman_static.0.32.4.2\build\native\pixman_static.targets'))" />
+    <Error Condition="!Exists('..\packages\cairo_static.1.12.8.2\build\native\cairo_static.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cairo_static.1.12.8.2\build\native\cairo_static.targets'))" />
+    <Error Condition="!Exists('..\packages\libmorda.0.4.6\build\native\libmorda.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libmorda.0.4.6\build\native\libmorda.targets'))" />
   </Target>
 </Project>
