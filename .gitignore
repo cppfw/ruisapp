@@ -1,0 +1,8 @@
+debian
+doc
+nbproject
+pkg-config
+*.[ao]
+*.so
+*.so.[0123456789]
+src/obj
