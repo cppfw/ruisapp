@@ -12,6 +12,7 @@
 		2C3313661D5101E500577614 /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2C33135A1D5101E500577614 /* main.mm */; };
 		2C33136C1D5103C800577614 /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2C33136B1D5103C800577614 /* GLKit.framework */; };
 		2C378DBD1D50FF27004E55A0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2C378DBC1D50FF27004E55A0 /* Assets.xcassets */; };
+		2CDB1F1C1D513D01004B66E2 /* res in Resources */ = {isa = PBXBuildFile; fileRef = 2CDB1F1B1D513D01004B66E2 /* res */; };
 		E54DF2FDB7EE607368C7CEFC /* libPods-tests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 538DFE85F96A318280E7CF3D /* libPods-tests.a */; };
 /* End PBXBuildFile section */
 
@@ -26,6 +27,7 @@
 		2C378DAD1D50FF27004E55A0 /* tests.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = tests.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2C378DBC1D50FF27004E55A0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2C378DC11D50FF27004E55A0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		2CDB1F1B1D513D01004B66E2 /* res */ = {isa = PBXFileReference; lastKnownFileType = folder; name = res; path = ../../tests/app/res; sourceTree = "<group>"; };
 		354C8A2E608AF2D7DB938CC3 /* Pods-tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-tests.release.xcconfig"; path = "Pods/Target Support Files/Pods-tests/Pods-tests.release.xcconfig"; sourceTree = "<group>"; };
 		538DFE85F96A318280E7CF3D /* libPods-tests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-tests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -101,6 +103,7 @@
 		2C378DAF1D50FF27004E55A0 /* tests */ = {
 			isa = PBXGroup;
 			children = (
+				2CDB1F1B1D513D01004B66E2 /* res */,
 				2C3313501D5101E500577614 /* mordavokne */,
 				2C33134E1D5101D600577614 /* main.cpp */,
 				2C378DBC1D50FF27004E55A0 /* Assets.xcassets */,
@@ -187,6 +190,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2C378DBD1D50FF27004E55A0 /* Assets.xcassets in Resources */,
+				2CDB1F1C1D513D01004B66E2 /* res in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
