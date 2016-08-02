@@ -36,6 +36,7 @@ ifeq ($(debug),true)
     this_cxxflags += -DDEBUG
 #    this_cxxflags += -DM_MORDA_RENDER_WIDGET_BORDERS
     this_objcflags += -DDEBUG
+    this_cxxflags += -O0
 else
     this_cxxflags += -O2 #TODO: switch to -O3 when g++ bug is fixed and it won't produce segfault
 endif
