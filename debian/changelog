@@ -1,3 +1,9 @@
+libmordavokne (0.1.2) unstable; urgency=medium
+
+  * travis corrected
+
+ -- Ivan Gagis <igagis@gmail.com>  Wed, 03 Aug 2016 00:39:04 +0300
+
 libmordavokne (0.1.1) unstable; urgency=medium
 
   * periodic release
