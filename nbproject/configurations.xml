@@ -9,6 +9,13 @@
         <in>App.cpp</in>
       </df>
     </df>
+    <df root="tests" name="1">
+      <df name="app">
+        <df name="src">
+          <in>main.cpp</in>
+        </df>
+      </df>
+    </df>
     <logicalFolder name="ExternalFiles"
                    displayName="Важные файлы"
                    projectFiles="false"
@@ -23,6 +30,7 @@
   <sourceFolderFilter>^(nbproject)$</sourceFolderFilter>
   <sourceRootList>
     <Elem>src</Elem>
+    <Elem>tests</Elem>
   </sourceRootList>
   <projectmakefile>src/makefile</projectmakefile>
   <confs>
@@ -33,14 +41,15 @@
         <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <flagsDictionary>
-        <element flagsID="0" commonFlags="-funsigned-char -std=c++11 -O2 -fPIC"/>
+        <element flagsID="0" commonFlags="-O3 -std=c++11"/>
+        <element flagsID="1" commonFlags="-funsigned-char -std=c++11 -O2 -fPIC"/>
       </flagsDictionary>
       <codeAssistance>
       </codeAssistance>
       <makefileType>
         <makeTool>
           <buildCommandWorkingDir>.</buildCommandWorkingDir>
-          <buildCommand>${MAKE} </buildCommand>
+          <buildCommand>${MAKE} -j4</buildCommand>
           <cleanCommand>${MAKE}  clean</cleanCommand>
           <executablePath></executablePath>
           <ccTool>
@@ -57,11 +66,22 @@
           <preBuildCommand></preBuildCommand>
         </preBuild>
       </makefileType>
+      <folder path="1">
+        <ccTool>
+          <preprocessorList>
+            <Elem>DEBUG</Elem>
+          </preprocessorList>
+        </ccTool>
+      </folder>
       <item path="src/mordavokne/App.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool flags="0">
+        <ccTool flags="1">
         </ccTool>
       </item>
       <item path="src/mordavokne/glue/main.cpp" ex="false" tool="1" flavor2="8">
+        <ccTool flags="1">
+        </ccTool>
+      </item>
+      <item path="tests/app/src/main.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="0">
         </ccTool>
       </item>
