@@ -15,7 +15,7 @@ class Libmordavokne < Formula
   
   def install
     ENV['PATH'] += ':/usr/local/bin'
-    system "make", "-f", "src/makefile", "install"
+    system "make", "-f", "src/makefile", "install", "PREFIX=#{prefix}"
   end
 
   #test do
