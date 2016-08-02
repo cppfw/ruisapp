@@ -36,23 +36,23 @@ nuget{
 		};
 		
 		[x86,release] { 
-			lib: ..\msvs_solution\Release\libmordavokne.lib;
-			symbols: ..\msvs_solution\libmorda\Release\libmordavokne.pdb;
+			lib: ..\msvs_solution\Release\mordavokne.lib;
+			symbols: ..\msvs_solution\mordavokne\Release\mordavokne.pdb;
 		}
 
 		[x86,debug] { 
 			lib: ..\msvs_solution\Debug\libmordavokne.lib;
-			symbols: ..\msvs_solution\libmorda\Debug\libmordavokne.pdb;
+			symbols: ..\msvs_solution\mordavokne\Debug\mordavokne.pdb;
 		}
 
 		[x64,release] { 
 			lib: ..\msvs_solution\x64\Release\libmordavokne.lib;
-			symbols: ..\msvs_solution\libmorda\x64\Release\libmordavokne.pdb;
+			symbols: ..\msvs_solution\mordavokne\x64\Release\mordavokne.pdb;
 		}
 
 		[x64,debug] { 
 			lib: ..\msvs_solution\x64\Debug\libmordavokne.lib;
-			symbols: ..\msvs_solution\libmorda\x64\Debug\libmordavokne.pdb;
+			symbols: ..\msvs_solution\mordavokne\x64\Debug\mordavokne.pdb;
 		}  
 	}
 }
