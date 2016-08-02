@@ -18,13 +18,13 @@ Package: libmordavokne$(soname)-dbg
 Section: libdevel
 Architecture: any
 Depends: libmordavokne$(soname) (= ${binary:Version}), ${misc:Depends}
-Description: debugging symbols for lib%NAME%$(soname) package.
+Description: debugging symbols for libmordavokne$(soname) package.
 
 Package: libmordavokne-dev
 Section: devel
 Architecture: all
 Depends: libmordavokne$(soname) (= ${binary:Version}), libmordavokne$(soname)-dbg (= ${binary:Version}), ${misc:Depends},
-		libmorda-dev, libpapki-dev
+		libutki-dev, libmorda-dev, libpapki-dev
 Suggests: libmordavokne-doc
 Description: cross-platform C++ library.
  Some library.
