@@ -42,7 +42,7 @@ endif
 
 ifeq ($(prorab_os), linux)
     this_cxxflags += -fPIC #generate position independent code
-    this_ldlibs += -lpthread -lX11 -lGL -lGLEW
+    this_ldlibs += -ldl -lnitki -lpogodi -lX11 -lGL -lGLEW
 else ifeq ($(prorab_os), windows)
 #    this_cxxflags += -Wno-format #due to bugs in some g++ versions it warns about format when not needed, so disable format warnings
 #    this_cxxflags += -I/usr/include -I/usr/local/include/ -I/usr/local/include/freetype2
@@ -54,7 +54,7 @@ else ifeq ($(prorab_os), windows)
 else ifeq ($(prorab_os), macosx)
     this_cxxflags += -stdlib=libc++ #this is needed to be able to use c++11 std lib
     this_ldlibs += -lc++
-    this_ldlibs += -framework Cocoa -framework OpenGL -lGLEW
+    this_ldlibs += -framework Cocoa -framework OpenGL -lGLEW -ldl
     
     this_mm_obj := $(prorab_this_dir)$(prorab_obj_dir)mordavokne/glue/macosx/main.o
 
@@ -67,7 +67,7 @@ else ifeq ($(prorab_os), macosx)
     $(eval $(this_rules))
 endif
 
-this_ldlibs +=
+this_ldlibs += -lmorda -lpapki -lstob
 
 $(eval $(prorab-build-lib))
 
