@@ -49,27 +49,10 @@ script:
 # need to reduce output from xcodebuild because log size on travis-ci is limited by 4Mb, use grep for errors and warnings
 # Also, need to set pipefail to make pipe exit code nono-zero in case first command fails but second succeeds (because grep exits with 0 always)
 - if [ "$TRAVIS_OS_NAME" == "osx" ]; then
-
-    function bust_log_silence_limit() 
-      while true; do
-        sleep 360
-        printf .
-      done
-    }
-
-    bust_log_silence_limit &;
-
-
     make &&
     
     set -o pipefail &&
-    xcodebuild -workspace ios/tests.xcworkspace -scheme tests CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | grep -E -A 5 "(error|warning):" &&
-
-    if [ -n "$TRAVIS_TAG" ]; then
-      prorab-deploy-cocoapods.sh igagis;
-    else
-      echo "Skip deploying to cocoapods because not a tagged commit!!!";
-    fi;
+    xcodebuild -workspace ios/tests.xcworkspace -scheme tests CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | grep -E -A 5 "(error|warning):";
   fi
 
 before_deploy:
@@ -89,6 +72,12 @@ deploy:
 - provider: script
   skip_cleanup: true
   script: prorab-deploy-homebrew.sh igagis/tap
+  on:
+    tags: true
+    condition: $TRAVIS_OS_NAME = osx && $CC = clang
+- provider: script
+  skip_cleanup: true
+  script: rvm 2.2.1 do prorab-deploy-cocoapods.sh igagis
   on:
     tags: true
     condition: $TRAVIS_OS_NAME = osx && $CC = clang
