@@ -48,7 +48,7 @@
       <flagsDictionary>
         <element flagsID="0" commonFlags="-O3 -std=c++11"/>
         <element flagsID="1"
-                 commonFlags="-mtune=generic -march=x86-64 -std=c++11 -funsigned-char -fPIC -fstack-protector-strong"/>
+                 commonFlags="-mtune=generic -march=x86-64 -std=c++11 -funsigned-char -fPIC"/>
       </flagsDictionary>
       <codeAssistance>
       </codeAssistance>
@@ -76,9 +76,9 @@
           <incDir>
             <pElem>/usr/include/morda</pElem>
             <pElem>/usr/include/morda/render</pElem>
-            <pElem>/usr/include/kolme</pElem>
             <pElem>/usr/include/unikod</pElem>
             <pElem>/usr/include/stob</pElem>
+            <pElem>/usr/include/kolme</pElem>
             <pElem>/usr/include/pogodi</pElem>
             <pElem>src/mordavokne</pElem>
             <pElem>src/mordavokne/glue/linux</pElem>
@@ -86,7 +86,6 @@
             <pElem>/usr/include/papki</pElem>
             <pElem>/usr/include/nitki</pElem>
             <pElem>/usr/include/morda/util</pElem>
-            <pElem>/usr/include/morda/widgets/core</pElem>
             <pElem>/usr/include/X11</pElem>
             <pElem>/usr/include/GL</pElem>
             <pElem>src/mordavokne/glue</pElem>
@@ -115,7 +114,6 @@
             <pElem>/usr/include/nitki</pElem>
             <pElem>/usr/include/morda/render</pElem>
             <pElem>/usr/include/morda/util</pElem>
-            <pElem>/usr/include/morda/widgets/core</pElem>
             <pElem>/usr/include/morda/shaders</pElem>
             <pElem>/usr/include/unikod</pElem>
             <pElem>/usr/include/stob</pElem>
