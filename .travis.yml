@@ -50,14 +50,14 @@ script:
 # Also, need to set pipefail to make pipe exit code nono-zero in case first command fails but second succeeds (because grep exits with 0 always)
 - if [ "$TRAVIS_OS_NAME" == "osx" ]; then
 
-      function bust_log_silence_limit() {
-  while true; do
-    sleep 360
-    printf .
-  done
-}
+    function bust_log_silence_limit() 
+      while true; do
+        sleep 360
+        printf .
+      done
+    }
 
-      bust_log_silence_limit &;
+    bust_log_silence_limit &;
 
 
     make &&
