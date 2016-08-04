@@ -38,7 +38,7 @@ namespace mordavokne{
 										   );
 	}
 	
-	void ios_handleMouseButton(bool isDown, const morda::Vec2r& pos, morda::Widget::MouseButton_e button, unsigned id){
+	void ios_handleMouseButton(bool isDown, const morda::Vec2r& pos, morda::MouseButton_e button, unsigned id){
 //		TRACE(<< "mouse pos = " << morda::Vec2r(pos.x, pos.y) << std::endl)
 		App::inst().handleMouseButton(
 											 isDown,
@@ -101,13 +101,16 @@ namespace mordavokne{
 @end
 
 
-
+//WORKAROUND: for Cocoapods. ifdef-out the main function for the time of deployment to cocoapods.
+//The application then has to define macro M_MORDAVOKNE_COCOAPODS_WORKAROUND to make main() defined.
+#ifdef M_MORDAVOKNE_COCOAPODS_WORKAROUND
 int main(int argc, char * argv[]){
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	int retVal = UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class]));
 	[pool release];
 	return retVal;
 }
+#endif
 
 
 
@@ -281,7 +284,7 @@ App::App(const App::WindowParams& wp) :
 		ios_handleMouseButton(
 				true,
 				morda::Vec2r(p.x * scale, p.y * scale).rounded(),
-				morda::Widget::MouseButton_e::LEFT,
+				morda::MouseButton_e::LEFT,
 				0//TODO: id
 			);
 	}
@@ -311,7 +314,7 @@ App::App(const App::WindowParams& wp) :
 		ios_handleMouseButton(
 									 false,
 									 morda::Vec2r(p.x * scale, p.y * scale).rounded(),
-									 morda::Widget::MouseButton_e::LEFT,
+									 morda::MouseButton_e::LEFT,
 									 0//TODO: id
 			);
 	}
