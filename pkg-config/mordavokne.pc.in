@@ -4,6 +4,6 @@ Version: $(version)
 URL: https://github.com/igagis/mordavokne
 Requires:
 Conflicts:
-Libs: -lmordavokne
+Libs: -lmordavokne -rdynamic
 Libs.private:
 Cflags:
