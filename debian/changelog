@@ -1,3 +1,9 @@
+libmordavokne (0.1.9) unstable; urgency=medium
+
+  * rdynamic flag added to pkg-config
+
+ -- Ivan Gagis <igagis@gmail.com>  Mon, 08 Aug 2016 13:47:11 +0300
+
 libmordavokne (0.1.8) unstable; urgency=medium
 
   * cocoapods build
