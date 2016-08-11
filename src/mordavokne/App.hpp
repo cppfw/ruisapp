@@ -16,23 +16,24 @@
 
 #include <morda/util/keycodes.hpp>
 
+#include "config.hpp"
 
-//TODO: clean this up, do not use Morda's defines
-#if M_MORDA_RENDER == M_MORDA_RENDER_OPENGL
+
+#if M_MORDAVOKNE_RENDER == M_MORDAVOKNE_RENDER_OPENGL
 #	include <GL/glew.h>
 
 #	if M_OS == M_OS_LINUX
 #		include <GL/glx.h>
 #	endif
 
-#elif M_MORDA_RENDER == M_MORDA_RENDER_OPENGLES
+#elif M_MORDAVOKNE_RENDER == M_MORDAVOKNE_RENDER_OPENGLES
 #	if M_OS_NAME == M_OS_NAME_IOS
 #		include <OpenGlES/ES2/glext.h>
 #	else
 #		include <GLES2/gl2.h>
 #		include <EGL/egl.h>
 #	endif
-#elif M_MORDA_RENDER == M_MORDA_RENDER_DIRECTX
+#elif M_MORDAVOKNE_RENDER == M_MORDAVOKNE_RENDER_DIRECTX
 
 #else
 #	error "Unknown OS"

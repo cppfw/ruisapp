@@ -120,7 +120,7 @@ void App::swapFrameBuffers(){
 
 
 App::GLEWWrapper::GLEWWrapper(){
-#if M_MORDA_RENDER == M_MORDA_RENDER_OPENGL
+#if M_MORDAVOKNE_RENDER == M_MORDAVOKNE_RENDER_OPENGL
 	if(glewInit() != GLEW_OK){
 		throw utki::Exc("GLEW initialization failed");
 	}
