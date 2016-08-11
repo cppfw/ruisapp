@@ -41,6 +41,8 @@
 
 #if M_OS == M_OS_LINUX || M_OS == M_OS_MACOSX
 #	include <nitki/Queue.hpp>
+#elif M_OS == M_OS_WINDOWS
+#	include <utki/windows.hpp>
 #endif
 
 
