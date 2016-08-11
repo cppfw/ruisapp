@@ -2,15 +2,13 @@
 
 #include <memory>
 
-#include <utki/Singleton.hpp>
 #include <utki/config.hpp>
+#include <utki/Singleton.hpp>
 #include <utki/Buf.hpp>
 #include <utki/Unique.hpp>
 #include <utki/Flags.hpp>
 
 #include <papki/File.hpp>
-
-#include <nitki/Thread.hpp>
 
 #include <kolme/Vector2.hpp>
 
@@ -19,6 +17,7 @@
 #include <morda/util/keycodes.hpp>
 
 
+//TODO: clean this up, do not use Morda's defines
 #if M_MORDA_RENDER == M_MORDA_RENDER_OPENGL
 #	include <GL/glew.h>
 
