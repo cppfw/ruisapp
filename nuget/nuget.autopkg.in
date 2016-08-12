@@ -18,14 +18,13 @@ nuget{
 	}
 	dependencies {
 		packages : {
-			libkolme/1.0.0.1;
-			freetype2/2.6.0.1;
+			libkolme/1.0.6;
+			libmorda/0.5.2;
 			glew.v140/1.12.0;
-			libaika/1.0.1.3;
-			libpapki/1.0.2.2;
-			libpogodi/1.0.1.8;
-			libstob/3.1.0.1;
-			libutki/1.0.20;
+			libpapki/1.0.15;
+			libpogodi/1.0.10;
+			libstob/3.2.7;
+			libutki/1.0.22;
 		};
 	}
 	files {
@@ -34,25 +33,21 @@ nuget{
 			#destination = ${d_include}mordavokne;
 			"..\src\mordavokne\**\*.hpp"
 		};
-		
-		[x86,release] { 
+
+		[x86,release] {
 			lib: ..\msvs_solution\Release\mordavokne.lib;
-			symbols: ..\msvs_solution\mordavokne\Release\mordavokne.pdb;
 		}
 
-		[x86,debug] { 
+		[x86,debug] {
 			lib: ..\msvs_solution\Debug\libmordavokne.lib;
-			symbols: ..\msvs_solution\mordavokne\Debug\mordavokne.pdb;
 		}
 
-		[x64,release] { 
+		[x64,release] {
 			lib: ..\msvs_solution\x64\Release\libmordavokne.lib;
-			symbols: ..\msvs_solution\mordavokne\x64\Release\mordavokne.pdb;
 		}
 
-		[x64,debug] { 
+		[x64,debug] {
 			lib: ..\msvs_solution\x64\Debug\libmordavokne.lib;
-			symbols: ..\msvs_solution\mordavokne\x64\Debug\mordavokne.pdb;
-		}  
+		}
 	}
 }
