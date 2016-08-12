@@ -19,7 +19,7 @@ nuget{
 	dependencies {
 		packages : {
 			libkolme/1.0.6;
-			libmorda/0.5.2;
+			libmorda/0.5.3;
 			glew.v140/1.12.0;
 			libpapki/1.0.15;
 			libpogodi/1.0.10;
