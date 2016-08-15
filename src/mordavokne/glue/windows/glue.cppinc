@@ -279,7 +279,7 @@ namespace{
 	class KeyEventUnicodeProvider : public morda::Morda::UnicodeProvider{
 		char32_t c;
 	public:
-		KeyEventUnicodeProvider(std::uint32_t unicodeChar = 0) :
+		KeyEventUnicodeProvider(char32_t unicodeChar = 0) :
 			c(unicodeChar)
 		{}
 
@@ -510,7 +510,15 @@ namespace mordavokne{
 			return true;
 
 		case WM_CHAR:
-			app.handleCharacterInput(KeyEventUnicodeProvider(std::uint32_t(wParam)), morda::Key_e::UNKNOWN);
+			switch(char32_t(wParam)){
+				case U'\U00000008': //Backspace character
+				case U'\U0000001b': //Escape character
+				case U'\U0000000d': //Carriage return
+					break;
+				default:
+					app.handleCharacterInput(KeyEventUnicodeProvider(char32_t(wParam)), morda::Key_e::UNKNOWN);
+					break;
+			}
 			lres = 0;
 			return true;
 		case WM_PAINT:

@@ -21,7 +21,7 @@
     <ClCompile Include="..\..\src\mordavokne\App.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\mordavokne\glue\main.cpp">
+    <ClCompile Include="..\..\src\mordavokne\glue\glue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
