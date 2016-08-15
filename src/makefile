@@ -9,9 +9,9 @@ this_srcs += mordavokne/App.cpp
 
 
 ifeq ($(prorab_os), macosx)
-    this_mm_src := mordavokne/glue/macosx/main.mm
+    this_mm_src := mordavokne/glue/macosx/glue.mm
 else
-    this_srcs += mordavokne/glue/main.cpp
+    this_srcs += mordavokne/glue/glue.cpp
 endif
 
 
@@ -57,10 +57,10 @@ else ifeq ($(prorab_os), macosx)
     this_ldlibs += -lc++
     this_ldlibs += -framework Cocoa -framework OpenGL -lGLEW -ldl
     
-    this_mm_obj := $(prorab_this_dir)$(prorab_obj_dir)mordavokne/glue/macosx/main.o
+    this_mm_obj := $(prorab_this_dir)$(prorab_obj_dir)mordavokne/glue/macosx/glue.o
 
     define this_rules
-        $(this_mm_obj): $(prorab_this_dir)mordavokne/glue/macosx/main.mm
+        $(this_mm_obj): $(prorab_this_dir)mordavokne/glue/macosx/glue.mm
 		@echo Compiling $$<...
 		$(prorab_echo)mkdir -p $$(dir $$@)
 		$(prorab_echo)$(CC) -ObjC++ -std=c++11 -c -o "$$@" $(this_objcflags) $$<
