@@ -39,15 +39,15 @@ nuget{
 		}
 
 		[x86,debug] {
-			lib: ..\msvs_solution\Debug\libmordavokne.lib;
+			lib: ..\msvs_solution\Debug\mordavokne.lib;
 		}
 
 		[x64,release] {
-			lib: ..\msvs_solution\x64\Release\libmordavokne.lib;
+			lib: ..\msvs_solution\x64\Release\mordavokne.lib;
 		}
 
 		[x64,debug] {
-			lib: ..\msvs_solution\x64\Debug\libmordavokne.lib;
+			lib: ..\msvs_solution\x64\Debug\mordavokne.lib;
 		}
 	}
 }
