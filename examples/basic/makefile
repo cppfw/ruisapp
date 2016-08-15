@@ -33,12 +33,14 @@ ifeq ($(prorab_os),windows)
     this_cxxflags += -D__STDC_FORMAT_MACROS
 else ifeq ($(prorab_os),macosx)
     this_ldlibs += -lGLEW -framework OpenGL -framework Cocoa -lpng -ljpeg -lfreetype
+    this_ldlibs += -lmordavokne
 else ifeq ($(prorab_os),linux)
     this_ldlibs += -lGLEW -pthread -lGL
+    this_ldlibs += `pkg-config mordavokne --libs`
 endif
 
 this_ldlibs += -lnitki -laika -lpogodi -lstob -lmorda
 
-this_ldlibs += `pkg-config mordavokne --libs`
+
 
 $(eval $(prorab-build-app))
