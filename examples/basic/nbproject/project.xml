@@ -3,23 +3,18 @@
     <type>org.netbeans.modules.cnd.makeproject</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/make-project/1">
-            <name>mordavokne</name>
+            <name>basic</name>
             <c-extensions/>
-            <cpp-extensions>cpp,mm</cpp-extensions>
-            <header-extensions>hpp</header-extensions>
+            <cpp-extensions>cpp</cpp-extensions>
+            <header-extensions/>
             <sourceEncoding>UTF-8</sourceEncoding>
             <make-dep-projects/>
             <sourceRootList>
                 <sourceRootElem>src</sourceRootElem>
-                <sourceRootElem>tests</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>
-                    <name>Debug</name>
-                    <type>0</type>
-                </confElem>
-                <confElem>
-                    <name>Release</name>
+                    <name>Default</name>
                     <type>0</type>
                 </confElem>
             </confList>
