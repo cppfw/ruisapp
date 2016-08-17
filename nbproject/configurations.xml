@@ -4,6 +4,7 @@
     <df root="src" name="0">
       <df name="mordavokne">
         <df name="glue">
+          <in>glue.cpp</in>
           <in>main.cpp</in>
         </df>
         <in>App.cpp</in>
@@ -50,6 +51,8 @@
       <flagsDictionary>
         <element flagsID="0" commonFlags="-O3 -std=c++11"/>
         <element flagsID="1"
+                 commonFlags="-mtune=generic -march=x86-64 -std=c++11 -funsigned-char -fPIC"/>
+        <element flagsID="2"
                  commonFlags="-mtune=generic -march=x86-64 -std=c++11 -funsigned-char -fPIC -fstack-protector-strong"/>
       </flagsDictionary>
       <codeAssistance>
@@ -126,8 +129,12 @@
           </incDir>
         </ccTool>
       </item>
-      <item path="src/mordavokne/glue/main.cpp" ex="false" tool="1" flavor2="8">
+      <item path="src/mordavokne/glue/glue.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="1">
+        </ccTool>
+      </item>
+      <item path="src/mordavokne/glue/main.cpp" ex="false" tool="1" flavor2="8">
+        <ccTool flags="2">
         </ccTool>
       </item>
       <item path="tests/app/src/main.cpp" ex="false" tool="1" flavor2="8">
