@@ -68,7 +68,7 @@ else ifeq ($(prorab_os), macosx)
     $(eval $(this_rules))
 endif
 
-this_ldlibs += -lmorda -lpapki -lstob
+this_ldlibs += -lmorda -lpapki -lstob -lstdc++
 
 $(eval $(prorab-build-lib))
 
