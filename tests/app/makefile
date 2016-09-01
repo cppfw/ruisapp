@@ -1,6 +1,6 @@
 include prorab.mk
 
-this_name := tests
+this_name := mordavokne-test
 
 
 this_srcs += src/main.cpp

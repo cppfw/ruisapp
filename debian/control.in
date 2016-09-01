@@ -7,12 +7,19 @@ Build-Depends: debhelper (>= 9), prorab,
 Build-Depends-Indep: doxygen
 Standards-Version: 3.9.2
 
+Package: mordavokne-test
+Section: devel
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libmordavokne$(soname)
+Description: cross-platform C++ GUI library tests.
+ GUI library tests.
+
 Package: libmordavokne$(soname)
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: cross-platform C++ library.
- Some library.
+Description: cross-platform C++ GUI library.
+ GUI library.
 
 Package: libmordavokne$(soname)-dbg
 Section: libdevel
@@ -26,7 +33,7 @@ Architecture: all
 Depends: libmordavokne$(soname) (= ${binary:Version}), libmordavokne$(soname)-dbg (= ${binary:Version}), ${misc:Depends},
 		libutki-dev, libmorda-dev, libpapki-dev
 Suggests: libmordavokne-doc
-Description: cross-platform C++ library.
+Description: cross-platform C++ GUI library.
  Some library.
 
 Package: libmordavokne-doc
