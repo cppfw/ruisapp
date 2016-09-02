@@ -20,18 +20,28 @@ env:
   global:
   #encrypted HOMEBREW_GITHUB_ACCESS_TOKEN for publishing to homebrew-tap and cocoapods-repo
   - secure: "Cgtaw3UWmsVfWGeBJJu3aNm7N9rY167JnyJQIfKGLuNEuxN6al6SJxkoeSs8bQp7WOm/CQV/VtqzR+yqClxbKOi66F8qrxV1BnhUiatLQ6CZ7QB07plVTKD5RVgZ6Q7R1RSZ8SObXypcWShqd1AYcmMygBEt9XMf+uiZNnv4yL9OvrkgTFAubL+JoUefdKEQTSCUyomHAjxDKPYH2NVAcKIQTB3Q0G8ZOTN4z8PXhXR/f5Puj5EOqMHTgBlsyFmI2DW1EyaoftcY6N4MfNzff6dQI2AxWE0K0bZX50KeNsUB7XXaXKd0XCPF87zY65HzNFXlX9ISsh/y1zaJ+dSrZ9J+cOfvk3sSx7dsrWHgplopdSQm8TmoGd46sw0xWwR/fIeXEzf7YJLxLAABj2a6Wz/LXCJkIu1RPZSexe8wj6T7/ZYVCJ3N2gYfWHMBIQmBO+EcSi0DmyakK3jDh30G4TdgDblMQrYZWwwW6SCJqe21RWG0WHyzSO9zDppKJKO3ghm/mDQv+DG0mpCKbiMtaLVgGIhSyEgLDiHKhpi9waQfeefgdUM88N9jBTLg1ypjzSjzT20UAMFdA/8HPRQgSJ3ptJXS/9QwTtmXrjsCOh54zgkGta+FAjcXCfSCShVQpzkvmF6aR8vT6+ymUkAr17QZqNIvMx5K3+JEGeaq6mc="
-  - HOMEBREW_GITHUB_USERNAME=igagis
+  - PRORAB_GIT_USERNAME=igagis
+  - PRORAB_GIT_ACCESS_TOKEN=$HOMEBREW_GITHUB_ACCESS_TOKEN
+  - linuxDependencies="debhelper prorab doxygen libutki-dev libpapki-dev libglew-dev libmorda-dev libnitki-dev libkolme-dev libstob-dev"
 
 before_install:
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     echo "deb https://dl.bintray.com/igagis/deb /" | sudo tee /etc/apt/sources.list.d/igagis.list > /dev/null &&
     sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 379CE192D401AB61 &&
     sudo apt-get update -qq &&
-    sudo apt-get install -qq debhelper prorab doxygen libutki-dev libpapki-dev libglew-dev libmorda-dev libnitki-dev libkolme-dev libstob-dev;
+    sudo apt-get install -qq $linuxDependencies;
+  fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$CC" == "gcc" ]; then
+    sudo prorab-make-raspberry-chroot.sh /tmp/rasp &&
+    echo "deb http://dl.bintray.com/igagis/rasp /" | sudo tee /tmp/rasp/etc/apt/sources.list.d/igagis.list > /dev/null &&
+    sudo chroot /tmp/rasp apt-get update &&
+    sudo chroot /tmp/rasp apt-get install --allow-unauthenticated -qq -y $linuxDependencies &&
+    sudo mkdir -p /tmp/rasp/build &&
+    sudo rsync -av $TRAVIS_BUILD_DIR/ /tmp/rasp/build/;
   fi
 - if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     rvm use ruby-2.2.1 &&
-    pod repo add --silent igagis https://$HOMEBREW_GITHUB_USERNAME:$HOMEBREW_GITHUB_ACCESS_TOKEN@github.com/igagis/cocoapods-repo.git &&
+    pod repo add --silent igagis https://$PRORAB_GIT_USERNAME:$PRORAB_GIT_ACCESS_TOKEN@github.com/igagis/cocoapods-repo.git &&
     pod install --project-directory=ios &&
     
     brew tap igagis/tap &&
@@ -46,6 +56,10 @@ script:
     prorab-deb-prepare.sh &&
     dpkg-buildpackage -us -uc;
   fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$CC" == "gcc" ]; then
+    sudo chroot /tmp/rasp bash -c "cd /build && prorab-deb-prepare.sh" &&
+    sudo chroot /tmp/rasp bash -c "cd /build && dpkg-buildpackage -us -uc";
+  fi
 
 # need to reduce output from xcodebuild because log size on travis-ci is limited by 4Mb, use grep for errors and warnings
 # Also, need to set pipefail to make pipe exit code nono-zero in case first command fails but second succeeds (because grep exits with 0 always)
@@ -55,18 +69,19 @@ script:
     xcodebuild -workspace ios/tests.xcworkspace -scheme tests CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
             | sed -e "s/export PATH=[^ ]*/export PATH=.../g"
             | sed -e "s/[^ ]*\/clang /clang /g"
-            | sed -e "s/\(-[IWfFL]\)[^ ]*/\1... /g"
-            | sed -e "s/-isystem [^ ]*/-isystem .../g"
-            | sed -e "s/-include [^ ]*/-include .../g"
-            | sed -e "s/-MF [^ ]*/-MF .../g"
-            | sed -e "s/--serialize-diagnostics [^ ]*/--serialize-diagnostics .../g"
-            | sed -e "s/-o [^ ]*/-o .../g"
-            | sed -e "s/-iquote [^ ]*/-iquote .../g"
-            | sed -e "s/-isysroot [^ ]*/-isysroot .../g";
+            | sed -e "s/\(-[IWfFL]\)[^ ]*/% /g"
+            | sed -e "s/-isystem [^ ]*/%/g"
+            | sed -e "s/-include [^ ]*/%/g"
+            | sed -e "s/-MF [^ ]*/%/g"
+            | sed -e "s/--serialize-diagnostics [^ ]*/%/g"
+            | sed -e "s/-o [^ ]*/%/g"
+            | sed -e "s/-iquote [^ ]*/%/g"
+            | sed -e "s/-isysroot [^ ]*/%/g";
   fi
 
 before_deploy:
-  - prorab-apply-version.sh -v `prorab-deb-version.sh debian/changelog` travis_bintray.json.in
+  - prorab-apply-version.sh -v `prorab-deb-version.sh debian/changelog` travis_bintray_deb.json.in
+  - prorab-apply-version.sh -v `prorab-deb-version.sh debian/changelog` travis_bintray_rasp.json.in
 
 deploy:
 - provider: bintray
@@ -74,7 +89,17 @@ deploy:
   on:
     tags: true
     condition: $TRAVIS_OS_NAME = linux && $CC = gcc
-  file: travis_bintray.json
+  file: travis_bintray_deb.json
+  user: igagis
+  key:
+    secure: "kIXNr4EO3M98M86sEEsh89Sk08q3d1YN0/rphHJ92BpVqf0OykCqd0AWiZj5Bn+KCBdgI4giIZ+NIHlG8eD7ZLdxJEDUeseiPfvUX7whB0bpvrJZtONlxJ9/p68xnSfxwR6vL0byVgysaCMRBsBotdjplCiUsTSba16akAVDKLp2+sP774/DkujNfiO5tkh/4cRTeXFtNMQA/r6iARwbAkAREwiWPJVj9YHgJLf3hKWeHM3gu+SSlB0uH0ZZrL6CGdg3XRNo6XMQIGdi3g0vXrU/ieJIr8nvCPG03xtsULszIrCEE6oIklyS4Um5g3sFQ6sVpQHrlFCiE2vLv32CeJBVr1v7ut+DU3nLL0aZAk7jm8JGhhLkPef5fOhe/jFszIPxMmWdjzJXwvlROnDfs3XcemAYuIgivlCzYPiDfJB129v/6DfB+yNrvXDBIbsxFfz2dbUotVO0f61yHqTfQLO1VNFnf5122EvVJGzHWpKtaY2ABEJxujAs55efCkFIl6h52f1cwi+nwX/1dcOarHWZWUxbQgAhL/RisyDWQTx6UztW7rXzZ+NGBauYT9X55lkHJnJT0dVPTBGxda8ZbfpzYmISEf5Oaqqu7AzIlnUTPzKOrlUWaNL3r63XZCy0Rgs+312REW84PMm5gPr/wVMsDWu4P5SCyz7cywKN6VA="
+  dry-run: false
+- provider: bintray
+  skip_cleanup: true
+  on:
+    tags: true
+    condition: $TRAVIS_OS_NAME = linux && $CC = gcc
+  file: travis_bintray_rasp.json
   user: igagis
   key:
     secure: "kIXNr4EO3M98M86sEEsh89Sk08q3d1YN0/rphHJ92BpVqf0OykCqd0AWiZj5Bn+KCBdgI4giIZ+NIHlG8eD7ZLdxJEDUeseiPfvUX7whB0bpvrJZtONlxJ9/p68xnSfxwR6vL0byVgysaCMRBsBotdjplCiUsTSba16akAVDKLp2+sP774/DkujNfiO5tkh/4cRTeXFtNMQA/r6iARwbAkAREwiWPJVj9YHgJLf3hKWeHM3gu+SSlB0uH0ZZrL6CGdg3XRNo6XMQIGdi3g0vXrU/ieJIr8nvCPG03xtsULszIrCEE6oIklyS4Um5g3sFQ6sVpQHrlFCiE2vLv32CeJBVr1v7ut+DU3nLL0aZAk7jm8JGhhLkPef5fOhe/jFszIPxMmWdjzJXwvlROnDfs3XcemAYuIgivlCzYPiDfJB129v/6DfB+yNrvXDBIbsxFfz2dbUotVO0f61yHqTfQLO1VNFnf5122EvVJGzHWpKtaY2ABEJxujAs55efCkFIl6h52f1cwi+nwX/1dcOarHWZWUxbQgAhL/RisyDWQTx6UztW7rXzZ+NGBauYT9X55lkHJnJT0dVPTBGxda8ZbfpzYmISEf5Oaqqu7AzIlnUTPzKOrlUWaNL3r63XZCy0Rgs+312REW84PMm5gPr/wVMsDWu4P5SCyz7cywKN6VA="

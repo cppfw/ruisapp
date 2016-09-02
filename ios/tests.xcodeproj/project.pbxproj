@@ -9,9 +9,9 @@
 /* Begin PBXBuildFile section */
 		2C33134F1D5101D600577614 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2C33134E1D5101D600577614 /* main.cpp */; };
 		2C3313621D5101E500577614 /* App.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2C3313511D5101E500577614 /* App.cpp */; };
-		2C3313661D5101E500577614 /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2C33135A1D5101E500577614 /* main.mm */; };
 		2C33136C1D5103C800577614 /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2C33136B1D5103C800577614 /* GLKit.framework */; };
 		2C378DBD1D50FF27004E55A0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2C378DBC1D50FF27004E55A0 /* Assets.xcassets */; };
+		2CD483101D62521F00025E2F /* glue.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2CD4830F1D62521F00025E2F /* glue.mm */; };
 		2CDB1F1C1D513D01004B66E2 /* res in Resources */ = {isa = PBXBuildFile; fileRef = 2CDB1F1B1D513D01004B66E2 /* res */; };
 		E54DF2FDB7EE607368C7CEFC /* libPods-tests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 538DFE85F96A318280E7CF3D /* libPods-tests.a */; };
 /* End PBXBuildFile section */
@@ -22,11 +22,11 @@
 		2C3313511D5101E500577614 /* App.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = App.cpp; sourceTree = "<group>"; };
 		2C3313521D5101E500577614 /* App.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = App.hpp; sourceTree = "<group>"; };
 		2C3313531D5101E500577614 /* AppFactory.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = AppFactory.hpp; sourceTree = "<group>"; };
-		2C33135A1D5101E500577614 /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
 		2C33136B1D5103C800577614 /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
 		2C378DAD1D50FF27004E55A0 /* tests.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = tests.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2C378DBC1D50FF27004E55A0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2C378DC11D50FF27004E55A0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		2CD4830F1D62521F00025E2F /* glue.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = glue.mm; sourceTree = "<group>"; };
 		2CDB1F1B1D513D01004B66E2 /* res */ = {isa = PBXFileReference; lastKnownFileType = folder; name = res; path = ../../tests/app/res; sourceTree = "<group>"; };
 		354C8A2E608AF2D7DB938CC3 /* Pods-tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-tests.release.xcconfig"; path = "Pods/Target Support Files/Pods-tests/Pods-tests.release.xcconfig"; sourceTree = "<group>"; };
 		538DFE85F96A318280E7CF3D /* libPods-tests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-tests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -77,7 +77,7 @@
 		2C3313591D5101E500577614 /* ios */ = {
 			isa = PBXGroup;
 			children = (
-				2C33135A1D5101E500577614 /* main.mm */,
+				2CD4830F1D62521F00025E2F /* glue.mm */,
 			);
 			path = ios;
 			sourceTree = "<group>";
@@ -249,7 +249,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2C3313661D5101E500577614 /* main.mm in Sources */,
+				2CD483101D62521F00025E2F /* glue.mm in Sources */,
 				2C33134F1D5101D600577614 /* main.cpp in Sources */,
 				2C3313621D5101E500577614 /* App.cpp in Sources */,
 			);
