@@ -4,3 +4,5 @@
 **mordavokne** is a cross-platform library for creating a native window and initializing OpenGL. It provides **morda** library already bound to all platform specific stuff.
 
 For installation instructions see [WiKi](wiki/Installation.adoc)
+
+For basic usage example see `examples/basic` directory.
