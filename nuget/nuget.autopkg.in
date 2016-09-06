@@ -1,6 +1,6 @@
 nuget{
 	nuspec{
-		id = mordavokne;
+		id = libmordavokne;
 		version : $(version);
 		title: Intrusive C++ GUI library;
 		authors: {Ivan Gagis};
