@@ -1,3 +1,9 @@
+libmordavokne (0.2.6) unstable; urgency=medium
+
+  * nuget package renamed to libmordavokne
+
+ -- Ivan Gagis <igagis@gmail.com>  Wed, 07 Sep 2016 11:14:08 +0300
+
 libmordavokne (0.2.5) unstable; urgency=medium
 
   * windows: filter out backspace, escape and carriage return from
