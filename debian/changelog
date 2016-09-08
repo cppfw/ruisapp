@@ -1,3 +1,9 @@
+libmordavokne (0.2.7) unstable; urgency=medium
+
+  * cocoapods dependency fix
+
+ -- Ivan Gagis <igagis@gmail.com>  Thu, 08 Sep 2016 19:24:55 +0300
+
 libmordavokne (0.2.6) unstable; urgency=medium
 
   * nuget package renamed to libmordavokne
