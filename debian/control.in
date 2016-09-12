@@ -1,11 +1,11 @@
 Source: libmordavokne
-Section: misc
+Section: libs
 Priority: extra
 Maintainer: Ivan Gagis <igagis@gmail.com>
 Build-Depends: debhelper (>= 9), prorab,
-		libc6-dev, libutki-dev, libpapki-dev, libmorda-dev
+		libutki-dev, libpapki-dev, libmorda-dev
 Build-Depends-Indep: doxygen
-Standards-Version: 3.9.2
+Standards-Version: 3.9.5
 
 Package: mordavokne-test
 Section: devel
@@ -24,11 +24,13 @@ Description: cross-platform C++ GUI library.
 Package: libmordavokne$(soname)-dbg
 Section: libdevel
 Architecture: any
+Section: debug
 Depends: libmordavokne$(soname) (= ${binary:Version}), ${misc:Depends}
-Description: debugging symbols for libmordavokne$(soname) package.
+Description: libmordavokne debugging symbols
+ Debug symbols for libmordavokne library.
 
 Package: libmordavokne-dev
-Section: devel
+Section: libdevel
 Architecture: all
 Depends: libmordavokne$(soname) (= ${binary:Version}), libmordavokne$(soname)-dbg (= ${binary:Version}), ${misc:Depends},
 		libutki-dev, libmorda-dev, libpapki-dev
@@ -39,6 +41,7 @@ Description: cross-platform C++ GUI library.
 Package: libmordavokne-doc
 Section: devel
 Architecture: all
+Section: doc
 Depends: ${misc:Depends}
 Description: documentation for libmordavokne library.
  For more details see description to libmordavokne-dev package.
