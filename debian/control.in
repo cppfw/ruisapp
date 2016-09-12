@@ -38,7 +38,6 @@ Description: cross-platform C++ GUI library.
  Some library.
 
 Package: libmordavokne-doc
-Section: devel
 Architecture: all
 Section: doc
 Depends: ${misc:Depends}
