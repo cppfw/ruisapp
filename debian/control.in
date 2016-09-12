@@ -22,7 +22,6 @@ Description: cross-platform C++ GUI library.
  GUI library.
 
 Package: libmordavokne$(soname)-dbg
-Section: libdevel
 Architecture: any
 Section: debug
 Depends: libmordavokne$(soname) (= ${binary:Version}), ${misc:Depends}
