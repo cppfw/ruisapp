@@ -3,7 +3,8 @@ Section: libs
 Priority: extra
 Maintainer: Ivan Gagis <igagis@gmail.com>
 Build-Depends: debhelper (>= 9), prorab,
-		libutki-dev, libpapki-dev, libmorda-dev, libkolme-dev, libstob-dev, libglew-dev
+		libutki-dev, libpapki-dev, libmorda-dev, libkolme-dev, libstob-dev,
+		libglew-dev, libnitki-dev
 Build-Depends-Indep: doxygen
 Standards-Version: 3.9.5
 
