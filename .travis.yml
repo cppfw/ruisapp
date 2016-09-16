@@ -126,10 +126,10 @@ script:
             | sed -e "s/-iquote [^ ]*/%/g"
             | sed -e "s/-isysroot [^ ]*/%/g";
   fi
-- if [ "$BUILD_NAME" == "raspberry_pi" ]; then
-    sudo chroot /srv/chroot/rasp-armhf bash -c "cd /build && prorab-deb-prepare.sh" &&
-    sudo chroot /srv/chroot/rasp-armhf bash -c "cd /build && dpkg-buildpackage -us -uc";
-  fi
+#- if [ "$BUILD_NAME" == "raspberry_pi" ]; then
+#    sudo chroot /srv/chroot/rasp-armhf bash -c "cd /build && prorab-deb-prepare.sh" &&
+#    sudo chroot /srv/chroot/rasp-armhf bash -c "cd /build && dpkg-buildpackage -us -uc";
+#  fi
 
 
 before_deploy:
@@ -157,16 +157,16 @@ deploy:
   key:
     secure: "kIXNr4EO3M98M86sEEsh89Sk08q3d1YN0/rphHJ92BpVqf0OykCqd0AWiZj5Bn+KCBdgI4giIZ+NIHlG8eD7ZLdxJEDUeseiPfvUX7whB0bpvrJZtONlxJ9/p68xnSfxwR6vL0byVgysaCMRBsBotdjplCiUsTSba16akAVDKLp2+sP774/DkujNfiO5tkh/4cRTeXFtNMQA/r6iARwbAkAREwiWPJVj9YHgJLf3hKWeHM3gu+SSlB0uH0ZZrL6CGdg3XRNo6XMQIGdi3g0vXrU/ieJIr8nvCPG03xtsULszIrCEE6oIklyS4Um5g3sFQ6sVpQHrlFCiE2vLv32CeJBVr1v7ut+DU3nLL0aZAk7jm8JGhhLkPef5fOhe/jFszIPxMmWdjzJXwvlROnDfs3XcemAYuIgivlCzYPiDfJB129v/6DfB+yNrvXDBIbsxFfz2dbUotVO0f61yHqTfQLO1VNFnf5122EvVJGzHWpKtaY2ABEJxujAs55efCkFIl6h52f1cwi+nwX/1dcOarHWZWUxbQgAhL/RisyDWQTx6UztW7rXzZ+NGBauYT9X55lkHJnJT0dVPTBGxda8ZbfpzYmISEf5Oaqqu7AzIlnUTPzKOrlUWaNL3r63XZCy0Rgs+312REW84PMm5gPr/wVMsDWu4P5SCyz7cywKN6VA="
   dry-run: false
-- provider: bintray
-  skip_cleanup: true
-  on:
-    tags: true
-    condition: $BUILD_NAME = raspberry_pi
-  file: travis_bintray_rasp.json
-  user: igagis
-  key:
-    secure: "kIXNr4EO3M98M86sEEsh89Sk08q3d1YN0/rphHJ92BpVqf0OykCqd0AWiZj5Bn+KCBdgI4giIZ+NIHlG8eD7ZLdxJEDUeseiPfvUX7whB0bpvrJZtONlxJ9/p68xnSfxwR6vL0byVgysaCMRBsBotdjplCiUsTSba16akAVDKLp2+sP774/DkujNfiO5tkh/4cRTeXFtNMQA/r6iARwbAkAREwiWPJVj9YHgJLf3hKWeHM3gu+SSlB0uH0ZZrL6CGdg3XRNo6XMQIGdi3g0vXrU/ieJIr8nvCPG03xtsULszIrCEE6oIklyS4Um5g3sFQ6sVpQHrlFCiE2vLv32CeJBVr1v7ut+DU3nLL0aZAk7jm8JGhhLkPef5fOhe/jFszIPxMmWdjzJXwvlROnDfs3XcemAYuIgivlCzYPiDfJB129v/6DfB+yNrvXDBIbsxFfz2dbUotVO0f61yHqTfQLO1VNFnf5122EvVJGzHWpKtaY2ABEJxujAs55efCkFIl6h52f1cwi+nwX/1dcOarHWZWUxbQgAhL/RisyDWQTx6UztW7rXzZ+NGBauYT9X55lkHJnJT0dVPTBGxda8ZbfpzYmISEf5Oaqqu7AzIlnUTPzKOrlUWaNL3r63XZCy0Rgs+312REW84PMm5gPr/wVMsDWu4P5SCyz7cywKN6VA="
-  dry-run: false
+#- provider: bintray
+#  skip_cleanup: true
+#  on:
+#    tags: true
+#    condition: $BUILD_NAME = raspberry_pi
+#  file: travis_bintray_rasp.json
+#  user: igagis
+#  key:
+#    secure: "kIXNr4EO3M98M86sEEsh89Sk08q3d1YN0/rphHJ92BpVqf0OykCqd0AWiZj5Bn+KCBdgI4giIZ+NIHlG8eD7ZLdxJEDUeseiPfvUX7whB0bpvrJZtONlxJ9/p68xnSfxwR6vL0byVgysaCMRBsBotdjplCiUsTSba16akAVDKLp2+sP774/DkujNfiO5tkh/4cRTeXFtNMQA/r6iARwbAkAREwiWPJVj9YHgJLf3hKWeHM3gu+SSlB0uH0ZZrL6CGdg3XRNo6XMQIGdi3g0vXrU/ieJIr8nvCPG03xtsULszIrCEE6oIklyS4Um5g3sFQ6sVpQHrlFCiE2vLv32CeJBVr1v7ut+DU3nLL0aZAk7jm8JGhhLkPef5fOhe/jFszIPxMmWdjzJXwvlROnDfs3XcemAYuIgivlCzYPiDfJB129v/6DfB+yNrvXDBIbsxFfz2dbUotVO0f61yHqTfQLO1VNFnf5122EvVJGzHWpKtaY2ABEJxujAs55efCkFIl6h52f1cwi+nwX/1dcOarHWZWUxbQgAhL/RisyDWQTx6UztW7rXzZ+NGBauYT9X55lkHJnJT0dVPTBGxda8ZbfpzYmISEf5Oaqqu7AzIlnUTPzKOrlUWaNL3r63XZCy0Rgs+312REW84PMm5gPr/wVMsDWu4P5SCyz7cywKN6VA="
+#  dry-run: false
 - provider: script
   skip_cleanup: true
   script: prorab-deploy-homebrew.sh igagis/tap
