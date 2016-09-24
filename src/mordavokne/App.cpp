@@ -109,7 +109,7 @@ void App::swapFrameBuffers(){
 #	if M_OS_NAME == M_OS_NAME_ANDROID
 	eglSwapBuffers(morda::App::inst().eglDisplay.d, morda::App::inst().eglSurface.s);
 #	else
-	glXSwapBuffers(this->xDisplay.d, this->xWindow.w);
+	glXSwapBuffers(this->windowWrapper.display, this->windowWrapper.window);
 #	endif
 #else
 #	error "unknown OS"

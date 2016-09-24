@@ -139,65 +139,18 @@ private:
 		~EGLContextWrapper()noexcept;
 	} eglContext;
 #	else
-	struct XDisplayWrapper{
-		Display* d;
-		XDisplayWrapper();
-		~XDisplayWrapper()noexcept;
-	} xDisplay;
-
-	
-	struct XVisualInfoWrapper{
-		XVisualInfo *vi;
-		XVisualInfoWrapper(const WindowParams& wp, XDisplayWrapper& xDisplay);
-		~XVisualInfoWrapper()noexcept;
-	} xVisualInfo;
-
-	struct XWindowWrapper{
-		::Window w;
-
-		XDisplayWrapper& d;
-
-		XWindowWrapper(const App::WindowParams& wp, XDisplayWrapper& xDisplay, XVisualInfoWrapper& xVisualInfo);
-		~XWindowWrapper()noexcept;
-	} xWindow;
-
-	struct GLXContextWrapper{
-		GLXContext glxContext;
-
-		XDisplayWrapper& d;
-		XWindowWrapper& w;
-
-		GLXContextWrapper(XDisplayWrapper& xDisplay, XWindowWrapper& xWindow, XVisualInfoWrapper& xVisualInfo);
-		~GLXContextWrapper()noexcept{
-			this->Destroy();
-		}
-
-		void Destroy()noexcept;
-	} glxContex;
-
-	struct XEmptyMouseCursor{
-		Cursor c;
+	struct WindowWrapper{
+		Display* display;
+		Colormap colorMap;
+		::Window window;
+		GLXContext glContext;
+		Cursor emptyCursor;
+		XIM inputMethod;
+		XIC inputContext;
 		
-		XDisplayWrapper& d;
-		
-		XEmptyMouseCursor(XDisplayWrapper& xDisplay, XWindowWrapper& xWindow);
-		~XEmptyMouseCursor()noexcept;
-	} xEmptyMouseCursor;
-	
-	struct XInputMethodWrapper{
-		XIM xim;
-		XIC xic;
-
-		XDisplayWrapper& d;
-		XWindowWrapper& w;
-
-		XInputMethodWrapper(XDisplayWrapper& xDisplay, XWindowWrapper& xWindow);
-		~XInputMethodWrapper()noexcept{
-			this->Destroy();
-		}
-
-		void Destroy()noexcept;
-	} xInputMethod;
+		WindowWrapper(const WindowParams& wp);
+		~WindowWrapper()noexcept;
+	} windowWrapper;
 
 	friend void Main(int argc, const char** argv);
 	void exec();
@@ -223,7 +176,7 @@ private:
 
 		WindowWrapper(const WindowParams& wp, const WindowClassWrapper& wc);
 		~WindowWrapper()noexcept;
-	} window;
+	} windowWrapper;
 
 	struct DeviceContextWrapper{
 		const WindowWrapper& w;
@@ -311,7 +264,7 @@ private:
 
 	struct OpenGLContext{
 		void *id;
-		OpenGLContext(const App::WindowParams& wp, void* window);
+		OpenGLContext(const App::WindowParams& wp, void* windowWrapper);
 		~OpenGLContext()noexcept{
 			this->Destroy();
 		}
