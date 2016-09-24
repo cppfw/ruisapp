@@ -176,7 +176,7 @@ private:
 
 		WindowWrapper(const WindowParams& wp, const WindowClassWrapper& wc);
 		~WindowWrapper()noexcept;
-	} windowWrapper;
+	} window;
 
 	struct DeviceContextWrapper{
 		const WindowWrapper& w;
@@ -264,7 +264,7 @@ private:
 
 	struct OpenGLContext{
 		void *id;
-		OpenGLContext(const App::WindowParams& wp, void* windowWrapper);
+		OpenGLContext(const App::WindowParams& wp, void* window);
 		~OpenGLContext()noexcept{
 			this->Destroy();
 		}
