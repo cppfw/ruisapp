@@ -19,30 +19,31 @@
 #include "config.hpp"
 
 
-#if M_MORDAVOKNE_RENDER == M_MORDAVOKNE_RENDER_OPENGL
-#	include <GL/glew.h>
-
-#	if M_OS == M_OS_LINUX
-#		include <GL/glx.h>
-#	endif
-
-#elif M_MORDAVOKNE_RENDER == M_MORDAVOKNE_RENDER_OPENGLES
+#ifdef M_RENDER_OPENGLES2
 #	if M_OS_NAME == M_OS_NAME_IOS
 #		include <OpenGlES/ES2/glext.h>
 #	else
 #		include <GLES2/gl2.h>
 #		include <EGL/egl.h>
 #	endif
-#elif M_MORDAVOKNE_RENDER == M_MORDAVOKNE_RENDER_DIRECTX
-
 #else
-#	error "Unknown OS"
+#	include <GL/glew.h>
+
+#	if M_OS == M_OS_LINUX
+#		include <GL/glx.h>
+#	endif
 #endif
 
+#if M_OS == M_OS_LINUX
+#	include <X11/Xlib.h>
+#	include <X11/Xutil.h>
+#endif
 
 #if M_OS == M_OS_LINUX || M_OS == M_OS_MACOSX
 #	include <nitki/Queue.hpp>
-#elif M_OS == M_OS_WINDOWS
+#endif
+
+#if M_OS == M_OS_WINDOWS
 #	include <utki/windows.hpp>
 #endif
 
@@ -302,11 +303,12 @@ private:
 #endif
 
 private:
+	std::shared_ptr<morda::Renderer> renderer;
 	
 	class MordaVOkne : public morda::Morda{
 	public:
-		MordaVOkne(morda::real dotsPerInch, morda::real dotsPerPt) :
-				Morda(dotsPerInch, dotsPerPt)
+		MordaVOkne(std::shared_ptr<morda::Renderer> r, morda::real dotsPerInch, morda::real dotsPerPt) :
+				Morda(r, dotsPerInch, dotsPerPt)
 		{}
 		
 		void postToUiThread_ts(std::function<void()>&& f) override{
@@ -433,6 +435,8 @@ public:
 	 * @param visible - whether to show (true) or hide (false) mouse cursor.
 	 */
 	void setMouseCursorVisible(bool visible);
+	
+
 };
 
 

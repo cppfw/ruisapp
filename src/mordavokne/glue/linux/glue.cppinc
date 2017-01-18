@@ -12,7 +12,7 @@
 
 #include <unikod/utf8.hpp>
 
-
+#include <mordaren/OpenGL2Renderer.hpp>
 
 
 using namespace mordavokne;
@@ -263,7 +263,8 @@ morda::real getDotsPerPt(Display* display){
 
 App::App(const WindowParams& requestedWindowParams) :
 		windowWrapper(requestedWindowParams),
-		gui(getDotsPerInch(windowWrapper.display), ::getDotsPerPt(windowWrapper.display))
+		renderer(utki::makeShared<OpenGL2Renderer>()),
+		gui(this->renderer, getDotsPerInch(windowWrapper.display), ::getDotsPerPt(windowWrapper.display))
 {}
 
 

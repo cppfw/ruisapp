@@ -36,7 +36,7 @@ else ifeq ($(prorab_os),linux)
     this_ldlibs += $(prorab_this_dir)../../src/libmordavokne$(prorab_lib_extension) -lGLEW -pthread -lGL -lX11 -ldl
 endif
 
-this_ldlibs += -lnitki -lpogodi -lstob -lpapki -lmorda -lm -lstdc++
+this_ldlibs += -lnitki -lpogodi -lstob -lpapki -lmorda -lm -lstdc++ -lmorda-opengl2-ren
 
 this_ldflags += -rdynamic
 

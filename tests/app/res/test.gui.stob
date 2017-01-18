@@ -157,12 +157,6 @@ Container{
 			background{WindowEmptyBackground}
 		}
 
-		GreyscaleGlass{
-			layout{
-				dx{max} dy{max}
-			}
-		}
-
 		HorizontalArea{
 			padding {20 30 10 40}
 
@@ -235,12 +229,6 @@ Container{
 
 		look{
 			background{WindowEmptyBackground}
-		}
-
-		BlurGlass{
-			layout{
-				dx{max} dy{max}
-			}
 		}
 
 		Table{
