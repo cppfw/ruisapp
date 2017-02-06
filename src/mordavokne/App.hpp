@@ -436,7 +436,16 @@ public:
 	 */
 	void setMouseCursorVisible(bool visible);
 	
-
+	
+	/**
+	 * @brief Find dots per point for given display parameters.
+	 * The size of the point for desktop displays should normally be equal to one pixel.
+	 * For handheld devices size of the point depends on physical screen size and pixel resolution.
+	 * @param resolution - resolution of the display in pixels.
+	 * @param screenSizeMm - size of the display in millimeters.
+	 * @return Size of one display point in pixels.
+	 */
+	static morda::real findDotsPerPt(kolme::Vec2ui resolution, kolme::Vec2ui screenSizeMm);
 };
 
 

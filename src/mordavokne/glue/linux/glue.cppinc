@@ -5,8 +5,6 @@
 
 #include "../../AppFactory.hpp"
 
-#include "../../../morda/util/util.hpp"
-
 #include <pogodi/WaitSet.hpp>
 #include <papki/FSFile.hpp>
 
@@ -257,7 +255,7 @@ morda::real getDotsPerPt(Display* display){
 	kolme::Vec2ui resolution(DisplayWidth(display, scrNum), DisplayHeight(display, scrNum));
 	kolme::Vec2ui screenSizeMm(DisplayWidthMM(display, scrNum), DisplayHeightMM(display, scrNum));
 	
-	return morda::findDotsPerPt(resolution, screenSizeMm);
+	return App::findDotsPerPt(resolution, screenSizeMm);
 }
 }//~namespace
 
