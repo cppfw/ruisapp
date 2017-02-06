@@ -263,7 +263,7 @@ morda::real getDotsPerPt(Display* display){
 
 App::App(const WindowParams& requestedWindowParams) :
 		windowWrapper(requestedWindowParams),
-		renderer(utki::makeShared<OpenGL2Renderer>()),
+		renderer(utki::makeShared<mordaren::OpenGL2Renderer>()),
 		gui(this->renderer, getDotsPerInch(windowWrapper.display), ::getDotsPerPt(windowWrapper.display))
 {}
 
