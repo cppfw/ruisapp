@@ -15,28 +15,44 @@ Depends: ${shlibs:Depends}, ${misc:Depends}, libmordavokne$(soname)
 Description: cross-platform C++ GUI library tests.
  GUI library tests.
 
-Package: libmordavokne$(soname)
+Package: libmordavokne-opengl2-bin$(soname)
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: cross-platform C++ GUI library.
- GUI library.
+ GUI library using OpenGL 2 rendering backend.
 
-Package: libmordavokne$(soname)-dbg
+Package: libmordavokne-opengl2-bin$(soname)-dbg
 Architecture: any
 Section: debug
 Depends: libmordavokne$(soname) (= ${binary:Version}), ${misc:Depends}
-Description: libmordavokne debugging symbols
- Debug symbols for libmordavokne library.
+Description: libmordavokne-opengl2 debugging symbols
+ Debug symbols for libmordavokne-opengl2 library.
+
+Package: libmordavokne-opengles2-bin$(soname)
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: cross-platform C++ GUI library.
+ GUI library using OpenGL 2 rendering backend.
+
+Package: libmordavokne-opengles2-bin$(soname)-dbg
+Architecture: any
+Section: debug
+Depends: libmordavokne$(soname) (= ${binary:Version}), ${misc:Depends}
+Description: libmordavokne-opengl2 debugging symbols
+ Debug symbols for libmordavokne-opengl2 library.
 
 Package: libmordavokne-dev
 Section: libdevel
 Architecture: any
-Depends: libmordavokne$(soname) (= ${binary:Version}), libmordavokne$(soname)-dbg (= ${binary:Version}), ${misc:Depends},
+Depends: libmordavokne-opengl2-bin$(soname) (= ${binary:Version}), libmordavokne-opengl2-bin$(soname)-dbg (= ${binary:Version}),
+		libmordavokne-opengles2-bin$(soname) (= ${binary:Version}), libmordavokne-opengles2-bin$(soname)-dbg (= ${binary:Version}),
+		${misc:Depends},
 		libutki-dev, libmorda-dev, libpapki-dev
 Suggests: libmordavokne-doc
 Description: cross-platform C++ GUI library.
- Some library.
+ GUI library development files.
 
 Package: libmordavokne-doc
 Architecture: all
