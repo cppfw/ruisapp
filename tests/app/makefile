@@ -15,6 +15,12 @@ this_cxxflags += -g
 this_cxxflags += -O3
 this_cxxflags += -std=c++11
 
+ifeq ($(ogles2), true)
+    this_mordavoknelib := libmordavokne-opengles2
+else
+    this_mordavoknelib := libmordavokne-opengl2
+endif
+
 
 ifeq ($(debug), true)
     this_cxxflags += -DDEBUG
@@ -22,7 +28,7 @@ endif
 
 ifeq ($(prorab_os),windows)
     this_ldlibs += -lmingw32 #these should go first, otherwise linker will complain about undefined reference to WinMain
-    this_ldlibs += $(prorab_this_dir)../../src/libmordavokne$(prorab_lib_extension)
+    this_ldlibs += $(prorab_this_dir)../../src/$(this_mordavoknelib)$(prorab_lib_extension)
     this_ldflags += -L/usr/lib -L/usr/local/lib
     this_ldlibs +=  -lglew32 -lopengl32 -lpng -ljpeg -lz -lfreetype -mwindows
 
@@ -31,12 +37,12 @@ ifeq ($(prorab_os),windows)
     #WORKAROUND for MinGW bug:
     this_cxxflags += -D__STDC_FORMAT_MACROS
 else ifeq ($(prorab_os),macosx)
-    this_ldlibs += $(prorab_this_dir)../../src/libmordavokne$(prorab_lib_extension) -lGLEW -framework OpenGL -framework Cocoa -lpng -ljpeg -lfreetype
+    this_ldlibs += $(prorab_this_dir)../../src/$(this_mordavoknelib)$(prorab_lib_extension) -lGLEW -framework OpenGL -framework Cocoa -lpng -ljpeg -lfreetype
 else ifeq ($(prorab_os),linux)
-    this_ldlibs += $(prorab_this_dir)../../src/libmordavokne$(prorab_lib_extension) -lGLEW -pthread -lGL -lX11 -ldl
+    this_ldlibs += $(prorab_this_dir)../../src/$(this_mordavoknelib)$(prorab_lib_extension) -lGLEW -pthread -lGL -lX11 -ldl
 endif
 
-this_ldlibs += -lnitki -lpogodi -lstob -lpapki -lmorda -lm -lstdc++ -lmorda-opengl2-ren
+this_ldlibs += -lnitki -lpogodi -lstob -lpapki -lmorda -lm -lstdc++
 
 this_ldflags += -rdynamic
 
@@ -53,18 +59,18 @@ $(eval $(this_rules))
 
 #add dependency on libmordavokne
 ifeq ($(prorab_os),windows)
-    $(prorab_this_dir)libmordavokne$(prorab_lib_extension): $(abspath $(prorab_this_dir)../../src/libmorda$(prorab_lib_extension))
+    $(prorab_this_dir)$(this_mordavoknelib)$(prorab_lib_extension): $(abspath $(prorab_this_dir)../../src/$(this_mordavoknelib)$(prorab_lib_extension))
 	@cp $< $@
 
-    $(prorab_this_name): $(prorab_this_dir)libmordavokne$(prorab_lib_extension)
+    $(prorab_this_name): $(prorab_this_dir)$(this_mordavoknelib)$(prorab_lib_extension)
 
     define this_rules
         clean::
-		@rm -f $(prorab_this_dir)libmordavokne$(prorab_lib_extension)
+		@rm -f $(prorab_this_dir)$(this_mordavoknelib)$(prorab_lib_extension)
     endef
     $(eval $(this_rules))
 else
-    $(prorab_this_name): $(abspath $(prorab_this_dir)../../src/libmordavokne$(prorab_lib_extension))
+    $(prorab_this_name): $(abspath $(prorab_this_dir)../../src/$(this_mordavoknelib)$(prorab_lib_extension))
 endif
 
 

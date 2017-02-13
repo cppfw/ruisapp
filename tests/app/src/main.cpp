@@ -27,7 +27,7 @@
 
 #include <morda/util/ZipFile.hpp>
 
-
+#include <GL/glew.h>
 
 
 class SimpleWidget : virtual public morda::Widget, public morda::Updateable, public morda::CharInputWidget{

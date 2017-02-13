@@ -19,30 +19,20 @@
 #include "config.hpp"
 
 
-#ifdef M_RENDER_OPENGLES2
-#	if M_OS_NAME == M_OS_NAME_IOS
-#		include <OpenGlES/ES2/glext.h>
-#	else
-#		include <GLES2/gl2.h>
-#		include <EGL/egl.h>
-#	endif
-#else
-#	include <GL/glew.h>
+//TODO: remove
+//#ifdef M_RENDER_OPENGLES2
+//#	if M_OS_NAME == M_OS_NAME_IOS
+//#		include <OpenGlES/ES2/glext.h>
+//#	else
+//#		include <GLES2/gl2.h>
+//#		include <EGL/egl.h>
+//#	endif
+//#else
 
-#	if M_OS == M_OS_LINUX
-#		include <GL/glx.h>
-#	endif
-#endif
+//#endif
 
-#if M_OS == M_OS_LINUX
-#	include <X11/Xlib.h>
-#	include <X11/Xutil.h>
-#endif
 
-#if M_OS == M_OS_LINUX || M_OS == M_OS_MACOSX
-#	include <nitki/Queue.hpp>
-#endif
-
+//TODO:remove
 #if M_OS == M_OS_WINDOWS
 #	include <utki/windows.hpp>
 #endif

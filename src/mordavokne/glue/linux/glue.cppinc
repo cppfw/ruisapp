@@ -11,7 +11,26 @@
 
 #include <unikod/utf8.hpp>
 
-#include <mordaren/OpenGL2Renderer.hpp>
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+
+#ifdef M_RENDER_OPENGL2
+#	include <GL/glew.h>
+#	include <GL/glx.h>
+
+#	include <mordaren/OpenGL2Renderer.hpp>
+
+#elif defined(M_RENDER_OPENGLES2)
+#	include <GLES2/gl2.h>
+#	include <EGL/egl.h>
+
+#	include <mordaren/OpenGLES2Renderer.hpp>
+
+#else
+#	error "Unknown graphics API"
+#endif
+
+
 
 
 using namespace mordavokne;
@@ -25,7 +44,15 @@ struct WindowWrapper : public utki::Unique{
 	Display* display;
 	Colormap colorMap;
 	::Window window;
+#ifdef M_RENDER_OPENGL2
 	GLXContext glContext;
+#elif defined(M_RENDER_OPENGLES2)
+	EGLDisplay eglDisplay;
+	EGLSurface eglSurface;
+	EGLContext eglContext;
+#else
+#	error "Unknown graphics API"
+#endif
 	Cursor emptyCursor;
 	XIM inputMethod;
 	XIC inputContext;
@@ -43,6 +70,7 @@ struct WindowWrapper : public utki::Unique{
 			XCloseDisplay(this->display);
 		});
 
+#ifdef M_RENDER_OPENGL2
 		{
 			int glxVerMajor, glxVerMinor;
 			if(!glXQueryVersion(this->display, &glxVerMajor, &glxVerMinor)){
@@ -54,7 +82,7 @@ struct WindowWrapper : public utki::Unique{
 				throw utki::Exc("GLX version 1.3 or above is required");
 			}
 		}
-
+		
 		GLXFBConfig bestFbc;
 		{
 			std::vector<int> visualAttribs;
@@ -107,19 +135,86 @@ struct WindowWrapper : public utki::Unique{
 			}
 			bestFbc = fbc[ bestFbcIdx ];
 		}
+#elif defined(M_RENDER_OPENGLES2)
+		this->eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+		if(this->eglDisplay == EGL_NO_DISPLAY){
+			throw morda::Exc("eglGetDisplay(): failed, no matching display connection found");
+		}
+
+		utki::ScopeExit scopeExitEGLDisplay([this](){
+			eglTerminate(this->eglDisplay);
+		});
+		
+		if(eglInitialize(this->eglDisplay, 0, 0) == EGL_FALSE){
+			eglTerminate(this->eglDisplay);
+			throw morda::Exc("eglInitialize() failed");
+		}
+		
+		EGLConfig eglConfig;
+		{
+			//TODO: allow stencil configuration etc. via WindowParams
+			//Here specify the attributes of the desired configuration.
+			//Below, we select an EGLConfig with at least 8 bits per color
+			//component compatible with on-screen windows
+			const EGLint attribs[] = {
+					EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+					EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT, //we want OpenGL ES 2.0
+					EGL_BLUE_SIZE, 8,
+					EGL_GREEN_SIZE, 8,
+					EGL_RED_SIZE, 8,
+					EGL_NONE
+			};
+
+			//Here, the application chooses the configuration it desires. In this
+			//sample, we have a very simplified selection process, where we pick
+			//the first EGLConfig that matches our criteria
+			EGLint numConfigs;
+			eglChooseConfig(this->eglDisplay, attribs, &eglConfig, 1, &numConfigs);
+			if(numConfigs <= 0){
+				throw morda::Exc("eglChooseConfig() failed, no matching config found");
+			}
+		}
+#else
+#	error "Unknown graphics API"
+#endif
 
 
-		XVisualInfo *vi = glXGetVisualFromFBConfig( this->display, bestFbc );
+		XVisualInfo *vi;
+#ifdef M_RENDER_OPENGL2
+		vi = glXGetVisualFromFBConfig(this->display, bestFbc);
+		if (!vi) {
+			throw morda::Exc("glXGetVisualFromFBConfig() failed");
+		}
+#elif defined(M_RENDER_OPENGLES2)
+		{
+			EGLint vid;
+	
+			if(!eglGetConfigAttrib(this->eglDisplay, eglConfig, EGL_NATIVE_VISUAL_ID, &vid)) {
+				throw morda::Exc("eglGetConfigAttrib() failed");
+			}
+
+			int numVisuals;
+			XVisualInfo visTemplate;
+			visTemplate.visualid = vid;
+			vi = XGetVisualInfo(this->display, VisualIDMask, &visTemplate, &numVisuals);
+			if (!vi) {
+				throw morda::Exc("XGetVisualInfo() failed");
+			}
+		}
+#else
+#	error "Unknown graphics API"
+#endif
 		utki::ScopeExit scopeExitVisualInfo([vi](){
 			XFree(vi);
 		});
 
 		this->colorMap = XCreateColormap(
 				this->display,
-				RootWindow(this->display, vi->screen ),
+				RootWindow(this->display, vi->screen),
 				vi->visual,
 				AllocNone
 			);
+		//TODO: check for error?
 		utki::ScopeExit scopeExitColorMap([this](){
 			XFreeColormap(this->display, this->colorMap);
 		});
@@ -174,7 +269,7 @@ struct WindowWrapper : public utki::Unique{
 
 		XFlush(this->display);
 
-
+#ifdef M_RENDER_OPENGL2
 		this->glContext = glXCreateContext(this->display, vi, 0, GL_TRUE);
 		if(this->glContext == NULL){
 			throw morda::Exc("glXCreateContext() failed");
@@ -191,6 +286,38 @@ struct WindowWrapper : public utki::Unique{
 		if(glewInit() != GLEW_OK){
 			throw morda::Exc("GLEW initialization failed");
 		}
+#elif defined(M_RENDER_OPENGLES2)
+		this->eglSurface = eglCreateWindowSurface(this->eglDisplay, eglConfig, this->window, NULL);
+		if(this->eglSurface == EGL_NO_SURFACE){
+			throw morda::Exc("eglCreateWindowSurface() failed");
+		}
+		utki::ScopeExit scopeExitEGLSurface([this](){
+			eglDestroySurface(this->eglDisplay, this->eglSurface);
+		});
+		
+		{
+			EGLint contextAttrs[] = {
+				EGL_CONTEXT_CLIENT_VERSION, 2, //This is needed at least on Android, otherwise eglCreateContext() thinks that we want OpenGL ES 1.1, but we want 2.0
+				EGL_NONE
+			};
+
+			this->eglContext = eglCreateContext(this->eglDisplay, eglConfig, NULL, contextAttrs);
+			if(this->eglContext == EGL_NO_CONTEXT){
+				throw morda::Exc("eglCreateContext() failed");
+			}
+		}
+
+		if(eglMakeCurrent(this->eglDisplay, this->eglSurface, this->eglSurface, this->eglContext) == EGL_FALSE){
+			eglDestroyContext(this->eglDisplay, this->eglContext);
+			throw morda::Exc("eglMakeCurrent() failed");
+		}
+		utki::ScopeExit scopeExitEGLContext([this](){
+			eglMakeCurrent(this->eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+			eglDestroyContext(this->eglDisplay, this->eglContext);
+		});
+#else
+#	error "Unknown graphics API"
+#endif
 		
 		{
 			Pixmap blank;
@@ -238,10 +365,18 @@ struct WindowWrapper : public utki::Unique{
 		scopeExitInputContext.reset();
 		scopeExitInputMethod.reset();
 		scopeExitEmptyCursor.reset();
-		scopeExitGLContext.reset();
 		scopeExitWindow.reset();
 		scopeExitColorMap.reset();
 		scopeExitDisplay.reset();
+#ifdef M_RENDER_OPENGL2
+		scopeExitGLContext.reset();
+#elif defined(M_RENDER_OPENGLES2)
+		scopeExitEGLDisplay.reset();
+		scopeExitEGLSurface.reset();
+		scopeExitEGLContext.reset();
+#else
+#	error "Unknown graphics API"
+#endif
 	}
 	~WindowWrapper()noexcept{
 		XUnsetICFocus(this->inputContext);
@@ -250,11 +385,24 @@ struct WindowWrapper : public utki::Unique{
 		XCloseIM(this->inputMethod);
 		XFreeCursor(this->display, this->emptyCursor);
 
+#ifdef M_RENDER_OPENGL2
 		glXMakeCurrent(this->display, None, NULL);
 		glXDestroyContext(this->display, this->glContext);
+#elif defined(M_RENDER_OPENGLES2)
+		eglMakeCurrent(this->eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+		eglDestroyContext(this->eglDisplay, this->eglContext);
+		eglDestroySurface(this->eglDisplay, this->eglSurface);
+#else
+#	error "Unknown graphics API"
+#endif
 
 		XDestroyWindow(this->display, this->window);
 		XFreeColormap(this->display, this->colorMap);
+		
+#ifdef M_RENDER_OPENGLES2
+		eglTerminate(this->eglDisplay);
+#endif
+		
 		XCloseDisplay(this->display);
 	}
 };
@@ -291,7 +439,13 @@ App::App(const WindowParams& requestedWindowParams) :
 		windowPimpl(utki::makeUnique<WindowWrapper>(requestedWindowParams)),
 		gui(
 				*this,
+#ifdef M_RENDER_OPENGL2
 				utki::makeShared<mordaren::OpenGL2Renderer>(),
+#elif defined(M_RENDER_OPENGLES2)
+				utki::makeShared<mordaren::OpenGLES2Renderer>(),
+#else
+#	error "Unknown graphics API"
+#endif
 				getDotsPerInch(getImpl(windowPimpl).display),
 				::getDotsPerPt(getImpl(windowPimpl).display)
 			)
@@ -858,8 +1012,14 @@ void App::setMouseCursorVisible(bool visible){
 
 void App::swapFrameBuffers(){
 	auto& ww = getImpl(this->windowPimpl);
-	
+
+#ifdef M_RENDER_OPENGL2	
 	glXSwapBuffers(ww.display, ww.window);
+#elif defined(M_RENDER_OPENGLES2)
+	eglSwapBuffers(ww.eglDisplay, ww.eglSurface);
+#else
+#	error "Unknown graphics API"
+#endif
 }
 
 
