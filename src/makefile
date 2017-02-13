@@ -39,7 +39,7 @@ endif
 
 ifeq ($(prorab_os), linux)
     this_common_cxxflags += -fPIC #generate position independent code
-    this_common_ldlibs += -ldl -lnitki -lpogodi -lX11 -lGL -lGLEW
+    this_common_ldlibs += -ldl -lnitki -lpogodi -lX11
 else ifeq ($(prorab_os), windows)
 #    this_common_cxxflags += -Wno-format #due to bugs in some g++ versions it warns about format when not needed, so disable format warnings
 #    this_common_cxxflags += -I/usr/include -I/usr/local/include/ -I/usr/local/include/freetype2
@@ -69,7 +69,7 @@ this_common_ldlibs += -lmorda -lpapki -lstob -lstdc++
 this_name := mordavokne-opengl2
 
 this_cxxflags := $(this_common_cxxflags) -DM_RENDER_OPENGL2
-this_ldlibs := $(this_common_ldlibs) -lmorda-opengl2-ren
+this_ldlibs := $(this_common_ldlibs) -lmorda-opengl2-ren -lGL -lGLEW
 
 $(eval $(prorab-build-lib))
 

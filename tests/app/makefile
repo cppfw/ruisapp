@@ -39,10 +39,10 @@ ifeq ($(prorab_os),windows)
 else ifeq ($(prorab_os),macosx)
     this_ldlibs += $(prorab_this_dir)../../src/$(this_mordavoknelib)$(prorab_lib_extension) -lGLEW -framework OpenGL -framework Cocoa -lpng -ljpeg -lfreetype
 else ifeq ($(prorab_os),linux)
-    this_ldlibs += $(prorab_this_dir)../../src/$(this_mordavoknelib)$(prorab_lib_extension) -lGLEW -pthread -lGL -lX11 -ldl
+    this_ldlibs += $(prorab_this_dir)../../src/$(this_mordavoknelib)$(prorab_lib_extension) -pthread -lGL
 endif
 
-this_ldlibs += -lnitki -lpogodi -lstob -lpapki -lmorda -lm -lstdc++
+this_ldlibs += -lstob -lmorda -lm -lstdc++
 
 this_ldflags += -rdynamic
 
