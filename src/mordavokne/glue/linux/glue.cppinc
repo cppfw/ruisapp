@@ -188,7 +188,10 @@ struct WindowWrapper : public utki::Unique{
 
 		TRACE(<< "OpenGL version: " << glGetString(GL_VERSION) << std::endl)
 
-
+		if(glewInit() != GLEW_OK){
+			throw morda::Exc("GLEW initialization failed");
+		}
+		
 		{
 			Pixmap blank;
 			XColor dummy;
@@ -287,6 +290,7 @@ morda::real getDotsPerPt(Display* display){
 App::App(const WindowParams& requestedWindowParams) :
 		windowPimpl(utki::makeUnique<WindowWrapper>(requestedWindowParams)),
 		gui(
+				*this,
 				utki::makeShared<mordaren::OpenGL2Renderer>(),
 				getDotsPerInch(getImpl(windowPimpl).display),
 				::getDotsPerPt(getImpl(windowPimpl).display)
@@ -856,4 +860,12 @@ void App::swapFrameBuffers(){
 	auto& ww = getImpl(this->windowPimpl);
 	
 	glXSwapBuffers(ww.display, ww.window);
+}
+
+
+
+void App::MordaVOkne::postToUiThread_ts(std::function<void()>&& f){
+	auto& ww = getImpl(getWindowPimpl(this->app));
+	
+	ww.uiQueue.pushMessage(std::move(f));
 }

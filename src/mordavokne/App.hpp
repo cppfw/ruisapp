@@ -270,42 +270,27 @@ private:
 #endif
 
 private:
-#if M_OS_NAME != M_OS_NAME_IOS
 	void swapFrameBuffers();
-#endif
-	
-	struct GLEWWrapper{
-		GLEWWrapper();
-	} glewWrapper;
-	
-
-#if M_OS_NAME != M_OS_NAME_ANDROID
-private:
-	//TODO: move to pimpl
-	volatile bool quitFlag = false;
-#endif
-
-
-#if M_OS != M_OS_WINDOWS && M_OS != M_OS_MACOSX
-private:
-	//TODO: move to pimpl
-	nitki::Queue uiQueue;
-#endif
 
 public:
 	class MordaVOkne : public morda::Morda{
+		App& app;
 	public:
-		MordaVOkne(std::shared_ptr<morda::Renderer> r, morda::real dotsPerInch, morda::real dotsPerPt) :
-				Morda(r, dotsPerInch, dotsPerPt)
+		MordaVOkne(App& app, std::shared_ptr<morda::Renderer> r, morda::real dotsPerInch, morda::real dotsPerPt) :
+				Morda(r, dotsPerInch, dotsPerPt),
+				app(app)
 		{}
 		
-		void postToUiThread_ts(std::function<void()>&& f) override{
-#if M_OS == M_OS_WINDOWS || M_OS == M_OS_MACOSX
-			App::inst().postToUiThread_ts(std::move(f));
-#else
-			App::inst().uiQueue.pushMessage(std::move(f));
-#endif
-		}
+
+		void postToUiThread_ts(std::function<void()>&& f) override;
+//TODO: move to glue
+//		{
+//#if M_OS == M_OS_WINDOWS || M_OS == M_OS_MACOSX
+//			App::inst().postToUiThread_ts(std::move(f));
+//#else
+//			App::inst().uiQueue.pushMessage(std::move(f));
+//#endif
+//		}
 	} gui;
 	
 public:

@@ -87,16 +87,6 @@ void App::swapFrameBuffers(){
 
 
 
-App::GLEWWrapper::GLEWWrapper(){
-#if M_MORDAVOKNE_RENDER == M_MORDAVOKNE_RENDER_OPENGL
-	if(glewInit() != GLEW_OK){
-		throw utki::Exc("GLEW initialization failed");
-	}
-#endif
-}
-
-
-
 morda::real App::findDotsPerPt(kolme::Vec2ui resolution, kolme::Vec2ui screenSizeMm){
 	
 	//NOTE: for ordinary desktop displays the PT size should be equal to 1 pixel.
