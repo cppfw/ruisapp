@@ -52,8 +52,7 @@
       </toolsSet>
       <flagsDictionary>
         <element flagsID="0" commonFlags="-O3 -std=c++11"/>
-        <element flagsID="1" commonFlags="-funsigned-char -std=c++11 -fPIC"/>
-        <element flagsID="2"
+        <element flagsID="1"
                  commonFlags="-mtune=generic -march=x86-64 -std=c++11 -funsigned-char -fPIC -fstack-protector-strong"/>
       </flagsDictionary>
       <codeAssistance>
@@ -80,11 +79,23 @@
       <folder path="0/mordavokne/glue">
         <ccTool>
           <incDir>
+            <pElem>/usr/include/morda</pElem>
+            <pElem>/usr/include/unikod</pElem>
+            <pElem>/usr/include/stob</pElem>
+            <pElem>/usr/include/kolme</pElem>
+            <pElem>/usr/include/pogodi</pElem>
+            <pElem>src/mordavokne</pElem>
+            <pElem>src/mordavokne/glue</pElem>
+            <pElem>src/mordavokne/glue/linux</pElem>
+            <pElem>/usr/include/papki</pElem>
+            <pElem>/usr/include/morda/util</pElem>
+            <pElem>/usr/include/morda/render</pElem>
+            <pElem>/usr/include/X11</pElem>
+            <pElem>/usr/include/GL</pElem>
+            <pElem>/usr/include/mordaren</pElem>
+            <pElem>/usr/include/nitki</pElem>
             <pElem>.</pElem>
           </incDir>
-          <preprocessorList>
-            <Elem>DEBUG</Elem>
-          </preprocessorList>
         </ccTool>
       </folder>
       <folder path="1">
@@ -98,9 +109,8 @@
         </ccTool>
       </folder>
       <item path="src/mordavokne/App.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool flags="2">
+        <ccTool flags="1">
           <incDir>
-            <pElem>/usr/include/utki</pElem>
             <pElem>/usr/include/papki</pElem>
             <pElem>/usr/include/morda</pElem>
             <pElem>src/mordavokne</pElem>

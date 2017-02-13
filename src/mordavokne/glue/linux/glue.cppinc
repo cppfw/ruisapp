@@ -311,7 +311,7 @@ public:
 	}
 };
 
-morda::MouseButton_e ButtonNumberToEnum(int number){
+morda::MouseButton_e buttonNumberToEnum(int number){
 	switch(number){
 		case 1:
 			return morda::MouseButton_e::LEFT;
@@ -748,7 +748,7 @@ int main(int argc, const char** argv){
 								*app,
 								true,
 								morda::Vec2r(event.xbutton.x, event.xbutton.y),
-								ButtonNumberToEnum(event.xbutton.button),
+								buttonNumberToEnum(event.xbutton.button),
 								0
 							);
 						break;
@@ -758,7 +758,7 @@ int main(int argc, const char** argv){
 								*app,
 								false,
 								morda::Vec2r(event.xbutton.x, event.xbutton.y),
-								ButtonNumberToEnum(event.xbutton.button),
+								buttonNumberToEnum(event.xbutton.button),
 								0
 							);
 						break;
