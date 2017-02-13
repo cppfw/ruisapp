@@ -21,7 +21,6 @@
 #	include <mordaren/OpenGL2Renderer.hpp>
 
 #elif defined(M_RENDER_OPENGLES2)
-#	include <GLES2/gl2.h>
 #	include <EGL/egl.h>
 
 #	include <mordaren/OpenGLES2Renderer.hpp>
