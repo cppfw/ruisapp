@@ -4,6 +4,7 @@
     <df root="src" name="0">
       <df name="mordavokne">
         <df name="glue">
+          <in>createAppUnix.cppinc</in>
           <in>glue.cpp</in>
         </df>
         <in>App.cpp</in>
@@ -177,6 +178,11 @@
         </ccTool>
       </item>
       <item path="src/mordavokne/config.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/mordavokne/glue/createAppUnix.cppinc"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="tests/app/src/main.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="0">

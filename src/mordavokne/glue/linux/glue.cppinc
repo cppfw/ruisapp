@@ -17,6 +17,8 @@
 using namespace mordavokne;
 
 
+#include "../createAppUnix.cppinc"
+
 
 namespace{
 struct WindowWrapper : public utki::Unique{
