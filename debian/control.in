@@ -6,7 +6,7 @@ Build-Depends: debhelper (>= 9), prorab,
 		libutki-dev, libpapki-dev, libmorda-dev, libkolme-dev, libstob-dev,
 		libglew-dev, libnitki-dev,
 		libmorda-opengl2-ren-dev,
-		libmorda-opengles2-ren-dev
+		libmorda-opengles2-ren-dev,
 		libegl1-mesa-dev
 Build-Depends-Indep: doxygen
 Standards-Version: 3.9.5
