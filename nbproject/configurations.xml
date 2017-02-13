@@ -89,8 +89,8 @@
             <pElem>/usr/include/papki</pElem>
             <pElem>/usr/include/morda/util</pElem>
             <pElem>/usr/include/morda/render</pElem>
-            <pElem>/usr/include/GL</pElem>
             <pElem>/usr/include/X11</pElem>
+            <pElem>/usr/include/GL</pElem>
             <pElem>/usr/include/mordaren</pElem>
             <pElem>/usr/include/nitki</pElem>
             <pElem>src/mordavokne/glue</pElem>

@@ -303,8 +303,6 @@ private:
 #endif
 
 private:
-	std::shared_ptr<morda::Renderer> renderer;
-	
 	class MordaVOkne : public morda::Morda{
 	public:
 		MordaVOkne(std::shared_ptr<morda::Renderer> r, morda::real dotsPerInch, morda::real dotsPerPt) :
