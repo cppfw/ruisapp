@@ -7,11 +7,6 @@
 #include <papki/RootDirFile.hpp>
 
 
-#if M_OS == M_OS_UNIX || M_OS == M_OS_LINUX || M_OS == M_OS_MACOSX
-#	include <dlfcn.h>
-#endif
-
-
 using namespace mordavokne;
 
 
@@ -73,44 +68,20 @@ void App::hideVirtualKeyboard()noexcept{
 
 
 
-
-#if M_OS == M_OS_LINUX || M_OS == M_OS_MACOSX || M_OS == M_OS_UNIX
-std::unique_ptr<App> mordavokne::createAppUnix(int argc, const char** argv, const utki::Buf<std::uint8_t> savedState){
-	void* libHandle = dlopen(nullptr, RTLD_NOW);
-	if(!libHandle){
-		throw morda::Exc("dlopen(): failed");
-	}
-
-	utki::ScopeExit scopeexit([libHandle](){
-		dlclose(libHandle);
-	});
-
-	auto factory =
-			reinterpret_cast<
-					std::unique_ptr<App> (*)(int, const char**, const utki::Buf<std::uint8_t>)
-				>(dlsym(libHandle, "_ZN10mordavokne9createAppEiPPKcN4utki3BufIhEE"));
-	if(!factory){
-		throw morda::Exc("dlsym(): createApp() function not found!");
-	}
-
-	return factory(argc, argv, savedState);
-}
-#endif
-
-
-#if M_OS != M_OS_MACOSX
+//TODO: move to specific glue files
+#if M_OS != M_OS_MACOSX && !(M_OS == M_OS_LINUX && M_OS_NAME == M_OS_NAME_UNKNOWN)
 void App::swapFrameBuffers(){
-#if M_OS == M_OS_WINDOWS
+#	if M_OS == M_OS_WINDOWS
 	SwapBuffers(this->deviceContext.hdc);
-#elif M_OS == M_OS_LINUX
-#	if M_OS_NAME == M_OS_NAME_ANDROID
+#	elif M_OS == M_OS_LINUX
+#		if M_OS_NAME == M_OS_NAME_ANDROID
 	eglSwapBuffers(morda::App::inst().eglDisplay.d, morda::App::inst().eglSurface.s);
-#	else
+#		else
 	glXSwapBuffers(this->windowWrapper.display, this->windowWrapper.window);
+#		endif
+#	else
+#		error "unknown OS"
 #	endif
-#else
-#	error "unknown OS"
-#endif
 }
 #endif
 

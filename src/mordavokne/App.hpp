@@ -59,7 +59,7 @@ namespace mordavokne{
  * An application should subclass this class and return an instance from the
  * application factory function createApp(), see AppFactory.hpp for details.
  * When instance of this class is created it also creates a window and
- * initializes OpenGL (or OpenGL ES).
+ * initializes rendering API (e.g. OpenGL or OpenGL ES).
  */
 class App :
 		public utki::IntrusiveSingleton<App>,
@@ -98,8 +98,10 @@ public:
 		{}
 	};
 	
-public:
+private:
+	std::unique_ptr<utki::Unique> windowPimpl;
 	
+	friend const decltype(windowPimpl)& getWindowPimpl(App& app);
 
 #if M_OS == M_OS_LINUX
 
@@ -140,21 +142,7 @@ private:
 		~EGLContextWrapper()noexcept;
 	} eglContext;
 #	else
-	struct WindowWrapper{
-		Display* display;
-		Colormap colorMap;
-		::Window window;
-		GLXContext glContext;
-		Cursor emptyCursor;
-		XIM inputMethod;
-		XIC inputContext;
-		
-		WindowWrapper(const WindowParams& wp);
-		~WindowWrapper()noexcept;
-	} windowWrapper;
-
-	friend void Main(int argc, const char** argv);
-	void exec();
+	
 
 #	endif
 
@@ -293,16 +281,18 @@ private:
 
 #if M_OS_NAME != M_OS_NAME_ANDROID
 private:
+	//TODO: move to pimpl
 	volatile bool quitFlag = false;
 #endif
 
 
 #if M_OS != M_OS_WINDOWS && M_OS != M_OS_MACOSX
 private:
+	//TODO: move to pimpl
 	nitki::Queue uiQueue;
 #endif
 
-private:
+public:
 	class MordaVOkne : public morda::Morda{
 	public:
 		MordaVOkne(std::shared_ptr<morda::Renderer> r, morda::real dotsPerInch, morda::real dotsPerPt) :
@@ -328,16 +318,21 @@ public:
 	 * @return Instance of the file interface into the resources storage.
 	 */
 	std::unique_ptr<papki::File> createResourceFileInterface(const std::string& path = std::string())const;
-
+	
+	
 private:
 	//this is a viewport rectangle in coordinates that are as follows: x grows right, y grows up.
 	morda::Rectr curWinRect = morda::Rectr(0, 0, 0, 0);
 
 private:
+	void render();
+	
+	friend void render(App& app);
+	
 	void updateWindowRect(const morda::Rectr& rect);
 
-	void render();
-
+	friend void updateWindowRect(App& app, const morda::Rectr& rect);
+	
 	//pos is in usual window coordinates, y goes down.
 	morda::Vec2r nativeWindowToRootCoordinates(const kolme::Vec2f& pos)const noexcept{
 		return morda::Vec2r(pos.x, this->curWinRect.d.y - pos.y - 1.0f);
@@ -347,15 +342,21 @@ private:
 	void handleMouseMove(const kolme::Vec2f& pos, unsigned id){
 		this->gui.onMouseMove(this->nativeWindowToRootCoordinates(pos), id);
 	}
+	
+	friend void handleMouseMove(App& app, const kolme::Vec2f& pos, unsigned id);
 
 	//pos is in usual window coordinates, y goes down.
 	void handleMouseButton(bool isDown, const kolme::Vec2f& pos, morda::MouseButton_e button, unsigned id){
 		this->gui.onMouseButton(isDown, this->nativeWindowToRootCoordinates(pos), button, id);
 	}
+	
+	friend void handleMouseButton(App& app, bool isDown, const kolme::Vec2f& pos, morda::MouseButton_e button, unsigned id);
 
 	void handleMouseHover(bool isHovered, unsigned pointerID){
 		this->gui.onMouseHover(isHovered, pointerID);
 	}
+	
+	friend void handleMouseHover(App& app, bool isHovered, unsigned pointerID);
 
 protected:
 	/**
@@ -390,10 +391,14 @@ private:
 	void handleCharacterInput(const morda::Morda::UnicodeProvider& unicodeResolver, morda::Key_e key){
 		this->gui.onCharacterInput(unicodeResolver, key);
 	}
+	
+	friend void handleCharacterInput(App& app, const morda::Morda::UnicodeProvider& unicodeResolver, morda::Key_e key);
 
 	void handleKeyEvent(bool isDown, morda::Key_e keyCode){
 		this->gui.onKeyEvent(isDown, keyCode);
 	}
+	
+	friend void handleKeyEvent(App& app, bool isDown, morda::Key_e keyCode);
 
 public:
 	
@@ -445,15 +450,6 @@ public:
 	 */
 	static morda::real findDotsPerPt(kolme::Vec2ui resolution, kolme::Vec2ui screenSizeMm);
 };
-
-
-
-#if M_OS == M_OS_LINUX || M_OS == M_OS_MACOSX || M_OS == M_OS_UNIX
-/**
- * @brief For internal use only.
- */
-std::unique_ptr<App> createAppUnix(int argc, const char** argv, const utki::Buf<std::uint8_t> savedState);
-#endif
 
 
 

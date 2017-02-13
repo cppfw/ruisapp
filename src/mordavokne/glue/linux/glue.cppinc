@@ -7,6 +7,7 @@
 
 #include <pogodi/WaitSet.hpp>
 #include <papki/FSFile.hpp>
+#include <nitki/Queue.hpp>
 
 #include <unikod/utf8.hpp>
 
@@ -17,226 +18,247 @@ using namespace mordavokne;
 
 
 
-App::WindowWrapper::WindowWrapper(const WindowParams& wp){
-	this->display = XOpenDisplay(0);
-	if(!this->display){
-		throw utki::Exc("XOpenDisplay() failed");
-	}
-	utki::ScopeExit scopeExitDisplay([this](){
-		XCloseDisplay(this->display);
-	});
+namespace{
+struct WindowWrapper : public utki::Unique{
+	Display* display;
+	Colormap colorMap;
+	::Window window;
+	GLXContext glContext;
+	Cursor emptyCursor;
+	XIM inputMethod;
+	XIC inputContext;
+
+	nitki::Queue uiQueue;
 	
-	{
-		int glxVerMajor, glxVerMinor;
-		if(!glXQueryVersion(this->display, &glxVerMajor, &glxVerMinor)){
-			throw utki::Exc("glXQueryVersion() failed");
-		}
-
-		// FBConfigs were added in GLX version 1.3.
-		if(glxVerMajor < 1 || (glxVerMajor == 1  && glxVerMinor < 3 )){
-			throw utki::Exc("GLX version 1.3 or above is required");
-		}
-	}
+	volatile bool quitFlag = false;
 	
-	GLXFBConfig bestFbc;
-	{
-		std::vector<int> visualAttribs;
-		visualAttribs.push_back(GLX_X_RENDERABLE); visualAttribs.push_back(True);
-		visualAttribs.push_back(GLX_X_VISUAL_TYPE); visualAttribs.push_back(GLX_TRUE_COLOR);
-		visualAttribs.push_back(GLX_DRAWABLE_TYPE); visualAttribs.push_back(GLX_WINDOW_BIT);
-		visualAttribs.push_back(GLX_RENDER_TYPE); visualAttribs.push_back(GLX_RGBA_BIT);
-		visualAttribs.push_back(GLX_DOUBLEBUFFER);visualAttribs.push_back(True);
-		visualAttribs.push_back(GLX_RED_SIZE); visualAttribs.push_back(8);
-		visualAttribs.push_back(GLX_GREEN_SIZE); visualAttribs.push_back(8);
-		visualAttribs.push_back(GLX_BLUE_SIZE); visualAttribs.push_back(8);
-		visualAttribs.push_back(GLX_ALPHA_SIZE); visualAttribs.push_back(8);
-
-		if(wp.buffers.get(WindowParams::Buffer_e::DEPTH)){
-			visualAttribs.push_back(GLX_DEPTH_SIZE); visualAttribs.push_back(24);
+	WindowWrapper(const App::WindowParams& wp){
+		this->display = XOpenDisplay(0);
+		if(!this->display){
+			throw utki::Exc("XOpenDisplay() failed");
 		}
-		if(wp.buffers.get(WindowParams::Buffer_e::STENCIL)){
-			visualAttribs.push_back(GLX_STENCIL_SIZE); visualAttribs.push_back(8);
-		}
-
-		visualAttribs.push_back(None);
-
-
-		int fbcount;
-		GLXFBConfig* fbc = glXChooseFBConfig(this->display, DefaultScreen(this->display), &*visualAttribs.begin(), &fbcount);
-		if(!fbc){
-			throw utki::Exc("glXChooseFBConfig() returned empty list");
-		}
-		utki::ScopeExit scopeExitFbc([&fbc](){
-			XFree(fbc);
+		utki::ScopeExit scopeExitDisplay([this](){
+			XCloseDisplay(this->display);
 		});
 
-		int bestFbcIdx = -1, worstFbc = -1, bestNumSamp = -1, worstNumSamp = 999;
-
-		for(int i = 0; i < fbcount; ++i){
-			XVisualInfo *vi = glXGetVisualFromFBConfig( display, fbc[i] );
-			if(vi){
-				int samp_buf, samples;
-				glXGetFBConfigAttrib(this->display, fbc[i], GLX_SAMPLE_BUFFERS, &samp_buf);
-				glXGetFBConfigAttrib(this->display, fbc[i], GLX_SAMPLES, &samples);
-
-				if ( bestFbcIdx < 0 || (samp_buf && samples > bestNumSamp )){
-					bestFbcIdx = i, bestNumSamp = samples;
-				}
-				if ( worstFbc < 0 || !samp_buf || samples < worstNumSamp ){
-					worstFbc = i, worstNumSamp = samples;
-				}
+		{
+			int glxVerMajor, glxVerMinor;
+			if(!glXQueryVersion(this->display, &glxVerMajor, &glxVerMinor)){
+				throw utki::Exc("glXQueryVersion() failed");
 			}
-			XFree( vi );
+
+			// FBConfigs were added in GLX version 1.3.
+			if(glxVerMajor < 1 || (glxVerMajor == 1  && glxVerMinor < 3 )){
+				throw utki::Exc("GLX version 1.3 or above is required");
+			}
 		}
-		bestFbc = fbc[ bestFbcIdx ];
-	}
-	
-	
-	XVisualInfo *vi = glXGetVisualFromFBConfig( this->display, bestFbc );
-	utki::ScopeExit scopeExitVisualInfo([vi](){
-		XFree(vi);
-	});
 
-	this->colorMap = XCreateColormap(
-			this->display,
-			RootWindow(this->display, vi->screen ),
-			vi->visual,
-			AllocNone
-		);
-	utki::ScopeExit scopeExitColorMap([this](){
-		XFreeColormap(this->display, this->colorMap);
-	});
-	
-	{
-		XSetWindowAttributes attr;
-		attr.colormap = colorMap;
-		attr.border_pixel = 0;
-		attr.background_pixmap = None;
-		attr.event_mask =
-				ExposureMask |
-				KeyPressMask |
-				KeyReleaseMask |
-				ButtonPressMask |
-				ButtonReleaseMask |
-				PointerMotionMask |
-				ButtonMotionMask |
-				StructureNotifyMask |
-				EnterWindowMask |
-				LeaveWindowMask
-			;
-		unsigned long fields = CWBorderPixel | CWColormap | CWEventMask;
+		GLXFBConfig bestFbc;
+		{
+			std::vector<int> visualAttribs;
+			visualAttribs.push_back(GLX_X_RENDERABLE); visualAttribs.push_back(True);
+			visualAttribs.push_back(GLX_X_VISUAL_TYPE); visualAttribs.push_back(GLX_TRUE_COLOR);
+			visualAttribs.push_back(GLX_DRAWABLE_TYPE); visualAttribs.push_back(GLX_WINDOW_BIT);
+			visualAttribs.push_back(GLX_RENDER_TYPE); visualAttribs.push_back(GLX_RGBA_BIT);
+			visualAttribs.push_back(GLX_DOUBLEBUFFER);visualAttribs.push_back(True);
+			visualAttribs.push_back(GLX_RED_SIZE); visualAttribs.push_back(8);
+			visualAttribs.push_back(GLX_GREEN_SIZE); visualAttribs.push_back(8);
+			visualAttribs.push_back(GLX_BLUE_SIZE); visualAttribs.push_back(8);
+			visualAttribs.push_back(GLX_ALPHA_SIZE); visualAttribs.push_back(8);
 
-		this->window = XCreateWindow(
-				this->display,
-				RootWindow(this->display, vi->screen),
-				0,
-				0,
-				wp.dim.x,
-				wp.dim.y,
-				0,
-				vi->depth,
-				InputOutput,
-				vi->visual,
-				fields,
-				&attr
-			);
-	}
-	if(!this->window){
-		throw utki::Exc("Failed to create window");
-	}
-	utki::ScopeExit scopeExitWindow([this](){
-		XDestroyWindow(this->display, this->window);
-	});
-	
-	{//We want to handle WM_DELETE_WINDOW event to know when window is closed.
-		Atom a = XInternAtom(this->display, "WM_DELETE_WINDOW", True);
-		XSetWMProtocols(this->display, this->window, &a, 1);
-	}
+			if(wp.buffers.get(App::WindowParams::Buffer_e::DEPTH)){
+				visualAttribs.push_back(GLX_DEPTH_SIZE); visualAttribs.push_back(24);
+			}
+			if(wp.buffers.get(App::WindowParams::Buffer_e::STENCIL)){
+				visualAttribs.push_back(GLX_STENCIL_SIZE); visualAttribs.push_back(8);
+			}
 
-	XMapWindow(this->display, this->window);
+			visualAttribs.push_back(None);
 
-	XFlush(this->display);
-	
-	
-	this->glContext = glXCreateContext(this->display, vi, 0, GL_TRUE);
-	if(this->glContext == NULL){
-		throw morda::Exc("glXCreateContext() failed");
-	}
-	utki::ScopeExit scopeExitGLContext([this](){
-		glXMakeCurrent(this->display, None, NULL);
-		glXDestroyContext(this->display, this->glContext);
-	});
-	
-	glXMakeCurrent(this->display, this->window, this->glContext);
 
-	TRACE(<< "OpenGL version: " << glGetString(GL_VERSION) << std::endl)
-	
+			int fbcount;
+			GLXFBConfig* fbc = glXChooseFBConfig(this->display, DefaultScreen(this->display), &*visualAttribs.begin(), &fbcount);
+			if(!fbc){
+				throw utki::Exc("glXChooseFBConfig() returned empty list");
+			}
+			utki::ScopeExit scopeExitFbc([&fbc](){
+				XFree(fbc);
+			});
 
-	{
-		Pixmap blank;
-		XColor dummy;
-		char data[1] = {0};
+			int bestFbcIdx = -1, worstFbc = -1, bestNumSamp = -1, worstNumSamp = 999;
 
-		blank = XCreateBitmapFromData(this->display, this->window, data, 1, 1);
-		if(blank == None){
-			throw utki::Exc("App::XEmptyMouseCursor::XEmptyMouseCursor(): could not create bitmap");
+			for(int i = 0; i < fbcount; ++i){
+				XVisualInfo *vi = glXGetVisualFromFBConfig( display, fbc[i] );
+				if(vi){
+					int samp_buf, samples;
+					glXGetFBConfigAttrib(this->display, fbc[i], GLX_SAMPLE_BUFFERS, &samp_buf);
+					glXGetFBConfigAttrib(this->display, fbc[i], GLX_SAMPLES, &samples);
+
+					if ( bestFbcIdx < 0 || (samp_buf && samples > bestNumSamp )){
+						bestFbcIdx = i, bestNumSamp = samples;
+					}
+					if ( worstFbc < 0 || !samp_buf || samples < worstNumSamp ){
+						worstFbc = i, worstNumSamp = samples;
+					}
+				}
+				XFree( vi );
+			}
+			bestFbc = fbc[ bestFbcIdx ];
 		}
-		utki::ScopeExit scopeExit([this, &blank](){
-			XFreePixmap(this->display, blank);
+
+
+		XVisualInfo *vi = glXGetVisualFromFBConfig( this->display, bestFbc );
+		utki::ScopeExit scopeExitVisualInfo([vi](){
+			XFree(vi);
 		});
-		
-		this->emptyCursor = XCreatePixmapCursor(this->display, blank, blank, &dummy, &dummy, 0, 0);
-	}
-	utki::ScopeExit scopeExitEmptyCursor([this](){
-		XFreeCursor(this->display, this->emptyCursor);
-	});
-	
-	this->inputMethod = XOpenIM(this->display, NULL, NULL, NULL);
-	if(this->inputMethod == NULL){
-		throw utki::Exc("XOpenIM() failed");
-	}
-	utki::ScopeExit scopeExitInputMethod([this](){
-		XCloseIM(this->inputMethod);
-	});
 
-	this->inputContext = XCreateIC(
-			this->inputMethod,
-			XNClientWindow, this->window,
-			XNFocusWindow, this->window,
-			XNInputStyle, XIMPreeditNothing | XIMStatusNothing,
-			NULL
-		);
-	if(this->inputContext == NULL){
-		throw utki::Exc("XCreateIC() failed");
+		this->colorMap = XCreateColormap(
+				this->display,
+				RootWindow(this->display, vi->screen ),
+				vi->visual,
+				AllocNone
+			);
+		utki::ScopeExit scopeExitColorMap([this](){
+			XFreeColormap(this->display, this->colorMap);
+		});
+
+		{
+			XSetWindowAttributes attr;
+			attr.colormap = colorMap;
+			attr.border_pixel = 0;
+			attr.background_pixmap = None;
+			attr.event_mask =
+					ExposureMask |
+					KeyPressMask |
+					KeyReleaseMask |
+					ButtonPressMask |
+					ButtonReleaseMask |
+					PointerMotionMask |
+					ButtonMotionMask |
+					StructureNotifyMask |
+					EnterWindowMask |
+					LeaveWindowMask
+				;
+			unsigned long fields = CWBorderPixel | CWColormap | CWEventMask;
+
+			this->window = XCreateWindow(
+					this->display,
+					RootWindow(this->display, vi->screen),
+					0,
+					0,
+					wp.dim.x,
+					wp.dim.y,
+					0,
+					vi->depth,
+					InputOutput,
+					vi->visual,
+					fields,
+					&attr
+				);
+		}
+		if(!this->window){
+			throw utki::Exc("Failed to create window");
+		}
+		utki::ScopeExit scopeExitWindow([this](){
+			XDestroyWindow(this->display, this->window);
+		});
+
+		{//We want to handle WM_DELETE_WINDOW event to know when window is closed.
+			Atom a = XInternAtom(this->display, "WM_DELETE_WINDOW", True);
+			XSetWMProtocols(this->display, this->window, &a, 1);
+		}
+
+		XMapWindow(this->display, this->window);
+
+		XFlush(this->display);
+
+
+		this->glContext = glXCreateContext(this->display, vi, 0, GL_TRUE);
+		if(this->glContext == NULL){
+			throw morda::Exc("glXCreateContext() failed");
+		}
+		utki::ScopeExit scopeExitGLContext([this](){
+			glXMakeCurrent(this->display, None, NULL);
+			glXDestroyContext(this->display, this->glContext);
+		});
+
+		glXMakeCurrent(this->display, this->window, this->glContext);
+
+		TRACE(<< "OpenGL version: " << glGetString(GL_VERSION) << std::endl)
+
+
+		{
+			Pixmap blank;
+			XColor dummy;
+			char data[1] = {0};
+
+			blank = XCreateBitmapFromData(this->display, this->window, data, 1, 1);
+			if(blank == None){
+				throw utki::Exc("App::XEmptyMouseCursor::XEmptyMouseCursor(): could not create bitmap");
+			}
+			utki::ScopeExit scopeExit([this, &blank](){
+				XFreePixmap(this->display, blank);
+			});
+
+			this->emptyCursor = XCreatePixmapCursor(this->display, blank, blank, &dummy, &dummy, 0, 0);
+		}
+		utki::ScopeExit scopeExitEmptyCursor([this](){
+			XFreeCursor(this->display, this->emptyCursor);
+		});
+
+		this->inputMethod = XOpenIM(this->display, NULL, NULL, NULL);
+		if(this->inputMethod == NULL){
+			throw utki::Exc("XOpenIM() failed");
+		}
+		utki::ScopeExit scopeExitInputMethod([this](){
+			XCloseIM(this->inputMethod);
+		});
+
+		this->inputContext = XCreateIC(
+				this->inputMethod,
+				XNClientWindow, this->window,
+				XNFocusWindow, this->window,
+				XNInputStyle, XIMPreeditNothing | XIMStatusNothing,
+				NULL
+			);
+		if(this->inputContext == NULL){
+			throw utki::Exc("XCreateIC() failed");
+		}
+		utki::ScopeExit scopeExitInputContext([this](){
+			XUnsetICFocus(this->inputContext);
+			XDestroyIC(this->inputContext);
+		});
+
+
+		scopeExitInputContext.reset();
+		scopeExitInputMethod.reset();
+		scopeExitEmptyCursor.reset();
+		scopeExitGLContext.reset();
+		scopeExitWindow.reset();
+		scopeExitColorMap.reset();
+		scopeExitDisplay.reset();
 	}
-	utki::ScopeExit scopeExitInputContext([this](){
+	~WindowWrapper()noexcept{
 		XUnsetICFocus(this->inputContext);
 		XDestroyIC(this->inputContext);
-	});
-	
-	
-	scopeExitInputContext.reset();
-	scopeExitInputMethod.reset();
-	scopeExitEmptyCursor.reset();
-	scopeExitGLContext.reset();
-	scopeExitWindow.reset();
-	scopeExitColorMap.reset();
-	scopeExitDisplay.reset();
+
+		XCloseIM(this->inputMethod);
+		XFreeCursor(this->display, this->emptyCursor);
+
+		glXMakeCurrent(this->display, None, NULL);
+		glXDestroyContext(this->display, this->glContext);
+
+		XDestroyWindow(this->display, this->window);
+		XFreeColormap(this->display, this->colorMap);
+		XCloseDisplay(this->display);
+	}
+};
+
+WindowWrapper& getImpl(const std::unique_ptr<utki::Unique>& pimpl){
+	ASSERT(dynamic_cast<WindowWrapper*>(pimpl.get()))
+	return static_cast<WindowWrapper&>(*pimpl);
 }
 
-App::WindowWrapper::~WindowWrapper()noexcept{
-	XUnsetICFocus(this->inputContext);
-	XDestroyIC(this->inputContext);
-
-	XCloseIM(this->inputMethod);
-	XFreeCursor(this->display, this->emptyCursor);
-	
-	glXMakeCurrent(this->display, None, NULL);
-	glXDestroyContext(this->display, this->glContext);
-	
-	XDestroyWindow(this->display, this->window);
-	XFreeColormap(this->display, this->colorMap);
-	XCloseDisplay(this->display);
 }
 
 
@@ -259,9 +281,14 @@ morda::real getDotsPerPt(Display* display){
 }
 }//~namespace
 
+
 App::App(const WindowParams& requestedWindowParams) :
-		windowWrapper(requestedWindowParams),
-		gui(utki::makeShared<mordaren::OpenGL2Renderer>(), getDotsPerInch(windowWrapper.display), ::getDotsPerPt(windowWrapper.display))
+		windowPimpl(utki::makeUnique<WindowWrapper>(requestedWindowParams)),
+		gui(
+				utki::makeShared<mordaren::OpenGL2Renderer>(),
+				getDotsPerInch(getImpl(windowPimpl).display),
+				::getDotsPerPt(getImpl(windowPimpl).display)
+			)
 {}
 
 
@@ -623,37 +650,50 @@ public:
 
 
 void App::quit()noexcept{
-	this->quitFlag = true;
+	auto& ww = getImpl(this->windowPimpl);
+	
+	ww.quitFlag = true;
 }
 
 
-void App::exec(){
-	XEventWaitable xew(this->windowWrapper.display);
+
+
+
+int main(int argc, const char** argv){
+	std::unique_ptr<mordavokne::App> app = createAppUnix(argc, argv, utki::Buf<std::uint8_t>());
+	
+	ASSERT(app)
+
+	auto& ww = getImpl(getWindowPimpl(*app));
+	
+	
+	
+	XEventWaitable xew(ww.display);
 
 	pogodi::WaitSet waitSet(2);
 
 	waitSet.add(xew, pogodi::Waitable::READ);
-	waitSet.add(this->uiQueue, pogodi::Waitable::READ);
+	waitSet.add(ww.uiQueue, pogodi::Waitable::READ);
 
 	//Sometimes the first Expose event does not come for some reason. It happens constantly in some systems and never happens on all the others.
 	//So, render everything for the first time.
-	this->render();
+	render(*app);
 
-	while(!this->quitFlag){
-		waitSet.waitWithTimeout(this->gui.update());
+	while(!ww.quitFlag){
+		waitSet.waitWithTimeout(app->gui.update());
 
-		if(this->uiQueue.canRead()){
-			while(auto m = this->uiQueue.peekMsg()){
+		if(ww.uiQueue.canRead()){
+			while(auto m = ww.uiQueue.peekMsg()){
 				m();
 			}
-			ASSERT(!this->uiQueue.canRead())
+			ASSERT(!ww.uiQueue.canRead())
 		}
 
 		if(xew.canRead()){
 			xew.clearCanReadFlag();
-			while(XPending(this->windowWrapper.display) > 0){
+			while(XPending(ww.display) > 0){
 				XEvent event;
-				XNextEvent(this->windowWrapper.display, &event);
+				XNextEvent(ww.display, &event);
 //				TRACE(<< "X event got, type = " << (event.type) << std::endl)
 				switch(event.type){
 					case Expose:
@@ -661,18 +701,18 @@ void App::exec(){
 						if(event.xexpose.count != 0){
 							break;//~switch()
 						}
-						this->render();
+						render(*app);
 						break;
 					case ConfigureNotify:
 //						TRACE(<< "ConfigureNotify X event got" << std::endl)
-						this->updateWindowRect(morda::Rectr(0, 0, float(event.xconfigure.width), float(event.xconfigure.height)));
+						updateWindowRect(*app, morda::Rectr(0, 0, float(event.xconfigure.width), float(event.xconfigure.height)));
 						break;
 					case KeyPress:
 //						TRACE(<< "KeyPress X event got" << std::endl)
 						{
 							morda::Key_e key = keyCodeMap[std::uint8_t(event.xkey.keycode)];
-							this->handleKeyEvent(true, key);
-							this->handleCharacterInput(KeyEventUnicodeProvider(this->windowWrapper.inputContext, event), key);
+							handleKeyEvent(*app, true, key);
+							handleCharacterInput(*app, KeyEventUnicodeProvider(ww.inputContext, event), key);
 						}
 						break;
 					case KeyRelease:
@@ -681,9 +721,9 @@ void App::exec(){
 							morda::Key_e key = keyCodeMap[std::uint8_t(event.xkey.keycode)];
 
 							//detect auto-repeated key events
-							if(XEventsQueued(this->windowWrapper.display, QueuedAfterReading)){//if there are other events queued
+							if(XEventsQueued(ww.display, QueuedAfterReading)){//if there are other events queued
 								XEvent nev;
-								XPeekEvent(this->windowWrapper.display, &nev);
+								XPeekEvent(ww.display, &nev);
 
 								if(nev.type == KeyPress
 										&& nev.xkey.time == event.xkey.time
@@ -691,20 +731,21 @@ void App::exec(){
 									)
 								{
 									//Key wasn't actually released
-									this->handleCharacterInput(KeyEventUnicodeProvider(this->windowWrapper.inputContext, nev), key);
+									handleCharacterInput(*app, KeyEventUnicodeProvider(ww.inputContext, nev), key);
 
-									XNextEvent(this->windowWrapper.display, &nev);//remove the key down event from queue
+									XNextEvent(ww.display, &nev);//remove the key down event from queue
 									break;
 								}
 							}
 
-							this->handleKeyEvent(false, key);
+							handleKeyEvent(*app, false, key);
 						}
 						break;
 					case ButtonPress:
 //						TRACE(<< "ButtonPress X event got, button mask = " << event.xbutton.button << std::endl)
 //						TRACE(<< "ButtonPress X event got, x, y = " << event.xbutton.x << ", " << event.xbutton.y << std::endl)
-						this->handleMouseButton(
+						handleMouseButton(
+								*app,
 								true,
 								morda::Vec2r(event.xbutton.x, event.xbutton.y),
 								ButtonNumberToEnum(event.xbutton.button),
@@ -713,7 +754,8 @@ void App::exec(){
 						break;
 					case ButtonRelease:
 //						TRACE(<< "ButtonRelease X event got, button mask = " << event.xbutton.button << std::endl)
-						this->handleMouseButton(
+						handleMouseButton(
+								*app,
 								false,
 								morda::Vec2r(event.xbutton.x, event.xbutton.y),
 								ButtonNumberToEnum(event.xbutton.button),
@@ -722,24 +764,25 @@ void App::exec(){
 						break;
 					case MotionNotify:
 //						TRACE(<< "MotionNotify X event got" << std::endl)
-						this->handleMouseMove(
+						handleMouseMove(
+								*app,
 								morda::Vec2r(event.xmotion.x, event.xmotion.y),
 								0
 							);
 						break;
 					case EnterNotify:
-						this->handleMouseHover(true, 0);
+						handleMouseHover(*app, true, 0);
 						break;
 					case LeaveNotify:
-						this->handleMouseHover(false, 0);
+						handleMouseHover(*app, false, 0);
 						break;
 					case ClientMessage:
 //						TRACE(<< "ClientMessage X event got" << std::endl)
 						//probably a WM_DELETE_WINDOW event
 						{
-							char* name = XGetAtomName(this->windowWrapper.display, event.xclient.message_type);
+							char* name = XGetAtomName(ww.display, event.xclient.message_type);
 							if(*name == *"WM_PROTOCOLS"){
-								this->quitFlag = true;
+								ww.quitFlag = true;
 							}
 							XFree(name);
 						}
@@ -751,32 +794,12 @@ void App::exec(){
 			}//~while()
 		}//~if there are pending X events
 
-		this->render();
-	}//~while(!this->quitFlag)
+		render(*app);
+	}//~while(!ww.quitFlag)
 
-	waitSet.remove(this->uiQueue);
+	waitSet.remove(ww.uiQueue);
 	waitSet.remove(xew);
-}
-
-
-
-namespace mordavokne{
-
-inline void Main(int argc, const char** argv){
-	std::unique_ptr<mordavokne::App> app = createAppUnix(argc, argv, utki::Buf<std::uint8_t>());
 	
-	ASSERT(app)
-
-	app->exec();
-}
-
-}
-
-
-
-int main(int argc, const char** argv){
-	mordavokne::Main(argc, argv);
-
 	return 0;
 }
 
@@ -786,27 +809,29 @@ void App::setFullscreen(bool enable){
 	if(enable == this->isFullscreen()){
 		return;
 	}
+	
+	auto& ww = getImpl(this->windowPimpl);
 
 	XEvent event;
 	Atom stateAtom;
 	Atom atom;
 
-	stateAtom = XInternAtom(this->windowWrapper.display, "_NET_WM_STATE", False);
-	atom = XInternAtom(this->windowWrapper.display, "_NET_WM_STATE_FULLSCREEN", False);
+	stateAtom = XInternAtom(ww.display, "_NET_WM_STATE", False);
+	atom = XInternAtom(ww.display, "_NET_WM_STATE_FULLSCREEN", False);
 
 	event.xclient.type = ClientMessage;
 	event.xclient.serial = 0;
 	event.xclient.send_event = True;
-	event.xclient.window = this->windowWrapper.window;
+	event.xclient.window = ww.window;
 	event.xclient.message_type = stateAtom;
 	event.xclient.format = 32;
 	event.xclient.data.l[0]	= enable ? 1 : 0;
 	event.xclient.data.l[1]	= atom;
 	event.xclient.data.l[2]	= 0;
 
-	XSendEvent(this->windowWrapper.display, DefaultRootWindow(this->windowWrapper.display), False, SubstructureRedirectMask | SubstructureNotifyMask, &event);
+	XSendEvent(ww.display, DefaultRootWindow(ww.display), False, SubstructureRedirectMask | SubstructureNotifyMask, &event);
 
-	XFlush(this->windowWrapper.display);
+	XFlush(ww.display);
 
 	this->isFullscreen_v = enable;
 }
@@ -814,9 +839,19 @@ void App::setFullscreen(bool enable){
 
 
 void App::setMouseCursorVisible(bool visible){
+	auto& ww = getImpl(this->windowPimpl);
+	
 	if(visible){
-		XUndefineCursor(this->windowWrapper.display, this->windowWrapper.window);
+		XUndefineCursor(ww.display, ww.window);
 	}else{
-		XDefineCursor(this->windowWrapper.display, this->windowWrapper.window, this->windowWrapper.emptyCursor);
+		XDefineCursor(ww.display, ww.window, ww.emptyCursor);
 	}
+}
+
+
+
+void App::swapFrameBuffers(){
+	auto& ww = getImpl(this->windowPimpl);
+	
+	glXSwapBuffers(ww.display, ww.window);
 }
