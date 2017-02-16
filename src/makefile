@@ -37,6 +37,8 @@ else
     this_common_cxxflags += -O2 #TODO: switch to -O3 when g++ bug is fixed and it won't produce segfault
 endif
 
+this_name := mordavokne-opengl2
+
 ifeq ($(prorab_os), linux)
     this_common_cxxflags += -fPIC #generate position independent code
     this_common_ldlibs += -ldl -lnitki -lpogodi -lX11
@@ -53,10 +55,10 @@ else ifeq ($(prorab_os), macosx)
     this_common_ldlibs += -lc++
     this_common_ldlibs += -framework Cocoa -framework OpenGL -lGLEW -ldl
     
-    this_mm_obj := $(prorab_this_dir)$(prorab_obj_dir)mordavokne/glue/macosx/glue.o
+    this_mm_obj := $(d)obj_$(this_name)/objc/mordavokne/glue/macosx/glue.o
 
     define this_rules
-        $(this_mm_obj): $(prorab_this_dir)mordavokne/glue/macosx/glue.mm
+        $(this_mm_obj): $(d)mordavokne/glue/macosx/glue.mm
 		@echo Compiling $$<...
 		$(prorab_echo)mkdir -p $$(dir $$@)
 		$(prorab_echo)$(CC) -ObjC++ -std=c++11 -c -o "$$@" $(this_objcflags) $$<
@@ -66,10 +68,8 @@ endif
 
 this_common_ldlibs += -lmorda -lpapki -lstob -lstdc++
 
-this_name := mordavokne-opengl2
-
 this_cxxflags := $(this_common_cxxflags) -DM_RENDER_OPENGL2
-this_ldlibs := $(this_common_ldlibs) -lmorda-opengl2-ren -lGL -lGLEW
+this_ldlibs := $(this_common_ldlibs) -lmorda-opengl2-ren
 
 $(eval $(prorab-build-lib))
 

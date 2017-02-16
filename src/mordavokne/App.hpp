@@ -194,10 +194,6 @@ private:
 	friend bool handleWindowMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, LRESULT& lres);
 
 #elif M_OS == M_OS_MACOSX
-private:
-
-	void postToUiThread_ts(std::function<void()>&& f);
-	
 #	if M_OS_NAME == M_OS_NAME_IOS
 	struct WindowObject{
 		void* id;
@@ -215,44 +211,6 @@ private:
 	friend const App::WindowParams& ios_getWindowParams();
 	
 	void swapFrameBuffers(){}
-	
-#	else
-	
-	void exec();
-	
-	friend void macosx_Main(int argc, const char** argv);
-	friend void macosx_HandleMouseMove(const morda::Vec2r& pos, unsigned id);
-	friend void macosx_HandleMouseButton(bool isDown, const morda::Vec2r& pos, morda::MouseButton_e button, unsigned id);
-	friend void macosx_HandleMouseHover(bool isHovered);
-	friend void macosx_HandleKeyEvent(bool isDown, morda::Key_e keyCode);
-	friend void macosx_HandleCharacterInput(const void* nsstring, morda::Key_e key);
-	friend void macosx_UpdateWindowRect(const morda::Rectr& r);
-	friend void macosx_SetQuitFlag();
-
-	struct ApplicationObject{
-		void* id;
-		ApplicationObject();
-		~ApplicationObject()noexcept;
-	} applicationObject;
-
-	struct WindowObject{
-		void* id;
-		WindowObject(const App::WindowParams& wp);
-		~WindowObject()noexcept;
-	} windowObject;
-
-	struct OpenGLContext{
-		void *id;
-		OpenGLContext(const App::WindowParams& wp, void* window);
-		~OpenGLContext()noexcept{
-			this->Destroy();
-		}
-
-		void Destroy()noexcept;
-	} openGLContext;
-	
-	bool mouseCursorIsCurrentlyVisible = true;
-	
 #	endif
 
 #else
@@ -269,7 +227,9 @@ public:
 		MordaVOkne(App& app, std::shared_ptr<morda::Renderer> r, morda::real dotsPerInch, morda::real dotsPerPt) :
 				Morda(r, dotsPerInch, dotsPerPt),
 				app(app)
-		{}
+		{
+			TRACE(<< "MordaVOkne::MordaVOkne(): enter" << std::endl)
+		}
 		
 
 		void postToUiThread_ts(std::function<void()>&& f) override;
@@ -298,6 +258,11 @@ public:
 private:
 	//this is a viewport rectangle in coordinates that are as follows: x grows right, y grows up.
 	morda::Rectr curWinRect = morda::Rectr(0, 0, 0, 0);
+
+public:
+	const morda::Vec2r& winDim()const noexcept{
+		return this->curWinRect.d;
+	}
 
 private:
 	void render();
@@ -426,6 +391,8 @@ public:
 	static morda::real findDotsPerPt(kolme::Vec2ui resolution, kolme::Vec2ui screenSizeMm);
 };
 
-
+inline App& inst(){
+	return App::inst();
+}
 
 }

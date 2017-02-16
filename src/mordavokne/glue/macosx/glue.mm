@@ -3,13 +3,129 @@
 
 #include <morda/util/util.hpp>
 
+#include <mordaren/OpenGL2Renderer.hpp>
+
 #import <Cocoa/Cocoa.h>
 
 
 using namespace mordavokne;
 
 
+#include "../createAppUnix.cppinc"
+#include "../friendAccessors.cppinc"
+
+@interface CocoaView : NSView{
+	NSTrackingArea* ta;
+}
+
+-(id)initWithFrame:(NSRect)rect;
+-(void)dealloc;
+
+-(void)mouseDown: (NSEvent*)e;
+-(void)mouseUp: (NSEvent*)e;
+-(void)rightMouseDown: (NSEvent*)e;
+-(void)rightMouseUp: (NSEvent*)e;
+-(void)otherMouseDown: (NSEvent*)e;
+-(void)otherMouseUp: (NSEvent*)e;
+-(void)scrollWheel:(NSEvent*)e;
+
+-(void)mouseDragged: (NSEvent*)e;
+-(void)rightMouseDragged: (NSEvent*)e;
+-(void)otherMouseDragged: (NSEvent*)e;
+-(void)mouseMoved: (NSEvent*)e;
+-(void)mouseEntered: (NSEvent*)e;
+-(void)mouseExited: (NSEvent*)e;
+
+-(void)keyDown:(NSEvent*)e;
+-(void)keyUp:(NSEvent*)e;
+
+@end
+
+@interface CocoaWindow : NSWindow <NSWindowDelegate>{
+	CocoaView* v;
+}
+
+-(id)initWithContentRect:(NSRect)contentRect styleMask:(NSUInteger)windowStyle backing:(NSBackingStoreType)bufferingType defer:(BOOL)deferCreation;
+-(void)dealloc;
+
+-(BOOL)canBecomeKeyWindow;
+-(BOOL)canBecomeMainWindow;
+-(BOOL)acceptsFirstResponder;
+
+-(void)windowDidResize:(NSNotification*)n;
+-(BOOL)windowShouldClose:(id)sender;
+-(NSSize)windowWillResize:(NSWindow*)sender toSize:(NSSize)frameSize;
+
+-(void)initStuff;
+
+@end
+
 namespace{
+struct WindowWrapper : public utki::Unique{
+	NSApplication* applicationObjectId;
+	CocoaWindow* windowObjectId;
+	NSOpenGLContext* openglContextId;
+	
+	bool quitFlag = false;
+	
+	bool mouseCursorIsCurrentlyVisible = true;
+	
+	WindowWrapper(const App::WindowParams& wp);
+	
+	~WindowWrapper()noexcept;
+};
+
+WindowWrapper& getImpl(const std::unique_ptr<utki::Unique>& pimpl){
+	ASSERT(dynamic_cast<WindowWrapper*>(pimpl.get()))
+	return static_cast<WindowWrapper&>(*pimpl);
+}
+
+}
+
+
+
+namespace{
+
+	
+void mouseButton(NSEvent* e, bool isDown, morda::MouseButton_e button){
+	NSPoint winPos = [e locationInWindow];
+	auto pos = morda::Vec2r(winPos.x, winPos.y).rounded();
+	handleMouseButton(
+			mordavokne::App::inst(),
+			isDown,
+			morda::Vec2r(pos.x, mordavokne::App::inst().winDim().y - pos.y),
+			button,
+			0
+		);
+}
+
+void macosx_HandleMouseMove(const morda::Vec2r& pos, unsigned id){
+//	TRACE(<< "Macosx_HandleMouseMove(): pos = " << pos << std::endl)
+	handleMouseMove(
+			mordavokne::App::inst(),
+			morda::Vec2r(pos.x, mordavokne::App::inst().winDim().y - pos.y),
+			id
+		);
+}
+
+void macosx_HandleMouseHover(bool isHovered){
+	auto& ww = getImpl(getWindowPimpl(mordavokne::App::inst()));
+	if(!ww.mouseCursorIsCurrentlyVisible){
+		if(isHovered){
+			[NSCursor hide];
+		}else if(!isHovered){
+			[NSCursor unhide];
+		}
+	}
+	
+	handleMouseHover(mordavokne::App::inst(), isHovered, 0);
+}
+
+void macosx_HandleKeyEvent(bool isDown, morda::Key_e keyCode){
+	auto& ww = getImpl(getWindowPimpl(mordavokne::App::inst()));
+	handleKeyEvent(mordavokne::App::inst(), isDown, keyCode);
+}
+
 class MacosxUnicodeProvider : public morda::Morda::UnicodeProvider{
 	const NSString* nsStr;
 public:
@@ -32,75 +148,16 @@ public:
 		return ret;
 	}
 };
-}
-
-
-namespace mordavokne{
-
-void macosx_Main(int argc, const char** argv){
-	auto app = createAppUnix(argc, argv, utki::Buf<std::uint8_t>());
-
-	app->exec();
-}
-
-void macosx_HandleMouseMove(const morda::Vec2r& pos, unsigned id){
-//	TRACE(<< "Macosx_HandleMouseMove(): pos = " << pos << std::endl)
-	mordavokne::App::inst().handleMouseMove(
-			morda::Vec2r(pos.x, mordavokne::App::inst().curWinRect.d.y - pos.y),
-			id
-		);
-}
-
-void macosx_HandleMouseButton(bool isDown, const morda::Vec2r& pos, morda::MouseButton_e button, unsigned id){
-	mordavokne::App::inst().handleMouseButton(
-			isDown,
-			morda::Vec2r(pos.x, mordavokne::App::inst().curWinRect.d.y - pos.y),
-			button,
-			id
-		);
-}
-
-void macosx_HandleMouseHover(bool isHovered){
-	if(!mordavokne::App::inst().mouseCursorIsCurrentlyVisible){
-		if(isHovered){
-			[NSCursor hide];
-		}else if(!isHovered){
-			[NSCursor unhide];
-		}
-	}
-	
-	mordavokne::App::inst().handleMouseHover(isHovered, 0);
-}
-
-void macosx_HandleKeyEvent(bool isDown, morda::Key_e keyCode){
-	mordavokne::App::inst().handleKeyEvent(isDown, keyCode);
-}
 
 void macosx_HandleCharacterInput(const void* nsstring, morda::Key_e key){
-	mordavokne::App::inst().handleCharacterInput(MacosxUnicodeProvider(reinterpret_cast<const NSString*>(nsstring)), key);
+	auto& ww = getImpl(getWindowPimpl(mordavokne::App::inst()));
+	handleCharacterInput(mordavokne::App::inst(), MacosxUnicodeProvider(reinterpret_cast<const NSString*>(nsstring)), key);
 }
 
 void macosx_UpdateWindowRect(const morda::Rectr& r){
-	NSOpenGLContext *openGLContext = (NSOpenGLContext*)mordavokne::App::inst().openGLContext.id;
-	[openGLContext update];//after resizing window we need to update OpenGL context
-	mordavokne::App::inst().updateWindowRect(r);
-}
-
-void App::quit()noexcept{
-	this->quitFlag = true;
-}
-
-}
-
-namespace{
-void mouseButton(NSEvent* e, bool isDown, morda::MouseButton_e b){
-	NSPoint pos = [e locationInWindow];
-	macosx_HandleMouseButton(
-			isDown,
-			morda::Vec2r(pos.x, pos.y).rounded(),
-			b,
-			0
-		);
+	auto& ww = getImpl(getWindowPimpl(mordavokne::App::inst()));
+	[ww.openglContextId update];//after resizing window we need to update OpenGL context
+	updateWindowRect(mordavokne::App::inst(), r);
 }
 
 const std::array<morda::Key_e, std::uint8_t(-1) + 1> keyCodeMap = {{
@@ -365,39 +422,6 @@ const std::array<morda::Key_e, std::uint8_t(-1) + 1> keyCodeMap = {{
 }
 
 
-int main (int argc, const char** argv){
-	macosx_Main(argc, argv);
-
-	return 0;
-}
-
-
-@interface CocoaView : NSView{
-	NSTrackingArea* ta;
-}
-
--(id)initWithFrame:(NSRect)rect;
--(void)dealloc;
-
--(void)mouseDown: (NSEvent*)e;
--(void)mouseUp: (NSEvent*)e;
--(void)rightMouseDown: (NSEvent*)e;
--(void)rightMouseUp: (NSEvent*)e;
--(void)otherMouseDown: (NSEvent*)e;
--(void)otherMouseUp: (NSEvent*)e;
--(void)scrollWheel:(NSEvent*)e;
-
--(void)mouseDragged: (NSEvent*)e;
--(void)rightMouseDragged: (NSEvent*)e;
--(void)otherMouseDragged: (NSEvent*)e;
--(void)mouseMoved: (NSEvent*)e;
--(void)mouseEntered: (NSEvent*)e;
--(void)mouseExited: (NSEvent*)e;
-
--(void)keyDown:(NSEvent*)e;
--(void)keyUp:(NSEvent*)e;
-
-@end
 @implementation CocoaView
 
 -(id)initWithFrame:(NSRect)rect{
@@ -529,24 +553,6 @@ int main (int argc, const char** argv){
 
 
 
-@interface CocoaWindow : NSWindow <NSWindowDelegate>{
-	CocoaView* v;
-}
-
--(id)initWithContentRect:(NSRect)contentRect styleMask:(NSUInteger)windowStyle backing:(NSBackingStoreType)bufferingType defer:(BOOL)deferCreation;
--(void)dealloc;
-
--(BOOL)canBecomeKeyWindow;
--(BOOL)canBecomeMainWindow;
--(BOOL)acceptsFirstResponder;
-
--(void)windowDidResize:(NSNotification*)n;
--(BOOL)windowShouldClose:(id)sender;
--(NSSize)windowWillResize:(NSWindow*)sender toSize:(NSSize)frameSize;
-
--(void)initStuff;
-
-@end
 @implementation CocoaWindow
 
 -(id)initWithContentRect:(NSRect)contentRect styleMask:(NSUInteger)windowStyle backing:(NSBackingStoreType)bufferingType defer:(BOOL)deferCreation{
@@ -609,78 +615,162 @@ int main (int argc, const char** argv){
 @end
 
 
-App::ApplicationObject::ApplicationObject(){
-	NSApplication *applicationObject = [NSApplication sharedApplication];
-	this->id = applicationObject;
-	
-	if(!this->id){
+namespace{
+
+
+WindowWrapper::WindowWrapper(const App::WindowParams& wp){
+	TRACE(<< "WindowWrapper::WindowWrapper(): enter" << std::endl)
+	this->applicationObjectId = [NSApplication sharedApplication];
+
+	if(!this->applicationObjectId){
 		throw morda::Exc("morda::App::ApplicationObject::ApplicationObject(): failed to create application object");
 	}
-}
 
-App::ApplicationObject::~ApplicationObject()noexcept{
-	NSApplication *applicationObject = (NSApplication*)this->id;
-	[applicationObject release];
-}
+	utki::ScopeExit scopeExitApplication([this](){
+		[this->applicationObjectId release];
+	});
 
-App::WindowObject::WindowObject(const App::WindowParams& wp){
-	CocoaWindow* window = [[CocoaWindow alloc]
-			initWithContentRect:NSMakeRect(0, 0, wp.dim.x, wp.dim.y)
-			styleMask:(NSResizableWindowMask | NSMiniaturizableWindowMask | NSClosableWindowMask | NSTitledWindowMask)
-			backing:NSBackingStoreBuffered
-			defer:NO
-		];
-	this->id = window;
-	
-	if(!this->id){
+	this->windowObjectId = [[CocoaWindow alloc]
+		initWithContentRect:NSMakeRect(0, 0, wp.dim.x, wp.dim.y)
+		styleMask:(NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskClosable | NSWindowStyleMaskTitled)
+		backing:NSBackingStoreBuffered
+		defer:NO
+	];
+
+	if(!this->windowObjectId){
 		throw morda::Exc("morda::App::WindowObject::WindowObject(): failed to create Window object");
 	}
+
+	utki::ScopeExit scopeExitWindow([this](){
+		[this->windowObjectId release];
+	});
+
+	[this->windowObjectId setTitle:[[NSProcessInfo processInfo] processName]];
+
+	{
+		std::vector<NSOpenGLPixelFormatAttribute> attributes;
+		attributes.push_back(NSOpenGLPFAAccelerated);
+		attributes.push_back(NSOpenGLPFAColorSize); attributes.push_back(24);
+		if(wp.buffers.get(App::WindowParams::Buffer_e::DEPTH)){
+			attributes.push_back(NSOpenGLPFADepthSize); attributes.push_back(16);
+		}
+		if(wp.buffers.get(App::WindowParams::Buffer_e::STENCIL)){
+			attributes.push_back(NSOpenGLPFAStencilSize); attributes.push_back(8);
+		}
+		attributes.push_back(NSOpenGLPFADoubleBuffer);
+		attributes.push_back(NSOpenGLPFASupersample);
+		attributes.push_back(0);
+
+		NSOpenGLPixelFormat *pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:&*attributes.begin()];
+		if(pixelFormat == nil){
+			throw morda::Exc("morda::App::OpenGLContext::OpenGLContext(): failed to create pixel format");
+		}
+
+		this->openglContextId = [[NSOpenGLContext alloc] initWithFormat:pixelFormat shareContext:nil];
+		[pixelFormat release];
+
+		if(!this->openglContextId){
+			throw morda::Exc("morda::App::OpenGLContext::OpenGLContext(): failed to create OpenGL context");
+		}
+	}
+
+	utki::ScopeExit scopeExitOpenGLContext([this](){
+		[this->openglContextId release];
+	});
+
+	[this->openglContextId setView:[this->windowObjectId contentView]];
+	[this->openglContextId makeCurrentContext];
+
+	scopeExitOpenGLContext.reset();
+	scopeExitWindow.reset();
+	scopeExitApplication.reset();
 	
-	[window setTitle:[[NSProcessInfo processInfo] processName]];
+	TRACE(<< "WindowWrapper::WindowWrapper(): exit" << std::endl)
 }
 
-App::WindowObject::~WindowObject()noexcept{
-	NSWindow* window = (CocoaWindow*)this->id;
-	[window release];
+WindowWrapper::~WindowWrapper()noexcept{
+	[this->openglContextId release];
+	[this->windowObjectId release];
+	[this->applicationObjectId release];
+}
+
 }
 
 
 
-App::OpenGLContext::OpenGLContext(const App::WindowParams& wp, void* window){
-	CocoaWindow *wnd = (CocoaWindow*)window;
-	
-	std::vector<NSOpenGLPixelFormatAttribute> attributes;
-	attributes.push_back(NSOpenGLPFAAccelerated);
-	attributes.push_back(NSOpenGLPFAColorSize); attributes.push_back(24);
-	if(wp.buffers.get(App::WindowParams::Buffer_e::DEPTH)){
-		attributes.push_back(NSOpenGLPFADepthSize); attributes.push_back(16);
-	}
-	if(wp.buffers.get(App::WindowParams::Buffer_e::STENCIL)){
-		attributes.push_back(NSOpenGLPFAStencilSize); attributes.push_back(8);
-	}
-	attributes.push_back(NSOpenGLPFADoubleBuffer);
-	attributes.push_back(NSOpenGLPFASupersample);
-	attributes.push_back(0);
-	
-	NSOpenGLPixelFormat *pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:&*attributes.begin()];
-	if(pixelFormat == nil){
-		throw morda::Exc("morda::App::OpenGLContext::OpenGLContext(): failed to create pixel format");
-	}
-	
-	NSOpenGLContext *openGLContext = [[NSOpenGLContext alloc] initWithFormat:pixelFormat shareContext:nil];
-	[pixelFormat release];
-	this->id = openGLContext;
-	if(!this->id){
-		throw morda::Exc("morda::App::OpenGLContext::OpenGLContext(): failed to create OpenGL context");
-	}
-	
-	[openGLContext setView:[wnd contentView]];
-	[openGLContext makeCurrentContext];
+void App::quit()noexcept{
+	auto& ww = getImpl(this->windowPimpl);
+	ww.quitFlag = true;
 }
 
-void App::OpenGLContext::Destroy()noexcept{
-	NSOpenGLContext *openGLContext = (NSOpenGLContext*)this->id;
-	[openGLContext release];
+
+
+
+
+int main (int argc, const char** argv){
+	TRACE(<< "main(): enter" << std::endl)
+	auto app = createAppUnix(argc, argv, utki::Buf<std::uint8_t>());
+
+	TRACE(<< "main(): app created" << std::endl)
+	
+	auto& ww = getImpl(getWindowPimpl(*app));
+	
+	[ww.applicationObjectId activateIgnoringOtherApps:YES];
+	
+	[ww.windowObjectId makeKeyAndOrderFront:nil];
+
+	[ww.windowObjectId orderFrontRegardless];
+	
+	//in order to get keyboard events we need to be foreground application
+	{
+		ProcessSerialNumber psn = {0, kCurrentProcess};
+		OSStatus status = TransformProcessType(&psn, kProcessTransformToForegroundApplication);
+		if(status != errSecSuccess){
+			ASSERT(false)
+		}
+	}
+	
+	do{
+		render(mordavokne::inst());
+		
+		std::uint32_t millis = mordavokne::inst().gui.update();
+		
+		NSEvent *event = [ww.applicationObjectId
+				nextEventMatchingMask:NSEventMaskAny
+				untilDate:[NSDate dateWithTimeIntervalSinceNow:(double(millis) / 1000.0)]
+				inMode:NSDefaultRunLoopMode
+				dequeue:YES
+			];
+
+		if(!event){
+			continue;
+		}
+		
+		do{
+//			TRACE_ALWAYS(<< "Event: type = "<< [event type] << std::endl)
+			switch([event type]){
+				case NSEventTypeApplicationDefined:
+					{
+						std::unique_ptr<std::function<void()>> m(reinterpret_cast<std::function<void()>*>([event data1]));
+						(*m)();
+					}
+					break;
+				default:
+					[ww.applicationObjectId sendEvent:event];
+					[ww.applicationObjectId updateWindows];
+					break;
+			}
+			
+			event = [ww.applicationObjectId
+					nextEventMatchingMask:NSEventMaskAny
+					untilDate:[NSDate distantPast]
+					inMode:NSDefaultRunLoopMode
+					dequeue:YES
+				];
+		}while(event && !ww.quitFlag);
+	}while(!ww.quitFlag);
+
+	return 0;
 }
 
 
@@ -711,17 +801,17 @@ morda::real getDotsPerPt(){
 	kolme::Vec2ui resolution(displayPixelSize.width, displayPixelSize.height);
 	kolme::Vec2ui screenSizeMm(displayPhysicalSize.width, displayPhysicalSize.height);
 	
-	return morda::findDotsPerPt(resolution, screenSizeMm);
+	return App::findDotsPerPt(resolution, screenSizeMm);
 }
 
 }//~namespace
 
 
 App::App(const App::WindowParams& wp) :
-		windowObject(wp),
-		openGLContext(wp, windowObject.id),
-		gui(getDotsPerInch(), getDotsPerPt())
+		windowPimpl(utki::makeUnique<WindowWrapper>(wp)),
+		gui(*this, utki::makeShared<mordaren::OpenGL2Renderer>(), getDotsPerInch(), getDotsPerPt())
 {
+	TRACE(<< "App::App(): enter" << std::endl)
 	this->updateWindowRect(
 			morda::Rectr(
 					0,
@@ -735,14 +825,16 @@ App::App(const App::WindowParams& wp) :
 
 
 void App::swapFrameBuffers(){
-	NSOpenGLContext *openGLContext = (NSOpenGLContext*)this->openGLContext.id;
-	[openGLContext flushBuffer];
+	auto& ww = getImpl(this->windowPimpl);
+	[ww.openglContextId flushBuffer];
 }
 
 
-void App::postToUiThread_ts(std::function<void()>&& f){	
+void App::MordaVOkne::postToUiThread_ts(std::function<void()>&& f){
+	auto& ww = getImpl(getWindowPimpl(this->app));
+	
 	NSEvent* e = [NSEvent
-			otherEventWithType: NSApplicationDefined
+			otherEventWithType: NSEventTypeApplicationDefined
 			location: NSMakePoint(0, 0)
 			modifierFlags:0
 			timestamp:0
@@ -753,92 +845,32 @@ void App::postToUiThread_ts(std::function<void()>&& f){
 			data2: 0
 		];
 	
-	NSApplication *applicationObject = (NSApplication*)this->applicationObject.id;
-	[applicationObject postEvent:e atStart:NO];
+	[ww.applicationObjectId postEvent:e atStart:NO];
 }
 
 
-void App::exec(){
-	NSApplication *applicationObject = (NSApplication*)this->applicationObject.id;
-	NSWindow* window = (NSWindow*)this->windowObject.id;
-	
-	[applicationObject activateIgnoringOtherApps:YES];
-	
-	[window makeKeyAndOrderFront:nil];
-
-	[window orderFrontRegardless];
-	
-	//in order to get keyboard events we need to be foreground application
-	{
-		ProcessSerialNumber psn = {0, kCurrentProcess};
-		OSStatus status = TransformProcessType(&psn, kProcessTransformToForegroundApplication);
-		if(status != errSecSuccess){
-			ASSERT(false)
-		}
-	}
-	
-	do{
-		this->render();
-		
-		std::uint32_t millis = this->gui.update();
-		
-		NSEvent *event = [applicationObject
-				nextEventMatchingMask:NSAnyEventMask
-				untilDate:[NSDate dateWithTimeIntervalSinceNow:(double(millis) / 1000.0)]
-				inMode:NSDefaultRunLoopMode
-				dequeue:YES
-			];
-
-		if(!event){
-			continue;
-		}
-		
-		do{
-//			TRACE_ALWAYS(<< "Event: type = "<< [event type] << std::endl)
-			switch([event type]){
-				case NSApplicationDefined:
-					{
-						std::unique_ptr<std::function<void()>> m(reinterpret_cast<std::function<void()>*>([event data1]));
-						(*m)();
-					}
-					break;
-				default:
-					[applicationObject sendEvent:event];
-					[applicationObject updateWindows];
-					break;
-			}
-			
-			event = [applicationObject
-					nextEventMatchingMask:NSAnyEventMask
-					untilDate:[NSDate distantPast]
-					inMode:NSDefaultRunLoopMode
-					dequeue:YES
-				];
-		}while(event && !this->quitFlag);
-	}while(!this->quitFlag);
-}
 
 void App::setFullscreen(bool enable){
 	if(enable == this->isFullscreen()){
 		return;
 	}
 	
-	CocoaWindow* window = (CocoaWindow*)this->windowObject.id;
+	auto& ww = getImpl(this->windowPimpl);
 	
 	if(enable){
 		//save old window size
-		NSRect rect = [window frame];
+		NSRect rect = [ww.windowObjectId frame];
 		this->beforeFullScreenWindowRect.p.x = rect.origin.x;
 		this->beforeFullScreenWindowRect.p.y = rect.origin.y;
 		this->beforeFullScreenWindowRect.d.x = rect.size.width;
 		this->beforeFullScreenWindowRect.d.y = rect.size.height;
 		
-		[window setStyleMask:([window styleMask] & (~(NSTitledWindowMask | NSResizableWindowMask)))];
+		[ww.windowObjectId setStyleMask:([ww.windowObjectId styleMask] & (~(NSWindowStyleMaskTitled | NSWindowStyleMaskResizable)))];
 		
-		[window setFrame:[[NSScreen mainScreen] frame] display:YES animate:NO];
-		[window setLevel:NSScreenSaverWindowLevel];
+		[ww.windowObjectId setFrame:[[NSScreen mainScreen] frame] display:YES animate:NO];
+		[ww.windowObjectId setLevel:NSScreenSaverWindowLevel];
 	}else{
-		[window setStyleMask:([window styleMask] | NSTitledWindowMask | NSResizableWindowMask)];
+		[ww.windowObjectId setStyleMask:([ww.windowObjectId styleMask] | NSWindowStyleMaskTitled | NSWindowStyleMaskResizable)];
 		
 		NSRect oldFrame;
 		oldFrame.origin.x = this->beforeFullScreenWindowRect.p.x;
@@ -846,11 +878,11 @@ void App::setFullscreen(bool enable){
 		oldFrame.size.width = this->beforeFullScreenWindowRect.d.x;
 		oldFrame.size.height = this->beforeFullScreenWindowRect.d.y;
 		
-		[window setFrame:oldFrame display:YES animate:NO];
-		[window setLevel:NSNormalWindowLevel];
+		[ww.windowObjectId setFrame:oldFrame display:YES animate:NO];
+		[ww.windowObjectId setLevel:NSNormalWindowLevel];
 	}
 	
-	[window initStuff];
+	[ww.windowObjectId initStuff];
 	
 	this->isFullscreen_v = enable;
 }
@@ -858,15 +890,16 @@ void App::setFullscreen(bool enable){
 
 
 void App::setMouseCursorVisible(bool visible){
+	auto& ww = getImpl(this->windowPimpl);
 	if(visible){
-		if(!this->mouseCursorIsCurrentlyVisible){
+		if(!ww.mouseCursorIsCurrentlyVisible){
 			[NSCursor unhide];
-			this->mouseCursorIsCurrentlyVisible = true;
+			ww.mouseCursorIsCurrentlyVisible = true;
 		}
 	}else{
-		if(this->mouseCursorIsCurrentlyVisible){
+		if(ww.mouseCursorIsCurrentlyVisible){
 			[NSCursor hide];
-			this->mouseCursorIsCurrentlyVisible = false;
+			ww.mouseCursorIsCurrentlyVisible = false;
 		}
 	}
 }
