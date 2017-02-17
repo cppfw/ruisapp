@@ -61,7 +61,7 @@ else ifeq ($(prorab_os), macosx)
         $(this_mm_obj): $(d)mordavokne/glue/macosx/glue.mm
 		@echo Compiling $$<...
 		$(prorab_echo)mkdir -p $$(dir $$@)
-		$(prorab_echo)$(CC) -ObjC++ -std=c++11 -c -o "$$@" $(this_objcflags) $$<
+		$(prorab_echo)$(CC) -ObjC++ -std=c++11 -g -c -o "$$@" $(this_objcflags) $$<
     endef
     $(eval $(this_rules))
 endif
