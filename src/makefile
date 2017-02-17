@@ -53,7 +53,7 @@ else ifeq ($(prorab_os), windows)
 else ifeq ($(prorab_os), macosx)
     this_common_cxxflags += -stdlib=libc++ #this is needed to be able to use c++11 std lib
     this_common_ldlibs += -lc++
-    this_common_ldlibs += -framework Cocoa -framework OpenGL -lGLEW -ldl
+    this_common_ldlibs += -framework Cocoa -framework OpenGL -ldl
     
     this_mm_obj := $(d)obj_$(this_name)/objc/mordavokne/glue/macosx/glue.o
 
@@ -69,7 +69,7 @@ endif
 this_common_ldlibs += -lmorda -lpapki -lstob -lstdc++
 
 this_cxxflags := $(this_common_cxxflags) -DM_RENDER_OPENGL2
-this_ldlibs := $(this_common_ldlibs) -lmorda-opengl2-ren
+this_ldlibs := $(this_common_ldlibs) -lmorda-opengl2-ren -lGLEW
 
 $(eval $(prorab-build-lib))
 

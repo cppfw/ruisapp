@@ -1,7 +1,7 @@
 language: cpp
 sudo: required
 dist: trusty
-osx_image: xcode7.3
+osx_image: xcode8.2
 
 
 env:
@@ -10,7 +10,7 @@ env:
   - secure: "Cgtaw3UWmsVfWGeBJJu3aNm7N9rY167JnyJQIfKGLuNEuxN6al6SJxkoeSs8bQp7WOm/CQV/VtqzR+yqClxbKOi66F8qrxV1BnhUiatLQ6CZ7QB07plVTKD5RVgZ6Q7R1RSZ8SObXypcWShqd1AYcmMygBEt9XMf+uiZNnv4yL9OvrkgTFAubL+JoUefdKEQTSCUyomHAjxDKPYH2NVAcKIQTB3Q0G8ZOTN4z8PXhXR/f5Puj5EOqMHTgBlsyFmI2DW1EyaoftcY6N4MfNzff6dQI2AxWE0K0bZX50KeNsUB7XXaXKd0XCPF87zY65HzNFXlX9ISsh/y1zaJ+dSrZ9J+cOfvk3sSx7dsrWHgplopdSQm8TmoGd46sw0xWwR/fIeXEzf7YJLxLAABj2a6Wz/LXCJkIu1RPZSexe8wj6T7/ZYVCJ3N2gYfWHMBIQmBO+EcSi0DmyakK3jDh30G4TdgDblMQrYZWwwW6SCJqe21RWG0WHyzSO9zDppKJKO3ghm/mDQv+DG0mpCKbiMtaLVgGIhSyEgLDiHKhpi9waQfeefgdUM88N9jBTLg1ypjzSjzT20UAMFdA/8HPRQgSJ3ptJXS/9QwTtmXrjsCOh54zgkGta+FAjcXCfSCShVQpzkvmF6aR8vT6+ymUkAr17QZqNIvMx5K3+JEGeaq6mc="
   - PRORAB_GIT_USERNAME=igagis
   - PRORAB_GIT_ACCESS_TOKEN=$HOMEBREW_GITHUB_ACCESS_TOKEN
-  - linuxDependencies="debhelper lintian prorab doxygen libutki-dev libpapki-dev libglew-dev libmorda-dev libnitki-dev libkolme-dev libstob-dev"
+  - linuxDependencies="debhelper lintian prorab doxygen libutki-dev libpapki-dev libglew-dev libmorda-dev libnitki-dev libkolme-dev libstob-dev libmorda-opengl2-ren-dev libmorda-opengles2-ren-dev libegl1-mesa-dev"
 
 
 matrix:
@@ -39,7 +39,7 @@ before_install:
 - if [ "$BUILD_NAME" == "macosx" ]; then
     brew tap igagis/tap &&
     brew update > /dev/null &&
-    brew install prorab libutki libpapki glew libmorda libkolme libstob libnitki;
+    brew install prorab libutki libpapki glew libmorda libkolme libstob libnitki libmorda-opengl2-ren;
   fi
 - if [ "$BUILD_NAME" == "ios" ]; then
     brew tap igagis/tap &&
@@ -84,8 +84,9 @@ before_install:
     sudo apt-get install -qq prorab;
     sudo prorab-make-raspberry-chroot.sh /srv/chroot/rasp-armhf &&
     echo "deb http://dl.bintray.com/igagis/rasp unstable main" | sudo tee /srv/chroot/rasp-armhf/etc/apt/sources.list.d/igagis.list > /dev/null &&
+    sudo chroot /srv/chroot/rasp-armhf sed -i -e 's/jessie/testing/g' /etc/apt/sources.list &&
     sudo chroot /srv/chroot/rasp-armhf apt-get update &&
-    sudo chroot /srv/chroot/rasp-armhf apt-get install --allow-unauthenticated -qq -y $linuxDependencies &&
+    sudo chroot /srv/chroot/rasp-armhf apt-get install --allow-unauthenticated -qq -y $linuxDependencies g++ &&
     sudo mkdir -p /srv/chroot/rasp-armhf/build &&
     sudo rsync -av $TRAVIS_BUILD_DIR/ /srv/chroot/rasp-armhf/build/;
   fi
