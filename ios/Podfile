@@ -7,5 +7,5 @@ target "tests" do
 	pod 'libkolme', '>= 1.0.1'
 	pod 'libstob', '>= 3.1.1'
 	pod 'libmorda', '>= 0.4.4'
-	pod 'libmorda-opengles2-ren', '>= 0.1.5'
+	pod 'libmorda-opengles2-ren', '>= 0.1.7'
 end
