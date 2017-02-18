@@ -28,14 +28,11 @@
 
 #include <morda/util/ZipFile.hpp>
 
-#ifdef M_RENDER_OPENGL2
+
+#if M_OS_NAME == M_OS_NAME_IOS
+#	include <OpenGlES/ES2/glext.h>
+#else
 #	include <GL/glew.h>
-#elif defined M_RENDER_OPENGLES2 || M_OS_NAME == M_OS_NAME_IOS
-#	if M_OS_NAME == M_OS_NAME_IOS
-#		include <OpenGlES/ES2/glext.h>
-#	else
-#		include <GLES2/gl2.h>
-#	endif
 #endif
 
 

@@ -4,6 +4,12 @@
     <df root="src" name="0">
       <df name="mordavokne">
         <df name="glue">
+          <df name="ios">
+            <in>glue.mm</in>
+          </df>
+          <df name="macosx">
+            <in>glue.mm</in>
+          </df>
           <in>glue.cpp</in>
         </df>
         <in>App.cpp</in>
