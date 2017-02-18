@@ -19,18 +19,6 @@
 #include "config.hpp"
 
 
-//TODO: remove
-//#ifdef M_RENDER_OPENGLES2
-//#	if M_OS_NAME == M_OS_NAME_IOS
-//#		include <OpenGlES/ES2/glext.h>
-//#	else
-//#		include <GLES2/gl2.h>
-//#		include <EGL/egl.h>
-//#	endif
-//#else
-
-//#endif
-
 
 //TODO:remove
 #if M_OS == M_OS_WINDOWS
@@ -192,23 +180,6 @@ private:
 	friend bool handleWindowMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, LRESULT& lres);
 
 #elif M_OS == M_OS_MACOSX
-#	if M_OS_NAME == M_OS_NAME_IOS
-	struct WindowObject{
-		void* id;
-		WindowObject(const App::WindowParams& wp);
-		~WindowObject()noexcept;
-	} windowObject;
-	
-	WindowParams windowParams;
-	
-	friend void ios_render();
-	friend std::uint32_t ios_update();
-	friend void ios_updateWindowRect(morda::Vec2r dim);
-	friend void ios_handleMouseMove(const morda::Vec2r& pos, unsigned id);
-	friend void ios_handleMouseButton(bool isDown, const morda::Vec2r& pos, morda::MouseButton_e button, unsigned id);
-	friend const App::WindowParams& ios_getWindowParams();
-	
-#	endif
 
 #else
 #	error "unsupported OS"
