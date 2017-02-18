@@ -9,8 +9,12 @@
 #import <UIKit/UIKit.h>
 #import <GLKit/GLKit.h>
 
+#include <mordaren/OpenGLES2Renderer.hpp>
+
 
 using namespace mordavokne;
+
+#include "../createAppUnix.cppinc"
 
 namespace mordavokne{
 	
@@ -114,7 +118,7 @@ int main(int argc, char * argv[]){
 
 
 
-void App::postToUiThread_ts(std::function<void()>&& f){
+void App::MordaVOkne::postToUiThread_ts(std::function<void()>&& f){
 	auto p = reinterpret_cast<NSInteger>(new std::function<void()>(std::move(f)));
 	
 	dispatch_async(dispatch_get_main_queue(), ^{
@@ -195,7 +199,7 @@ morda::real getDotsPerPt(){
 App::App(const App::WindowParams& wp) :
 		windowParams(wp),
 		windowObject(wp),
-		gui(getDotsPerInch(), getDotsPerPt())
+		gui(*this, utki::makeShared<mordaren::OpenGLES2Renderer>(), getDotsPerInch(), getDotsPerPt())
 {
 	this->setFullscreen(false);//this will intialize the viewport
 }
@@ -359,6 +363,10 @@ App::WindowObject::~WindowObject()noexcept{
 	[window release];
 }
 
+
+void App::swapFrameBuffers(){
+	//do nothing
+}
 
 void App::showVirtualKeyboard()noexcept{
 	//TODO:

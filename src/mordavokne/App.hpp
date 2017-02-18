@@ -95,8 +95,9 @@ private:
 
 #if M_OS == M_OS_LINUX
 
-private:
+
 #	if M_OS_NAME == M_OS_NAME_ANDROID
+private:
 	friend void updateWindowRect(App& app, const morda::Rectr& rect);
 	friend void Render(App& app);
 	friend std::uint32_t Update(App& app);
@@ -131,9 +132,6 @@ private:
 		EGLContextWrapper(EGLDisplayWrapper& d, EGLConfigWrapper& config, EGLSurfaceWrapper& s);
 		~EGLContextWrapper()noexcept;
 	} eglContext;
-#	else
-	
-
 #	endif
 
 #elif M_OS == M_OS_WINDOWS
@@ -210,7 +208,6 @@ private:
 	friend void ios_handleMouseButton(bool isDown, const morda::Vec2r& pos, morda::MouseButton_e button, unsigned id);
 	friend const App::WindowParams& ios_getWindowParams();
 	
-	void swapFrameBuffers(){}
 #	endif
 
 #else
