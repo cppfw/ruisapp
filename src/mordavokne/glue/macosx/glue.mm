@@ -681,6 +681,10 @@ WindowWrapper::WindowWrapper(const App::WindowParams& wp){
 	[this->openglContextId setView:[this->windowObjectId contentView]];
 	[this->openglContextId makeCurrentContext];
 
+	if(glewInit() != GLEW_OK){
+		throw morda::Exc("GLEW initialization failed");
+	}
+	
 	scopeExitOpenGLContext.reset();
 	scopeExitWindow.reset();
 	scopeExitApplication.reset();
