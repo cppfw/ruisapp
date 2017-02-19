@@ -961,6 +961,9 @@ WindowWrapper::WindowWrapper(const App::WindowParams& wp){
 		throw morda::Exc("Failed to activate OpenGL rendering context");
 	}
 
+	if(glewInit() != GLEW_OK){
+		throw morda::Exc("GLEW initialization failed");
+	}
 
 	scopeExitHrc.reset();
 	scopeExitHdc.reset();
