@@ -222,7 +222,7 @@ struct WindowWrapper : public utki::Unique{
 					DISPMANX_PROTECTION_NONE,
 					0, //alpha
 					0, //clamp
-					0 //transform
+					DISPMANX_NO_ROTATE //transform
 				);
 
 			this->rpiNativeWindow.element = this->rpiDispmanElement;
