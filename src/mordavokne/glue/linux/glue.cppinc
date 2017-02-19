@@ -160,7 +160,7 @@ struct WindowWrapper : public utki::Unique{
 		
 		EGLConfig eglConfig;
 		{
-			//TODO: allow stencil configuration etc. via WindowParams
+			//TODO: allow stencil and depth configuration etc. via WindowParams
 			//Here specify the attributes of the desired configuration.
 			//Below, we select an EGLConfig with at least 8 bits per color
 			//component compatible with on-screen windows
@@ -170,6 +170,7 @@ struct WindowWrapper : public utki::Unique{
 					EGL_BLUE_SIZE, 8,
 					EGL_GREEN_SIZE, 8,
 					EGL_RED_SIZE, 8,
+					EGL_ALPHA_SIZE, 8,
 					EGL_NONE
 			};
 
