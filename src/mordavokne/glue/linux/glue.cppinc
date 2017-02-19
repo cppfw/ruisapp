@@ -349,7 +349,7 @@ struct WindowWrapper : public utki::Unique{
 				this->eglDisplay,
 				eglConfig,
 #	ifdef M_RASPBERRYPI
-				reinterpret_cast<EGLNativeWindowType>(this->rpiNativeWindow),
+				(EGLNativeWindowType)this->rpiNativeWindow,
 #	else
 				this->window,
 #	endif
