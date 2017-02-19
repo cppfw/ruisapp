@@ -83,7 +83,6 @@ private:
 
 #if M_OS == M_OS_LINUX
 
-
 #	if M_OS_NAME == M_OS_NAME_ANDROID
 private:
 	friend void updateWindowRect(App& app, const morda::Rectr& rect);
@@ -125,12 +124,7 @@ private:
 #elif M_OS == M_OS_WINDOWS
 
 private:
-	struct WindowClassWrapper{
-		std::string name;
-
-		WindowClassWrapper();
-		~WindowClassWrapper()noexcept;
-	} windowClass;
+	/*
 
 	struct WindowWrapper{
 		HWND hwnd;
@@ -178,7 +172,7 @@ private:
 	void exec();
 	void postToUiThread_ts(std::function<void()>&& f);
 	friend bool handleWindowMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, LRESULT& lres);
-
+	*/
 #elif M_OS == M_OS_MACOSX
 
 #else

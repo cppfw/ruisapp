@@ -68,25 +68,6 @@ void App::hideVirtualKeyboard()noexcept{
 
 
 
-//TODO: move to specific glue files
-#if M_OS != M_OS_MACOSX && !(M_OS == M_OS_LINUX && M_OS_NAME == M_OS_NAME_UNKNOWN)
-void App::swapFrameBuffers(){
-#	if M_OS == M_OS_WINDOWS
-	SwapBuffers(this->deviceContext.hdc);
-#	elif M_OS == M_OS_LINUX
-#		if M_OS_NAME == M_OS_NAME_ANDROID
-	eglSwapBuffers(morda::App::inst().eglDisplay.d, morda::App::inst().eglSurface.s);
-#		else
-	glXSwapBuffers(this->windowWrapper.display, this->windowWrapper.window);
-#		endif
-#	else
-#		error "unknown OS"
-#	endif
-}
-#endif
-
-
-
 morda::real App::findDotsPerPt(kolme::Vec2ui resolution, kolme::Vec2ui screenSizeMm){
 	
 	//NOTE: for ordinary desktop displays the PT size should be equal to 1 pixel.
