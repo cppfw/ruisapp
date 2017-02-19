@@ -11,6 +11,8 @@
 
 #include <windowsx.h>
 
+#include <mordaren/OpenGL2Renderer.hpp>
+
 
 using namespace mordavokne;
 
@@ -735,7 +737,7 @@ morda::real getDotsPerPt(HDC dc){
 	kolme::Vec2ui resolution(GetDeviceCaps(dc, HORZRES), GetDeviceCaps(dc, VERTRES));
 	kolme::Vec2ui screenSizeMm(GetDeviceCaps(dc, HORZSIZE), GetDeviceCaps(dc, VERTSIZE));
 
-	return morda::findDotsPerPt(resolution, screenSizeMm);
+	return mordavokne::App::findDotsPerPt(resolution, screenSizeMm);
 }
 
 }//~namespace
@@ -746,7 +748,7 @@ App::App(const WindowParams& requestedWindowParams) :
 		deviceContext(requestedWindowParams, window),
 		openglContext(deviceContext.hdc),
 		curWinRect(0, 0, -1, -1),
-		gui(getDotsPerInch(deviceContext.hdc), getDotsPerPt(deviceContext.hdc))
+		gui(*this, utki::makeShared<mordaren::OpenGL2Renderer>(), getDotsPerInch(deviceContext.hdc), getDotsPerPt(deviceContext.hdc))
 {
 	this->updateWindowRect(
 			morda::Rectr(
