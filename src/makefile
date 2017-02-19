@@ -100,7 +100,7 @@ ifeq ($(ogles2), true)
     this_ldlibs := $(this_common_ldlibs) -lmorda-opengles2-ren -lEGL
 
     ifeq ($(raspberrypi), true)
-        this_cxxflags += -DM_RASPEBRRYPI
+        this_cxxflags += -DM_RASPBERRYPI -I/opt/vc/include
     endif
 
     $(eval $(prorab-build-lib))

@@ -21,10 +21,9 @@
 #	include <mordaren/OpenGL2Renderer.hpp>
 
 #elif defined(M_RENDER_OPENGLES2)
+#	include <EGL/egl.h>
 #	ifdef M_RASPBERRYPI
 #		include <bcm_host.h>
-#	else
-#		include <EGL/egl.h>
 #	endif
 
 #	include <mordaren/OpenGLES2Renderer.hpp>
