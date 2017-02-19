@@ -20,14 +20,6 @@
 
 
 
-//TODO:remove
-#if M_OS == M_OS_WINDOWS
-#	include <utki/windows.hpp>
-#endif
-
-
-
-
 namespace mordavokne{
 
 
@@ -82,7 +74,7 @@ private:
 	friend const decltype(windowPimpl)& getWindowPimpl(App& app);
 
 #if M_OS == M_OS_LINUX
-
+	//TODO: move android stuff to glue
 #	if M_OS_NAME == M_OS_NAME_ANDROID
 private:
 	friend void updateWindowRect(App& app, const morda::Rectr& rect);
@@ -123,56 +115,6 @@ private:
 
 #elif M_OS == M_OS_WINDOWS
 
-private:
-	/*
-
-	struct WindowWrapper{
-		HWND hwnd;
-
-		bool isHovered = false; //for tracking when mouse enters or leaves window.
-
-		utki::Flags<morda::MouseButton_e> mouseButtonState;
-
-		WindowWrapper(const WindowParams& wp, const WindowClassWrapper& wc);
-		~WindowWrapper()noexcept;
-	} window;
-
-	struct DeviceContextWrapper{
-		const WindowWrapper& w;
-		HDC hdc;
-
-		DeviceContextWrapper(const WindowParams& wp, const WindowWrapper& w);
-		~DeviceContextWrapper()noexcept{
-			this->Destroy();
-		}
-
-	private:
-		void Destroy()noexcept;
-	} deviceContext;
-
-
-	struct OpenGLContextWrapper{
-		HGLRC hrc;
-	public:
-		OpenGLContextWrapper(HDC hdc);
-
-		~OpenGLContextWrapper()noexcept {
-			this->Destroy();
-		}
-
-		void Destroy() noexcept;
-	} openglContext;
-
-
-
-
-	bool mouseCursorIsCurrentlyVisible = true;
-	
-	friend void winmain(int argc, const char** argv);
-	void exec();
-	void postToUiThread_ts(std::function<void()>&& f);
-	friend bool handleWindowMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, LRESULT& lres);
-	*/
 #elif M_OS == M_OS_MACOSX
 
 #else
@@ -195,14 +137,6 @@ public:
 		
 
 		void postToUiThread_ts(std::function<void()>&& f) override;
-//TODO: move to glue
-//		{
-//#if M_OS == M_OS_WINDOWS || M_OS == M_OS_MACOSX
-//			App::inst().postToUiThread_ts(std::move(f));
-//#else
-//			App::inst().uiQueue.pushMessage(std::move(f));
-//#endif
-//		}
 	} gui;
 	
 public:
