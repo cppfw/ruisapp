@@ -1,5 +1,6 @@
 include prorab.mk
 
+include $(d)../raspberrypi.mk
 
 this_soname := $(shell cat $(prorab_this_dir)/soname.txt)
 
@@ -26,7 +27,7 @@ this_common_cxxflags += -g #include debugging symbols
 this_common_cxxflags += -std=c++11
 
 
-this_objcflags := 
+
 
 ifeq ($(debug),true)
     this_common_cxxflags += -DDEBUG
@@ -68,6 +69,11 @@ endif
 
 this_common_ldlibs += -lmorda -lpapki -lstob -lstdc++
 
+
+
+ifeq ($(raspberrypi), true)
+else
+
 this_cxxflags := $(this_common_cxxflags) -DM_RENDER_OPENGL2
 this_ldlibs := $(this_common_ldlibs) -lmorda-opengl2-ren -lGLEW
 
@@ -80,6 +86,7 @@ ifeq ($(prorab_os), macosx)
     $(prorab_this_name): $(this_mm_obj)
 endif
 
+endif
 
 
 ifeq ($(os), linux)
@@ -91,6 +98,10 @@ ifeq ($(ogles2), true)
 
     this_cxxflags := $(this_common_cxxflags) -DM_RENDER_OPENGLES2
     this_ldlibs := $(this_common_ldlibs) -lmorda-opengles2-ren -lEGL
+
+    ifeq ($(raspberrypi), true)
+        this_cxxflags += -DM_RASPEBRRYPI
+    endif
 
     $(eval $(prorab-build-lib))
 endif
