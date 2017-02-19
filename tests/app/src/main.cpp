@@ -801,6 +801,7 @@ public:
 				mordavokne::App::inst().setMouseCursorVisible(visible);
 			};
 		}
+		TRACE(<< "Application constructor exit" << std::endl)
 	}
 };
 

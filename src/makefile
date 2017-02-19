@@ -101,6 +101,7 @@ ifeq ($(ogles2), true)
 
     ifeq ($(raspberrypi), true)
         this_cxxflags += -DM_RASPBERRYPI -I/opt/vc/include
+        this_ldlibs += -L/opt/vc/lib
     endif
 
     $(eval $(prorab-build-lib))
