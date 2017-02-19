@@ -21,7 +21,11 @@
 #	include <mordaren/OpenGL2Renderer.hpp>
 
 #elif defined(M_RENDER_OPENGLES2)
-#	include <EGL/egl.h>
+#	ifdef M_RASPBERRYPI
+#		include <bcm_host.h>
+#	else
+#		include <EGL/egl.h>
+#	endif
 
 #	include <mordaren/OpenGLES2Renderer.hpp>
 
@@ -46,6 +50,12 @@ struct WindowWrapper : public utki::Unique{
 #ifdef M_RENDER_OPENGL2
 	GLXContext glContext;
 #elif defined(M_RENDER_OPENGLES2)
+#	ifdef M_RASPBERRYPI
+	EGL_DISPMANX_WINDOW_T rpiNativeWindow;
+	DISPMANX_DISPLAY_HANDLE_T rpiDispmanDisplay;
+	DISPMANX_UPDATE_HANDLE_T rpiDispmanUpdate;
+	DISPMANX_ELEMENT_HANDLE_T rpiDispmanElement;
+#	endif
 	EGLDisplay eglDisplay;
 	EGLSurface eglSurface;
 	EGLContext eglContext;
@@ -173,6 +183,51 @@ struct WindowWrapper : public utki::Unique{
 				throw morda::Exc("eglChooseConfig() failed, no matching config found");
 			}
 		}
+		
+#	ifdef M_RASPBERRYPI
+		{
+			VC_RECT_T dst_rect, src_rect;
+   
+			int display_width, display_height;
+
+			// create an EGL window surface, passing context width/height
+			if(graphics_get_display_size(0 /* LCD */, &display_width, &display_height) < 0 ){
+				throw morda::Exc("graphics_get_display_size() failed");
+			}
+
+			dst_rect.x = 0;
+			dst_rect.y = 0;
+			dst_rect.width = display_width;
+			dst_rect.height = display_height;
+
+			src_rect.x = 0;
+			src_rect.y = 0;
+			src_rect.width = display_width << 16;
+			src_rect.height = display_height << 16;   
+
+			this->rpiDispmanDisplay = vc_dispmanx_display_open(0); //0 = LCD
+			this->rpiDispmanUpdate = vc_dispmanx_update_start(0);
+
+			this->rpiDispmanElement = vc_dispmanx_element_add(
+					this->rpiDispmanUpdate,
+					this->rpiDispmanDisplay,
+					0, //layer
+					&dst_rect,
+					0, //src
+					&src_rect,
+					DISPMANX_PROTECTION_NONE,
+					0, //alpha
+					0, //clamp
+					0 //transform
+				);
+
+			this->rpiNativeWindow.element = this->rpiDispmanElement;
+			this->rpiNativeWindow.width = display_width;
+			this->rpiNativeWindow.height = display_height;
+			vc_dispmanx_update_submit_sync(dispman_update);
+		}
+#	endif
+		
 #else
 #	error "Unknown graphics API"
 #endif
@@ -286,7 +341,16 @@ struct WindowWrapper : public utki::Unique{
 			throw morda::Exc("GLEW initialization failed");
 		}
 #elif defined(M_RENDER_OPENGLES2)
-		this->eglSurface = eglCreateWindowSurface(this->eglDisplay, eglConfig, this->window, NULL);
+		this->eglSurface = eglCreateWindowSurface(
+				this->eglDisplay,
+				eglConfig,
+#	ifdef M_RASPBERRYPI
+				reinterpret_cast<EGLNativeWindowType>(this->rpiNativeWindow),
+#	else
+				this->window,
+#	endif
+				NULL
+			);
 		if(this->eglSurface == EGL_NO_SURFACE){
 			throw morda::Exc("eglCreateWindowSurface() failed");
 		}
