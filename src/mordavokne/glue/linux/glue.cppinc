@@ -183,55 +183,6 @@ struct WindowWrapper : public utki::Unique{
 			}
 		}
 		
-#	ifdef M_RASPBERRYPI
-		{
-			VC_RECT_T dst_rect, src_rect;
-   
-			std::uint32_t display_width, display_height;
-
-			// create an EGL window surface, passing context width/height
-			if(graphics_get_display_size(
-					0, //LCD
-					&display_width,
-					&display_height
-				) < 0 )
-			{
-				throw morda::Exc("graphics_get_display_size() failed");
-			}
-
-			dst_rect.x = 0;
-			dst_rect.y = 0;
-			dst_rect.width = display_width;
-			dst_rect.height = display_height;
-
-			src_rect.x = 0;
-			src_rect.y = 0;
-			src_rect.width = display_width << 16;
-			src_rect.height = display_height << 16;   
-
-			this->rpiDispmanDisplay = vc_dispmanx_display_open(0); //0 = LCD
-			this->rpiDispmanUpdate = vc_dispmanx_update_start(0);
-
-			this->rpiDispmanElement = vc_dispmanx_element_add(
-					this->rpiDispmanUpdate,
-					this->rpiDispmanDisplay,
-					0, //layer
-					&dst_rect,
-					0, //src
-					&src_rect,
-					DISPMANX_PROTECTION_NONE,
-					0, //alpha
-					0, //clamp
-					DISPMANX_NO_ROTATE //transform
-				);
-
-			this->rpiNativeWindow.element = this->rpiDispmanElement;
-			this->rpiNativeWindow.width = display_width;
-			this->rpiNativeWindow.height = display_height;
-			vc_dispmanx_update_submit_sync(this->rpiDispmanUpdate);
-		}
-#	endif
-		
 #else
 #	error "Unknown graphics API"
 #endif
@@ -345,6 +296,56 @@ struct WindowWrapper : public utki::Unique{
 			throw morda::Exc("GLEW initialization failed");
 		}
 #elif defined(M_RENDER_OPENGLES2)
+
+#	ifdef M_RASPBERRYPI
+		{
+			VC_RECT_T dst_rect, src_rect;
+   
+			std::uint32_t display_width, display_height;
+
+			// create an EGL window surface, passing context width/height
+			if(graphics_get_display_size(
+					0, //LCD
+					&display_width,
+					&display_height
+				) < 0 )
+			{
+				throw morda::Exc("graphics_get_display_size() failed");
+			}
+
+			dst_rect.x = 0;
+			dst_rect.y = 0;
+			dst_rect.width = display_width;
+			dst_rect.height = display_height;
+
+			src_rect.x = 0;
+			src_rect.y = 0;
+			src_rect.width = display_width << 16;
+			src_rect.height = display_height << 16;   
+
+			this->rpiDispmanDisplay = vc_dispmanx_display_open(0); //0 = LCD
+			this->rpiDispmanUpdate = vc_dispmanx_update_start(0);
+
+			this->rpiDispmanElement = vc_dispmanx_element_add(
+					this->rpiDispmanUpdate,
+					this->rpiDispmanDisplay,
+					0, //layer
+					&dst_rect,
+					0, //src
+					&src_rect,
+					DISPMANX_PROTECTION_NONE,
+					0, //alpha
+					0, //clamp
+					DISPMANX_NO_ROTATE //transform
+				);
+
+			this->rpiNativeWindow.element = this->rpiDispmanElement;
+			this->rpiNativeWindow.width = display_width;
+			this->rpiNativeWindow.height = display_height;
+			vc_dispmanx_update_submit_sync(this->rpiDispmanUpdate);
+		}
+#	endif
+
 		this->eglSurface = eglCreateWindowSurface(
 				this->eglDisplay,
 				eglConfig,
