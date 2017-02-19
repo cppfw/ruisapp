@@ -329,8 +329,6 @@ namespace{
 
 
 LRESULT	CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
-	auto& ww = getImpl(getWindowPimpl(mordavokne::inst()));
-
 	switch (msg){
 		case WM_ACTIVATE:
 			if (!HIWORD(wParam)){ //Check Minimization State
@@ -354,6 +352,8 @@ LRESULT	CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 			return 0;
 
 		case WM_MOUSEMOVE:
+		{
+			auto& ww = getImpl(getWindowPimpl(mordavokne::inst()));
 			if(!ww.isHovered){
 				
 				TRACKMOUSEEVENT tme = { sizeof(tme) };
@@ -384,7 +384,11 @@ LRESULT	CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 					0
 				);
 			return 0;
+		}
 		case WM_MOUSELEAVE:
+		{
+			auto& ww = getImpl(getWindowPimpl(mordavokne::inst()));
+
 			//Windows hides the mouse cursor even in non-client areas of the window,
 			//like caption bar and borders, so show cursor if it is hidden
 			if(!ww.mouseCursorIsCurrentlyVisible){
@@ -413,7 +417,10 @@ LRESULT	CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 				}
 			}
 			return 0;
+		}
 		case WM_LBUTTONDOWN:
+		{
+			auto& ww = getImpl(getWindowPimpl(mordavokne::inst()));
 			ww.mouseButtonState.set(morda::MouseButton_e::LEFT);
 			handleMouseButton(
 					mordavokne::inst(),
@@ -423,8 +430,10 @@ LRESULT	CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 					0
 				);
 			return 0;
-
+		}
 		case WM_LBUTTONUP:
+		{
+			auto& ww = getImpl(getWindowPimpl(mordavokne::inst()));
 			ww.mouseButtonState.clear(morda::MouseButton_e::LEFT);
 			handleMouseButton(
 					mordavokne::inst(),
@@ -434,8 +443,10 @@ LRESULT	CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 					0
 				);
 			return 0;
-
+		}
 		case WM_MBUTTONDOWN:
+		{
+			auto& ww = getImpl(getWindowPimpl(mordavokne::inst()));
 			ww.mouseButtonState.set(morda::MouseButton_e::MIDDLE);
 			handleMouseButton(
 					mordavokne::inst(),
@@ -445,8 +456,10 @@ LRESULT	CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 					0
 				);
 			return 0;
-
+		}
 		case WM_MBUTTONUP:
+		{
+			auto& ww = getImpl(getWindowPimpl(mordavokne::inst()));
 			ww.mouseButtonState.clear(morda::MouseButton_e::MIDDLE);
 			handleMouseButton(
 					mordavokne::inst(),
@@ -456,8 +469,10 @@ LRESULT	CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 					0
 				);
 			return 0;
-
+		}
 		case WM_RBUTTONDOWN:
+		{
+			auto& ww = getImpl(getWindowPimpl(mordavokne::inst()));
 			ww.mouseButtonState.set(morda::MouseButton_e::RIGHT);
 			handleMouseButton(
 					mordavokne::inst(),
@@ -467,8 +482,10 @@ LRESULT	CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 					0
 				);
 			return 0;
-
+		}
 		case WM_RBUTTONUP:
+		{
+			auto& ww = getImpl(getWindowPimpl(mordavokne::inst()));
 			ww.mouseButtonState.clear(morda::MouseButton_e::RIGHT);
 			handleMouseButton(
 					mordavokne::inst(),
@@ -478,7 +495,7 @@ LRESULT	CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 					0
 				);
 			return 0;
-
+		}
 		case WM_MOUSEWHEEL:
 			{
 				short int times = HIWORD(wParam);
