@@ -196,6 +196,23 @@ struct WindowWrapper : public utki::Unique{
 			throw morda::Exc("glXGetVisualFromFBConfig() failed");
 		}
 #elif defined(M_RENDER_OPENGLES2)
+#	ifdef M_RASPBERRYPI
+		{
+			int numVisuals;
+			XVisualInfo visTemplate;
+			visTemplate.screen = 0; //LCD
+			visTemplate.depth = 8;
+			vi = XGetVisualInfo(
+					this->display,
+					VisualScreenMask | VisualDepthMask,
+					&visTemplate,
+					&numVisuals
+				);
+			if (!vi) {
+				throw morda::Exc("XGetVisualInfo() failed");
+			}
+		}
+#	else
 		{
 			EGLint vid;
 	
@@ -206,11 +223,17 @@ struct WindowWrapper : public utki::Unique{
 			int numVisuals;
 			XVisualInfo visTemplate;
 			visTemplate.visualid = vid;
-			vi = XGetVisualInfo(this->display, VisualIDMask, &visTemplate, &numVisuals);
+			vi = XGetVisualInfo(
+					this->display,
+					VisualIDMask,
+					&visTemplate,
+					&numVisuals
+				);
 			if (!vi) {
 				throw morda::Exc("XGetVisualInfo() failed");
 			}
 		}
+#	endif
 #else
 #	error "Unknown graphics API"
 #endif
