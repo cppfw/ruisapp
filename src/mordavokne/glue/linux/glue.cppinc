@@ -187,10 +187,15 @@ struct WindowWrapper : public utki::Unique{
 		{
 			VC_RECT_T dst_rect, src_rect;
    
-			int display_width, display_height;
+			std::uint32_t display_width, display_height;
 
 			// create an EGL window surface, passing context width/height
-			if(graphics_get_display_size(0 /* LCD */, &display_width, &display_height) < 0 ){
+			if(graphics_get_display_size(
+					0, //LCD
+					&display_width,
+					&display_height
+				) < 0 )
+			{
 				throw morda::Exc("graphics_get_display_size() failed");
 			}
 
