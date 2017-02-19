@@ -70,10 +70,6 @@ endif
 this_common_ldlibs += -lmorda -lpapki -lstob -lstdc++
 
 
-
-ifeq ($(raspberrypi), true)
-else
-
 this_cxxflags := $(this_common_cxxflags) -DM_RENDER_OPENGL2
 this_ldlibs := $(this_common_ldlibs) -lmorda-opengl2-ren -lGLEW
 
@@ -86,7 +82,7 @@ ifeq ($(prorab_os), macosx)
     $(prorab_this_name): $(this_mm_obj)
 endif
 
-endif
+
 
 
 ifeq ($(os), linux)
