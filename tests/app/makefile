@@ -1,5 +1,7 @@
 include prorab.mk
 
+include $(d)../../raspberrypi.mk
+
 this_name := mordavokne-test
 
 
@@ -17,8 +19,10 @@ this_cxxflags += -std=c++11
 
 ifeq ($(ogles2), true)
     this_mordavoknelib := libmordavokne-opengles2
+    this_ldlibs += -lGLESv2
 else
     this_mordavoknelib := libmordavokne-opengl2
+    this_ldlibs += -lGL
 endif
 
 
@@ -39,7 +43,7 @@ ifeq ($(prorab_os),windows)
 else ifeq ($(prorab_os),macosx)
     this_ldlibs += $(prorab_this_dir)../../src/$(this_mordavoknelib)$(prorab_lib_extension) -lGLEW -framework OpenGL -framework Cocoa -lpng -ljpeg -lfreetype
 else ifeq ($(prorab_os),linux)
-    this_ldlibs += $(prorab_this_dir)../../src/$(this_mordavoknelib)$(prorab_lib_extension) -pthread -lGL
+    this_ldlibs += $(prorab_this_dir)../../src/$(this_mordavoknelib)$(prorab_lib_extension) -pthread
 endif
 
 this_ldlibs += -lstob -lmorda -lm -lstdc++
