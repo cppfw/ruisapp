@@ -153,7 +153,7 @@ struct WindowWrapper : public utki::Unique{
 			eglTerminate(this->eglDisplay);
 		});
 		
-		if(eglInitialize(this->eglDisplay, 0, 0) == EGL_FALSE){
+		if(eglInitialize(this->eglDisplay, nullptr, nullptr) == EGL_FALSE){
 			eglTerminate(this->eglDisplay);
 			throw morda::Exc("eglInitialize() failed");
 		}
@@ -185,6 +185,9 @@ struct WindowWrapper : public utki::Unique{
 			}
 		}
 		
+		if(eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE){
+			throw morda::Exc("eglBindApi() failed");
+		}
 #else
 #	error "Unknown graphics API"
 #endif
@@ -379,7 +382,7 @@ struct WindowWrapper : public utki::Unique{
 #	else
 				this->window,
 #	endif
-				NULL
+				nullptr
 			);
 		if(this->eglSurface == EGL_NO_SURFACE){
 			throw morda::Exc("eglCreateWindowSurface() failed");
@@ -394,7 +397,7 @@ struct WindowWrapper : public utki::Unique{
 				EGL_NONE
 			};
 
-			this->eglContext = eglCreateContext(this->eglDisplay, eglConfig, NULL, contextAttrs);
+			this->eglContext = eglCreateContext(this->eglDisplay, eglConfig, EGL_NO_CONTEXT, contextAttrs);
 			if(this->eglContext == EGL_NO_CONTEXT){
 				throw morda::Exc("eglCreateContext() failed");
 			}
