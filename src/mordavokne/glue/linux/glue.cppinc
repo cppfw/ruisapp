@@ -204,11 +204,10 @@ struct WindowWrapper : public utki::Unique{
 		{
 			int numVisuals;
 			XVisualInfo visTemplate;
-			visTemplate.screen = 0; //LCD
-			visTemplate.depth = 8;
+			visTemplate.screen = DefaultScreen(this->display); //LCD
 			vi = XGetVisualInfo(
 					this->display,
-					VisualScreenMask | VisualDepthMask,
+					VisualScreenMask,
 					&visTemplate,
 					&numVisuals
 				);
@@ -327,6 +326,8 @@ struct WindowWrapper : public utki::Unique{
 
 #	ifdef M_RASPBERRYPI
 		{
+			bcm_host_init();
+
 			VC_RECT_T dst_rect, src_rect;
    
 			std::uint32_t display_width, display_height;
