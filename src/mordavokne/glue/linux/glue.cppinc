@@ -546,7 +546,11 @@ App::App(const WindowParams& requestedWindowParams) :
 				getDotsPerInch(getImpl(windowPimpl).display),
 				::getDotsPerPt(getImpl(windowPimpl).display)
 			)
-{}
+{
+#ifdef M_RASPBERRYPI
+	this->setFullscreen(true);
+#endif
+}
 
 
 
@@ -1063,6 +1067,11 @@ int main(int argc, const char** argv){
 
 
 void App::setFullscreen(bool enable){
+#ifdef M_RASPBERRYPI
+	if(this->isFullscreen()){
+		return;
+	}
+#endif
 	if(enable == this->isFullscreen()){
 		return;
 	}
