@@ -32,7 +32,7 @@
 #if M_OS_NAME == M_OS_NAME_IOS
 #	include <OpenGlES/ES2/glext.h>
 #else
-#	include <GL/glew.h>
+//#	include <GL/glew.h>
 #endif
 
 
@@ -211,11 +211,11 @@ public:
 		
 		m.rotate(this->rot);
 
-		glEnable(GL_CULL_FACE);
+//		glEnable(GL_CULL_FACE);
 		
 		morda::inst().renderer().shader->posTex->render(m, this->tex->tex(), *this->cubeVAO);
 		
-		glDisable(GL_CULL_FACE);
+//		glDisable(GL_CULL_FACE);
 	}
 };
 

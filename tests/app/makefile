@@ -19,15 +19,15 @@ this_cxxflags += -std=c++11
 
 ifeq ($(ogles2), true)
     this_mordavoknelib := libmordavokne-opengles2
-    this_ldlibs += -lGLESv2
+#    this_ldlibs += -lGLESv2
 
-    ifeq ($(raspberrypi), true)
-        this_ldlibs += -L/opt/vc/lib
-    endif
+#    ifeq ($(raspberrypi), true)
+#        this_ldlibs += -L/opt/vc/lib
+#    endif
 
 else
     this_mordavoknelib := libmordavokne-opengl2
-    this_ldlibs += -lGL
+#    this_ldlibs += -lGL
 endif
 
 
