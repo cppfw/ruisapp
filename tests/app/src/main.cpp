@@ -627,7 +627,7 @@ public:
 				);
 		};
 		
-		std::dynamic_pointer_cast<CubeWidget>(c->findChildByName("cube_widget"))->startUpdating(30);
+		std::dynamic_pointer_cast<CubeWidget>(c->findChildByName("cube_widget"))->startUpdating(0);
 		
 		//ScrollArea
 		{

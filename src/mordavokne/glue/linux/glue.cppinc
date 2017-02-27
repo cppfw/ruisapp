@@ -950,110 +950,110 @@ int main(int argc, const char** argv){
 			ASSERT(!ww.uiQueue.canRead())
 		}
 
-		if(xew.canRead()){
-			xew.clearCanReadFlag();
-			while(XPending(ww.display) > 0){
-				XEvent event;
-				XNextEvent(ww.display, &event);
+		//NOTE: do not check canRead flag for X event, for some reason when waiting with 0 timeout it will never be set.
+		//      Maybe some bug in XWindows, maybe something else.
+		xew.clearCanReadFlag();
+		while(XPending(ww.display) > 0){
+			XEvent event;
+			XNextEvent(ww.display, &event);
 //				TRACE(<< "X event got, type = " << (event.type) << std::endl)
-				switch(event.type){
-					case Expose:
+			switch(event.type){
+				case Expose:
 //						TRACE(<< "Expose X event got" << std::endl)
-						if(event.xexpose.count != 0){
-							break;//~switch()
-						}
-						render(*app);
-						break;
-					case ConfigureNotify:
+					if(event.xexpose.count != 0){
+						break;//~switch()
+					}
+					render(*app);
+					break;
+				case ConfigureNotify:
 //						TRACE(<< "ConfigureNotify X event got" << std::endl)
-						updateWindowRect(*app, morda::Rectr(0, 0, float(event.xconfigure.width), float(event.xconfigure.height)));
-						break;
-					case KeyPress:
+					updateWindowRect(*app, morda::Rectr(0, 0, float(event.xconfigure.width), float(event.xconfigure.height)));
+					break;
+				case KeyPress:
 //						TRACE(<< "KeyPress X event got" << std::endl)
-						{
-							morda::Key_e key = keyCodeMap[std::uint8_t(event.xkey.keycode)];
-							handleKeyEvent(*app, true, key);
-							handleCharacterInput(*app, KeyEventUnicodeProvider(ww.inputContext, event), key);
-						}
-						break;
-					case KeyRelease:
+					{
+						morda::Key_e key = keyCodeMap[std::uint8_t(event.xkey.keycode)];
+						handleKeyEvent(*app, true, key);
+						handleCharacterInput(*app, KeyEventUnicodeProvider(ww.inputContext, event), key);
+					}
+					break;
+				case KeyRelease:
 //						TRACE(<< "KeyRelease X event got" << std::endl)
-						{
-							morda::Key_e key = keyCodeMap[std::uint8_t(event.xkey.keycode)];
+					{
+						morda::Key_e key = keyCodeMap[std::uint8_t(event.xkey.keycode)];
 
-							//detect auto-repeated key events
-							if(XEventsQueued(ww.display, QueuedAfterReading)){//if there are other events queued
-								XEvent nev;
-								XPeekEvent(ww.display, &nev);
+						//detect auto-repeated key events
+						if(XEventsQueued(ww.display, QueuedAfterReading)){//if there are other events queued
+							XEvent nev;
+							XPeekEvent(ww.display, &nev);
 
-								if(nev.type == KeyPress
-										&& nev.xkey.time == event.xkey.time
-										&& nev.xkey.keycode == event.xkey.keycode
-									)
-								{
-									//Key wasn't actually released
-									handleCharacterInput(*app, KeyEventUnicodeProvider(ww.inputContext, nev), key);
+							if(nev.type == KeyPress
+									&& nev.xkey.time == event.xkey.time
+									&& nev.xkey.keycode == event.xkey.keycode
+								)
+							{
+								//Key wasn't actually released
+								handleCharacterInput(*app, KeyEventUnicodeProvider(ww.inputContext, nev), key);
 
-									XNextEvent(ww.display, &nev);//remove the key down event from queue
-									break;
-								}
+								XNextEvent(ww.display, &nev);//remove the key down event from queue
+								break;
 							}
-
-							handleKeyEvent(*app, false, key);
 						}
-						break;
-					case ButtonPress:
+
+						handleKeyEvent(*app, false, key);
+					}
+					break;
+				case ButtonPress:
 //						TRACE(<< "ButtonPress X event got, button mask = " << event.xbutton.button << std::endl)
 //						TRACE(<< "ButtonPress X event got, x, y = " << event.xbutton.x << ", " << event.xbutton.y << std::endl)
-						handleMouseButton(
-								*app,
-								true,
-								morda::Vec2r(event.xbutton.x, event.xbutton.y),
-								buttonNumberToEnum(event.xbutton.button),
-								0
-							);
-						break;
-					case ButtonRelease:
+					handleMouseButton(
+							*app,
+							true,
+							morda::Vec2r(event.xbutton.x, event.xbutton.y),
+							buttonNumberToEnum(event.xbutton.button),
+							0
+						);
+					break;
+				case ButtonRelease:
 //						TRACE(<< "ButtonRelease X event got, button mask = " << event.xbutton.button << std::endl)
-						handleMouseButton(
-								*app,
-								false,
-								morda::Vec2r(event.xbutton.x, event.xbutton.y),
-								buttonNumberToEnum(event.xbutton.button),
-								0
-							);
-						break;
-					case MotionNotify:
+					handleMouseButton(
+							*app,
+							false,
+							morda::Vec2r(event.xbutton.x, event.xbutton.y),
+							buttonNumberToEnum(event.xbutton.button),
+							0
+						);
+					break;
+				case MotionNotify:
 //						TRACE(<< "MotionNotify X event got" << std::endl)
-						handleMouseMove(
-								*app,
-								morda::Vec2r(event.xmotion.x, event.xmotion.y),
-								0
-							);
-						break;
-					case EnterNotify:
-						handleMouseHover(*app, true, 0);
-						break;
-					case LeaveNotify:
-						handleMouseHover(*app, false, 0);
-						break;
-					case ClientMessage:
+					handleMouseMove(
+							*app,
+							morda::Vec2r(event.xmotion.x, event.xmotion.y),
+							0
+						);
+					break;
+				case EnterNotify:
+					handleMouseHover(*app, true, 0);
+					break;
+				case LeaveNotify:
+					handleMouseHover(*app, false, 0);
+					break;
+				case ClientMessage:
 //						TRACE(<< "ClientMessage X event got" << std::endl)
-						//probably a WM_DELETE_WINDOW event
-						{
-							char* name = XGetAtomName(ww.display, event.xclient.message_type);
-							if(*name == *"WM_PROTOCOLS"){
-								ww.quitFlag = true;
-							}
-							XFree(name);
+					//probably a WM_DELETE_WINDOW event
+					{
+						char* name = XGetAtomName(ww.display, event.xclient.message_type);
+						if(*name == *"WM_PROTOCOLS"){
+							ww.quitFlag = true;
 						}
-						break;
-					default:
-						//ignore
-						break;
-				}//~switch()
-			}//~while()
-		}//~if there are pending X events
+						XFree(name);
+					}
+					break;
+				default:
+					//ignore
+					break;
+			}//~switch()
+		}//~while()
 
 		render(*app);
 	}//~while(!ww.quitFlag)
