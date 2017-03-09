@@ -28,7 +28,7 @@ Description: cross-platform C++ GUI library.
 Package: libmordavokne-opengl2-bin$(soname)-dbg
 Architecture: any
 Section: debug
-Depends: libmordavokne$(soname) (= ${binary:Version}), ${misc:Depends}
+Depends: libmordavokne-opengl2-bin$(soname) (= ${binary:Version}), ${misc:Depends}
 Description: libmordavokne-opengl2 debugging symbols
  Debug symbols for libmordavokne-opengl2 library.
 
@@ -42,7 +42,7 @@ Description: cross-platform C++ GUI library.
 Package: libmordavokne-opengles2-bin$(soname)-dbg
 Architecture: any
 Section: debug
-Depends: libmordavokne$(soname) (= ${binary:Version}), ${misc:Depends}
+Depends: libmordavokne-opengles2-bin$(soname) (= ${binary:Version}), ${misc:Depends}
 Description: libmordavokne-opengl2 debugging symbols
  Debug symbols for libmordavokne-opengl2 library.
 
