@@ -8,14 +8,14 @@
 #include <android/native_activity.h>
 #include <android/configuration.h>
 
-#include <ting/utf8.hpp>
-#include <ting/mt/Queue.hpp>
+#include <unikod/utf8.hpp>
+#include <nitki/Queue.hpp>
 
 #include <time.h>
 #include <signal.h>
 #include <sys/eventfd.h>
 
-#include "AssetFile.hpp"
+#include "AssetFile.hpp_"
 #include "../../App.hpp"
 #include "../../AppFactory.hpp"
 
