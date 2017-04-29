@@ -7,6 +7,7 @@
 
 #include <android/native_activity.h>
 #include <android/configuration.h>
+#include <android/asset_manager.h>
 
 #include <unikod/utf8.hpp>
 #include <nitki/Queue.hpp>
@@ -14,22 +15,357 @@
 #include <time.h>
 #include <signal.h>
 #include <sys/eventfd.h>
+#include <asm/signal.h>
 
-#include "AssetFile.hpp_"
 #include "../../App.hpp"
 #include "../../AppFactory.hpp"
+
+#include <EGL/egl.h>
 
 
 
 using namespace mordavokne;
 
-
+#include "../createAppUnix.cppinc"
 
 namespace{
+
+
+
 
 ANativeActivity* nativeActivity = 0;
 
 ANativeWindow* androidWindow = 0;
+
+
+
+struct WindowWrapper : public utki::Unique{
+    EGLDisplay display;
+    EGLSurface surface;
+    EGLContext context;
+
+    WindowWrapper(const App::WindowParams& wp){
+        this->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+        if(this->display == EGL_NO_DISPLAY){
+            throw morda::Exc("eglGetDisplay(): failed, no matching display connection found");
+        }
+
+        utki::ScopeExit eglDisplayScopeExit([this](){
+            eglTerminate(this->display);
+        });
+
+        if(eglInitialize(this->display, 0, 0) == EGL_FALSE){
+            throw morda::Exc("eglInitialize() failed");
+        }
+
+        //TODO: allow stencil configuration etc. via WindowParams
+        //Here specify the attributes of the desired configuration.
+        //Below, we select an EGLConfig with at least 8 bits per color
+        //component compatible with on-screen windows
+        const EGLint attribs[] = {
+                EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+                EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT, //we want OpenGL ES 2.0
+                EGL_BLUE_SIZE, 8,
+                EGL_GREEN_SIZE, 8,
+                EGL_RED_SIZE, 8,
+                EGL_NONE
+        };
+
+        EGLConfig config;
+
+        //Here, the application chooses the configuration it desires. In this
+        //sample, we have a very simplified selection process, where we pick
+        //the first EGLConfig that matches our criteria
+        EGLint numConfigs;
+        eglChooseConfig(this->display, attribs, &config, 1, &numConfigs);
+        if(numConfigs <= 0){
+            throw morda::Exc("eglChooseConfig() failed, no matching config found");
+        }
+
+        //EGL_NATIVE_VISUAL_ID is an attribute of the EGLConfig that is
+        //guaranteed to be accepted by ANativeWindow_setBuffersGeometry().
+        //As soon as we picked a EGLConfig, we can safely reconfigure the
+        //ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID.
+        EGLint format;
+        if(eglGetConfigAttrib(this->display, config, EGL_NATIVE_VISUAL_ID, &format) == EGL_FALSE){
+            throw morda::Exc("eglGetConfigAttrib() failed");
+        }
+
+        ASSERT(androidWindow)
+        ANativeWindow_setBuffersGeometry(androidWindow, 0, 0, format);
+
+        this->surface = eglCreateWindowSurface(this->display, config, androidWindow, NULL);
+        if(this->surface == EGL_NO_SURFACE){
+            throw morda::Exc("eglCreateWindowSurface() failed");
+        }
+
+        utki::ScopeExit eglSurfaceScopeExit([this](){
+            eglDestroySurface(this->display, this->surface);
+        });
+
+
+        EGLint contextAttrs[] = {
+                EGL_CONTEXT_CLIENT_VERSION, 2, //This is needed on Android, otherwise eglCreateContext() thinks that we want OpenGL ES 1.1, but we want 2.0
+                EGL_NONE
+        };
+
+        this->context = eglCreateContext(this->display, config, NULL, contextAttrs);
+        if(this->context == EGL_NO_CONTEXT){
+            throw morda::Exc("eglCreateContext() failed");
+        }
+
+        utki::ScopeExit eglContextScopeExit([this](){
+            eglDestroyContext(this->display, this->context);
+        });
+
+        if(eglMakeCurrent(this->display, this->surface, this->surface, this->context) == EGL_FALSE){
+            throw morda::Exc("eglMakeCurrent() failed");
+        }
+
+
+        eglContextScopeExit.reset();
+        eglSurfaceScopeExit.reset();
+        eglDisplayScopeExit.reset();
+    }
+
+    ~WindowWrapper()noexcept{
+        eglMakeCurrent(this->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+        eglDestroyContext(this->display, this->context);
+        eglDestroySurface(this->display, this->surface);
+        eglTerminate(this->display);
+    }
+};
+
+WindowWrapper& getImpl(const std::unique_ptr<utki::Unique>& pimpl){
+    ASSERT(dynamic_cast<WindowWrapper*>(pimpl.get()))
+    return static_cast<WindowWrapper&>(*pimpl);
+}
+
+
+class AssetFile : public papki::File{
+    AAssetManager* manager;
+
+    mutable AAsset* handle = nullptr;
+
+public:
+
+    AssetFile(AAssetManager* manager, const std::string& pathName = std::string()) :
+            manager(manager),
+            File(pathName)
+    {
+        ASSERT(this->manager)
+    }
+
+
+    virtual void openInternal(E_Mode mode)override{
+        if(this->isOpened()){
+            throw papki::Exc("file already opened");
+        }
+
+        if(this->isDir()){
+            throw papki::Exc("path refers to a directory, directories can't be opened");
+        }
+
+        switch(mode){
+            case papki::File::E_Mode::WRITE:
+            case papki::File::E_Mode::CREATE:
+                throw papki::Exc("WRITE and CREATE open modes are not supported by Android assets");
+                break;
+            case papki::File::E_Mode::READ:
+                break;
+            default:
+                throw papki::Exc("unknown mode");
+                break;
+        }
+        this->handle = AAssetManager_open(this->manager, this->path().c_str(), AASSET_MODE_UNKNOWN); //don't know what this MODE mean at all
+        if(!this->handle){
+            TRACE(<< "AAssetManager_open() failed, file path = " << this->path() << std::endl)
+            throw papki::Exc("AAssetManager_open() failed");
+        }
+    }
+
+    virtual void closeInternal()const noexcept override{
+        if(!this->isOpened()){
+            return;
+        }
+
+        ASSERT(this->handle)
+
+        AAsset_close(this->handle);
+        this->handle = 0;
+    }
+
+    virtual size_t readInternal(utki::Buf<std::uint8_t> buf)const override{
+        ASSERT(this->handle)
+        int numBytesRead = AAsset_read(this->handle, &*buf.begin(), buf.size());
+        if(numBytesRead < 0){//something happened
+            throw papki::Exc("AAsset_read() error");
+        }
+        ASSERT(numBytesRead >= 0)
+        return size_t(numBytesRead);
+    }
+
+    virtual size_t writeInternal(const utki::Buf<std::uint8_t> buf)override{
+        ASSERT(this->handle)
+        throw papki::Exc("Write() is not supported by Android assets");
+        return 0;
+    }
+
+    virtual size_t seekForwardInternal(size_t numBytesToSeek)const override{
+        return this->seek(numBytesToSeek, true);
+    }
+
+    virtual size_t seekBackwardInternal(size_t numBytesToSeek)const override{
+        return this->seek(numBytesToSeek, false);
+    }
+
+    virtual void rewindInternal()const override{
+        if(!this->isOpened()){
+            throw papki::Exc("file is not opened, cannot rewind");
+        }
+
+        ASSERT(this->handle)
+        if(AAsset_seek(this->handle, 0, SEEK_SET) < 0){
+            throw papki::Exc("AAsset_seek() failed");
+        }
+    }
+
+    virtual bool exists()const override{
+        if(this->isOpened()){ //file is opened => it exists
+            return true;
+        }
+
+        if(this->path().size() == 0){
+            return false;
+        }
+
+        if(this->isDir()){
+            //try opening the directory to check its existence
+            AAssetDir* pdir = AAssetManager_openDir(this->manager, this->path().c_str());
+
+            if(!pdir){
+                return false;
+            }else{
+                AAssetDir_close(pdir);
+                return true;
+            }
+        }else{
+            return this->File::exists();
+        }
+    }
+
+    virtual std::vector<std::string> listDirContents(size_t maxEntries = 0)const override{
+        if(!this->isDir()){
+            throw papki::Exc("AndroidAssetFile::ListDirContents(): this is not a directory");
+        }
+
+        std::vector<std::string> files;
+
+        {
+            AAssetDir* pdir = AAssetManager_openDir(this->manager, this->path().c_str());
+
+            if(!pdir){
+                throw papki::Exc("AndroidAssetFile::ListDirContents(): AAssetManager_openDir() failure");
+            }
+
+            //create DirentCloser to automatically call closedir on exit from the function in case of exceptions etc...
+            struct DirCloser{
+                AAssetDir *pdir;
+
+                DirCloser(AAssetDir *pDirToClose) :
+                        pdir(pDirToClose)
+                {}
+
+                ~DirCloser(){
+                    AAssetDir_close(this->pdir);
+                }
+            } dirCloser(pdir);
+
+            while(const char *entry = AAssetDir_getNextFileName(pdir)){
+                std::string s(entry);
+                if(s == "." || s == "..")
+                    continue;//do not add ./ and ../ directories, we are not interested in them
+
+                //NOTE: looks like android does not report directories contained in the inspected directory.
+
+                files.push_back(s);
+
+                if(files.size() == maxEntries){
+                    break;
+                }
+            }//~while()
+        }
+
+
+        std::vector<std::string> filesArray(files.size());
+
+        for(size_t i = 0; i < files.size(); ++i){
+            filesArray[i] = files[i];
+        }
+
+        return filesArray;
+    }
+
+    std::unique_ptr<papki::File> spawn()override{
+        return utki::makeUnique<AssetFile>(this->manager);
+    }
+
+    ~AssetFile()noexcept override{
+        ASSERT(false)
+    }
+
+    size_t seek(size_t numBytesToSeek, bool seekForward)const{
+        if(!this->isOpened()){
+            throw papki::Exc("file is not opened, cannot seek");
+        }
+
+        ASSERT(this->handle)
+
+        //NOTE: AAsset_seek() accepts 'off_t' as offset argument which is signed and can be
+        //      less than size_t value passed as argument to this function.
+        //      Therefore, do several seek operations with smaller offset if necessary.
+
+        off_t assetSize = AAsset_getLength(this->handle);
+        ASSERT(assetSize >= 0)
+
+        if(seekForward){
+            ASSERT(size_t(assetSize) >= this->curPos())
+            utki::clampTop(numBytesToSeek, size_t(assetSize) - this->curPos());
+        }else{
+            utki::clampTop(numBytesToSeek, this->curPos());
+        }
+
+        typedef off_t T_FSeekOffset;
+        const size_t DMax = ((size_t(T_FSeekOffset(-1))) >> 1);
+        ASSERT((size_t(1) << ((sizeof(T_FSeekOffset) * 8) - 1)) - 1 == DMax)
+        static_assert(size_t(-(-T_FSeekOffset(DMax))) == DMax, "size mismatch");
+
+        for(size_t numBytesLeft = numBytesToSeek; numBytesLeft != 0;){
+            ASSERT(numBytesLeft <= numBytesToSeek)
+
+            T_FSeekOffset offset;
+            if(numBytesLeft > DMax){
+                offset = T_FSeekOffset(DMax);
+            }else{
+                offset = T_FSeekOffset(numBytesLeft);
+            }
+
+            ASSERT(offset > 0)
+
+            if(AAsset_seek(this->handle, seekForward ? offset : (-offset), SEEK_CUR) < 0){
+                throw papki::Exc("AAsset_seek() failed");
+            }
+
+            ASSERT(size_t(offset) < size_t(-1))
+            ASSERT(numBytesLeft >= size_t(offset))
+
+            numBytesLeft -= size_t(offset);
+        }
+        return numBytesToSeek;
+    }
+};
+
+
 
 morda::Vec2r curWinDim(0, 0);
 
@@ -244,9 +580,9 @@ public:
 		}
 
 		struct sigaction sa;
-		sa._u._sa_handler = &LinuxTimer::OnSIGALRM;
+		sa.sa_handler = &LinuxTimer::OnSIGALRM;
 		sa.sa_flags = SA_NODEFER;
-		sa.sa_mask = 0;
+		memset(sa.sa_mask.sig, 0, sizeof(sa.sa_mask.sig));
 
 		res = sigaction(SIGALRM, &sa, 0);
 		ASSERT(res == 0)
@@ -255,9 +591,9 @@ public:
 	~LinuxTimer()noexcept{
 		//set default handler for SIGALRM
 		struct sigaction sa;
-		sa._u._sa_handler = SIG_DFL;
+		sa.sa_handler = SIG_DFL;
 		sa.sa_flags = 0;
-		sa.sa_mask = 0;
+        memset(sa.sa_mask.sig, 0, sizeof(sa.sa_mask.sig));
 
 #ifdef DEBUG
 		int res =
@@ -311,268 +647,268 @@ public:
 
 
 //TODO: this mapping is not final
-const std::array<morda::EKey, std::uint8_t(-1) + 1> keyCodeMap = {
-	EKey::UNKNOWN, //AKEYCODE_UNKNOWN
-	EKey::LEFT, //AKEYCODE_SOFT_LEFT
-	EKey::RIGHT, //AKEYCODE_SOFT_RIGHT
-	EKey::HOME, //AKEYCODE_HOME
-	EKey::ESCAPE, //AKEYCODE_BACK
-	EKey::F11, //AKEYCODE_CALL
-	EKey::F12, //AKEYCODE_ENDCALL
-	EKey::ZERO, //AKEYCODE_0
-	EKey::ONE, //AKEYCODE_1
-	EKey::TWO, //AKEYCODE_2
-	EKey::THREE, //AKEYCODE_3
-	EKey::FOUR, //AKEYCODE_4
-	EKey::FIVE, //AKEYCODE_5
-	EKey::SIX, //AKEYCODE_6
-	EKey::SEVEN, //AKEYCODE_7
-	EKey::EIGHT, //AKEYCODE_8
-	EKey::NINE, //AKEYCODE_9
-	EKey::UNKNOWN, //AKEYCODE_STAR
-	EKey::UNKNOWN, //AKEYCODE_POUND
-	EKey::UP, //AKEYCODE_DPAD_UP
-	EKey::DOWN, //AKEYCODE_DPAD_DOWN
-	EKey::LEFT, //AKEYCODE_DPAD_LEFT
-	EKey::RIGHT, //AKEYCODE_DPAD_RIGHT
-	EKey::ENTER, //AKEYCODE_DPAD_CENTER
-	EKey::PAGE_UP, //AKEYCODE_VOLUME_UP
-	EKey::PAGE_DOWN, //AKEYCODE_VOLUME_DOWN
-	EKey::F10, //AKEYCODE_POWER
-	EKey::F9, //AKEYCODE_CAMERA
-	EKey::BACKSPACE, //AKEYCODE_CLEAR
-	EKey::A, //AKEYCODE_A
-	EKey::B, //AKEYCODE_B
-	EKey::C, //AKEYCODE_C
-	EKey::D, //AKEYCODE_D
-	EKey::E, //AKEYCODE_E
-	EKey::F, //AKEYCODE_F
-	EKey::G, //AKEYCODE_G
-	EKey::H, //AKEYCODE_H
-	EKey::I, //AKEYCODE_I
-	EKey::G, //AKEYCODE_J
-	EKey::K, //AKEYCODE_K
-	EKey::L, //AKEYCODE_L
-	EKey::M, //AKEYCODE_M
-	EKey::N, //AKEYCODE_N
-	EKey::O, //AKEYCODE_O
-	EKey::P, //AKEYCODE_P
-	EKey::Q, //AKEYCODE_Q
-	EKey::R, //AKEYCODE_R
-	EKey::S, //AKEYCODE_S
-	EKey::T, //AKEYCODE_T
-	EKey::U, //AKEYCODE_U
-	EKey::V, //AKEYCODE_V
-	EKey::W, //AKEYCODE_W
-	EKey::X, //AKEYCODE_X
-	EKey::Y, //AKEYCODE_Y
-	EKey::Z, //AKEYCODE_Z
-	EKey::V, //AKEYCODE_COMMA
-	EKey::B, //AKEYCODE_PERIOD
-	EKey::N, //AKEYCODE_ALT_LEFT
-	EKey::M, //AKEYCODE_ALT_RIGHT
-	EKey::LEFT_SHIFT, //AKEYCODE_SHIFT_LEFT
-	EKey::RIGHT_SHIFT, //AKEYCODE_SHIFT_RIGHT
-	EKey::TAB, //AKEYCODE_TAB
-	EKey::SPACE, //AKEYCODE_SPACE
-	EKey::LEFT_CONTROL, //AKEYCODE_SYM
-	EKey::F8, //AKEYCODE_EXPLORER
-	EKey::F7, //AKEYCODE_ENVELOPE
-	EKey::ENTER, //AKEYCODE_ENTER
-	EKey::DELETE, //AKEYCODE_DEL
-	EKey::F6, //AKEYCODE_GRAVE
-	EKey::MINUS, //AKEYCODE_MINUS
-	EKey::EQUALS, //AKEYCODE_EQUALS
-	EKey::LEFT_SQUARE_BRACKET, //AKEYCODE_LEFT_BRACKET
-	EKey::RIGHT_SQUARE_BRACKET, //AKEYCODE_RIGHT_BRACKET
-	EKey::BACKSLASH, //AKEYCODE_BACKSLASH
-	EKey::SEMICOLON, //AKEYCODE_SEMICOLON
-	EKey::APOSTROPHE, //AKEYCODE_APOSTROPHE
-	EKey::SLASH, //AKEYCODE_SLASH
-	EKey::GRAVE, //AKEYCODE_AT
-	EKey::F5, //AKEYCODE_NUM
-	EKey::F4, //AKEYCODE_HEADSETHOOK
-	EKey::F3, //AKEYCODE_FOCUS (camera focus)
-	EKey::F2, //AKEYCODE_PLUS
-	EKey::F1, //AKEYCODE_MENU
-	EKey::END, //AKEYCODE_NOTIFICATION
-	EKey::RIGHT_CONTROL, //AKEYCODE_SEARCH
-	EKey::UNKNOWN, //AKEYCODE_MEDIA_PLAY_PAUSE
-	EKey::UNKNOWN, //AKEYCODE_MEDIA_STOP
-	EKey::UNKNOWN, //AKEYCODE_MEDIA_NEXT
-	EKey::UNKNOWN, //AKEYCODE_MEDIA_PREVIOUS
-	EKey::UNKNOWN, //AKEYCODE_MEDIA_REWIND
-	EKey::UNKNOWN, //AKEYCODE_MEDIA_FAST_FORWARD
-	EKey::UNKNOWN, //AKEYCODE_MUTE
-	EKey::PAGE_UP, //AKEYCODE_PAGE_UP
-	EKey::PAGE_DOWN, //AKEYCODE_PAGE_DOWN
-	EKey::UNKNOWN, //AKEYCODE_PICTSYMBOLS
-	EKey::CAPSLOCK, //AKEYCODE_SWITCH_CHARSET
-	EKey::UNKNOWN, //AKEYCODE_BUTTON_A
-	EKey::UNKNOWN, //AKEYCODE_BUTTON_B
-	EKey::UNKNOWN, //AKEYCODE_BUTTON_C
-	EKey::UNKNOWN, //AKEYCODE_BUTTON_X
-	EKey::UNKNOWN, //AKEYCODE_BUTTON_Y
-	EKey::UNKNOWN, //AKEYCODE_BUTTON_Z
-	EKey::UNKNOWN, //AKEYCODE_BUTTON_L1
-	EKey::UNKNOWN, //AKEYCODE_BUTTON_R1
-	EKey::UNKNOWN, //AKEYCODE_BUTTON_L2
-	EKey::UNKNOWN, //AKEYCODE_BUTTON_R2
-	EKey::UNKNOWN, //AKEYCODE_BUTTON_THUMBL
-	EKey::UNKNOWN, //AKEYCODE_BUTTON_THUMBR
-	EKey::UNKNOWN, //AKEYCODE_BUTTON_START
-	EKey::UNKNOWN, //AKEYCODE_BUTTON_SELECT
-	EKey::UNKNOWN, //AKEYCODE_BUTTON_MODE
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN, //
-	EKey::UNKNOWN  //
+const std::array<morda::Key_e, std::uint8_t(-1) + 1> keyCodeMap = {
+	morda::Key_e::UNKNOWN, //AKEYCODE_UNKNOWN
+	morda::Key_e::LEFT, //AKEYCODE_SOFT_LEFT
+	morda::Key_e::RIGHT, //AKEYCODE_SOFT_RIGHT
+	morda::Key_e::HOME, //AKEYCODE_HOME
+	morda::Key_e::ESCAPE, //AKEYCODE_BACK
+	morda::Key_e::F11, //AKEYCODE_CALL
+	morda::Key_e::F12, //AKEYCODE_ENDCALL
+	morda::Key_e::ZERO, //AKEYCODE_0
+	morda::Key_e::ONE, //AKEYCODE_1
+	morda::Key_e::TWO, //AKEYCODE_2
+	morda::Key_e::THREE, //AKEYCODE_3
+	morda::Key_e::FOUR, //AKEYCODE_4
+	morda::Key_e::FIVE, //AKEYCODE_5
+	morda::Key_e::SIX, //AKEYCODE_6
+	morda::Key_e::SEVEN, //AKEYCODE_7
+	morda::Key_e::EIGHT, //AKEYCODE_8
+	morda::Key_e::NINE, //AKEYCODE_9
+	morda::Key_e::UNKNOWN, //AKEYCODE_STAR
+	morda::Key_e::UNKNOWN, //AKEYCODE_POUND
+	morda::Key_e::UP, //AKEYCODE_DPAD_UP
+	morda::Key_e::DOWN, //AKEYCODE_DPAD_DOWN
+	morda::Key_e::LEFT, //AKEYCODE_DPAD_LEFT
+	morda::Key_e::RIGHT, //AKEYCODE_DPAD_RIGHT
+	morda::Key_e::ENTER, //AKEYCODE_DPAD_CENTER
+	morda::Key_e::PAGE_UP, //AKEYCODE_VOLUME_UP
+	morda::Key_e::PAGE_DOWN, //AKEYCODE_VOLUME_DOWN
+	morda::Key_e::F10, //AKEYCODE_POWER
+	morda::Key_e::F9, //AKEYCODE_CAMERA
+	morda::Key_e::BACKSPACE, //AKEYCODE_CLEAR
+	morda::Key_e::A, //AKEYCODE_A
+	morda::Key_e::B, //AKEYCODE_B
+	morda::Key_e::C, //AKEYCODE_C
+	morda::Key_e::D, //AKEYCODE_D
+	morda::Key_e::E, //AKEYCODE_E
+	morda::Key_e::F, //AKEYCODE_F
+	morda::Key_e::G, //AKEYCODE_G
+	morda::Key_e::H, //AKEYCODE_H
+	morda::Key_e::I, //AKEYCODE_I
+	morda::Key_e::G, //AKEYCODE_J
+	morda::Key_e::K, //AKEYCODE_K
+	morda::Key_e::L, //AKEYCODE_L
+	morda::Key_e::M, //AKEYCODE_M
+	morda::Key_e::N, //AKEYCODE_N
+	morda::Key_e::O, //AKEYCODE_O
+	morda::Key_e::P, //AKEYCODE_P
+	morda::Key_e::Q, //AKEYCODE_Q
+	morda::Key_e::R, //AKEYCODE_R
+	morda::Key_e::S, //AKEYCODE_S
+	morda::Key_e::T, //AKEYCODE_T
+	morda::Key_e::U, //AKEYCODE_U
+	morda::Key_e::V, //AKEYCODE_V
+	morda::Key_e::W, //AKEYCODE_W
+	morda::Key_e::X, //AKEYCODE_X
+	morda::Key_e::Y, //AKEYCODE_Y
+	morda::Key_e::Z, //AKEYCODE_Z
+	morda::Key_e::V, //AKEYCODE_COMMA
+	morda::Key_e::B, //AKEYCODE_PERIOD
+	morda::Key_e::N, //AKEYCODE_ALT_LEFT
+	morda::Key_e::M, //AKEYCODE_ALT_RIGHT
+	morda::Key_e::LEFT_SHIFT, //AKEYCODE_SHIFT_LEFT
+	morda::Key_e::RIGHT_SHIFT, //AKEYCODE_SHIFT_RIGHT
+	morda::Key_e::TAB, //AKEYCODE_TAB
+	morda::Key_e::SPACE, //AKEYCODE_SPACE
+	morda::Key_e::LEFT_CONTROL, //AKEYCODE_SYM
+	morda::Key_e::F8, //AKEYCODE_EXPLORER
+	morda::Key_e::F7, //AKEYCODE_ENVELOPE
+	morda::Key_e::ENTER, //AKEYCODE_ENTER
+	morda::Key_e::DELETE, //AKEYCODE_DEL
+	morda::Key_e::F6, //AKEYCODE_GRAVE
+	morda::Key_e::MINUS, //AKEYCODE_MINUS
+	morda::Key_e::EQUALS, //AKEYCODE_EQUALS
+	morda::Key_e::LEFT_SQUARE_BRACKET, //AKEYCODE_LEFT_BRACKET
+	morda::Key_e::RIGHT_SQUARE_BRACKET, //AKEYCODE_RIGHT_BRACKET
+	morda::Key_e::BACKSLASH, //AKEYCODE_BACKSLASH
+	morda::Key_e::SEMICOLON, //AKEYCODE_SEMICOLON
+	morda::Key_e::APOSTROPHE, //AKEYCODE_APOSTROPHE
+	morda::Key_e::SLASH, //AKEYCODE_SLASH
+	morda::Key_e::GRAVE, //AKEYCODE_AT
+	morda::Key_e::F5, //AKEYCODE_NUM
+	morda::Key_e::F4, //AKEYCODE_HEADSETHOOK
+	morda::Key_e::F3, //AKEYCODE_FOCUS (camera focus)
+	morda::Key_e::F2, //AKEYCODE_PLUS
+	morda::Key_e::F1, //AKEYCODE_MENU
+	morda::Key_e::END, //AKEYCODE_NOTIFICATION
+	morda::Key_e::RIGHT_CONTROL, //AKEYCODE_SEARCH
+	morda::Key_e::UNKNOWN, //AKEYCODE_MEDIA_PLAY_PAUSE
+	morda::Key_e::UNKNOWN, //AKEYCODE_MEDIA_STOP
+	morda::Key_e::UNKNOWN, //AKEYCODE_MEDIA_NEXT
+	morda::Key_e::UNKNOWN, //AKEYCODE_MEDIA_PREVIOUS
+	morda::Key_e::UNKNOWN, //AKEYCODE_MEDIA_REWIND
+	morda::Key_e::UNKNOWN, //AKEYCODE_MEDIA_FAST_FORWARD
+	morda::Key_e::UNKNOWN, //AKEYCODE_MUTE
+	morda::Key_e::PAGE_UP, //AKEYCODE_PAGE_UP
+	morda::Key_e::PAGE_DOWN, //AKEYCODE_PAGE_DOWN
+	morda::Key_e::UNKNOWN, //AKEYCODE_PICTSYMBOLS
+	morda::Key_e::CAPSLOCK, //AKEYCODE_SWITCH_CHARSET
+	morda::Key_e::UNKNOWN, //AKEYCODE_BUTTON_A
+	morda::Key_e::UNKNOWN, //AKEYCODE_BUTTON_B
+	morda::Key_e::UNKNOWN, //AKEYCODE_BUTTON_C
+	morda::Key_e::UNKNOWN, //AKEYCODE_BUTTON_X
+	morda::Key_e::UNKNOWN, //AKEYCODE_BUTTON_Y
+	morda::Key_e::UNKNOWN, //AKEYCODE_BUTTON_Z
+	morda::Key_e::UNKNOWN, //AKEYCODE_BUTTON_L1
+	morda::Key_e::UNKNOWN, //AKEYCODE_BUTTON_R1
+	morda::Key_e::UNKNOWN, //AKEYCODE_BUTTON_L2
+	morda::Key_e::UNKNOWN, //AKEYCODE_BUTTON_R2
+	morda::Key_e::UNKNOWN, //AKEYCODE_BUTTON_THUMBL
+	morda::Key_e::UNKNOWN, //AKEYCODE_BUTTON_THUMBR
+	morda::Key_e::UNKNOWN, //AKEYCODE_BUTTON_START
+	morda::Key_e::UNKNOWN, //AKEYCODE_BUTTON_SELECT
+	morda::Key_e::UNKNOWN, //AKEYCODE_BUTTON_MODE
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN, //
+	morda::Key_e::UNKNOWN  //
 };
 
 
 
-morda::EKey GetKeyFromKeyEvent(AInputEvent& event)noexcept{
+morda::Key_e GetKeyFromKeyEvent(AInputEvent& event)noexcept{
 	size_t kc = size_t(AKeyEvent_getKeyCode(&event));
 	ASSERT(kc < keyCodeMap.size())
 	return keyCodeMap[kc];
@@ -580,11 +916,11 @@ morda::EKey GetKeyFromKeyEvent(AInputEvent& event)noexcept{
 
 
 
-struct UnicodeResolver{
-	std::vector<std::uint32_t> chars;
+struct UnicodeProvider : public morda::Morda::UnicodeProvider{
+	std::u32string chars;
 
-	std::vector<std::uint32_t> Resolve()const{
-		return this->chars;
+	std::u32string get()const override{
+		return std::move(this->chars);
 	}
 };
 
@@ -593,18 +929,6 @@ struct UnicodeResolver{
 }//~namespace
 
 
-
-namespace morda{
-
-void HandleCharacterInputEvent(std::vector<std::uint32_t>&& chars){
-	UnicodeResolver resolver;
-	resolver.chars = std::move(chars);
-	
-	//notify about input event
-	morda::App::inst().HandleCharacterInput(resolver, EKey::UNKNOWN);
-}
-
-}//~namespace
 
 
 
@@ -622,28 +946,25 @@ JNIEXPORT void JNICALL Java_com_googlecode_morda_tests_MordaActivity_handleChara
 	
 	const char *utf8Chars = env->GetStringUTFChars(chars, 0);
 
+	utki::ScopeExit scopeExit([env, &chars, utf8Chars](){
+		env->ReleaseStringUTFChars(chars, utf8Chars);
+	});
+
 	if(utf8Chars == 0 || *utf8Chars == 0){
 		TRACE(<< "handleCharacterStringInput(): empty string passed in" << std::endl)
 		return;
 	}
 	
-	typedef std::vector<std::uint32_t> T_Vector;
-	T_Vector utf32;
+	std::vector<char32_t> utf32;
 
-	for(unikod::Utf8Iterator i(utf8Chars); i.IsNotEnd(); ++i){
-		utf32.push_back(i.Char());
-	}
-	
-	std::vector<std::uint32_t> utf32Chars(utf32.size());
-
-	std::uint32_t* dst = &*utf32Chars.begin();
-	for(T_Vector::iterator src = utf32.begin(); src != utf32.end(); ++src, ++dst){
-		*dst = *src;
+	for(unikod::Utf8Iterator i(utf8Chars); !i.isEnd(); ++i){
+		utf32.push_back(i.character());
 	}
 
-	HandleCharacterInputEvent(std::move(utf32Chars));
+    UnicodeProvider resolver;
+    resolver.chars = std::u32string(&*utf32.begin(), utf32.size());
 
-	env->ReleaseStringUTFChars(chars, utf8Chars);
+    mordavokne::handleCharacterInput(mordavokne::inst(), resolver, morda::Key_e::UNKNOWN);
 }
 
 
@@ -686,113 +1007,8 @@ App::DotsPerCmWrapper::DotsPerCmWrapper(){
 
 
 
-App::EGLDisplayWrapper::EGLDisplayWrapper(){
-	this->d = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-	if(this->d == EGL_NO_DISPLAY){
-		throw morda::Exc("eglGetDisplay(): failed, no matching display connection found");
-	}
-
-	if(eglInitialize(this->d, 0, 0) == EGL_FALSE){
-		eglTerminate(this->d);
-		throw morda::Exc("eglInitialize() failed");
-	}
-}
-
-
-
-App::EGLDisplayWrapper::~EGLDisplayWrapper()noexcept{
-	eglTerminate(this->d);
-}
-
-
-
-App::EGLConfigWrapper::EGLConfigWrapper(const WindowParams& wp, EGLDisplayWrapper& d){
-	//TODO: allow stencil configuration etc. via WindowParams
-	//Here specify the attributes of the desired configuration.
-	//Below, we select an EGLConfig with at least 8 bits per color
-	//component compatible with on-screen windows
-	const EGLint attribs[] = {
-			EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-			EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT, //we want OpenGL ES 2.0
-			EGL_BLUE_SIZE, 8,
-			EGL_GREEN_SIZE, 8,
-			EGL_RED_SIZE, 8,
-			EGL_NONE
-	};
-
-	//Here, the application chooses the configuration it desires. In this
-	//sample, we have a very simplified selection process, where we pick
-	//the first EGLConfig that matches our criteria
-	EGLint numConfigs;
-	eglChooseConfig(d.d, attribs, &this->c, 1, &numConfigs);
-	if(numConfigs <= 0){
-		throw morda::Exc("eglChooseConfig() failed, no matching config found");
-	}
-}
-
-
-
-App::EGLSurfaceWrapper::EGLSurfaceWrapper(EGLDisplayWrapper& d, EGLConfigWrapper& c) :
-		d(d)
-{
-	//EGL_NATIVE_VISUAL_ID is an attribute of the EGLConfig that is
-	//guaranteed to be accepted by ANativeWindow_setBuffersGeometry().
-	//As soon as we picked a EGLConfig, we can safely reconfigure the
-	//ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID.
-	EGLint format;
-	if(eglGetConfigAttrib(d.d, c.c, EGL_NATIVE_VISUAL_ID, &format) == EGL_FALSE){
-		throw morda::Exc("eglGetConfigAttrib() failed");
-	}
-
-	ASSERT(androidWindow)
-	ANativeWindow_setBuffersGeometry(androidWindow, 0, 0, format);
-
-	this->s = eglCreateWindowSurface(d.d, c.c, androidWindow, NULL);
-	if(this->s == EGL_NO_SURFACE){
-		throw morda::Exc("eglCreateWindowSurface() failed");
-	}
-}
-
-
-
-App::EGLSurfaceWrapper::~EGLSurfaceWrapper()noexcept{
-	eglDestroySurface(this->d.d, this->s);
-}
-
-
-
-App::EGLContextWrapper::EGLContextWrapper(EGLDisplayWrapper& d, EGLConfigWrapper& config, EGLSurfaceWrapper& s) :
-		d(d)
-{
-	EGLint contextAttrs[] = {
-		EGL_CONTEXT_CLIENT_VERSION, 2, //This is needed on Android, otherwise eglCreateContext() thinks that we want OpenGL ES 1.1, but we want 2.0
-		EGL_NONE
-	};
-
-	this->c = eglCreateContext(d.d, config.c, NULL, contextAttrs);
-	if(this->c == EGL_NO_CONTEXT){
-		throw morda::Exc("eglCreateContext() failed");
-	}
-
-	if(eglMakeCurrent(d.d, s.s, s.s, this->c) == EGL_FALSE){
-		eglDestroyContext(d.d, this->c);
-		throw morda::Exc("eglMakeCurrent() failed");
-	}
-}
-
-
-
-App::EGLContextWrapper::~EGLContextWrapper()noexcept{
-	eglMakeCurrent(this->d.d, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-	eglDestroyContext(this->d.d, this->c);
-}
-
-
-
 App::App(const WindowParams& requestedWindowParams) :
-		eglConfig(requestedWindowParams, eglDisplay),
-		eglSurface(eglDisplay, eglConfig),
-		eglContext(eglDisplay, eglConfig, eglSurface)
+        windowPimpl(utki::makeUnique<WindowWrapper>(requestedWindowParams))
 {
 	EGLint width, height;
 	eglQuerySurface(eglDisplay.d, eglSurface.s, EGL_WIDTH, &width);

@@ -81,36 +81,8 @@ private:
 	friend void Render(App& app);
 	friend std::uint32_t Update(App& app);
 	friend void HandleInputEvents();
-	friend void HandleCharacterInputEvent(std::vector<std::uint32_t>&& chars);
 	friend void HandleQueueMessages(App& app);
 	friend int GetUIQueueHandle(App& app);
-
-private:
-	struct EGLDisplayWrapper{
-		EGLDisplay d;
-		EGLDisplayWrapper();
-		~EGLDisplayWrapper()noexcept;
-	} eglDisplay;
-	
-	struct EGLConfigWrapper{
-		EGLConfig c;
-		EGLConfigWrapper(const WindowParams& wp, EGLDisplayWrapper& d);
-		~EGLConfigWrapper()noexcept{}
-	} eglConfig;
-	
-	struct EGLSurfaceWrapper{
-		EGLDisplayWrapper& d;
-		EGLSurface s;
-		EGLSurfaceWrapper(EGLDisplayWrapper&d, EGLConfigWrapper& c);
-		~EGLSurfaceWrapper()noexcept;
-	} eglSurface;
-	
-	struct EGLContextWrapper{
-		EGLDisplayWrapper& d;
-		EGLContext c;
-		EGLContextWrapper(EGLDisplayWrapper& d, EGLConfigWrapper& config, EGLSurfaceWrapper& s);
-		~EGLContextWrapper()noexcept;
-	} eglContext;
 #	endif
 
 #elif M_OS == M_OS_WINDOWS
