@@ -73,26 +73,6 @@ private:
 	
 	friend const decltype(windowPimpl)& getWindowPimpl(App& app);
 
-#if M_OS == M_OS_LINUX
-	//TODO: move android stuff to glue
-#	if M_OS_NAME == M_OS_NAME_ANDROID
-private:
-	friend void updateWindowRect(App& app, const morda::Rectr& rect);
-	friend void Render(App& app);
-	friend std::uint32_t Update(App& app);
-	friend void HandleInputEvents();
-	friend void HandleQueueMessages(App& app);
-	friend int GetUIQueueHandle(App& app);
-#	endif
-
-#elif M_OS == M_OS_WINDOWS
-
-#elif M_OS == M_OS_MACOSX
-
-#else
-#	error "unsupported OS"
-#endif
-
 private:
 	void swapFrameBuffers();
 
@@ -106,7 +86,6 @@ public:
 		{
 			TRACE(<< "MordaVOkne::MordaVOkne(): enter" << std::endl)
 		}
-		
 
 		void postToUiThread_ts(std::function<void()>&& f) override;
 	} gui;

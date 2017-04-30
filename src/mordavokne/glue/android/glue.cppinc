@@ -1,6 +1,3 @@
-//This file contains implementations of platform dependent methods from App class.
-
-
 #include <cerrno>
 #include <ctime>
 #include <csignal>
@@ -8,17 +5,18 @@
 #include <android/native_activity.h>
 #include <android/configuration.h>
 #include <android/asset_manager.h>
+#include <android/window.h>
 
 #include <unikod/utf8.hpp>
 #include <nitki/Queue.hpp>
 
-#include <time.h>
-#include <signal.h>
 #include <sys/eventfd.h>
-#include <asm/signal.h>
+
 
 #include "../../App.hpp"
 #include "../../AppFactory.hpp"
+
+#include <mordaren/OpenGLES2Renderer.hpp>
 
 #include <EGL/egl.h>
 
@@ -35,14 +33,76 @@ namespace{
 
 ANativeActivity* nativeActivity = 0;
 
+mordavokne::App& getApp(ANativeActivity* activity){
+    ASSERT(activity)
+    return *static_cast<mordavokne::App*>(activity->instance);
+}
+
 ANativeWindow* androidWindow = 0;
 
 
+    class JavaFunctionsWrapper : public utki::Unique{
+        JNIEnv *env;
+        jclass clazz;
+        jobject obj;
+
+        jmethodID resolveKeycodeUnicodeMeth;
+
+        jmethodID getDotsPerInchMeth;
+
+        jmethodID showVirtualKeyboardMeth;
+        jmethodID hideVirtualKeyboardMeth;
+    public:
+        JavaFunctionsWrapper(ANativeActivity* a){
+            this->env = a->env;
+            this->obj = a->clazz;
+            this->clazz = this->env->GetObjectClass(this->obj);
+            ASSERT(this->clazz)
+
+
+            this->resolveKeycodeUnicodeMeth = this->env->GetMethodID(this->clazz, "resolveKeyUnicode", "(III)I");
+            ASSERT(this->resolveKeycodeUnicodeMeth)
+
+            this->getDotsPerInchMeth = this->env->GetMethodID(this->clazz, "getDotsPerInch", "()F");
+
+            this->showVirtualKeyboardMeth = this->env->GetMethodID(this->clazz, "showVirtualKeyboard", "()V");
+            ASSERT(this->showVirtualKeyboardMeth)
+
+            this->hideVirtualKeyboardMeth = this->env->GetMethodID(this->clazz, "hideVirtualKeyboard", "()V");
+            ASSERT(this->hideVirtualKeyboardMeth)
+        }
+
+
+
+        ~JavaFunctionsWrapper()noexcept{
+        }
+
+        char32_t resolveKeyUnicode(int32_t devId, int32_t metaState, int32_t keyCode){
+            return char32_t(this->env->CallIntMethod(this->obj, this->resolveKeycodeUnicodeMeth, jint(devId), jint(metaState), jint(keyCode)));
+        }
+
+        float getDotsPerInch(){
+            return float(this->env->CallFloatMethod(this->obj, this->getDotsPerInchMeth));
+        }
+
+        void hideVirtualKeyboard(){
+            this->env->CallVoidMethod(this->obj, this->hideVirtualKeyboardMeth);
+        }
+
+        void showVirtualKeyboard(){
+            this->env->CallVoidMethod(this->obj, this->showVirtualKeyboardMeth);
+        }
+    };
+
+
+std::unique_ptr<JavaFunctionsWrapper> javaFunctionsWrapper;
 
 struct WindowWrapper : public utki::Unique{
     EGLDisplay display;
     EGLSurface surface;
     EGLContext context;
+
+    nitki::Queue uiQueue;
 
     WindowWrapper(const App::WindowParams& wp){
         this->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
@@ -122,10 +182,20 @@ struct WindowWrapper : public utki::Unique{
             throw morda::Exc("eglMakeCurrent() failed");
         }
 
-
         eglContextScopeExit.reset();
         eglSurfaceScopeExit.reset();
         eglDisplayScopeExit.reset();
+    }
+
+    kolme::Vec2ui getWindowSize(){
+        EGLint width, height;
+        eglQuerySurface(this->display, this->surface, EGL_WIDTH, &width);
+        eglQuerySurface(this->display, this->surface, EGL_HEIGHT, &height);
+        return kolme::Vec2ui(width, height);
+    }
+
+    void swapBuffers(){
+        eglSwapBuffers(this->display, this->surface);
     }
 
     ~WindowWrapper()noexcept{
@@ -393,10 +463,10 @@ std::array<morda::Vec2r, 10> pointers;
 
 
 
-inline morda::Vec2r AndroidWinCoordsToMordaWinRectCoords(const morda::Rectr& winRect, const morda::Vec2r& p){
+inline morda::Vec2r AndroidWinCoordsToMordaWinRectCoords(const morda::Vec2r& winDim, const morda::Vec2r& p){
 	morda::Vec2r ret(
 			p.x,
-			p.y - (curWinDim.y - winRect.d.y)
+			p.y - (curWinDim.y - winDim.y)
 		);
 //	TRACE(<< "AndroidWinCoordsToMordaWinRectCoords(): ret = " << ret << std::endl)
 	return ret.rounded();
@@ -424,91 +494,23 @@ std::unique_ptr<AndroidConfiguration> curConfig;
 
 
 
-class JavaFunctionsWrapper{
-	JNIEnv *env;
-	jclass clazz;
-	jobject obj;
-	
-	jmethodID resolveKeycodeUnicodeMeth;
-	
-	jmethodID getDotsPerCmMeth;
-	
-	jmethodID showVirtualKeyboardMeth;
-	jmethodID hideVirtualKeyboardMeth;
-protected:
-	JavaFunctionsWrapper(ANativeActivity* a){
-		this->env = a->env;
-		this->obj = a->clazz;
-		this->clazz = this->env->GetObjectClass(this->obj);
-		ASSERT(this->clazz)
-		
-		
-		this->resolveKeycodeUnicodeMeth = this->env->GetMethodID(this->clazz, "resolveKeyUnicode", "(III)I");
-		ASSERT(this->resolveKeycodeUnicodeMeth)
-		
-		this->getDotsPerCmMeth = this->env->GetMethodID(this->clazz, "getDotsPerCm", "()F");
-		
-		this->showVirtualKeyboardMeth = this->env->GetMethodID(this->clazz, "showVirtualKeyboard", "()V");
-		ASSERT(this->showVirtualKeyboardMeth)
-		
-		this->hideVirtualKeyboardMeth = this->env->GetMethodID(this->clazz, "hideVirtualKeyboard", "()V");
-		ASSERT(this->hideVirtualKeyboardMeth)
-	}
-	
-public:
-	
-	static std::unique_ptr<JavaFunctionsWrapper> New(ANativeActivity* a){
-		return std::unique_ptr<JavaFunctionsWrapper>(
-				new JavaFunctionsWrapper(a)
-			);
-	}
-	
-	~JavaFunctionsWrapper()noexcept{
-	}
-	
-	std::uint32_t ResolveKeyUnicode(int32_t devId, int32_t metaState, int32_t keyCode){
-		return std::uint32_t(this->env->CallIntMethod(this->obj, this->resolveKeycodeUnicodeMeth, jint(devId), jint(metaState), jint(keyCode)));
-	}
-	
-	float GetDotsPerCm(){
-		return float(this->env->CallFloatMethod(this->obj, this->getDotsPerCmMeth));
-	}
-	
-	void HideVirtualKeyboard(){
-		this->env->CallVoidMethod(this->obj, this->hideVirtualKeyboardMeth);
-	}
-	
-	void ShowVirtualKeyboard(){
-		this->env->CallVoidMethod(this->obj, this->showVirtualKeyboardMeth);
-	}
-};
-
-
-
-std::unique_ptr<JavaFunctionsWrapper> javaFunctionsWrapper;
-
-
-
-class KeyEventToUnicodeResolver{
+class KeyEventToUnicodeResolver : public morda::Morda::UnicodeProvider{
 public:	
 	int32_t kc;//key code
 	int32_t ms;//meta state
 	int32_t di;//device id
 	
-	std::vector<std::uint32_t> Resolve()const{
+	std::u32string get()const{
 		ASSERT(javaFunctionsWrapper)
 //		TRACE(<< "KeyEventToUnicodeResolver::Resolve(): this->kc = " << this->kc << std::endl)
-		std::uint32_t res = javaFunctionsWrapper->ResolveKeyUnicode(this->di, this->ms, this->kc);
+        char32_t res = javaFunctionsWrapper->resolveKeyUnicode(this->di, this->ms, this->kc);
 
 		//0 means that key did not produce any unicode character
 		if(res == 0){
-			return std::vector<std::uint32_t>();
+			return nullptr;
 		}
 		
-		std::vector<std::uint32_t> ret(1);
-		ret[0] = res;
-		
-		return ret;
+		return std::u32string(&res, 1);
 	}
 	
 
@@ -582,7 +584,7 @@ public:
 		struct sigaction sa;
 		sa.sa_handler = &LinuxTimer::OnSIGALRM;
 		sa.sa_flags = SA_NODEFER;
-		memset(sa.sa_mask.sig, 0, sizeof(sa.sa_mask.sig));
+		memset(&sa.sa_mask, 0, sizeof(sa.sa_mask));
 
 		res = sigaction(SIGALRM, &sa, 0);
 		ASSERT(res == 0)
@@ -593,7 +595,7 @@ public:
 		struct sigaction sa;
 		sa.sa_handler = SIG_DFL;
 		sa.sa_flags = 0;
-        memset(sa.sa_mask.sig, 0, sizeof(sa.sa_mask.sig));
+        memset(&sa.sa_mask, 0, sizeof(sa.sa_mask));
 
 #ifdef DEBUG
 		int res =
@@ -994,42 +996,62 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved){
 }
 
 
-
-namespace morda{
-
-
-
-App::DotsPerCmWrapper::DotsPerCmWrapper(){
-	ASSERT(javaFunctionsWrapper)
-	this->value = javaFunctionsWrapper->GetDotsPerCm();
-//	TRACE_ALWAYS(<< "App::App(): this->dotsPerCm = " << this->value << std::endl)
-}
-
+namespace mordavokne{
 
 
 App::App(const WindowParams& requestedWindowParams) :
-        windowPimpl(utki::makeUnique<WindowWrapper>(requestedWindowParams))
+        windowPimpl(utki::makeUnique<WindowWrapper>(requestedWindowParams)),
+        gui(
+                *this,
+                utki::makeShared<mordaren::OpenGLES2Renderer>(),
+                []() -> float{
+                    ASSERT(javaFunctionsWrapper)
+                    return javaFunctionsWrapper->getDotsPerInch();
+                }(),
+                [this]() -> float{
+                    auto res = getImpl(this->windowPimpl).getWindowSize();
+                    auto dim = (res.to<float>() / javaFunctionsWrapper->getDotsPerInch()) * 25.4f;
+                    return App::findDotsPerPt(res, dim.to<unsigned>());
+                }()
+            )
 {
-	EGLint width, height;
-	eglQuerySurface(eglDisplay.d, eglSurface.s, EGL_WIDTH, &width);
-	eglQuerySurface(eglDisplay.d, eglSurface.s, EGL_HEIGHT, &height);
-	
-	this->updateWindowRect(morda::Rectr(0, 0, float(width), float(height)));
+    auto winSize = getImpl(this->windowPimpl).getWindowSize();
+	this->updateWindowRect(morda::Rectr(morda::Vec2r(0), winSize.to<morda::real>()));
 }
 
 
 
 std::unique_ptr<papki::File> App::createResourceFileInterface(const std::string& path)const{
-	return AssetFile::New(appInfo.assetManager, path);
+	return utki::makeUnique<AssetFile>(appInfo.assetManager, path);
 }
 
+void App::swapFrameBuffers() {
+    auto& ww = getImpl(this->windowPimpl);
+    ww.swapBuffers();
+}
 
+void App::setMouseCursorVisible(bool visible) {
+    //do nothing
+}
+
+void App::setFullscreen(bool enable) {
+    ASSERT(nativeActivity)
+    if(enable) {
+        ANativeActivity_setWindowFlags(nativeActivity, AWINDOW_FLAG_FULLSCREEN, 0);
+    }else{
+        ANativeActivity_setWindowFlags(nativeActivity, 0, AWINDOW_FLAG_FULLSCREEN);
+    }
+}
+
+void App::quit() noexcept{
+    //TODO:
+}
 
 void App::showVirtualKeyboard()noexcept{
 	//ANativeActivity_showSoftInput(nativeActivity, ANATIVEACTIVITY_SHOW_SOFT_INPUT_FORCED);
 	
 	ASSERT(javaFunctionsWrapper)
-	javaFunctionsWrapper->ShowVirtualKeyboard();
+	javaFunctionsWrapper->showVirtualKeyboard();
 }
 
 
@@ -1038,210 +1060,181 @@ void App::hideVirtualKeyboard()noexcept{
 	//ANativeActivity_hideSoftInput(nativeActivity, ANATIVEACTIVITY_HIDE_SOFT_INPUT_NOT_ALWAYS);
 	
 	ASSERT(javaFunctionsWrapper)
-	javaFunctionsWrapper->HideVirtualKeyboard();
+	javaFunctionsWrapper->hideVirtualKeyboard();
 }
 
-
-
-inline void UpdateWindowRect(App& app, const morda::Rectr& rect){
-//	TRACE(<< "UpdateWindowRect(): rect = " << rect << std::endl)
-	app.UpdateWindowRect(rect);
-}
-
-
-
-inline void Render(App& app){
-	app.Render();
-}
-
-
-
-inline std::uint32_t Update(App& app){
-	return app.updater.Update();
-}
-
-
-
-inline void HandleQueueMessages(App& app){
-	while(auto m = app.uiQueue.PeekMsg()){
-		m();
-	}
-}
-
-
-
-inline int GetUIQueueHandle(App& app){
-	return static_cast<pogodi::Waitable&>(app.uiQueue).GetHandle();
-}
-
-
-
-void HandleInputEvents(){
-	morda::App& app = morda::App::inst();
-
-	//Read and handle input events
-	AInputEvent* event;
-	while(AInputQueue_getEvent(curInputQueue, &event) >= 0){
-		ASSERT(event)
-		
-//		TRACE(<< "New input event: type = " << AInputEvent_getType(event) << std::endl)
-		if(AInputQueue_preDispatchEvent(curInputQueue, event)){
-			continue;
-		}
-
-		int32_t eventType = AInputEvent_getType(event);
-		int32_t eventAction = AMotionEvent_getAction(event);
-
-		bool consume = false;
-
-		switch(eventType){
-			case AINPUT_EVENT_TYPE_MOTION:
-				switch(eventAction & AMOTION_EVENT_ACTION_MASK){
-					case AMOTION_EVENT_ACTION_POINTER_DOWN:
-//						TRACE(<< "Pointer down" << std::endl)
-					case AMOTION_EVENT_ACTION_DOWN:
-						{
-							unsigned pointerIndex = ((eventAction & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
-							unsigned pointerId = unsigned(AMotionEvent_getPointerId(event, pointerIndex));
-
-							if(pointerId >= pointers.size()){
-								TRACE(<< "Pointer ID is too big, only " << pointers.size() << " pointers supported at maximum")
-								continue;
-							}
-
-//								TRACE(<< "Action down, ptr id = " << pointerId << std::endl)
-
-							morda::Vec2r p(AMotionEvent_getX(event, pointerIndex), AMotionEvent_getY(event, pointerIndex));
-							pointers[pointerId] = p;
-
-							app.HandleMouseButton(
-									true,
-									AndroidWinCoordsToMordaWinRectCoords(app.curWinRect, p),
-									morda::MouseButton_e::LEFT,
-									pointerId
-								);
-						}
-						break;
-					case AMOTION_EVENT_ACTION_POINTER_UP:
-//						TRACE(<< "Pointer up" << std::endl)
-					case AMOTION_EVENT_ACTION_UP:
-						{
-							unsigned pointerIndex = ((eventAction & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
-							unsigned pointerId = unsigned(AMotionEvent_getPointerId(event, pointerIndex));
-
-							if(pointerId >= pointers.size()){
-								TRACE(<< "Pointer ID is too big, only " << pointers.size() << " pointers supported at maximum")
-								continue;
-							}
-
-//								TRACE(<< "Action up, ptr id = " << pointerId << std::endl)
-
-							morda::Vec2r p(AMotionEvent_getX(event, pointerIndex), AMotionEvent_getY(event, pointerIndex));
-							pointers[pointerId] = p;
-
-							app.HandleMouseButton(
-									false,
-									AndroidWinCoordsToMordaWinRectCoords(app.curWinRect, p),
-									morda::MouseButton_e::LEFT,
-									pointerId
-								);
-						}
-						break;
-					case AMOTION_EVENT_ACTION_MOVE:
-						{							
-							size_t numPointers = AMotionEvent_getPointerCount(event);
-							ASSERT(numPointers >= 1)
-							for(size_t pointerNum = 0; pointerNum < numPointers; ++pointerNum){
-								unsigned pointerId = unsigned(AMotionEvent_getPointerId(event, pointerNum));
-								if(pointerId >= pointers.size()){
-									TRACE(<< "Pointer ID is too big, only " << pointers.size() << " pointers supported at maximum")
-									continue;
-								}
-
-								//notify root Container only if there was actual movement
-								morda::Vec2r p(AMotionEvent_getX(event, pointerNum), AMotionEvent_getY(event, pointerNum));
-								if(pointers[pointerId] == p){
-									//pointer position did not change
-									continue;
-								}
-
-//								TRACE(<< "Action move, ptr id = " << pointerId << std::endl)
-
-								pointers[pointerId] = p;
-
-								app.HandleMouseMove(
-										AndroidWinCoordsToMordaWinRectCoords(app.curWinRect, p),
-										pointerId
-									);
-							}//~for(every pointer)
-						}
-						break;
-					default:
-						TRACE(<< "unknown eventAction = " << eventAction << std::endl)
-						break;
-				}//~switch(event action)
-				consume = true;
-				break;
-			case AINPUT_EVENT_TYPE_KEY:
-				{
-//						TRACE(<< "AINPUT_EVENT_TYPE_KEY" << std::endl)
-
-					morda::EKey key = GetKeyFromKeyEvent(*ASS(event));
-					
-					keyUnicodeResolver.kc = AKeyEvent_getKeyCode(event);
-					keyUnicodeResolver.ms = AKeyEvent_getMetaState(event);
-					keyUnicodeResolver.di = AInputEvent_getDeviceId(event);
-
-//					TRACE(<< "AINPUT_EVENT_TYPE_KEY: keyUnicodeResolver.kc = " << keyUnicodeResolver.kc << std::endl)
-
-					//detect auto-repeated key events
-					if(AKeyEvent_getRepeatCount(event) != 0){
-						if(eventAction == AKEY_EVENT_ACTION_DOWN){
-							app.HandleCharacterInput(keyUnicodeResolver, key);
-						}
-						break;
-					}
-
-					switch(eventAction){
-						case AKEY_EVENT_ACTION_DOWN:
-//							TRACE(<< "AKEY_EVENT_ACTION_DOWN" << std::endl)
-							app.HandleKeyEvent(true, key);
-							app.HandleCharacterInput(keyUnicodeResolver, key);
-							break;
-						case AKEY_EVENT_ACTION_UP:
-//							TRACE(<< "AKEY_EVENT_ACTION_UP" << std::endl)
-							app.HandleKeyEvent(false, key);
-							break;
-						default:
-							TRACE(<< "unknown AINPUT_EVENT_TYPE_KEY eventAction" << std::endl)
-							break;
-					}
-				}
-				break;
-			default:
-				break;
-		}//~switch(event type)
-
-
-		AInputQueue_finishEvent(
-				curInputQueue,
-				event,
-				consume
-			);
-	}//~while(there are events in input queue)
-
-	app.Render();
-
-	fdFlag.Set();
-}
-
-
+    void App::MordaVOkne::postToUiThread_ts(std::function<void()> &&f) {
+        auto& ww = getImpl(getWindowPimpl(this->app));
+        ww.uiQueue.pushMessage(std::move(f));
+    }
 
 }//~namespace
 
 
 
 namespace{
+
+    void handleInputEvents(){
+        auto& app = mordavokne::inst();
+
+        //Read and handle input events
+        AInputEvent* event;
+        while(AInputQueue_getEvent(curInputQueue, &event) >= 0){
+            ASSERT(event)
+
+//		TRACE(<< "New input event: type = " << AInputEvent_getType(event) << std::endl)
+            if(AInputQueue_preDispatchEvent(curInputQueue, event)){
+                continue;
+            }
+
+            int32_t eventType = AInputEvent_getType(event);
+            int32_t eventAction = AMotionEvent_getAction(event);
+
+            bool consume = false;
+
+            switch(eventType){
+                case AINPUT_EVENT_TYPE_MOTION:
+                    switch(eventAction & AMOTION_EVENT_ACTION_MASK){
+                        case AMOTION_EVENT_ACTION_POINTER_DOWN:
+//						TRACE(<< "Pointer down" << std::endl)
+                        case AMOTION_EVENT_ACTION_DOWN:
+                        {
+                            unsigned pointerIndex = ((eventAction & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
+                            unsigned pointerId = unsigned(AMotionEvent_getPointerId(event, pointerIndex));
+
+                            if(pointerId >= pointers.size()){
+                                TRACE(<< "Pointer ID is too big, only " << pointers.size() << " pointers supported at maximum")
+                                continue;
+                            }
+
+//								TRACE(<< "Action down, ptr id = " << pointerId << std::endl)
+
+                            morda::Vec2r p(AMotionEvent_getX(event, pointerIndex), AMotionEvent_getY(event, pointerIndex));
+                            pointers[pointerId] = p;
+
+                            handleMouseButton(
+                                    app,
+                                    true,
+                                    AndroidWinCoordsToMordaWinRectCoords(app.winDim(), p),
+                                    morda::MouseButton_e::LEFT,
+                                    pointerId
+                            );
+                        }
+                            break;
+                        case AMOTION_EVENT_ACTION_POINTER_UP:
+//						TRACE(<< "Pointer up" << std::endl)
+                        case AMOTION_EVENT_ACTION_UP:
+                        {
+                            unsigned pointerIndex = ((eventAction & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
+                            unsigned pointerId = unsigned(AMotionEvent_getPointerId(event, pointerIndex));
+
+                            if(pointerId >= pointers.size()){
+                                TRACE(<< "Pointer ID is too big, only " << pointers.size() << " pointers supported at maximum")
+                                continue;
+                            }
+
+//								TRACE(<< "Action up, ptr id = " << pointerId << std::endl)
+
+                            morda::Vec2r p(AMotionEvent_getX(event, pointerIndex), AMotionEvent_getY(event, pointerIndex));
+                            pointers[pointerId] = p;
+
+                            handleMouseButton(
+                                    app,
+                                    false,
+                                    AndroidWinCoordsToMordaWinRectCoords(app.winDim(), p),
+                                    morda::MouseButton_e::LEFT,
+                                    pointerId
+                            );
+                        }
+                            break;
+                        case AMOTION_EVENT_ACTION_MOVE:
+                        {
+                            size_t numPointers = AMotionEvent_getPointerCount(event);
+                            ASSERT(numPointers >= 1)
+                            for(size_t pointerNum = 0; pointerNum < numPointers; ++pointerNum){
+                                unsigned pointerId = unsigned(AMotionEvent_getPointerId(event, pointerNum));
+                                if(pointerId >= pointers.size()){
+                                    TRACE(<< "Pointer ID is too big, only " << pointers.size() << " pointers supported at maximum")
+                                    continue;
+                                }
+
+                                //notify root Container only if there was actual movement
+                                morda::Vec2r p(AMotionEvent_getX(event, pointerNum), AMotionEvent_getY(event, pointerNum));
+                                if(pointers[pointerId] == p){
+                                    //pointer position did not change
+                                    continue;
+                                }
+
+//								TRACE(<< "Action move, ptr id = " << pointerId << std::endl)
+
+                                pointers[pointerId] = p;
+
+                                handleMouseMove(
+                                        app,
+                                        AndroidWinCoordsToMordaWinRectCoords(app.winDim(), p),
+                                        pointerId
+                                );
+                            }//~for(every pointer)
+                        }
+                            break;
+                        default:
+                            TRACE(<< "unknown eventAction = " << eventAction << std::endl)
+                            break;
+                    }//~switch(event action)
+                    consume = true;
+                    break;
+                case AINPUT_EVENT_TYPE_KEY:
+                {
+//						TRACE(<< "AINPUT_EVENT_TYPE_KEY" << std::endl)
+
+                    morda::Key_e key = GetKeyFromKeyEvent(*ASS(event));
+
+                    keyUnicodeResolver.kc = AKeyEvent_getKeyCode(event);
+                    keyUnicodeResolver.ms = AKeyEvent_getMetaState(event);
+                    keyUnicodeResolver.di = AInputEvent_getDeviceId(event);
+
+//					TRACE(<< "AINPUT_EVENT_TYPE_KEY: keyUnicodeResolver.kc = " << keyUnicodeResolver.kc << std::endl)
+
+                    //detect auto-repeated key events
+                    if(AKeyEvent_getRepeatCount(event) != 0){
+                        if(eventAction == AKEY_EVENT_ACTION_DOWN){
+                            handleCharacterInput(app, keyUnicodeResolver, key);
+                        }
+                        break;
+                    }
+
+                    switch(eventAction){
+                        case AKEY_EVENT_ACTION_DOWN:
+//							TRACE(<< "AKEY_EVENT_ACTION_DOWN" << std::endl)
+                            handleKeyEvent(app, true, key);
+                            handleCharacterInput(app, keyUnicodeResolver, key);
+                            break;
+                        case AKEY_EVENT_ACTION_UP:
+//							TRACE(<< "AKEY_EVENT_ACTION_UP" << std::endl)
+                            handleKeyEvent(app, false, key);
+                            break;
+                        default:
+                            TRACE(<< "unknown AINPUT_EVENT_TYPE_KEY eventAction" << std::endl)
+                            break;
+                    }
+                }
+                    break;
+                default:
+                    break;
+            }//~switch(event type)
+
+
+            AInputQueue_finishEvent(
+                    curInputQueue,
+                    event,
+                    consume
+            );
+        }//~while(there are events in input queue)
+
+        render(app);
+
+        fdFlag.Set();
+    }
 
 
 
@@ -1273,6 +1266,7 @@ void* OnSaveInstanceState(ANativeActivity* activity, size_t* outSize){
 	TRACE(<< "OnSaveInstanceState(): invoked" << std::endl)
 	//TODO:
 //    return static_cast<morda::App*>(activity->instance)->OnSaveInstanceState(outSize);
+    return nullptr;
 }
 
 
@@ -1347,15 +1341,18 @@ void OnWindowFocusChanged(ANativeActivity* activity, int hasFocus){
 int OnUpdateTimerExpired(int fd, int events, void* data){
 //	TRACE(<< "OnUpdateTimerExpired(): invoked" << std::endl)
 
-	std::uint32_t dt = Update(App::inst());
+    auto& app = App::inst();
+
+	std::uint32_t dt = app.gui.update();
 	if(dt == 0){
 		//do not arm the timer and do not clear the flag
 	}else{
 		fdFlag.Clear();
 		timer.Arm(dt);
 	}
-	
-	Render(App::inst());//after updating need to re-render everything
+
+    //after updating need to re-render everything
+	render(app);
 
 //	TRACE(<< "OnUpdateTimerExpired(): armed timer for " << dt << std::endl)
 
@@ -1365,7 +1362,11 @@ int OnUpdateTimerExpired(int fd, int events, void* data){
 
 
 int OnQueueHasMessages(int fd, int events, void* data){
-	HandleQueueMessages(App::inst());
+    auto& ww = getImpl(getWindowPimpl(App::inst()));
+
+    while(auto m = ww.uiQueue.peekMsg()){
+        m();
+    }
 	
 	return 1; //1 means do not remove descriptor from looper
 }
@@ -1388,7 +1389,7 @@ void OnNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window){
 		//retrieve current configuration
 		AConfiguration_fromAssetManager(cfg->ac, appInfo.assetManager);
 
-		App* app = morda::CreateApp(0, 0, appInfo.savedState).release();
+		App* app = createAppUnix(0, 0, utki::wrapBuf(appInfo.savedState)).release();
 		
 		activity->instance = app;
 
@@ -1409,7 +1410,7 @@ void OnNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window){
 		
 		ALooper_addFd(
 				looper,
-				GetUIQueueHandle(*app),
+                static_cast<pogodi::Waitable&>(getImpl(getWindowPimpl(*app)).uiQueue).getHandle(),
 				ALOOPER_POLL_CALLBACK,
 				ALOOPER_EVENT_INPUT,
 				&OnQueueHasMessages,
@@ -1440,10 +1441,12 @@ void OnNativeWindowResized(ANativeActivity* activity, ANativeWindow* window){
 
 
 
+
+
 void OnNativeWindowRedrawNeeded(ANativeActivity* activity, ANativeWindow* window){
 	TRACE(<< "OnNativeWindowRedrawNeeded(): invoked" << std::endl)
 
-	morda::Render(*static_cast<morda::App*>(activity->instance));
+    render(getApp(activity));
 }
 
 
@@ -1456,7 +1459,7 @@ void OnNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow* window){
 
 	//TODO: need to destroy app right before window is destroyed, i.e. OGL de-initialized
 	//destroy app object
-	delete static_cast<morda::App*>(activity->instance);
+	delete static_cast<mordavokne::App*>(activity->instance);
 	activity->instance = 0;
 
 	//delete configuration object
@@ -1471,7 +1474,7 @@ int OnInputEventsReadyForReadingFromQueue(int fd, int events, void* data){
 	ASSERT(curInputQueue) //if we get events we should have input queue
 
 	//If window is not created yet, ignore events.
-	if(!morda::App::IsCreated()){
+	if(!mordavokne::App::isCreated()){
 		ASSERT(false)
 		AInputEvent* event;
 		while(AInputQueue_getEvent(curInputQueue, &event) >= 0){
@@ -1486,7 +1489,7 @@ int OnInputEventsReadyForReadingFromQueue(int fd, int events, void* data){
 
 	ASSERT(morda::App::IsCreated())
 
-	morda::HandleInputEvents();
+	handleInputEvents();
 
 	return 1; //we don't want to remove input queue descriptor from looper
 }
@@ -1529,9 +1532,9 @@ void OnContentRectChanged(ANativeActivity* activity, const ARect* rect){
 	TRACE(<< "OnContentRectChanged(): invoked, left = " << rect->left << " right = " << rect->right << " top = " << rect->top << " bottom = " << rect->bottom << std::endl)
 	TRACE(<< "OnContentRectChanged(): winDim = " << curWinDim << std::endl)
 
-	morda::App& app = *static_cast<morda::App*>(activity->instance);
+	auto& app = getApp(activity);
 
-	UpdateWindowRect(
+	updateWindowRect(
 			app,
 			morda::Rectr(
 					float(rect->left),
@@ -1542,7 +1545,7 @@ void OnContentRectChanged(ANativeActivity* activity, const ARect* rect){
 		);
 
 	//redraw, since WindowRedrawNeeded not always comes
-	Render(app);
+	render(app);
 }
 
 
@@ -1587,8 +1590,6 @@ void ANativeActivity_onCreate(
 		appInfo.savedState.resize(savedStateSize);
 		memcpy(&*appInfo.savedState.begin(), savedState, savedStateSize);
 	}
-
-//	ANativeActivity_setWindowFlags(activity, 1024, 1024); //set fullscreen flag
 	
-	javaFunctionsWrapper = JavaFunctionsWrapper::New(activity);
+	javaFunctionsWrapper = utki::makeUnique<JavaFunctionsWrapper>(activity);
 }

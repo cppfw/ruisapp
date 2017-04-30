@@ -15,9 +15,12 @@ model {
         ndk {
             platformVersion = 21
             moduleName = "mordavokne"
-            toolchain = 'clang'
+//            toolchain = 'clang'
             abiFilters.addAll(['armeabi', 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64', 'mips', 'mips64']) //this is default
-            ldLibs.addAll(['android', 'log'])
+            ldLibs.addAll(['android', 'log', 'stob', 'EGL', 'nitki', 'morda-opengles2-ren',
+                           'morda', 'papki',
+                            'png', 'jpeg', 'GLESv2', 'z', 'freetype2',
+                           'svgdom', 'svgren', 'cairo', 'pixman', 'pugixml', 'c++'])
             stl = 'c++_static'
             cppFlags.add("-std=c++11")
             cppFlags.add("-fexceptions")
@@ -78,6 +81,7 @@ dependencies {
     compile 'io.github.igagis:libpapki:+'
     compile 'io.github.igagis:libkolme:+'
     compile 'io.github.igagis:libmorda:+'
+    compile 'io.github.igagis:libmorda_opengles2_ren:+'
     compile 'io.github.igagis:libnitki:+'
 }
 
@@ -121,10 +125,7 @@ task copyNdkLibsToAAR(type: Zip) {
     from zipTree("build/outputs/aar/" + aarName + "-release.aar")
     exclude('**/*.so') //do not include shared libraries into final AAR
     from("../../src") {
-        exclude('makefile')
-        exclude('soname.txt')
-        exclude('**/*.cpp')
-        exclude('**/*.c')
+        include('**/*.hpp')
         into('ndkLibs/include')
     }
     from("build/intermediates/binaries/debug/lib"){
