@@ -14,6 +14,10 @@ import android.view.inputmethod.InputMethodManager;
 
 
 public class MordaVOkneActivity extends NativeActivity {
+	{
+		System.loadLibrary("mordavokneapp");
+	}
+
 	public static final String LOGTAG = "mordavokne java side";
 
 	private int curKeyDevice;
@@ -38,7 +42,7 @@ public class MordaVOkneActivity extends NativeActivity {
 		Display d = ((WindowManager)getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 		DisplayMetrics m = new DisplayMetrics();
 		d.getMetrics(m);
-		Log.d(LOGTAG, "getDotsPerCm(): xdpi = " + m.xdpi + " ydpi = " + m.ydpi + " density = " + m.density);
+		Log.d(LOGTAG, "getDotsPerInch(): xdpi = " + m.xdpi + " ydpi = " + m.ydpi + " density = " + m.density);
 		return (m.xdpi + m.ydpi) / 2.0f;
 	}
 	

@@ -22,7 +22,7 @@ model {
 
         ndk {
             platformVersion = 21
-            moduleName = 'mordavone-tests'
+            moduleName = 'mordavokneapp'
             toolchain = 'clang'
             stl = 'c++_static'
             cppFlags.add("-std=c++11")
@@ -32,7 +32,7 @@ model {
             ldLibs.addAll(['android', 'log',
                            'EGL', 'morda-opengles2-ren', 'morda', 'nitki', 'stob', 'papki',
                            'png', 'jpeg', 'GLESv2', 'z', 'freetype2', 'svgren', 'svgdom',
-                           'pugixml', 'cairo', 'pixman','c++'])
+                           'pugixml', 'cairo', 'pixman', 'c++'])
             // build a default combined apk including all ABIs.
             // abiFilters.addAll(['x86'])
         }
@@ -102,13 +102,14 @@ repositories {
     }
 }
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     compile 'io.github.igagis:libutki:+'
     compile 'io.github.igagis:libkolme:+'
     compile 'io.github.igagis:libpapki:+'
     compile 'io.github.igagis:libmorda:+'
     compile 'io.github.igagis:libnitki:+'
     compile 'io.github.igagis:libmorda_opengles2_ren:+'
+    compile project(':libmordavokne')
 }
 
 
