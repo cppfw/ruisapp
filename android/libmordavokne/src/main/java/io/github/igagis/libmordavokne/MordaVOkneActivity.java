@@ -15,6 +15,7 @@ import android.view.inputmethod.InputMethodManager;
 
 public class MordaVOkneActivity extends NativeActivity {
 	{
+		System.loadLibrary("c++_shared");
 		System.loadLibrary("mordavokneapp");
 	}
 

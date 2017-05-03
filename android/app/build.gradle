@@ -23,8 +23,8 @@ model {
         ndk {
             platformVersion = 21
             moduleName = 'mordavokneapp'
-            toolchain = 'clang'
-            stl = 'c++_static'
+//            toolchain = 'clang'
+            stl = 'c++_shared'
             cppFlags.add("-std=c++11")
             cppFlags.add("-fexceptions")
             cppFlags.add("-frtti")

@@ -21,7 +21,7 @@ model {
                            'morda', 'papki',
                             'png', 'jpeg', 'GLESv2', 'z', 'freetype2',
                            'svgdom', 'svgren', 'cairo', 'pixman', 'pugixml', 'c++'])
-            stl = 'c++_static'
+            stl = 'c++_shared'
             cppFlags.add("-std=c++11")
             cppFlags.add("-fexceptions")
             cppFlags.add("-frtti")
