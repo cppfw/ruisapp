@@ -117,11 +117,13 @@ dependencies {
 task extractNDKLibs {
     doLast {
         configurations.compile.each {
-            def file = it.absoluteFile
-            copy {
-                from zipTree(file)
-                into "build/"
-                include "ndkLibs/**/*"
+            if (!it.name.contains("libmordavokne")) {
+                def file = it.absoluteFile
+                copy {
+                    from zipTree(file)
+                    into "build/"
+                    include "ndkLibs/**/*"
+                }
             }
         }
     }
