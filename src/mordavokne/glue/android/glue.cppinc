@@ -52,6 +52,8 @@ ANativeWindow* androidWindow = 0;
 
         jmethodID showVirtualKeyboardMeth;
         jmethodID hideVirtualKeyboardMeth;
+
+        jmethodID listDirContentsMeth;
     public:
         JavaFunctionsWrapper(ANativeActivity* a){
             this->env = a->env;
@@ -64,6 +66,9 @@ ANativeWindow* androidWindow = 0;
             ASSERT(this->resolveKeycodeUnicodeMeth)
 
             this->getDotsPerInchMeth = this->env->GetMethodID(this->clazz, "getDotsPerInch", "()F");
+
+            this->listDirContentsMeth = this->env->GetMethodID(this->clazz, "listDirContents", "(Ljava/lang/String;)[Ljava/lang/String;");
+            ASSERT(this->listDirContentsMeth)
 
             this->showVirtualKeyboardMeth = this->env->GetMethodID(this->clazz, "showVirtualKeyboard", "()V");
             ASSERT(this->showVirtualKeyboardMeth)
@@ -91,6 +96,36 @@ ANativeWindow* androidWindow = 0;
 
         void showVirtualKeyboard(){
             this->env->CallVoidMethod(this->obj, this->showVirtualKeyboardMeth);
+        }
+
+        std::vector<std::string> listDirContents(const std::string& path){
+            jstring p = this->env->NewStringUTF(path.c_str());
+            jobject res = this->env->CallObjectMethod(this->obj, this->listDirContentsMeth, p);
+            this->env->DeleteLocalRef(p);
+
+            utki::ScopeExit scopeExit([this, res](){
+                this->env->DeleteLocalRef(res);
+            });
+
+            std::vector<std::string> ret;
+
+            if(res == nullptr){
+                return ret;
+            }
+
+            jobjectArray arr = static_cast<jobjectArray>(res);
+
+            int count = env->GetArrayLength(arr);
+
+            for (int i = 0; i < count; ++i) {
+                jstring str = static_cast<jstring>(env->GetObjectArrayElement(arr, i));
+                auto chars = env->GetStringUTFChars(str, nullptr);
+                ret.push_back(std::string(chars));
+                this->env->ReleaseStringUTFChars(str, chars);
+                this->env->DeleteLocalRef(str);
+            }
+
+            return ret;
         }
     };
 
@@ -316,42 +351,11 @@ public:
             throw papki::IllegalStateExc("AndroidAssetFile::ListDirContents(): this is not a directory");
         }
 
-        //For some reason directory name with trailing '/' is not working,
-        //so strip out the trailing '/'.
+        //Trim away trailing '/', as Android does not work with it.
         auto p = this->path().substr(0, this->path().size() - 1);
 
-        AAssetDir* pdir = AAssetManager_openDir(
-                this->manager,
-                p.c_str()
-            );
-
-        if(!pdir){
-            throw papki::Exc("AndroidAssetFile::ListDirContents(): AAssetManager_openDir() failure");
-        }
-
-        utki::ScopeExit scopeExit([pdir](){
-            AAssetDir_close(pdir);
-        });
-
-        std::vector<std::string> files;
-
-        while(const char *entry = AAssetDir_getNextFileName(pdir)) {
-            std::string s(entry);
-            if (s == "." || s == "..") {
-                continue;//do not add ./ and ../ directories, we are not interested in them
-            }
-
-            //NOTE: looks like android does not report directories contained in the inspected directory.
-
-            files.push_back(s);
-
-            if(files.size() == maxEntries){
-                break;
-            }
-        }//~while()
-
-
-        return files;
+        ASSERT(javaFunctionsWrapper)
+        return javaFunctionsWrapper->listDirContents(p);
     }
 
     std::unique_ptr<papki::File> spawn()override{

@@ -12,6 +12,8 @@ import android.view.KeyEvent;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 
+import java.io.IOException;
+
 
 public class MordaVOkneActivity extends NativeActivity {
 	{
@@ -68,7 +70,7 @@ public class MordaVOkneActivity extends NativeActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
-		
+
 		this.imm = (InputMethodManager)this.getSystemService(Service.INPUT_METHOD_SERVICE);
 	}
 	
@@ -79,5 +81,24 @@ public class MordaVOkneActivity extends NativeActivity {
 	
 	public void hideVirtualKeyboard(){
 		this.imm.hideSoftInputFromWindow(this.getWindow().getDecorView().getWindowToken(), InputMethodManager.HIDE_IMPLICIT_ONLY);
+	}
+
+	public String[] listDirContents(String path){
+		try {
+			String[] list = getAssets().list(path);
+
+			for(int i = 0; i != list.length; ++i){
+				if(getAssets().list(path + "/" + list[i]).length > 0){
+					//this is a directory
+					list[i] += "/";
+				}
+			}
+
+//			Log.d("wefwe", "file list = " + list);
+			return list;
+		}catch (IOException e){
+			Log.d(LOGTAG, e.getMessage());
+		}
+		return null;
 	}
 }
