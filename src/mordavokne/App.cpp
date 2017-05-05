@@ -73,10 +73,8 @@ morda::real App::findDotsPerPt(kolme::Vec2ui resolution, kolme::Vec2ui screenSiz
 	//NOTE: for ordinary desktop displays the PT size should be equal to 1 pixel.
 	//For high density displays it should be more than one pixel, depending on display ppi.
 	//For hand held devices the size of PT should be determined from physical screen size and pixel resolution.
-	
-#if M_OS_NAME == M_OS_NAME_ANDROID
-	return morda::real(1);//TODO:
-#elif M_OS_NAME == M_OS_NAME_IOS
+
+#if M_OS_NAME == M_OS_NAME_IOS
 	return morda::real(1);//TODO:
 #else
 	unsigned xIndex;
@@ -88,7 +86,9 @@ morda::real App::findDotsPerPt(kolme::Vec2ui resolution, kolme::Vec2ui screenSiz
 	
 	if(screenSizeMm[xIndex] < 300){
 		return resolution[xIndex] / morda::real(700);
-	}
+	}else if(screenSizeMm[xIndex] < 150) {
+        return resolution[xIndex] / morda::real(200);
+    }
 	
 	return morda::real(1);
 #endif
