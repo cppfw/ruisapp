@@ -228,14 +228,6 @@ public:
 
 
     virtual void openInternal(E_Mode mode)override{
-        if(this->isOpened()){
-            throw papki::Exc("file already opened");
-        }
-
-        if(this->isDir()){
-            throw papki::Exc("path refers to a directory, directories can't be opened");
-        }
-
         switch(mode){
             case papki::File::E_Mode::WRITE:
             case papki::File::E_Mode::CREATE:
@@ -255,12 +247,7 @@ public:
     }
 
     virtual void closeInternal()const noexcept override{
-        if(!this->isOpened()){
-            return;
-        }
-
         ASSERT(this->handle)
-
         AAsset_close(this->handle);
         this->handle = 0;
     }
@@ -326,54 +313,45 @@ public:
 
     virtual std::vector<std::string> listDirContents(size_t maxEntries = 0)const override{
         if(!this->isDir()){
-            throw papki::Exc("AndroidAssetFile::ListDirContents(): this is not a directory");
+            throw papki::IllegalStateExc("AndroidAssetFile::ListDirContents(): this is not a directory");
         }
+
+        //For some reason directory name with trailing '/' is not working,
+        //so strip out the trailing '/'.
+        auto p = this->path().substr(0, this->path().size() - 1);
+
+        AAssetDir* pdir = AAssetManager_openDir(
+                this->manager,
+                p.c_str()
+            );
+
+        if(!pdir){
+            throw papki::Exc("AndroidAssetFile::ListDirContents(): AAssetManager_openDir() failure");
+        }
+
+        utki::ScopeExit scopeExit([pdir](){
+            AAssetDir_close(pdir);
+        });
 
         std::vector<std::string> files;
 
-        {
-            AAssetDir* pdir = AAssetManager_openDir(this->manager, this->path().c_str());
-
-            if(!pdir){
-                throw papki::Exc("AndroidAssetFile::ListDirContents(): AAssetManager_openDir() failure");
+        while(const char *entry = AAssetDir_getNextFileName(pdir)) {
+            std::string s(entry);
+            if (s == "." || s == "..") {
+                continue;//do not add ./ and ../ directories, we are not interested in them
             }
 
-            //create DirentCloser to automatically call closedir on exit from the function in case of exceptions etc...
-            struct DirCloser{
-                AAssetDir *pdir;
+            //NOTE: looks like android does not report directories contained in the inspected directory.
 
-                DirCloser(AAssetDir *pDirToClose) :
-                        pdir(pDirToClose)
-                {}
+            files.push_back(s);
 
-                ~DirCloser(){
-                    AAssetDir_close(this->pdir);
-                }
-            } dirCloser(pdir);
-
-            while(const char *entry = AAssetDir_getNextFileName(pdir)){
-                std::string s(entry);
-                if(s == "." || s == "..")
-                    continue;//do not add ./ and ../ directories, we are not interested in them
-
-                //NOTE: looks like android does not report directories contained in the inspected directory.
-
-                files.push_back(s);
-
-                if(files.size() == maxEntries){
-                    break;
-                }
-            }//~while()
-        }
+            if(files.size() == maxEntries){
+                break;
+            }
+        }//~while()
 
 
-        std::vector<std::string> filesArray(files.size());
-
-        for(size_t i = 0; i < files.size(); ++i){
-            filesArray[i] = files[i];
-        }
-
-        return filesArray;
+        return files;
     }
 
     std::unique_ptr<papki::File> spawn()override{

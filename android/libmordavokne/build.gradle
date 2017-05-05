@@ -80,7 +80,7 @@ dependencies {
     compile 'io.github.igagis:libutki:+'
     compile 'io.github.igagis:libpapki:+'
     compile 'io.github.igagis:libkolme:+'
-    compile 'io.github.igagis:libmorda:+'
+    compile 'io.github.igagis:libmorda:0.5.36'
     compile 'io.github.igagis:libmorda_opengles2_ren:+'
     compile 'io.github.igagis:libnitki:+'
 }

@@ -28,6 +28,7 @@ model {
             cppFlags.add("-std=c++11")
             cppFlags.add("-fexceptions")
             cppFlags.add("-frtti")
+            cppFlags.add("-g")
             cppFlags.add("-I" + projectDir.getAbsolutePath() + "/build/ndkLibs/include")
             ldLibs.addAll(['android', 'log',
                            'EGL', 'morda-opengles2-ren', 'morda', 'nitki', 'stob', 'papki',
@@ -106,7 +107,7 @@ dependencies {
     compile 'io.github.igagis:libutki:+'
     compile 'io.github.igagis:libkolme:+'
     compile 'io.github.igagis:libpapki:+'
-    compile 'io.github.igagis:libmorda:+'
+    compile 'io.github.igagis:libmorda:0.5.36'
     compile 'io.github.igagis:libnitki:+'
     compile 'io.github.igagis:libmorda_opengles2_ren:+'
     compile project(':libmordavokne')
