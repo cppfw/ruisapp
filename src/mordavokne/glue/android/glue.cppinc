@@ -77,13 +77,17 @@ ANativeWindow* androidWindow = 0;
             ASSERT(this->hideVirtualKeyboardMeth)
         }
 
-
-
         ~JavaFunctionsWrapper()noexcept{
         }
 
         char32_t resolveKeyUnicode(int32_t devId, int32_t metaState, int32_t keyCode){
-            return char32_t(this->env->CallIntMethod(this->obj, this->resolveKeycodeUnicodeMeth, jint(devId), jint(metaState), jint(keyCode)));
+            return char32_t(this->env->CallIntMethod(
+                    this->obj,
+                    this->resolveKeycodeUnicodeMeth,
+                    jint(devId),
+                    jint(metaState),
+                    jint(keyCode)
+                ));
         }
 
         float getDotsPerInch(){
@@ -362,8 +366,7 @@ public:
         return utki::makeUnique<AssetFile>(this->manager);
     }
 
-    ~AssetFile()noexcept override{
-        ASSERT(false)
+    ~AssetFile()noexcept{
     }
 
     size_t seek(size_t numBytesToSeek, bool seekForward)const{
@@ -489,7 +492,8 @@ public:
 
 		//0 means that key did not produce any unicode character
 		if(res == 0){
-			return nullptr;
+            TRACE(<< "key did not produce any unicode character, returning empty string" << std::endl)
+			return std::u32string();
 		}
 		
 		return std::u32string(&res, 1);
@@ -1470,7 +1474,7 @@ int OnInputEventsReadyForReadingFromQueue(int fd, int events, void* data){
 		return 1;
 	}
 
-	ASSERT(morda::App::IsCreated())
+	ASSERT(mordavokne::App::isCreated())
 
 	handleInputEvents();
 
