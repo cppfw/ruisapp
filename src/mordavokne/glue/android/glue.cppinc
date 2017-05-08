@@ -896,7 +896,7 @@ const std::array<morda::Key_e, std::uint8_t(-1) + 1> keyCodeMap = {
 
 
 
-morda::Key_e GetKeyFromKeyEvent(AInputEvent& event)noexcept{
+morda::Key_e getKeyFromKeyEvent(AInputEvent& event)noexcept{
 	size_t kc = size_t(AKeyEvent_getKeyCode(&event));
 	ASSERT(kc < keyCodeMap.size())
 	return keyCodeMap[kc];
@@ -938,10 +938,12 @@ JNIEXPORT void JNICALL Java_io_github_igagis_libmordavokne_MordaVOkneActivity_ha
 		env->ReleaseStringUTFChars(chars, utf8Chars);
 	});
 
-	if(utf8Chars == 0 || *utf8Chars == 0){
+	if(utf8Chars == nullptr || *utf8Chars == 0){
 		TRACE(<< "handleCharacterStringInput(): empty string passed in" << std::endl)
 		return;
 	}
+
+    TRACE(<< "handleCharacterStringInput(): utf8Chars = " << utf8Chars << std::endl)
 	
 	std::vector<char32_t> utf32;
 
@@ -951,6 +953,8 @@ JNIEXPORT void JNICALL Java_io_github_igagis_libmordavokne_MordaVOkneActivity_ha
 
     UnicodeProvider resolver;
     resolver.chars = std::u32string(&*utf32.begin(), utf32.size());
+
+//    TRACE(<< "handleCharacterStringInput(): resolver.chars = " << resolver.chars << std::endl)
 
     mordavokne::handleCharacterInput(mordavokne::inst(), resolver, morda::Key_e::UNKNOWN);
 }
@@ -1171,40 +1175,44 @@ namespace{
                     consume = true;
                     break;
                 case AINPUT_EVENT_TYPE_KEY:
-                {
-//						TRACE(<< "AINPUT_EVENT_TYPE_KEY" << std::endl)
+                    {
+    //						TRACE(<< "AINPUT_EVENT_TYPE_KEY" << std::endl)
 
-                    morda::Key_e key = GetKeyFromKeyEvent(*ASS(event));
+                        morda::Key_e key = getKeyFromKeyEvent(*ASS(event));
 
-                    keyUnicodeResolver.kc = AKeyEvent_getKeyCode(event);
-                    keyUnicodeResolver.ms = AKeyEvent_getMetaState(event);
-                    keyUnicodeResolver.di = AInputEvent_getDeviceId(event);
+                        keyUnicodeResolver.kc = AKeyEvent_getKeyCode(event);
+                        keyUnicodeResolver.ms = AKeyEvent_getMetaState(event);
+                        keyUnicodeResolver.di = AInputEvent_getDeviceId(event);
 
-//					TRACE(<< "AINPUT_EVENT_TYPE_KEY: keyUnicodeResolver.kc = " << keyUnicodeResolver.kc << std::endl)
+//    					TRACE(<< "AINPUT_EVENT_TYPE_KEY: keyUnicodeResolver.kc = " << keyUnicodeResolver.kc << std::endl)
 
-                    //detect auto-repeated key events
-                    if(AKeyEvent_getRepeatCount(event) != 0){
-                        if(eventAction == AKEY_EVENT_ACTION_DOWN){
-                            handleCharacterInput(app, keyUnicodeResolver, key);
+                        switch(eventAction){
+                            case AKEY_EVENT_ACTION_DOWN:
+//    							TRACE(<< "AKEY_EVENT_ACTION_DOWN, count = " << AKeyEvent_getRepeatCount(event) << std::endl)
+                                //detect auto-repeated key events
+                                if(AKeyEvent_getRepeatCount(event) == 0){
+                                    handleKeyEvent(app, true, key);
+                                }
+                                handleCharacterInput(app, keyUnicodeResolver, key);
+                                break;
+                            case AKEY_EVENT_ACTION_UP:
+//    							TRACE(<< "AKEY_EVENT_ACTION_UP" << std::endl)
+                                handleKeyEvent(app, false, key);
+                                break;
+                            case AKEY_EVENT_ACTION_MULTIPLE:
+//                                TRACE(<< "AKEY_EVENT_ACTION_MULTIPLE"
+//                                              << " count = " << AKeyEvent_getRepeatCount(event)
+//                                              << " keyCode = " << AKeyEvent_getKeyCode(event)
+//                                              << std::endl)
+
+                                //Ignore, it is handled on Java side.
+
+                                break;
+                            default:
+                                TRACE(<< "unknown AINPUT_EVENT_TYPE_KEY eventAction: " << eventAction << std::endl)
+                                break;
                         }
-                        break;
                     }
-
-                    switch(eventAction){
-                        case AKEY_EVENT_ACTION_DOWN:
-//							TRACE(<< "AKEY_EVENT_ACTION_DOWN" << std::endl)
-                            handleKeyEvent(app, true, key);
-                            handleCharacterInput(app, keyUnicodeResolver, key);
-                            break;
-                        case AKEY_EVENT_ACTION_UP:
-//							TRACE(<< "AKEY_EVENT_ACTION_UP" << std::endl)
-                            handleKeyEvent(app, false, key);
-                            break;
-                        default:
-                            TRACE(<< "unknown AINPUT_EVENT_TYPE_KEY eventAction" << std::endl)
-                            break;
-                    }
-                }
                     break;
                 default:
                     break;
@@ -1521,15 +1529,15 @@ void OnContentRectChanged(ANativeActivity* activity, const ARect* rect){
 
 	auto& app = getApp(activity);
 
-	updateWindowRect(
-			app,
-			morda::Rectr(
-					float(rect->left),
-					curWinDim.y - float(rect->bottom),
-					float(rect->right - rect->left),
-					float(rect->bottom - rect->top)
-				)
-		);
+//	updateWindowRect(
+//			app,
+//			morda::Rectr(
+//					float(rect->left),
+//					curWinDim.y - float(rect->bottom),
+//					float(rect->right - rect->left),
+//					float(rect->bottom - rect->top)
+//				)
+//		);
 
 	//redraw, since WindowRedrawNeeded not always comes
 	render(app);

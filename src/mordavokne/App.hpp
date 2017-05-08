@@ -50,7 +50,7 @@ public:
 		 * @brief Desired dimensions of the window
 		 */
 		kolme::Vec2ui dim;
-		
+
 		enum class Buffer_e{
 			DEPTH,
 			STENCIL,
