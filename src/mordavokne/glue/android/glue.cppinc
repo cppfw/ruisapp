@@ -1529,15 +1529,15 @@ void OnContentRectChanged(ANativeActivity* activity, const ARect* rect){
 
 	auto& app = getApp(activity);
 
-//	updateWindowRect(
-//			app,
-//			morda::Rectr(
-//					float(rect->left),
-//					curWinDim.y - float(rect->bottom),
-//					float(rect->right - rect->left),
-//					float(rect->bottom - rect->top)
-//				)
-//		);
+	updateWindowRect(
+			app,
+			morda::Rectr(
+					float(rect->left),
+					curWinDim.y - float(rect->bottom),
+					float(rect->right - rect->left),
+					float(rect->bottom - rect->top)
+				)
+		);
 
 	//redraw, since WindowRedrawNeeded not always comes
 	render(app);

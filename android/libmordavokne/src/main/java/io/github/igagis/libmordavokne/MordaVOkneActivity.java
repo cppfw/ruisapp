@@ -3,12 +3,14 @@ package io.github.igagis.libmordavokne;
 import android.app.NativeActivity;
 import android.app.Service;
 import android.content.Context;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
+import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 
@@ -77,6 +79,9 @@ public class MordaVOkneActivity extends NativeActivity {
 	
 	public void showVirtualKeyboard(){
 		this.imm.showSoftInput(this.getWindow().getDecorView(), InputMethodManager.SHOW_FORCED);
+		Rect r = new Rect();
+		this.getWindow().getDecorView().getWindowVisibleDisplayFrame(r);
+		Log.d(LOGTAG, "showVirtualKeyboard(): visible rect = " + r.left + ", " + r.right + ", " + r.top + ", " + r.bottom);
 	}
 	
 	public void hideVirtualKeyboard(){
