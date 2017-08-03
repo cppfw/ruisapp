@@ -1,14 +1,14 @@
-templates{
-	TextLabel TextLabel{
-//		text{"trololo"}
-
-//		color{0xff0000ff}
-
-//		dx{34}
-	}
-}
-
 defs{
+	TextLabel{
+		TextLabel{
+	//		text{"trololo"}
+
+	//		color{0xff0000ff}
+
+	//		dx{34}
+		}
+	}
+
 	trololo{"saf"}
 }
 
@@ -120,18 +120,20 @@ Container{
 			ChoiceGroup{
 				layout{dx{max}}
 
-				templates{
-					RadBtn HorizontalArea{
-						Margins{
-							left{5pt}
-							right{5pt}
-							top{5pt}
-							bottom{5pt}
-							RadioButton
-						}
+				defs{
+					RadBtn{
+						HorizontalArea{
+							Margins{
+								left{5pt}
+								right{5pt}
+								top{5pt}
+								bottom{5pt}
+								RadioButton
+							}
 
-						TextLabel{
-							text{"radiobutton"}
+							TextLabel{
+								text{"radiobutton"}
+							}
 						}
 					}
 				}
