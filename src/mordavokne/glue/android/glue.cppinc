@@ -34,390 +34,390 @@ namespace{
 ANativeActivity* nativeActivity = 0;
 
 mordavokne::App& getApp(ANativeActivity* activity){
-    ASSERT(activity)
-    return *static_cast<mordavokne::App*>(activity->instance);
+	ASSERT(activity)
+	return *static_cast<mordavokne::App*>(activity->instance);
 }
 
 ANativeWindow* androidWindow = 0;
 
 
-    class JavaFunctionsWrapper : public utki::Unique{
-        JNIEnv *env;
-        jclass clazz;
-        jobject obj;
+	class JavaFunctionsWrapper : public utki::Unique{
+		JNIEnv *env;
+		jclass clazz;
+		jobject obj;
 
-        jmethodID resolveKeycodeUnicodeMeth;
+		jmethodID resolveKeycodeUnicodeMeth;
 
-        jmethodID getDotsPerInchMeth;
+		jmethodID getDotsPerInchMeth;
 
-        jmethodID showVirtualKeyboardMeth;
-        jmethodID hideVirtualKeyboardMeth;
+		jmethodID showVirtualKeyboardMeth;
+		jmethodID hideVirtualKeyboardMeth;
 
-        jmethodID listDirContentsMeth;
-    public:
-        JavaFunctionsWrapper(ANativeActivity* a){
-            this->env = a->env;
-            this->obj = a->clazz;
-            this->clazz = this->env->GetObjectClass(this->obj);
-            ASSERT(this->clazz)
+		jmethodID listDirContentsMeth;
+	public:
+		JavaFunctionsWrapper(ANativeActivity* a){
+			this->env = a->env;
+			this->obj = a->clazz;
+			this->clazz = this->env->GetObjectClass(this->obj);
+			ASSERT(this->clazz)
 
 
-            this->resolveKeycodeUnicodeMeth = this->env->GetMethodID(this->clazz, "resolveKeyUnicode", "(III)I");
-            ASSERT(this->resolveKeycodeUnicodeMeth)
+			this->resolveKeycodeUnicodeMeth = this->env->GetMethodID(this->clazz, "resolveKeyUnicode", "(III)I");
+			ASSERT(this->resolveKeycodeUnicodeMeth)
 
-            this->getDotsPerInchMeth = this->env->GetMethodID(this->clazz, "getDotsPerInch", "()F");
+			this->getDotsPerInchMeth = this->env->GetMethodID(this->clazz, "getDotsPerInch", "()F");
 
-            this->listDirContentsMeth = this->env->GetMethodID(this->clazz, "listDirContents", "(Ljava/lang/String;)[Ljava/lang/String;");
-            ASSERT(this->listDirContentsMeth)
+			this->listDirContentsMeth = this->env->GetMethodID(this->clazz, "listDirContents", "(Ljava/lang/String;)[Ljava/lang/String;");
+			ASSERT(this->listDirContentsMeth)
 
-            this->showVirtualKeyboardMeth = this->env->GetMethodID(this->clazz, "showVirtualKeyboard", "()V");
-            ASSERT(this->showVirtualKeyboardMeth)
+			this->showVirtualKeyboardMeth = this->env->GetMethodID(this->clazz, "showVirtualKeyboard", "()V");
+			ASSERT(this->showVirtualKeyboardMeth)
 
-            this->hideVirtualKeyboardMeth = this->env->GetMethodID(this->clazz, "hideVirtualKeyboard", "()V");
-            ASSERT(this->hideVirtualKeyboardMeth)
-        }
+			this->hideVirtualKeyboardMeth = this->env->GetMethodID(this->clazz, "hideVirtualKeyboard", "()V");
+			ASSERT(this->hideVirtualKeyboardMeth)
+		}
 
-        ~JavaFunctionsWrapper()noexcept{
-        }
+		~JavaFunctionsWrapper()noexcept{
+		}
 
-        char32_t resolveKeyUnicode(int32_t devId, int32_t metaState, int32_t keyCode){
-            return char32_t(this->env->CallIntMethod(
-                    this->obj,
-                    this->resolveKeycodeUnicodeMeth,
-                    jint(devId),
-                    jint(metaState),
-                    jint(keyCode)
-                ));
-        }
+		char32_t resolveKeyUnicode(int32_t devId, int32_t metaState, int32_t keyCode){
+			return char32_t(this->env->CallIntMethod(
+					this->obj,
+					this->resolveKeycodeUnicodeMeth,
+					jint(devId),
+					jint(metaState),
+					jint(keyCode)
+				));
+		}
 
-        float getDotsPerInch(){
-            return float(this->env->CallFloatMethod(this->obj, this->getDotsPerInchMeth));
-        }
+		float getDotsPerInch(){
+			return float(this->env->CallFloatMethod(this->obj, this->getDotsPerInchMeth));
+		}
 
-        void hideVirtualKeyboard(){
-            this->env->CallVoidMethod(this->obj, this->hideVirtualKeyboardMeth);
-        }
+		void hideVirtualKeyboard(){
+			this->env->CallVoidMethod(this->obj, this->hideVirtualKeyboardMeth);
+		}
 
-        void showVirtualKeyboard(){
-            this->env->CallVoidMethod(this->obj, this->showVirtualKeyboardMeth);
-        }
+		void showVirtualKeyboard(){
+			this->env->CallVoidMethod(this->obj, this->showVirtualKeyboardMeth);
+		}
 
-        std::vector<std::string> listDirContents(const std::string& path){
-            jstring p = this->env->NewStringUTF(path.c_str());
-            jobject res = this->env->CallObjectMethod(this->obj, this->listDirContentsMeth, p);
-            this->env->DeleteLocalRef(p);
+		std::vector<std::string> listDirContents(const std::string& path){
+			jstring p = this->env->NewStringUTF(path.c_str());
+			jobject res = this->env->CallObjectMethod(this->obj, this->listDirContentsMeth, p);
+			this->env->DeleteLocalRef(p);
 
-            utki::ScopeExit scopeExit([this, res](){
-                this->env->DeleteLocalRef(res);
-            });
+			utki::ScopeExit scopeExit([this, res](){
+				this->env->DeleteLocalRef(res);
+			});
 
-            std::vector<std::string> ret;
+			std::vector<std::string> ret;
 
-            if(res == nullptr){
-                return ret;
-            }
+			if(res == nullptr){
+				return ret;
+			}
 
-            jobjectArray arr = static_cast<jobjectArray>(res);
+			jobjectArray arr = static_cast<jobjectArray>(res);
 
-            int count = env->GetArrayLength(arr);
+			int count = env->GetArrayLength(arr);
 
-            for (int i = 0; i < count; ++i) {
-                jstring str = static_cast<jstring>(env->GetObjectArrayElement(arr, i));
-                auto chars = env->GetStringUTFChars(str, nullptr);
-                ret.push_back(std::string(chars));
-                this->env->ReleaseStringUTFChars(str, chars);
-                this->env->DeleteLocalRef(str);
-            }
+			for (int i = 0; i < count; ++i) {
+				jstring str = static_cast<jstring>(env->GetObjectArrayElement(arr, i));
+				auto chars = env->GetStringUTFChars(str, nullptr);
+				ret.push_back(std::string(chars));
+				this->env->ReleaseStringUTFChars(str, chars);
+				this->env->DeleteLocalRef(str);
+			}
 
-            return ret;
-        }
-    };
+			return ret;
+		}
+	};
 
 
 std::unique_ptr<JavaFunctionsWrapper> javaFunctionsWrapper;
 
 struct WindowWrapper : public utki::Unique{
-    EGLDisplay display;
-    EGLSurface surface;
-    EGLContext context;
+	EGLDisplay display;
+	EGLSurface surface;
+	EGLContext context;
 
-    nitki::Queue uiQueue;
+	nitki::Queue uiQueue;
 
-    WindowWrapper(const App::WindowParams& wp){
-        this->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-        if(this->display == EGL_NO_DISPLAY){
-            throw morda::Exc("eglGetDisplay(): failed, no matching display connection found");
-        }
+	WindowWrapper(const App::WindowParams& wp){
+		this->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+		if(this->display == EGL_NO_DISPLAY){
+			throw morda::Exc("eglGetDisplay(): failed, no matching display connection found");
+		}
 
-        utki::ScopeExit eglDisplayScopeExit([this](){
-            eglTerminate(this->display);
-        });
+		utki::ScopeExit eglDisplayScopeExit([this](){
+			eglTerminate(this->display);
+		});
 
-        if(eglInitialize(this->display, 0, 0) == EGL_FALSE){
-            throw morda::Exc("eglInitialize() failed");
-        }
+		if(eglInitialize(this->display, 0, 0) == EGL_FALSE){
+			throw morda::Exc("eglInitialize() failed");
+		}
 
-        //TODO: allow stencil configuration etc. via WindowParams
-        //Here specify the attributes of the desired configuration.
-        //Below, we select an EGLConfig with at least 8 bits per color
-        //component compatible with on-screen windows
-        const EGLint attribs[] = {
-                EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-                EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT, //we want OpenGL ES 2.0
-                EGL_BLUE_SIZE, 8,
-                EGL_GREEN_SIZE, 8,
-                EGL_RED_SIZE, 8,
-                EGL_NONE
-        };
+		//TODO: allow stencil configuration etc. via WindowParams
+		//Here specify the attributes of the desired configuration.
+		//Below, we select an EGLConfig with at least 8 bits per color
+		//component compatible with on-screen windows
+		const EGLint attribs[] = {
+				EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+				EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT, //we want OpenGL ES 2.0
+				EGL_BLUE_SIZE, 8,
+				EGL_GREEN_SIZE, 8,
+				EGL_RED_SIZE, 8,
+				EGL_NONE
+		};
 
-        EGLConfig config;
+		EGLConfig config;
 
-        //Here, the application chooses the configuration it desires. In this
-        //sample, we have a very simplified selection process, where we pick
-        //the first EGLConfig that matches our criteria
-        EGLint numConfigs;
-        eglChooseConfig(this->display, attribs, &config, 1, &numConfigs);
-        if(numConfigs <= 0){
-            throw morda::Exc("eglChooseConfig() failed, no matching config found");
-        }
+		//Here, the application chooses the configuration it desires. In this
+		//sample, we have a very simplified selection process, where we pick
+		//the first EGLConfig that matches our criteria
+		EGLint numConfigs;
+		eglChooseConfig(this->display, attribs, &config, 1, &numConfigs);
+		if(numConfigs <= 0){
+			throw morda::Exc("eglChooseConfig() failed, no matching config found");
+		}
 
-        //EGL_NATIVE_VISUAL_ID is an attribute of the EGLConfig that is
-        //guaranteed to be accepted by ANativeWindow_setBuffersGeometry().
-        //As soon as we picked a EGLConfig, we can safely reconfigure the
-        //ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID.
-        EGLint format;
-        if(eglGetConfigAttrib(this->display, config, EGL_NATIVE_VISUAL_ID, &format) == EGL_FALSE){
-            throw morda::Exc("eglGetConfigAttrib() failed");
-        }
+		//EGL_NATIVE_VISUAL_ID is an attribute of the EGLConfig that is
+		//guaranteed to be accepted by ANativeWindow_setBuffersGeometry().
+		//As soon as we picked a EGLConfig, we can safely reconfigure the
+		//ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID.
+		EGLint format;
+		if(eglGetConfigAttrib(this->display, config, EGL_NATIVE_VISUAL_ID, &format) == EGL_FALSE){
+			throw morda::Exc("eglGetConfigAttrib() failed");
+		}
 
-        ASSERT(androidWindow)
-        ANativeWindow_setBuffersGeometry(androidWindow, 0, 0, format);
+		ASSERT(androidWindow)
+		ANativeWindow_setBuffersGeometry(androidWindow, 0, 0, format);
 
-        this->surface = eglCreateWindowSurface(this->display, config, androidWindow, NULL);
-        if(this->surface == EGL_NO_SURFACE){
-            throw morda::Exc("eglCreateWindowSurface() failed");
-        }
+		this->surface = eglCreateWindowSurface(this->display, config, androidWindow, NULL);
+		if(this->surface == EGL_NO_SURFACE){
+			throw morda::Exc("eglCreateWindowSurface() failed");
+		}
 
-        utki::ScopeExit eglSurfaceScopeExit([this](){
-            eglDestroySurface(this->display, this->surface);
-        });
+		utki::ScopeExit eglSurfaceScopeExit([this](){
+			eglDestroySurface(this->display, this->surface);
+		});
 
 
-        EGLint contextAttrs[] = {
-                EGL_CONTEXT_CLIENT_VERSION, 2, //This is needed on Android, otherwise eglCreateContext() thinks that we want OpenGL ES 1.1, but we want 2.0
-                EGL_NONE
-        };
+		EGLint contextAttrs[] = {
+				EGL_CONTEXT_CLIENT_VERSION, 2, //This is needed on Android, otherwise eglCreateContext() thinks that we want OpenGL ES 1.1, but we want 2.0
+				EGL_NONE
+		};
 
-        this->context = eglCreateContext(this->display, config, NULL, contextAttrs);
-        if(this->context == EGL_NO_CONTEXT){
-            throw morda::Exc("eglCreateContext() failed");
-        }
+		this->context = eglCreateContext(this->display, config, NULL, contextAttrs);
+		if(this->context == EGL_NO_CONTEXT){
+			throw morda::Exc("eglCreateContext() failed");
+		}
 
-        utki::ScopeExit eglContextScopeExit([this](){
-            eglDestroyContext(this->display, this->context);
-        });
+		utki::ScopeExit eglContextScopeExit([this](){
+			eglDestroyContext(this->display, this->context);
+		});
 
-        if(eglMakeCurrent(this->display, this->surface, this->surface, this->context) == EGL_FALSE){
-            throw morda::Exc("eglMakeCurrent() failed");
-        }
+		if(eglMakeCurrent(this->display, this->surface, this->surface, this->context) == EGL_FALSE){
+			throw morda::Exc("eglMakeCurrent() failed");
+		}
 
-        eglContextScopeExit.reset();
-        eglSurfaceScopeExit.reset();
-        eglDisplayScopeExit.reset();
-    }
+		eglContextScopeExit.reset();
+		eglSurfaceScopeExit.reset();
+		eglDisplayScopeExit.reset();
+	}
 
-    kolme::Vec2ui getWindowSize(){
-        EGLint width, height;
-        eglQuerySurface(this->display, this->surface, EGL_WIDTH, &width);
-        eglQuerySurface(this->display, this->surface, EGL_HEIGHT, &height);
-        return kolme::Vec2ui(width, height);
-    }
+	kolme::Vec2ui getWindowSize(){
+		EGLint width, height;
+		eglQuerySurface(this->display, this->surface, EGL_WIDTH, &width);
+		eglQuerySurface(this->display, this->surface, EGL_HEIGHT, &height);
+		return kolme::Vec2ui(width, height);
+	}
 
-    void swapBuffers(){
-        eglSwapBuffers(this->display, this->surface);
-    }
+	void swapBuffers(){
+		eglSwapBuffers(this->display, this->surface);
+	}
 
-    ~WindowWrapper()noexcept{
-        eglMakeCurrent(this->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-        eglDestroyContext(this->display, this->context);
-        eglDestroySurface(this->display, this->surface);
-        eglTerminate(this->display);
-    }
+	~WindowWrapper()noexcept{
+		eglMakeCurrent(this->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+		eglDestroyContext(this->display, this->context);
+		eglDestroySurface(this->display, this->surface);
+		eglTerminate(this->display);
+	}
 };
 
 WindowWrapper& getImpl(const std::unique_ptr<utki::Unique>& pimpl){
-    ASSERT(dynamic_cast<WindowWrapper*>(pimpl.get()))
-    return static_cast<WindowWrapper&>(*pimpl);
+	ASSERT(dynamic_cast<WindowWrapper*>(pimpl.get()))
+	return static_cast<WindowWrapper&>(*pimpl);
 }
 
 
 class AssetFile : public papki::File{
-    AAssetManager* manager;
+	AAssetManager* manager;
 
-    mutable AAsset* handle = nullptr;
+	mutable AAsset* handle = nullptr;
 
 public:
 
-    AssetFile(AAssetManager* manager, const std::string& pathName = std::string()) :
-            manager(manager),
-            File(pathName)
-    {
-        ASSERT(this->manager)
-    }
+	AssetFile(AAssetManager* manager, const std::string& pathName = std::string()) :
+			manager(manager),
+			File(pathName)
+	{
+		ASSERT(this->manager)
+	}
 
 
-    virtual void openInternal(E_Mode mode)override{
-        switch(mode){
-            case papki::File::E_Mode::WRITE:
-            case papki::File::E_Mode::CREATE:
-                throw papki::Exc("WRITE and CREATE open modes are not supported by Android assets");
-                break;
-            case papki::File::E_Mode::READ:
-                break;
-            default:
-                throw papki::Exc("unknown mode");
-                break;
-        }
-        this->handle = AAssetManager_open(this->manager, this->path().c_str(), AASSET_MODE_UNKNOWN); //don't know what this MODE mean at all
-        if(!this->handle){
-            TRACE(<< "AAssetManager_open() failed, file path = " << this->path() << std::endl)
-            throw papki::Exc("AAssetManager_open() failed");
-        }
-    }
+	virtual void openInternal(E_Mode mode)override{
+		switch(mode){
+			case papki::File::E_Mode::WRITE:
+			case papki::File::E_Mode::CREATE:
+				throw papki::Exc("WRITE and CREATE open modes are not supported by Android assets");
+				break;
+			case papki::File::E_Mode::READ:
+				break;
+			default:
+				throw papki::Exc("unknown mode");
+				break;
+		}
+		this->handle = AAssetManager_open(this->manager, this->path().c_str(), AASSET_MODE_UNKNOWN); //don't know what this MODE mean at all
+		if(!this->handle){
+			TRACE(<< "AAssetManager_open() failed, file path = " << this->path() << std::endl)
+			throw papki::Exc("AAssetManager_open() failed");
+		}
+	}
 
-    virtual void closeInternal()const noexcept override{
-        ASSERT(this->handle)
-        AAsset_close(this->handle);
-        this->handle = 0;
-    }
+	virtual void closeInternal()const noexcept override{
+		ASSERT(this->handle)
+		AAsset_close(this->handle);
+		this->handle = 0;
+	}
 
-    virtual size_t readInternal(utki::Buf<std::uint8_t> buf)const override{
-        ASSERT(this->handle)
-        int numBytesRead = AAsset_read(this->handle, &*buf.begin(), buf.size());
-        if(numBytesRead < 0){//something happened
-            throw papki::Exc("AAsset_read() error");
-        }
-        ASSERT(numBytesRead >= 0)
-        return size_t(numBytesRead);
-    }
+	virtual size_t readInternal(utki::Buf<std::uint8_t> buf)const override{
+		ASSERT(this->handle)
+		int numBytesRead = AAsset_read(this->handle, &*buf.begin(), buf.size());
+		if(numBytesRead < 0){//something happened
+			throw papki::Exc("AAsset_read() error");
+		}
+		ASSERT(numBytesRead >= 0)
+		return size_t(numBytesRead);
+	}
 
-    virtual size_t writeInternal(const utki::Buf<std::uint8_t> buf)override{
-        ASSERT(this->handle)
-        throw papki::Exc("Write() is not supported by Android assets");
-        return 0;
-    }
+	virtual size_t writeInternal(const utki::Buf<std::uint8_t> buf)override{
+		ASSERT(this->handle)
+		throw papki::Exc("Write() is not supported by Android assets");
+		return 0;
+	}
 
-    virtual size_t seekForwardInternal(size_t numBytesToSeek)const override{
-        return this->seek(numBytesToSeek, true);
-    }
+	virtual size_t seekForwardInternal(size_t numBytesToSeek)const override{
+		return this->seek(numBytesToSeek, true);
+	}
 
-    virtual size_t seekBackwardInternal(size_t numBytesToSeek)const override{
-        return this->seek(numBytesToSeek, false);
-    }
+	virtual size_t seekBackwardInternal(size_t numBytesToSeek)const override{
+		return this->seek(numBytesToSeek, false);
+	}
 
-    virtual void rewindInternal()const override{
-        if(!this->isOpened()){
-            throw papki::Exc("file is not opened, cannot rewind");
-        }
+	virtual void rewindInternal()const override{
+		if(!this->isOpened()){
+			throw papki::Exc("file is not opened, cannot rewind");
+		}
 
-        ASSERT(this->handle)
-        if(AAsset_seek(this->handle, 0, SEEK_SET) < 0){
-            throw papki::Exc("AAsset_seek() failed");
-        }
-    }
+		ASSERT(this->handle)
+		if(AAsset_seek(this->handle, 0, SEEK_SET) < 0){
+			throw papki::Exc("AAsset_seek() failed");
+		}
+	}
 
-    virtual bool exists()const override{
-        if(this->isOpened()){ //file is opened => it exists
-            return true;
-        }
+	virtual bool exists()const override{
+		if(this->isOpened()){ //file is opened => it exists
+			return true;
+		}
 
-        if(this->path().size() == 0){
-            return false;
-        }
+		if(this->path().size() == 0){
+			return false;
+		}
 
-        if(this->isDir()){
-            //try opening the directory to check its existence
-            AAssetDir* pdir = AAssetManager_openDir(this->manager, this->path().c_str());
+		if(this->isDir()){
+			//try opening the directory to check its existence
+			AAssetDir* pdir = AAssetManager_openDir(this->manager, this->path().c_str());
 
-            if(!pdir){
-                return false;
-            }else{
-                AAssetDir_close(pdir);
-                return true;
-            }
-        }else{
-            return this->File::exists();
-        }
-    }
+			if(!pdir){
+				return false;
+			}else{
+				AAssetDir_close(pdir);
+				return true;
+			}
+		}else{
+			return this->File::exists();
+		}
+	}
 
-    virtual std::vector<std::string> listDirContents(size_t maxEntries = 0)const override{
-        if(!this->isDir()){
-            throw papki::IllegalStateExc("AndroidAssetFile::ListDirContents(): this is not a directory");
-        }
+	virtual std::vector<std::string> listDirContents(size_t maxEntries = 0)const override{
+		if(!this->isDir()){
+			throw papki::IllegalStateExc("AndroidAssetFile::ListDirContents(): this is not a directory");
+		}
 
-        //Trim away trailing '/', as Android does not work with it.
-        auto p = this->path().substr(0, this->path().size() - 1);
+		//Trim away trailing '/', as Android does not work with it.
+		auto p = this->path().substr(0, this->path().size() - 1);
 
-        ASSERT(javaFunctionsWrapper)
-        return javaFunctionsWrapper->listDirContents(p);
-    }
+		ASSERT(javaFunctionsWrapper)
+		return javaFunctionsWrapper->listDirContents(p);
+	}
 
-    std::unique_ptr<papki::File> spawn()override{
-        return utki::makeUnique<AssetFile>(this->manager);
-    }
+	std::unique_ptr<papki::File> spawn()override{
+		return utki::makeUnique<AssetFile>(this->manager);
+	}
 
-    ~AssetFile()noexcept{
-    }
+	~AssetFile()noexcept{
+	}
 
-    size_t seek(size_t numBytesToSeek, bool seekForward)const{
-        if(!this->isOpened()){
-            throw papki::Exc("file is not opened, cannot seek");
-        }
+	size_t seek(size_t numBytesToSeek, bool seekForward)const{
+		if(!this->isOpened()){
+			throw papki::Exc("file is not opened, cannot seek");
+		}
 
-        ASSERT(this->handle)
+		ASSERT(this->handle)
 
-        //NOTE: AAsset_seek() accepts 'off_t' as offset argument which is signed and can be
-        //      less than size_t value passed as argument to this function.
-        //      Therefore, do several seek operations with smaller offset if necessary.
+		//NOTE: AAsset_seek() accepts 'off_t' as offset argument which is signed and can be
+		//      less than size_t value passed as argument to this function.
+		//      Therefore, do several seek operations with smaller offset if necessary.
 
-        off_t assetSize = AAsset_getLength(this->handle);
-        ASSERT(assetSize >= 0)
+		off_t assetSize = AAsset_getLength(this->handle);
+		ASSERT(assetSize >= 0)
 
-        if(seekForward){
-            ASSERT(size_t(assetSize) >= this->curPos())
-            utki::clampTop(numBytesToSeek, size_t(assetSize) - this->curPos());
-        }else{
-            utki::clampTop(numBytesToSeek, this->curPos());
-        }
+		if(seekForward){
+			ASSERT(size_t(assetSize) >= this->curPos())
+			utki::clampTop(numBytesToSeek, size_t(assetSize) - this->curPos());
+		}else{
+			utki::clampTop(numBytesToSeek, this->curPos());
+		}
 
-        typedef off_t T_FSeekOffset;
-        const size_t DMax = ((size_t(T_FSeekOffset(-1))) >> 1);
-        ASSERT((size_t(1) << ((sizeof(T_FSeekOffset) * 8) - 1)) - 1 == DMax)
-        static_assert(size_t(-(-T_FSeekOffset(DMax))) == DMax, "size mismatch");
+		typedef off_t T_FSeekOffset;
+		const size_t DMax = ((size_t(T_FSeekOffset(-1))) >> 1);
+		ASSERT((size_t(1) << ((sizeof(T_FSeekOffset) * 8) - 1)) - 1 == DMax)
+		static_assert(size_t(-(-T_FSeekOffset(DMax))) == DMax, "size mismatch");
 
-        for(size_t numBytesLeft = numBytesToSeek; numBytesLeft != 0;){
-            ASSERT(numBytesLeft <= numBytesToSeek)
+		for(size_t numBytesLeft = numBytesToSeek; numBytesLeft != 0;){
+			ASSERT(numBytesLeft <= numBytesToSeek)
 
-            T_FSeekOffset offset;
-            if(numBytesLeft > DMax){
-                offset = T_FSeekOffset(DMax);
-            }else{
-                offset = T_FSeekOffset(numBytesLeft);
-            }
+			T_FSeekOffset offset;
+			if(numBytesLeft > DMax){
+				offset = T_FSeekOffset(DMax);
+			}else{
+				offset = T_FSeekOffset(numBytesLeft);
+			}
 
-            ASSERT(offset > 0)
+			ASSERT(offset > 0)
 
-            if(AAsset_seek(this->handle, seekForward ? offset : (-offset), SEEK_CUR) < 0){
-                throw papki::Exc("AAsset_seek() failed");
-            }
+			if(AAsset_seek(this->handle, seekForward ? offset : (-offset), SEEK_CUR) < 0){
+				throw papki::Exc("AAsset_seek() failed");
+			}
 
-            ASSERT(size_t(offset) < size_t(-1))
-            ASSERT(numBytesLeft >= size_t(offset))
+			ASSERT(size_t(offset) < size_t(-1))
+			ASSERT(numBytesLeft >= size_t(offset))
 
-            numBytesLeft -= size_t(offset);
-        }
-        return numBytesToSeek;
-    }
+			numBytesLeft -= size_t(offset);
+		}
+		return numBytesToSeek;
+	}
 };
 
 
@@ -484,21 +484,21 @@ public:
 	int32_t kc;//key code
 	int32_t ms;//meta state
 	int32_t di;//device id
-	
+
 	std::u32string get()const{
 		ASSERT(javaFunctionsWrapper)
 //		TRACE(<< "KeyEventToUnicodeResolver::Resolve(): this->kc = " << this->kc << std::endl)
-        char32_t res = javaFunctionsWrapper->resolveKeyUnicode(this->di, this->ms, this->kc);
+		char32_t res = javaFunctionsWrapper->resolveKeyUnicode(this->di, this->ms, this->kc);
 
 		//0 means that key did not produce any unicode character
 		if(res == 0){
-            TRACE(<< "key did not produce any unicode character, returning empty string" << std::endl)
+			TRACE(<< "key did not produce any unicode character, returning empty string" << std::endl)
 			return std::u32string();
 		}
-		
+
 		return std::u32string(&res, 1);
 	}
-	
+
 
 } keyUnicodeResolver;
 
@@ -581,7 +581,7 @@ public:
 		struct sigaction sa;
 		sa.sa_handler = SIG_DFL;
 		sa.sa_flags = 0;
-        memset(&sa.sa_mask, 0, sizeof(sa.sa_mask));
+		memset(&sa.sa_mask, 0, sizeof(sa.sa_mask));
 
 #ifdef DEBUG
 		int res =
@@ -931,7 +931,7 @@ JNIEXPORT void JNICALL Java_io_github_igagis_libmordavokne_MordaVOkneActivity_ha
 	)
 {
 	TRACE(<< "handleCharacterStringInput(): invoked" << std::endl)
-	
+
 	const char *utf8Chars = env->GetStringUTFChars(chars, 0);
 
 	utki::ScopeExit scopeExit([env, &chars, utf8Chars](){
@@ -943,20 +943,20 @@ JNIEXPORT void JNICALL Java_io_github_igagis_libmordavokne_MordaVOkneActivity_ha
 		return;
 	}
 
-    TRACE(<< "handleCharacterStringInput(): utf8Chars = " << utf8Chars << std::endl)
-	
+	TRACE(<< "handleCharacterStringInput(): utf8Chars = " << utf8Chars << std::endl)
+
 	std::vector<char32_t> utf32;
 
 	for(unikod::Utf8Iterator i(utf8Chars); !i.isEnd(); ++i){
 		utf32.push_back(i.character());
 	}
 
-    UnicodeProvider resolver;
-    resolver.chars = std::u32string(&*utf32.begin(), utf32.size());
+	UnicodeProvider resolver;
+	resolver.chars = std::u32string(&*utf32.begin(), utf32.size());
 
 //    TRACE(<< "handleCharacterStringInput(): resolver.chars = " << resolver.chars << std::endl)
 
-    mordavokne::handleCharacterInput(mordavokne::inst(), resolver, morda::Key_e::UNKNOWN);
+	mordavokne::handleCharacterInput(mordavokne::inst(), resolver, morda::Key_e::UNKNOWN);
 }
 
 
@@ -967,11 +967,11 @@ JNIEXPORT void JNICALL Java_io_github_igagis_libmordavokne_MordaVOkneActivity_ha
 
 jint JNI_OnLoad(JavaVM* vm, void* reserved){
 	TRACE(<< "JNI_OnLoad(): invoked" << std::endl)
-	
-    JNIEnv* env;
-    if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK) {
-        return -1;
-    }
+
+	JNIEnv* env;
+	if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK) {
+		return -1;
+	}
 
 	static JNINativeMethod methods[] = {
 		{"handleCharacterStringInput", "(Ljava/lang/String;)V", (void*)&Java_io_github_igagis_libmordavokne_MordaVOkneActivity_handleCharacterStringInput},
@@ -982,7 +982,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved){
 		ASSERT(false)
 	}
 
-    return JNI_VERSION_1_6;
+	return JNI_VERSION_1_6;
 }
 
 
@@ -990,23 +990,23 @@ namespace mordavokne{
 
 
 App::App(const WindowParams& requestedWindowParams) :
-        windowPimpl(utki::makeUnique<WindowWrapper>(requestedWindowParams)),
-        gui(
-                *this,
-                utki::makeShared<mordaren::OpenGLES2Renderer>(),
-                []() -> float{
-                    ASSERT(javaFunctionsWrapper)
+		windowPimpl(utki::makeUnique<WindowWrapper>(requestedWindowParams)),
+		gui(
+				*this,
+				utki::makeShared<mordaren::OpenGLES2Renderer>(),
+				[]() -> float{
+					ASSERT(javaFunctionsWrapper)
 
-                    return javaFunctionsWrapper->getDotsPerInch();
-                }(),
-                [this]() -> float{
-                    auto res = getImpl(this->windowPimpl).getWindowSize();
-                    auto dim = (res.to<float>() / javaFunctionsWrapper->getDotsPerInch()) * 25.4f;
-                    return App::findDotsPerPt(res, dim.to<unsigned>());
-                }()
-            )
+					return javaFunctionsWrapper->getDotsPerInch();
+				}(),
+				[this]() -> float{
+					auto res = getImpl(this->windowPimpl).getWindowSize();
+					auto dim = (res.to<float>() / javaFunctionsWrapper->getDotsPerInch()) * 25.4f;
+					return App::findDotsPerPt(res, dim.to<unsigned>());
+				}()
+			)
 {
-    auto winSize = getImpl(this->windowPimpl).getWindowSize();
+	auto winSize = getImpl(this->windowPimpl).getWindowSize();
 	this->updateWindowRect(morda::Rectr(morda::Vec2r(0), winSize.to<morda::real>()));
 }
 
@@ -1017,30 +1017,30 @@ std::unique_ptr<papki::File> App::createResourceFileInterface(const std::string&
 }
 
 void App::swapFrameBuffers() {
-    auto& ww = getImpl(this->windowPimpl);
-    ww.swapBuffers();
+	auto& ww = getImpl(this->windowPimpl);
+	ww.swapBuffers();
 }
 
 void App::setMouseCursorVisible(bool visible) {
-    //do nothing
+	//do nothing
 }
 
 void App::setFullscreen(bool enable) {
-    ASSERT(nativeActivity)
-    if(enable) {
-        ANativeActivity_setWindowFlags(nativeActivity, AWINDOW_FLAG_FULLSCREEN, 0);
-    }else{
-        ANativeActivity_setWindowFlags(nativeActivity, 0, AWINDOW_FLAG_FULLSCREEN);
-    }
+	ASSERT(nativeActivity)
+	if(enable) {
+		ANativeActivity_setWindowFlags(nativeActivity, AWINDOW_FLAG_FULLSCREEN, 0);
+	}else{
+		ANativeActivity_setWindowFlags(nativeActivity, 0, AWINDOW_FLAG_FULLSCREEN);
+	}
 }
 
 void App::quit() noexcept{
-    //TODO:
+	//TODO:
 }
 
 void App::showVirtualKeyboard()noexcept{
 	//ANativeActivity_showSoftInput(nativeActivity, ANATIVEACTIVITY_SHOW_SOFT_INPUT_FORCED);
-	
+
 	ASSERT(javaFunctionsWrapper)
 	javaFunctionsWrapper->showVirtualKeyboard();
 }
@@ -1049,15 +1049,15 @@ void App::showVirtualKeyboard()noexcept{
 
 void App::hideVirtualKeyboard()noexcept{
 	//ANativeActivity_hideSoftInput(nativeActivity, ANATIVEACTIVITY_HIDE_SOFT_INPUT_NOT_ALWAYS);
-	
+
 	ASSERT(javaFunctionsWrapper)
 	javaFunctionsWrapper->hideVirtualKeyboard();
 }
 
-    void App::MordaVOkne::postToUiThread_ts(std::function<void()> &&f) {
-        auto& ww = getImpl(getWindowPimpl(this->app));
-        ww.uiQueue.pushMessage(std::move(f));
-    }
+	void App::MordaVOkne::postToUiThread_ts(std::function<void()> &&f) {
+		auto& ww = getImpl(getWindowPimpl(this->app));
+		ww.uiQueue.pushMessage(std::move(f));
+	}
 
 }//~namespace
 
@@ -1065,177 +1065,178 @@ void App::hideVirtualKeyboard()noexcept{
 
 namespace{
 
-    void handleInputEvents(){
-        auto& app = mordavokne::inst();
+	void handleInputEvents(){
+		auto& app = mordavokne::inst();
 
-        //Read and handle input events
-        AInputEvent* event;
-        while(AInputQueue_getEvent(curInputQueue, &event) >= 0){
-            ASSERT(event)
+		//Read and handle input events
+		AInputEvent* event;
+		while(AInputQueue_getEvent(curInputQueue, &event) >= 0){
+			ASSERT(event)
 
 //		TRACE(<< "New input event: type = " << AInputEvent_getType(event) << std::endl)
-            if(AInputQueue_preDispatchEvent(curInputQueue, event)){
-                continue;
-            }
+			if(AInputQueue_preDispatchEvent(curInputQueue, event)){
+				continue;
+			}
 
-            int32_t eventType = AInputEvent_getType(event);
-            int32_t eventAction = AMotionEvent_getAction(event);
+			int32_t eventType = AInputEvent_getType(event);
+			int32_t eventAction = AMotionEvent_getAction(event);
 
-            bool consume = false;
+			bool consume = false;
 
-            switch(eventType){
-                case AINPUT_EVENT_TYPE_MOTION:
-                    switch(eventAction & AMOTION_EVENT_ACTION_MASK){
-                        case AMOTION_EVENT_ACTION_POINTER_DOWN:
+			switch(eventType){
+				case AINPUT_EVENT_TYPE_MOTION:
+					switch(eventAction & AMOTION_EVENT_ACTION_MASK){
+						case AMOTION_EVENT_ACTION_POINTER_DOWN:
 //						TRACE(<< "Pointer down" << std::endl)
-                        case AMOTION_EVENT_ACTION_DOWN:
-                        {
-                            unsigned pointerIndex = ((eventAction & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
-                            unsigned pointerId = unsigned(AMotionEvent_getPointerId(event, pointerIndex));
+						case AMOTION_EVENT_ACTION_DOWN:
+						{
+							unsigned pointerIndex = ((eventAction & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
+							unsigned pointerId = unsigned(AMotionEvent_getPointerId(event, pointerIndex));
 
-                            if(pointerId >= pointers.size()){
-                                TRACE(<< "Pointer ID is too big, only " << pointers.size() << " pointers supported at maximum")
-                                continue;
-                            }
+							if(pointerId >= pointers.size()){
+								TRACE(<< "Pointer ID is too big, only " << pointers.size() << " pointers supported at maximum")
+								continue;
+							}
 
 //								TRACE(<< "Action down, ptr id = " << pointerId << std::endl)
 
-                            morda::Vec2r p(AMotionEvent_getX(event, pointerIndex), AMotionEvent_getY(event, pointerIndex));
-                            pointers[pointerId] = p;
+							morda::Vec2r p(AMotionEvent_getX(event, pointerIndex), AMotionEvent_getY(event, pointerIndex));
+							pointers[pointerId] = p;
 
-                            handleMouseButton(
-                                    app,
-                                    true,
-                                    AndroidWinCoordsToMordaWinRectCoords(app.winDim(), p),
-                                    morda::MouseButton_e::LEFT,
-                                    pointerId
-                            );
-                        }
-                            break;
-                        case AMOTION_EVENT_ACTION_POINTER_UP:
+							handleMouseButton(
+									app,
+									true,
+									AndroidWinCoordsToMordaWinRectCoords(app.winDim(), p),
+									morda::MouseButton_e::LEFT,
+									pointerId
+							);
+						}
+							break;
+						case AMOTION_EVENT_ACTION_POINTER_UP:
 //						TRACE(<< "Pointer up" << std::endl)
-                        case AMOTION_EVENT_ACTION_UP:
-                        {
-                            unsigned pointerIndex = ((eventAction & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
-                            unsigned pointerId = unsigned(AMotionEvent_getPointerId(event, pointerIndex));
+						case AMOTION_EVENT_ACTION_UP:
+						{
+							unsigned pointerIndex = ((eventAction & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
+							unsigned pointerId = unsigned(AMotionEvent_getPointerId(event, pointerIndex));
 
-                            if(pointerId >= pointers.size()){
-                                TRACE(<< "Pointer ID is too big, only " << pointers.size() << " pointers supported at maximum")
-                                continue;
-                            }
+							if(pointerId >= pointers.size()){
+								TRACE(<< "Pointer ID is too big, only " << pointers.size() << " pointers supported at maximum")
+								continue;
+							}
 
 //								TRACE(<< "Action up, ptr id = " << pointerId << std::endl)
 
-                            morda::Vec2r p(AMotionEvent_getX(event, pointerIndex), AMotionEvent_getY(event, pointerIndex));
-                            pointers[pointerId] = p;
+							morda::Vec2r p(AMotionEvent_getX(event, pointerIndex), AMotionEvent_getY(event, pointerIndex));
+							pointers[pointerId] = p;
 
-                            handleMouseButton(
-                                    app,
-                                    false,
-                                    AndroidWinCoordsToMordaWinRectCoords(app.winDim(), p),
-                                    morda::MouseButton_e::LEFT,
-                                    pointerId
-                            );
-                        }
-                            break;
-                        case AMOTION_EVENT_ACTION_MOVE:
-                        {
-                            size_t numPointers = AMotionEvent_getPointerCount(event);
-                            ASSERT(numPointers >= 1)
-                            for(size_t pointerNum = 0; pointerNum < numPointers; ++pointerNum){
-                                unsigned pointerId = unsigned(AMotionEvent_getPointerId(event, pointerNum));
-                                if(pointerId >= pointers.size()){
-                                    TRACE(<< "Pointer ID is too big, only " << pointers.size() << " pointers supported at maximum")
-                                    continue;
-                                }
+							handleMouseButton(
+									app,
+									false,
+									AndroidWinCoordsToMordaWinRectCoords(app.winDim(), p),
+									morda::MouseButton_e::LEFT,
+									pointerId
+							);
+						}
+							break;
+						case AMOTION_EVENT_ACTION_MOVE:
+						{
+							size_t numPointers = AMotionEvent_getPointerCount(event);
+							ASSERT(numPointers >= 1)
+							for(size_t pointerNum = 0; pointerNum < numPointers; ++pointerNum){
+								unsigned pointerId = unsigned(AMotionEvent_getPointerId(event, pointerNum));
+								if(pointerId >= pointers.size()){
+									TRACE(<< "Pointer ID is too big, only " << pointers.size() << " pointers supported at maximum")
+									continue;
+								}
 
-                                //notify root Container only if there was actual movement
-                                morda::Vec2r p(AMotionEvent_getX(event, pointerNum), AMotionEvent_getY(event, pointerNum));
-                                if(pointers[pointerId] == p){
-                                    //pointer position did not change
-                                    continue;
-                                }
+								//notify root Container only if there was actual movement
+								morda::Vec2r p(AMotionEvent_getX(event, pointerNum), AMotionEvent_getY(event, pointerNum));
+								if(pointers[pointerId] == p){
+									//pointer position did not change
+									continue;
+								}
 
 //								TRACE(<< "Action move, ptr id = " << pointerId << std::endl)
 
-                                pointers[pointerId] = p;
+								pointers[pointerId] = p;
 
-                                handleMouseMove(
-                                        app,
-                                        AndroidWinCoordsToMordaWinRectCoords(app.winDim(), p),
-                                        pointerId
-                                );
-                            }//~for(every pointer)
-                        }
-                            break;
-                        default:
-                            TRACE(<< "unknown eventAction = " << eventAction << std::endl)
-                            break;
-                    }//~switch(event action)
-                    consume = true;
-                    break;
-                case AINPUT_EVENT_TYPE_KEY:
-                    {
-    //						TRACE(<< "AINPUT_EVENT_TYPE_KEY" << std::endl)
+								handleMouseMove(
+										app,
+										AndroidWinCoordsToMordaWinRectCoords(app.winDim(), p),
+										pointerId
+								);
+							}//~for(every pointer)
+						}
+							break;
+						default:
+							TRACE(<< "unknown eventAction = " << eventAction << std::endl)
+							break;
+					}//~switch(event action)
+					consume = true;
+					break;
+				case AINPUT_EVENT_TYPE_KEY:
+					{
+	//						TRACE(<< "AINPUT_EVENT_TYPE_KEY" << std::endl)
 
-                        morda::Key_e key = getKeyFromKeyEvent(*ASS(event));
+						ASSERT(event)
+						morda::Key_e key = getKeyFromKeyEvent(*event);
 
-                        keyUnicodeResolver.kc = AKeyEvent_getKeyCode(event);
-                        keyUnicodeResolver.ms = AKeyEvent_getMetaState(event);
-                        keyUnicodeResolver.di = AInputEvent_getDeviceId(event);
+						keyUnicodeResolver.kc = AKeyEvent_getKeyCode(event);
+						keyUnicodeResolver.ms = AKeyEvent_getMetaState(event);
+						keyUnicodeResolver.di = AInputEvent_getDeviceId(event);
 
 //    					TRACE(<< "AINPUT_EVENT_TYPE_KEY: keyUnicodeResolver.kc = " << keyUnicodeResolver.kc << std::endl)
 
-                        switch(eventAction){
-                            case AKEY_EVENT_ACTION_DOWN:
+						switch(eventAction){
+							case AKEY_EVENT_ACTION_DOWN:
 //    							TRACE(<< "AKEY_EVENT_ACTION_DOWN, count = " << AKeyEvent_getRepeatCount(event) << std::endl)
-                                //detect auto-repeated key events
-                                if(AKeyEvent_getRepeatCount(event) == 0){
-                                    handleKeyEvent(app, true, key);
-                                }
-                                handleCharacterInput(app, keyUnicodeResolver, key);
-                                break;
-                            case AKEY_EVENT_ACTION_UP:
+								//detect auto-repeated key events
+								if(AKeyEvent_getRepeatCount(event) == 0){
+									handleKeyEvent(app, true, key);
+								}
+								handleCharacterInput(app, keyUnicodeResolver, key);
+								break;
+							case AKEY_EVENT_ACTION_UP:
 //    							TRACE(<< "AKEY_EVENT_ACTION_UP" << std::endl)
-                                handleKeyEvent(app, false, key);
-                                break;
-                            case AKEY_EVENT_ACTION_MULTIPLE:
+								handleKeyEvent(app, false, key);
+								break;
+							case AKEY_EVENT_ACTION_MULTIPLE:
 //                                TRACE(<< "AKEY_EVENT_ACTION_MULTIPLE"
 //                                              << " count = " << AKeyEvent_getRepeatCount(event)
 //                                              << " keyCode = " << AKeyEvent_getKeyCode(event)
 //                                              << std::endl)
 
-                                //Ignore, it is handled on Java side.
+								//Ignore, it is handled on Java side.
 
-                                break;
-                            default:
-                                TRACE(<< "unknown AINPUT_EVENT_TYPE_KEY eventAction: " << eventAction << std::endl)
-                                break;
-                        }
-                    }
-                    break;
-                default:
-                    break;
-            }//~switch(event type)
+								break;
+							default:
+								TRACE(<< "unknown AINPUT_EVENT_TYPE_KEY eventAction: " << eventAction << std::endl)
+								break;
+						}
+					}
+					break;
+				default:
+					break;
+			}//~switch(event type)
 
 
-            AInputQueue_finishEvent(
-                    curInputQueue,
-                    event,
-                    consume
-            );
-        }//~while(there are events in input queue)
+			AInputQueue_finishEvent(
+					curInputQueue,
+					event,
+					consume
+			);
+		}//~while(there are events in input queue)
 
-        render(app);
+		render(app);
 
-        fdFlag.Set();
-    }
+		fdFlag.Set();
+	}
 
 
 
 void OnDestroy(ANativeActivity* activity){
 	TRACE(<< "OnDestroy(): invoked" << std::endl)
-	
+
 	javaFunctionsWrapper.reset();
 }
 
@@ -1261,7 +1262,7 @@ void* OnSaveInstanceState(ANativeActivity* activity, size_t* outSize){
 	TRACE(<< "OnSaveInstanceState(): invoked" << std::endl)
 	//TODO:
 //    return static_cast<morda::App*>(activity->instance)->OnSaveInstanceState(outSize);
-    return nullptr;
+	return nullptr;
 }
 
 
@@ -1336,7 +1337,7 @@ void OnWindowFocusChanged(ANativeActivity* activity, int hasFocus){
 int OnUpdateTimerExpired(int fd, int events, void* data){
 //	TRACE(<< "OnUpdateTimerExpired(): invoked" << std::endl)
 
-    auto& app = App::inst();
+	auto& app = App::inst();
 
 	std::uint32_t dt = app.gui.update();
 	if(dt == 0){
@@ -1346,7 +1347,7 @@ int OnUpdateTimerExpired(int fd, int events, void* data){
 		timer.Arm(dt);
 	}
 
-    //after updating need to re-render everything
+	//after updating need to re-render everything
 	render(app);
 
 //	TRACE(<< "OnUpdateTimerExpired(): armed timer for " << dt << std::endl)
@@ -1357,12 +1358,12 @@ int OnUpdateTimerExpired(int fd, int events, void* data){
 
 
 int OnQueueHasMessages(int fd, int events, void* data){
-    auto& ww = getImpl(getWindowPimpl(App::inst()));
+	auto& ww = getImpl(getWindowPimpl(App::inst()));
 
-    while(auto m = ww.uiQueue.peekMsg()){
-        m();
-    }
-	
+	while(auto m = ww.uiQueue.peekMsg()){
+		m();
+	}
+
 	return 1; //1 means do not remove descriptor from looper
 }
 
@@ -1385,7 +1386,7 @@ void OnNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window){
 		AConfiguration_fromAssetManager(cfg->ac, appInfo.assetManager);
 
 		App* app = createAppUnix(0, 0, utki::wrapBuf(appInfo.savedState)).release();
-		
+
 		activity->instance = app;
 
 		//save current configuration in global variable
@@ -1393,7 +1394,7 @@ void OnNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window){
 
 		ALooper* looper = ALooper_prepare(0);
 		ASSERT(looper)
-		
+
 		ALooper_addFd(
 				looper,
 				fdFlag.GetFD(),
@@ -1402,16 +1403,16 @@ void OnNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window){
 				&OnUpdateTimerExpired,
 				0
 			);
-		
+
 		ALooper_addFd(
 				looper,
-                static_cast<pogodi::Waitable&>(getImpl(getWindowPimpl(*app)).uiQueue).getHandle(),
+				static_cast<pogodi::Waitable&>(getImpl(getWindowPimpl(*app)).uiQueue).getHandle(),
 				ALOOPER_POLL_CALLBACK,
 				ALOOPER_EVENT_INPUT,
 				&OnQueueHasMessages,
 				0
 			);
-		
+
 		fdFlag.Set();//this is to call the Update() for the first time if there were any Updateables started during creating App object
 	}catch(std::exception& e){
 		TRACE(<< "std::exception uncaught while creating App instance: " << e.what() << std::endl)
@@ -1430,7 +1431,7 @@ void OnNativeWindowResized(ANativeActivity* activity, ANativeWindow* window){
 	//save window dimensions
 	curWinDim.x = float(ANativeWindow_getWidth(window));
 	curWinDim.y = float(ANativeWindow_getHeight(window));
-	
+
 	TRACE(<< "OnNativeWindowResized(): curWinDim = " << curWinDim << std::endl)
 }
 
@@ -1441,7 +1442,7 @@ void OnNativeWindowResized(ANativeActivity* activity, ANativeWindow* window){
 void OnNativeWindowRedrawNeeded(ANativeActivity* activity, ANativeWindow* window){
 	TRACE(<< "OnNativeWindowRedrawNeeded(): invoked" << std::endl)
 
-    render(getApp(activity));
+	render(getApp(activity));
 }
 
 
@@ -1574,7 +1575,7 @@ void ANativeActivity_onCreate(
 	activity->callbacks->onContentRectChanged = &OnContentRectChanged;
 
 	activity->instance = 0;
-	
+
 	nativeActivity = activity;
 
 	appInfo.internalDataPath = activity->internalDataPath;
@@ -1585,6 +1586,6 @@ void ANativeActivity_onCreate(
 		appInfo.savedState.resize(savedStateSize);
 		memcpy(&*appInfo.savedState.begin(), savedState, savedStateSize);
 	}
-	
+
 	javaFunctionsWrapper = utki::makeUnique<JavaFunctionsWrapper>(activity);
 }
