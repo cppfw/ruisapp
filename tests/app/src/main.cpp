@@ -17,7 +17,7 @@
 
 #include <morda/widgets/core/CharInputWidget.hpp>
 #include <morda/widgets/core/container/ScrollArea.hpp>
-#include <morda/widgets/core/container/LinearArea.hpp>
+#include <morda/widgets/core/container/LinearContainer.hpp>
 #include <morda/widgets/slider/Slider.hpp>
 #include <morda/widgets/List.hpp>
 #include <morda/widgets/TreeView.hpp>
@@ -274,7 +274,7 @@ public:
 	}
 	
 	const char* DPlusMinus = R"qwertyuiop(
-			Frame{
+			Pile{
 				ImageLabel{
 					name{plusminus}
 				}
@@ -288,7 +288,7 @@ public:
 		)qwertyuiop";
 	
 	const char* DLine = R"qwertyuiop(
-			Frame{
+			Pile{
 				layout{dx{5mm} dy{fill}}
 				ColorLabel{
 					layout{dx{1pt}dy{fill}}
@@ -298,9 +298,9 @@ public:
 		)qwertyuiop";
 	
 	const char* DLineEnd = R"qwertyuiop(
-			Frame{
+			Pile{
 				layout{dx{5mm} dy{max}}
-				VerticalArea{
+				Column{
 					layout{dx{max}dy{max}}
 					ColorLabel{
 						layout{dx{1pt}dy{0}weight{1}}
@@ -308,7 +308,7 @@ public:
 					}
 					Widget{layout{dx{max}dy{0}weight{1}}}
 				}
-				HorizontalArea{
+				Row{
 					layout{dx{max}dy{max}}
 					Widget{layout{dx{0}dy{max}weight{1}}}
 					ColorLabel{
@@ -320,13 +320,13 @@ public:
 		)qwertyuiop";
 	
 	const char* DLineMiddle = R"qwertyuiop(
-			Frame{
+			Pile{
 				layout{dx{5mm} dy{max}}
 				ColorLabel{
 					layout{dx{1pt}dy{max}}
 					color{@{morda_color_highlight}}
 				}
-				HorizontalArea{
+				Row{
 					layout{dx{max}dy{max}}
 					Widget{layout{dx{0}dy{max}weight{1}}}
 					ColorLabel{
@@ -452,7 +452,7 @@ public:
 			isLastItemInParent.push_back(n->next() == nullptr);
 		}
 		
-		auto ret = utki::makeShared<morda::HorizontalArea>();
+		auto ret = utki::makeShared<morda::Row>();
 
 		ASSERT(isLastItemInParent.size() == path.size())
 		
@@ -461,7 +461,7 @@ public:
 		}
 		
 		{
-			auto widget = std::dynamic_pointer_cast<morda::Frame>(morda::Morda::inst().inflater.inflate(*stob::parse(isLastItemInParent.back() ? DLineEnd : DLineMiddle)));
+			auto widget = std::dynamic_pointer_cast<morda::Pile>(morda::Morda::inst().inflater.inflate(*stob::parse(isLastItemInParent.back() ? DLineEnd : DLineMiddle)));
 			ASSERT(widget)
 			
 			if(n->child()){
@@ -507,7 +507,7 @@ public:
 		{
 			auto v = morda::Morda::inst().inflater.inflate(*stob::parse(
 					R"qwertyuiop(
-							Frame{
+							Pile{
 								ColorLabel{
 									name{selection}
 									layout{dx{max}dy{max}}

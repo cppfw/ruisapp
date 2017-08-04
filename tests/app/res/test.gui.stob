@@ -52,13 +52,13 @@ Container{
 			clr{@{another_color}}
 		}
 
-		VerticalArea{
+		Column{
 			layout{
 				dx{max} dy{max}
 			}
 
 
-			HorizontalArea{
+			Row{
 				layout{
 					dx{max} dy{min}
 				}
@@ -100,7 +100,7 @@ Container{
 				TextLabel{text{item9}}
 				TextLabel{text{item10}}
 			}
-			HorizontalArea{
+			Row{
 				PushButton{
 					name{showhide_mousecursor_button}
 
@@ -122,7 +122,7 @@ Container{
 
 				defs{
 					RadBtn{
-						HorizontalArea{
+						Row{
 							Margins{
 								left{5pt}
 								right{5pt}
@@ -138,7 +138,7 @@ Container{
 					}
 				}
 
-				VerticalArea{
+				Column{
 					RadBtn
 					RadBtn
 					RadBtn
@@ -159,7 +159,7 @@ Container{
 			background{WindowEmptyBackground}
 		}
 
-		HorizontalArea{
+		Row{
 			padding {20 30 10 40}
 
 			x{50} y{100}
@@ -244,7 +244,7 @@ Container{
 					weight{1}
 				}
 
-				Frame{
+				Pile{
 					layout{
 						dx{0} dy{max}
 						weight{1}
@@ -286,7 +286,7 @@ Container{
 				Widget{}
 			}
 			TableRow{
-				HorizontalArea{
+				Row{
 					TextLabel{
 						text{Insert:}
 					}
@@ -320,7 +320,7 @@ Container{
 		title{"Sliders"}
 
 
-		HorizontalArea{
+		Row{
 
 			name{horizontal_container}
 
@@ -395,7 +395,7 @@ Container{
 		}*/
 
 
-		HorizontalArea{
+		Row{
 			layout{
 				dx{max} dy{min}
 			}
@@ -436,7 +436,7 @@ Container{
 					weight{1}
 				}
 
-				Frame{
+				Pile{
 					layout{
 						dx{0} dy{max}
 						weight{1}
@@ -578,13 +578,13 @@ Container{
 
 		title{"VerticalList"}
 
-		HorizontalArea{
+		Row{
 			layout{
 				dx{max} dy{max}
 			}
 
 
-			Frame{
+			Pile{
 				layout{
 					dx{0} dy{max}
 					weight{1}
