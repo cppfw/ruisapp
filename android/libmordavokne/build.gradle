@@ -18,9 +18,9 @@ model {
 //            toolchain = 'clang'
             abiFilters.addAll(['armeabi', 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64', 'mips', 'mips64']) //this is default
             ldLibs.addAll(['android', 'log', 'stob', 'EGL', 'nitki', 'morda-opengles2-ren',
-                           'morda', 'papki',
+                            'morda', 'papki',
                             'png', 'jpeg', 'GLESv2', 'z', 'freetype2',
-                           'svgdom', 'svgren', 'cairo', 'pixman', 'pugixml', 'c++'])
+                            'svgren', 'svgdom', 'cairo', 'pixman', 'pugixml', 'c++'])
             stl = 'c++_shared'
             cppFlags.add("-std=c++11")
             cppFlags.add("-fexceptions")
