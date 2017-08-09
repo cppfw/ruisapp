@@ -608,7 +608,7 @@ public:
 		morda::Morda::inst().inflater.addWidget<CubeWidget>("CubeWidget");
 
 		std::shared_ptr<morda::Widget> c = morda::Morda::inst().inflater.inflate(
-				*this->createResourceFileInterface("res/test.gui.stob")
+				*this->createResourceFileInterface("res/test.gui")
 			);
 		morda::Morda::inst().setRootWidget(c);
 		
@@ -660,26 +660,26 @@ public:
 				}
 				
 				if(auto v = vs.lock()){
-					v->setFactor(sc->scrollFactor().y);
+					v->setFraction(sc->scrollFactor().y);
 				}
 				if(auto h = hs.lock()){
-					h->setFactor(sc->scrollFactor().x);
+					h->setFraction(sc->scrollFactor().x);
 				}
 			};
 			
 			
-			vertSlider->factorChange = [sa](morda::Slider& slider){
+			vertSlider->fractionChange = [sa](morda::FractionWidget& slider){
 				if(auto s = sa.lock()){
 					auto sf = s->scrollFactor();
-					sf.y = slider.factor();
+					sf.y = slider.fraction();
 					s->setScrollPosAsFactor(sf);
 				}
 			};
 			
-			horiSlider->factorChange = [sa](morda::Slider& slider){
+			horiSlider->fractionChange = [sa](morda::FractionWidget& slider){
 				if(auto s = sa.lock()){
 					auto sf = s->scrollFactor();
-					sf.x = slider.factor();
+					sf.x = slider.fraction();
 					s->setScrollPosAsFactor(sf);
 				}
 			};
@@ -693,9 +693,9 @@ public:
 			auto verticalSlider = c->findChildByNameAs<morda::VerticalSlider>("vertical_list_slider");
 			std::weak_ptr<morda::VerticalSlider> vs = verticalSlider;
 			
-			verticalSlider->factorChange = [vl](morda::Slider& slider){
+			verticalSlider->fractionChange = [vl](morda::FractionWidget& slider){
 				if(auto l = vl.lock()){
-					l->setScrollPosAsFactor(slider.factor());
+					l->setScrollPosAsFactor(slider.fraction());
 				}
 			};
 			
@@ -709,7 +709,7 @@ public:
 				}
 				if(auto s = vs.lock()){
 //					auto f = std::move(s->factorChange);
-					s->setFactor(l->scrollFactor());
+					s->setFraction(l->scrollFactor());
 //					s->factorChange = std::move(f);
 				}
 			};
@@ -726,9 +726,9 @@ public:
 			auto verticalSlider = c->findChildByNameAs<morda::VerticalSlider>("treeview_vertical_slider");
 			auto vs = utki::makeWeak(verticalSlider);
 			
-			verticalSlider->factorChange = [tv](morda::Slider& slider){
+			verticalSlider->fractionChange = [tv](morda::FractionWidget& slider){
 				if(auto t = tv.lock()){
-					t->setVerticalScrollPosAsFactor(slider.factor());
+					t->setVerticalScrollPosAsFactor(slider.fraction());
 				}
 			};
 			
@@ -736,9 +736,9 @@ public:
 			ASSERT(horizontalSlider)
 			auto hs = utki::makeWeak(horizontalSlider);
 			
-			horizontalSlider->factorChange = [tv](morda::Slider& slider){
+			horizontalSlider->fractionChange = [tv](morda::FractionWidget& slider){
 				if(auto t = tv.lock()){
-					t->setHorizontalScrollPosAsFactor(slider.factor());
+					t->setHorizontalScrollPosAsFactor(slider.fraction());
 				}
 			};
 			
@@ -752,10 +752,10 @@ public:
 					return;
 				}
 				if(auto h = hs.lock()){
-					h->setFactor(t->scrollFactor().x);
+					h->setFraction(t->scrollFactor().x);
 				}
 				if(auto v = vs.lock()){
-					v->setFactor(t->scrollFactor().y);
+					v->setFraction(t->scrollFactor().y);
 				}
 			};
 			

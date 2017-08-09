@@ -6,7 +6,7 @@
             <name>mordavokne</name>
             <c-extensions/>
             <cpp-extensions>cpp,mm</cpp-extensions>
-            <header-extensions>cppinc,hpp,txt</header-extensions>
+            <header-extensions>cppinc,hpp</header-extensions>
             <sourceEncoding>UTF-8</sourceEncoding>
             <make-dep-projects/>
             <sourceRootList>
