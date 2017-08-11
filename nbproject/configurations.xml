@@ -179,8 +179,8 @@
             <pElem>src/mordavokne/glue/linux</pElem>
             <pElem>src/mordavokne/glue</pElem>
             <pElem>/usr/include/papki</pElem>
-            <pElem>/usr/include/pogodi</pElem>
             <pElem>/usr/include/morda</pElem>
+            <pElem>/usr/include/pogodi</pElem>
             <pElem>/usr/include/stob</pElem>
             <pElem>src/mordavokne</pElem>
             <pElem>/usr/include/kolme</pElem>

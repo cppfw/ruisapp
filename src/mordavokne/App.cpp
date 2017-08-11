@@ -49,7 +49,7 @@ void App::updateWindowRect(const morda::Rectr& rect){
 
 
 #if M_OS_NAME != M_OS_NAME_ANDROID && M_OS_NAME != M_OS_NAME_IOS
-std::unique_ptr<papki::File> App::createResourceFileInterface(const std::string& path)const{
+std::unique_ptr<papki::File> App::getResFile(const std::string& path)const{
 	return utki::makeUnique<papki::FSFile>(path);
 }
 

@@ -1012,7 +1012,7 @@ App::App(const WindowParams& requestedWindowParams) :
 
 
 
-std::unique_ptr<papki::File> App::createResourceFileInterface(const std::string& path)const{
+std::unique_ptr<papki::File> App::getResFile(const std::string& path)const{
 	return utki::makeUnique<AssetFile>(appInfo.assetManager, path);
 }
 

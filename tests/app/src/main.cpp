@@ -599,16 +599,16 @@ public:
 	Application() :
 			App(GetWindowParams())
 	{
-		morda::Morda::inst().initStandardWidgets(*this->createResourceFileInterface());
+		morda::Morda::inst().initStandardWidgets(*this->getResFile());
 		
-		morda::Morda::inst().resMan.mountResPack(*this->createResourceFileInterface("res/"));
+		morda::Morda::inst().resMan.mountResPack(*this->getResFile("res/"));
 //		this->ResMan().MountResPack(morda::ZipFile::New(papki::FSFile::New("res.zip")));
 		
 		morda::Morda::inst().inflater.addWidget<SimpleWidget>("U_SimpleWidget");
 		morda::Morda::inst().inflater.addWidget<CubeWidget>("CubeWidget");
 
 		std::shared_ptr<morda::Widget> c = morda::Morda::inst().inflater.inflate(
-				*this->createResourceFileInterface("res/test.gui")
+				*this->getResFile("res/test.gui")
 			);
 		morda::Morda::inst().setRootWidget(c);
 		
