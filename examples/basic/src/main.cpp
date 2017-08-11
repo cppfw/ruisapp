@@ -10,11 +10,11 @@ public:
 	Application() :
 			mordavokne::App(mordavokne::App::WindowParams(kolme::Vec2ui(800, 600)))
 	{
-		morda::Morda::inst().initStandardWidgets(*this->createResourceFileInterface());
+		morda::Morda::inst().initStandardWidgets(*this->getResFile());
 		
 		//Inflate widgets hierarchy from GUI description script
 		auto c = morda::Morda::inst().inflater.inflate(
-				*this->createResourceFileInterface("res/main.gui.stob")
+				*this->getResFile("res/main.gui")
 			);
 		
 		//set the widgets hierarchy to the application

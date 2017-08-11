@@ -35,10 +35,10 @@ else ifeq ($(prorab_os),macosx)
     this_ldlibs += -lmordavokne
 else ifeq ($(prorab_os),linux)
     this_ldlibs += -lGLEW -pthread -lGL
-    this_ldlibs += `pkg-config mordavokne --libs`
+    this_ldlibs += `pkg-config mordavokne-opengl2 --libs`
 endif
 
-this_ldlibs += -lnitki -laika -lpogodi -lstob -lmorda -lstdc++
+this_ldlibs += -lnitki -lpogodi -lstob -lmorda -lstdc++
 
 
 
