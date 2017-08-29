@@ -51,7 +51,7 @@ else ifeq ($(prorab_os),linux)
     this_ldlibs += $(prorab_this_dir)../../src/$(this_mordavoknelib)$(prorab_lib_extension) -pthread
 endif
 
-this_ldlibs += -lstob -lmorda -lm -lstdc++
+this_ldlibs += -lstob -lmorda -lunikod -lm -lstdc++
 
 this_ldflags += -rdynamic
 

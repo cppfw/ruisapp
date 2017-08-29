@@ -148,8 +148,7 @@
       </toolsSet>
       <flagsDictionary>
         <element flagsID="0" commonFlags="-O3 -std=c++11"/>
-        <element flagsID="1"
-                 commonFlags="-mtune=generic -march=x86-64 -O2 -std=c++11 -funsigned-char -fPIC"/>
+        <element flagsID="1" commonFlags="-funsigned-char -std=c++11 -O2 -fPIC"/>
       </flagsDictionary>
       <codeAssistance>
       </codeAssistance>
@@ -159,6 +158,11 @@
           <buildCommand>${MAKE} -j4</buildCommand>
           <cleanCommand>${MAKE}  clean</cleanCommand>
           <executablePath>tests/app/mordavokne-test</executablePath>
+          <ccTool>
+            <incDir>
+              <pElem>.</pElem>
+            </incDir>
+          </ccTool>
         </makeTool>
         <preBuild>
           <preBuildCommandWorkingDir>.</preBuildCommandWorkingDir>
@@ -172,36 +176,8 @@
           </preprocessorList>
         </ccTool>
       </folder>
-      <folder path="0/mordavokne/glue">
-        <ccTool>
-          <incDir>
-            <pElem>/usr/include/utki</pElem>
-            <pElem>src/mordavokne/glue/linux</pElem>
-            <pElem>src/mordavokne/glue</pElem>
-            <pElem>/usr/include/papki</pElem>
-            <pElem>/usr/include/morda</pElem>
-            <pElem>/usr/include/pogodi</pElem>
-            <pElem>/usr/include/stob</pElem>
-            <pElem>src/mordavokne</pElem>
-            <pElem>/usr/include/kolme</pElem>
-            <pElem>/usr/include/unikod</pElem>
-            <pElem>/usr/include/morda/util</pElem>
-            <pElem>/usr/include/morda/render</pElem>
-            <pElem>/usr/include/morda/widgets/core</pElem>
-            <pElem>/usr/include/X11</pElem>
-            <pElem>/usr/include/KHR</pElem>
-            <pElem>/usr/include/EGL</pElem>
-            <pElem>/usr/include/mordaren</pElem>
-            <pElem>/usr/include/nitki</pElem>
-            <pElem>.</pElem>
-          </incDir>
-        </ccTool>
-      </folder>
       <folder path="1">
         <ccTool>
-          <incDir>
-            <pElem>.</pElem>
-          </incDir>
           <preprocessorList>
             <Elem>DEBUG</Elem>
           </preprocessorList>
@@ -209,19 +185,6 @@
       </folder>
       <item path="src/mordavokne/App.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="1">
-          <incDir>
-            <pElem>/usr/include/stob</pElem>
-            <pElem>src/mordavokne</pElem>
-            <pElem>/usr/include/kolme</pElem>
-            <pElem>/usr/include/utki</pElem>
-            <pElem>/usr/include/papki</pElem>
-            <pElem>/usr/include/morda</pElem>
-            <pElem>/usr/include/morda/util</pElem>
-            <pElem>/usr/include/morda/widgets/core</pElem>
-            <pElem>/usr/include/morda/render</pElem>
-            <pElem>/usr/include/unikod</pElem>
-            <pElem>.</pElem>
-          </incDir>
         </ccTool>
       </item>
       <item path="src/mordavokne/glue/glue.cpp" ex="false" tool="1" flavor2="8">
