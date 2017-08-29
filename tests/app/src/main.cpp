@@ -19,7 +19,7 @@
 #include <morda/widgets/core/container/ScrollArea.hpp>
 #include <morda/widgets/core/container/LinearContainer.hpp>
 #include <morda/widgets/slider/Slider.hpp>
-#include <morda/widgets/List.hpp>
+#include <morda/widgets/core/List.hpp>
 #include <morda/widgets/TreeView.hpp>
 #include <morda/widgets/core/proxy/MouseProxy.hpp>
 #include <morda/widgets/core/proxy/ResizeProxy.hpp>
