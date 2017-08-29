@@ -29,11 +29,12 @@ model {
             cppFlags.add("-fexceptions")
             cppFlags.add("-frtti")
             cppFlags.add("-g")
+            cppFlags.add("-fintegrated-as") //needed to avoid assembler error since NDK r15
             cppFlags.add("-I" + projectDir.getAbsolutePath() + "/build/ndkLibs/include")
             ldLibs.addAll(['android', 'log',
                            'EGL', 'morda-opengles2-ren', 'morda', 'nitki', 'stob', 'papki',
                            'png', 'jpeg', 'GLESv2', 'z', 'freetype2', 'svgren', 'svgdom',
-                           'pugixml', 'cairo', 'pixman', 'c++'])
+                           'mikroxml', 'unikod', 'cairo', 'pixman', 'c++'])
             // build a default combined apk including all ABIs.
             // abiFilters.addAll(['x86'])
         }
