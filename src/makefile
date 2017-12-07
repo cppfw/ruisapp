@@ -93,11 +93,14 @@ ifeq ($(ogles2), true)
     this_name := mordavokne-opengles2
 
     this_cxxflags := $(this_common_cxxflags) -DM_RENDER_OPENGLES2
-    this_ldlibs := $(this_common_ldlibs) -lmorda-opengles2-ren -lEGL
+    this_ldlibs := $(this_common_ldlibs) -lmorda-opengles2-ren
 
     ifeq ($(raspberrypi), true)
         this_cxxflags += -DM_RASPBERRYPI -I/opt/vc/include
-        this_ldlibs += -L/opt/vc/lib
+        this_ldflags += -L/opt/vc/lib
+        this_ldlibs += -lbrcmEGL
+    else
+        this_ldlibs += -lEGL
     endif
 
     $(eval $(prorab-build-lib))
