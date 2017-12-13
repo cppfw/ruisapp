@@ -10,7 +10,8 @@
 #include <morda/widgets/core/proxy/KeyProxy.hpp>
 
 #include <morda/widgets/button/Button.hpp>
-#include <morda/widgets/label/TextLabel.hpp>
+#include <morda/widgets/button/PushButton.hpp>
+#include <morda/widgets/label/Text.hpp>
 
 #include <morda/resources/ResTexture.hpp>
 #include <morda/resources/ResFont.hpp>
@@ -23,8 +24,8 @@
 #include <morda/widgets/TreeView.hpp>
 #include <morda/widgets/core/proxy/MouseProxy.hpp>
 #include <morda/widgets/core/proxy/ResizeProxy.hpp>
-#include <morda/widgets/label/ColorLabel.hpp>
-#include <morda/widgets/label/ImageLabel.hpp>
+#include <morda/widgets/label/Color.hpp>
+#include <morda/widgets/label/Image.hpp>
 
 #include <morda/util/ZipFile.hpp>
 
@@ -120,7 +121,7 @@ public:
 		matr.scale(this->rect().d);
 
 		auto& r = morda::inst().renderer();
-		r.shader->posTex->render(matr, this->tex->tex(), *r.posTexQuad01VAO);
+		r.shader->posTex->render(matr, *r.posTexQuad01VAO, this->tex->tex());
 	}
 };
 
@@ -223,7 +224,7 @@ public:
 
 //		glEnable(GL_CULL_FACE);
 		
-		morda::inst().renderer().shader->posTex->render(m, this->tex->tex(), *this->cubeVAO);
+		morda::inst().renderer().shader->posTex->render(m, *this->cubeVAO, this->tex->tex());
 		
 //		glDisable(GL_CULL_FACE);
 	}
@@ -275,7 +276,7 @@ public:
 	
 	const char* DPlusMinus = R"qwertyuiop(
 			Pile{
-				ImageLabel{
+				Image{
 					name{plusminus}
 				}
 				MouseProxy{
@@ -290,7 +291,7 @@ public:
 	const char* DLine = R"qwertyuiop(
 			Pile{
 				layout{dx{5mm} dy{fill}}
-				ColorLabel{
+				Color{
 					layout{dx{1pt}dy{fill}}
 					color{@{morda_color_highlight}}
 				}
@@ -302,7 +303,7 @@ public:
 				layout{dx{5mm} dy{max}}
 				Column{
 					layout{dx{max}dy{max}}
-					ColorLabel{
+					Color{
 						layout{dx{1pt}dy{0}weight{1}}
 						color{@{morda_color_highlight}}
 					}
@@ -311,7 +312,7 @@ public:
 				Row{
 					layout{dx{max}dy{max}}
 					Widget{layout{dx{0}dy{max}weight{1}}}
-					ColorLabel{
+					Color{
 						layout{dx{0}dy{1pt}weight{1}}
 						color{@{morda_color_highlight}}
 					}
@@ -322,14 +323,14 @@ public:
 	const char* DLineMiddle = R"qwertyuiop(
 			Pile{
 				layout{dx{5mm} dy{max}}
-				ColorLabel{
+				Color{
 					layout{dx{1pt}dy{max}}
 					color{@{morda_color_highlight}}
 				}
 				Row{
 					layout{dx{max}dy{max}}
 					Widget{layout{dx{0}dy{max}weight{1}}}
-					ColorLabel{
+					Color{
 						layout{dx{0}dy{1pt}weight{1}}
 						color{@{morda_color_highlight}}
 					}
@@ -467,7 +468,7 @@ public:
 			if(n->child()){
 				auto w = morda::Morda::inst().inflater.inflate(*stob::parse(DPlusMinus));
 
-				auto plusminus = w->findChildByNameAs<morda::ImageLabel>("plusminus");
+				auto plusminus = w->findChildByNameAs<morda::Image>("plusminus");
 				ASSERT(plusminus)
 				plusminus->setImage(
 						isCollapsed ?
@@ -508,13 +509,13 @@ public:
 			auto v = morda::Morda::inst().inflater.inflate(*stob::parse(
 					R"qwertyuiop(
 							Pile{
-								ColorLabel{
+								Color{
 									name{selection}
 									layout{dx{max}dy{max}}
 									color{@{morda_color_highlight}}
 									visible{false}
 								}
-								TextLabel{
+								Text{
 									name{value}
 								}
 								MouseProxy{
@@ -526,12 +527,12 @@ public:
 				));
 			
 			{
-				auto value = v->findChildByNameAs<morda::TextLabel>("value");
+				auto value = v->findChildByNameAs<morda::Text>("value");
 				ASSERT(value)
 				value->setText(n->value());
 			}
 			{
-				auto colorLabel = v->findChildByNameAs<morda::ColorLabel>("selection");
+				auto colorLabel = v->findChildByNameAs<morda::Color>("selection");
 				
 				colorLabel->setVisible(this->selectedItem == path);
 				
@@ -557,7 +558,7 @@ public:
 			auto b = std::dynamic_pointer_cast<morda::PushButton>(morda::Morda::inst().inflater.inflate(*stob::parse(
 					R"qwertyuiop(
 							PushButton{
-								ColorLabel{
+								Color{
 									color{0xff0000ff}
 									layout{dx{2mm}dy{0.5mm}}
 								}

@@ -220,7 +220,6 @@
             <pElem>/usr/include/morda</pElem>
             <pElem>/usr/include/morda/util</pElem>
             <pElem>/usr/include/morda/widgets/core</pElem>
-            <pElem>/usr/include/morda/render</pElem>
             <pElem>/usr/include/unikod</pElem>
             <pElem>.</pElem>
           </incDir>
