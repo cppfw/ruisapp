@@ -20,7 +20,7 @@ void App::render(){
 	//TODO: render only if needed?
 	this->gui.renderer().clearFramebuffer();
 	
-	this->gui.render();
+	this->gui.render(this->gui.renderer().initialMatrix);
 	
 	this->swapFrameBuffers();
 }

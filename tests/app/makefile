@@ -79,7 +79,7 @@ ifeq ($(prorab_os),windows)
     endef
     $(eval $(this_rules))
 else
-    $(prorab_this_name): $(abspath $(prorab_this_dir)../../src/$(this_mordavoknelib)$(prorab_lib_extension))
+    $(prorab_this_name): $(abspath $(d)../../src/$(this_mordavoknelib)$(soext))
 endif
 
 
