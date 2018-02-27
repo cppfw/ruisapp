@@ -1,3 +1,9 @@
+libmordavokne (0.2.25) unstable; urgency=medium
+
+  * cocoapods deploy fix
+
+ -- Ivan Gagis <igagis@gmail.com>  Tue, 27 Feb 2018 17:41:38 +0200
+
 libmordavokne (0.2.24) unstable; urgency=medium
 
   * update to latest libmorda
