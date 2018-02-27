@@ -31,7 +31,7 @@
 	  <dependency>
 		  <groupId>io.github.igagis</groupId>
 		  <artifactId>libmorda</artifactId>
-		  <version>[0.5.34,)</version>
+		  <version>[0.5.71,)</version>
 		  <type>aar</type>
 		  <scope>compile</scope>
 	  </dependency>

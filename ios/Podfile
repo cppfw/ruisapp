@@ -6,6 +6,6 @@ target "tests" do
 	pod 'libpapki', '>= 1.0.3'
 	pod 'libkolme', '>= 1.0.1'
 	pod 'libstob', '>= 3.1.1'
-	pod 'libmorda', '>= 0.4.4'
+	pod 'libmorda', '>= 0.5.71'
 	pod 'libmorda-opengles2-ren', '>= 0.1.7'
 end

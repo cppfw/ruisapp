@@ -66,17 +66,12 @@ using namespace mordavokne;
 @end
 
 
-//WORKAROUND: for Cocoapods. ifdef-out the main function for the time of deployment to cocoapods.
-//The application then has to define macro M_MORDAVOKNE_COCOAPODS_WORKAROUND to make main() defined.
-#ifdef M_MORDAVOKNE_COCOAPODS_WORKAROUND
 int main(int argc, char * argv[]){
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	int retVal = UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class]));
 	[pool release];
 	return retVal;
 }
-#endif
-
 
 
 @interface ViewController : GLKViewController{
@@ -261,17 +256,6 @@ namespace{
 
 
 
-void App::MordaVOkne::postToUiThread_ts(std::function<void()>&& f){
-	auto p = reinterpret_cast<NSInteger>(new std::function<void()>(std::move(f)));
-	
-	dispatch_async(dispatch_get_main_queue(), ^{
-		std::unique_ptr<std::function<void()>> m(reinterpret_cast<std::function<void()>*>(p));
-		(*m)();
-	});
-}
-
-
-
 void App::setFullscreen(bool enable){
 	auto& ww = getImpl(this->windowPimpl);
 	UIWindow* w = ww.window;
@@ -352,7 +336,19 @@ namespace{
 
 App::App(const App::WindowParams& wp) :
 		windowPimpl(utki::makeUnique<WindowWrapper>(wp)),
-		gui(*this, utki::makeShared<mordaren::OpenGLES2Renderer>(), getDotsPerInch(), getDotsPerPt())
+		gui(
+				utki::makeShared<mordaren::OpenGLES2Renderer>(),
+				getDotsPerInch(),
+				getDotsPerPt(),
+				[this](std::function<void()>&& a){
+					auto p = reinterpret_cast<NSInteger>(new std::function<void()>(std::move(a)));
+	
+					dispatch_async(dispatch_get_main_queue(), ^{
+						std::unique_ptr<std::function<void()>> m(reinterpret_cast<std::function<void()>*>(p));
+						(*m)();
+					});
+				}
+			)
 {
 	this->setFullscreen(false);//this will intialize the viewport
 }
