@@ -1,3 +1,9 @@
+libmordavokne (0.2.26) unstable; urgency=medium
+
+  * logging improved
+
+ -- Ivan Gagis <igagis@gmail.com>  Sat, 17 Mar 2018 13:12:39 +0200
+
 libmordavokne (0.2.25) unstable; urgency=medium
 
   * cocoapods deploy fix
