@@ -1,3 +1,9 @@
+libmordavokne (0.2.27) unstable; urgency=medium
+
+  * bintray deployment fixed
+
+ -- Ivan Gagis <igagis@gmail.com>  Sat, 17 Mar 2018 13:51:40 +0200
+
 libmordavokne (0.2.26) unstable; urgency=medium
 
   * logging improved
