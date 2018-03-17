@@ -278,10 +278,11 @@ public:
 				throw papki::Exc("unknown mode");
 				break;
 		}
-		this->handle = AAssetManager_open(this->manager, this->path().c_str(), AASSET_MODE_UNKNOWN); //don't know what this MODE mean at all
+		this->handle = AAssetManager_open(this->manager, this->path().c_str(), AASSET_MODE_UNKNOWN); //don't know what this MODE means at all
 		if(!this->handle){
-			TRACE(<< "AAssetManager_open() failed, file path = " << this->path() << std::endl)
-			throw papki::Exc("AAssetManager_open() failed");
+			std::stringstream ss;
+			ss << "AAssetManager_open(" << this->path() << ") failed";
+			throw papki::Exc(ss.str());
 		}
 	}
 
@@ -992,7 +993,7 @@ namespace mordavokne{
 App::App(const WindowParams& requestedWindowParams) :
 		windowPimpl(utki::makeUnique<WindowWrapper>(requestedWindowParams)),
 		gui(
-				utki::makeShared<mordaren::OpenGLES2Renderer>(),
+				std::make_shared<mordaren::OpenGLES2Renderer>(),
 				[]() -> float{
 					ASSERT(javaFunctionsWrapper)
 
