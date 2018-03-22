@@ -402,7 +402,7 @@ Container{
 
 			Widget{layout{dx{5pt}}}
 
-			TextField{
+			TextInputLine{
 				name{text_input}
 
 				text{"Hello Wrodl!!!"}
