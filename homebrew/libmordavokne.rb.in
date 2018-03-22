@@ -12,6 +12,7 @@ class Libmordavokne < Formula
   depends_on "libstob"
   depends_on "glew"
   depends_on "libkolme"
+  depends_on "libmorda"
   
   def install
     ENV['PATH'] += ':/usr/local/bin'
