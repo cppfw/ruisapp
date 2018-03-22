@@ -13,6 +13,7 @@ class Libmordavokne < Formula
   depends_on "glew"
   depends_on "libkolme"
   depends_on "libmorda"
+  depends_on "libmorda-opengl2-ren"
   
   def install
     ENV['PATH'] += ':/usr/local/bin'
