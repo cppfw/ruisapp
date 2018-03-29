@@ -223,98 +223,6 @@ Container{
 
 	Window{
 		dx{300} dy{200}
-		x{300} y{250}
-
-		//cache{true}
-
-		title{"TreeView"}
-
-		look{
-			background{WindowEmptyBackground}
-		}
-
-		Table{
-			layout{
-				dx{max} dy{max}
-			}
-
-			TableRow{
-				layout{
-					dx{0} dy{0}
-					weight{1}
-				}
-
-				Pile{
-					layout{
-						dx{0} dy{max}
-						weight{1}
-					}
-					TreeView{
-						name{treeview_widget}
-						clip{true}
-						layout{
-							dx{fill} dy{fill}
-						}
-					}
-					ResizeProxy{
-						layout{
-							dx{fill} dy{fill}
-						}
-						name{treeview_resize_proxy}
-					}
-				}
-
-				
-				VerticalSlider{
-
-					name{treeview_vertical_slider}
-
-					layout{
-						dx{min} dy{max}
-					}
-				}
-			}
-
-			TableRow{
-				HorizontalSlider{
-					name{treeview_horizontal_slider}
-
-					layout{
-						dx{0}
-					}
-				}
-				Widget{}
-			}
-			TableRow{
-				Row{
-					Text{
-						text{Insert:}
-					}
-					PushButton{
-						name{insert_before}
-						Text{
-							text{"before"}
-						}
-					}
-					PushButton{
-						name{insert_after}
-						Text{
-							text{"after"}
-						}
-					}
-					PushButton{
-						name{insert_child}
-						Text{
-							text{"child"}
-						}
-					}
-				}
-			}
-		}
-	}//~Window
-
-	Window{
-		dx{300} dy{200}
 		x{0} y{250}
 
 		title{"Sliders"}
@@ -339,14 +247,14 @@ Container{
 				}
 			}
 
-			HorizontalSlider{
+			HScrollBar{
 				layout{
 					dx{50} dy{40} //TODO: min min
 					weight{1}
 				}
 			}
 
-			VerticalSlider{
+			VScrollBar{
 				name {"vertical slider"}
 
 				layout{
@@ -424,15 +332,15 @@ Container{
 		title{"ScrollArea"}
 
 
-		Table{
+		Column{
 			layout{
 				dx{max} dy{max}
 			}
 
-			TableRow{
+			Row{
 
 				layout{
-					dx{0} dy{0}
+					dx{fill} dy{0}
 					weight{1}
 				}
 
@@ -478,7 +386,7 @@ Container{
 					}
 				}
 				
-				VerticalSlider{
+				VScrollBar{
 
 					name{scroll_area_vertical_slider}
 
@@ -488,89 +396,18 @@ Container{
 				}
 			}
 
-			TableRow{
-				HorizontalSlider{
-					name{scroll_area_horizontal_slider}
+			HScrollBar{
+				name{scroll_area_horizontal_slider}
 
-					layout{
-						dx{0}
-					}
+				layout{
+					dx{fill}
 				}
-				Widget
 			}
 		}
 	}
 
 
-	Window{
-		dx{300} dy{200}
-		x{620} y{250}
-
-		clip{true}
-
-		title{"Table"}
-
-
-		Color{
-			layout{dx{max}dy{max}}
-			color{0xff008000}
-			gradient{grd_sample}
-		}
-
-
-
-		Table{
-			layout{
-				dx{max} dy{max}
-			}
-
-			TableRow{
-				Color{
-					color{0xff00ff00}
-					layout{
-						dx{50} dy{30}
-					}
-				}
-
-				Color{
-					color{0xffff0000}
-					layout{
-						dx{70} dy{20}
-						weight{1}
-					}
-				}
-
-				Color{
-					color{0xffffffff}
-					layout{
-						dx{10} dy{20}
-					}
-				}
-			}
-
-			TableRow{
-				Color{
-					color{0xff0000ff}
-					layout{
-						dx{20} dy{30}
-					}
-				}
-
-				Color{
-					color{0xffffff00}
-					layout{
-						dx{90} dy{20}
-					}
-				}
-
-				Text{
-					text{"Long text"}
-				}
-			}
-
-			TableRow{}
-		}
-	}
+	
 
 	Window{
 		dx{300} dy{200}
@@ -589,7 +426,7 @@ Container{
 					dx{0} dy{max}
 					weight{1}
 				}
-				VerticalList{
+				VList{
 					name{vertical_list}
 					layout{
 						dx{max} dy{max}
@@ -651,7 +488,7 @@ Container{
 				}
 			}
 
-			VerticalSlider{
+			VScrollBar{
 				name{vertical_list_slider}
 				layout{
 					dy{max}

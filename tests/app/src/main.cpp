@@ -18,8 +18,8 @@
 
 #include <morda/widgets/CharInputWidget.hpp>
 #include <morda/widgets/group/ScrollArea.hpp>
-#include <morda/widgets/group/LinearContainer.hpp>
-#include <morda/widgets/slider/Slider.hpp>
+#include <morda/widgets/group/Row.hpp>
+#include <morda/widgets/slider/ScrollBar.hpp>
 #include <morda/widgets/group/List.hpp>
 #include <morda/widgets/group/TreeView.hpp>
 #include <morda/widgets/proxy/MouseProxy.hpp>
@@ -453,7 +453,7 @@ public:
 			isLastItemInParent.push_back(n->next() == nullptr);
 		}
 		
-		auto ret = utki::makeShared<morda::Row>();
+		auto ret = utki::makeShared<morda::Row>(nullptr);
 
 		ASSERT(isLastItemInParent.size() == path.size())
 		
@@ -645,10 +645,10 @@ public:
 			auto scrollArea = c->findByNameAs<morda::ScrollArea>("scroll_area");
 			auto sa = utki::makeWeak(scrollArea);
 			
-			auto vertSlider = c->findByNameAs<morda::HandleSlider>("scroll_area_vertical_slider");
+			auto vertSlider = c->findByNameAs<morda::ScrollBar>("scroll_area_vertical_slider");
 			auto vs = utki::makeWeak(vertSlider);
 			
-			auto horiSlider = c->findByNameAs<morda::HandleSlider>("scroll_area_horizontal_slider");
+			auto horiSlider = c->findByNameAs<morda::ScrollBar>("scroll_area_horizontal_slider");
 			auto hs = utki::makeWeak(horiSlider);
 			
 			auto resizeProxy = c->findByNameAs<morda::ResizeProxy>("scroll_area_resize_proxy");
@@ -688,11 +688,11 @@ public:
 		
 		//VerticalList
 		{
-			auto verticalList = c->findByNameAs<morda::VerticalList>("vertical_list");
-			std::weak_ptr<morda::VerticalList> vl = verticalList;
+			auto verticalList = c->findByNameAs<morda::VList>("vertical_list");
+			std::weak_ptr<morda::VList> vl = verticalList;
 			
-			auto verticalSlider = c->findByNameAs<morda::VerticalSlider>("vertical_list_slider");
-			std::weak_ptr<morda::VerticalSlider> vs = verticalSlider;
+			auto verticalSlider = c->findByNameAs<morda::VScrollBar>("vertical_list_slider");
+			std::weak_ptr<morda::VScrollBar> vs = verticalSlider;
 			
 			verticalSlider->fractionChange = [vl](morda::FractionWidget& slider){
 				if(auto l = vl.lock()){
@@ -712,83 +712,6 @@ public:
 //					auto f = std::move(s->factorChange);
 					s->setFraction(l->scrollFactor());
 //					s->factorChange = std::move(f);
-				}
-			};
-		}
-		
-		//TreeView
-		{
-			auto treeview = c->findByNameAs<morda::TreeView>("treeview_widget");
-			ASSERT(treeview)
-			auto provider = utki::makeShared<TreeViewItemsProvider>();
-			treeview->setItemsProvider(provider);
-			auto tv = utki::makeWeak(treeview);
-			
-			auto verticalSlider = c->findByNameAs<morda::VerticalSlider>("treeview_vertical_slider");
-			auto vs = utki::makeWeak(verticalSlider);
-			
-			verticalSlider->fractionChange = [tv](morda::FractionWidget& slider){
-				if(auto t = tv.lock()){
-					t->setVerticalScrollPosAsFactor(slider.fraction());
-				}
-			};
-			
-			auto horizontalSlider = c->findByNameAs<morda::HorizontalSlider>("treeview_horizontal_slider");
-			ASSERT(horizontalSlider)
-			auto hs = utki::makeWeak(horizontalSlider);
-			
-			horizontalSlider->fractionChange = [tv](morda::FractionWidget& slider){
-				if(auto t = tv.lock()){
-					t->setHorizontalScrollPosAsFactor(slider.fraction());
-				}
-			};
-			
-			auto resizeProxy = c->findByNameAs<morda::ResizeProxy>("treeview_resize_proxy");
-			ASSERT(resizeProxy)
-			auto rp = utki::makeWeak(resizeProxy);
-			
-			resizeProxy->resized = [vs, hs, tv](const morda::Vec2r& newSize){
-				auto t = tv.lock();
-				if(!t){
-					return;
-				}
-				if(auto h = hs.lock()){
-					h->setFraction(t->scrollFactor().x);
-				}
-				if(auto v = vs.lock()){
-					v->setFraction(t->scrollFactor().y);
-				}
-			};
-			
-			treeview->viewChanged = [rp](morda::TreeView&){
-				if(auto r = rp.lock()){
-					if(r->resized){
-						r->resized(morda::Vec2r());
-					}
-				}
-			};
-			
-			
-			auto insertBeforeButton = c->findByNameAs<morda::PushButton>("insert_before");
-			auto insertAfterButton = c->findByNameAs<morda::PushButton>("insert_after");
-			auto insertChild = c->findByNameAs<morda::PushButton>("insert_child");
-			
-			auto prvdr = utki::makeWeak(provider);
-			insertBeforeButton->clicked = [prvdr](morda::PushButton& b){
-				if(auto p = prvdr.lock()){
-					p->insertBefore();
-				}
-			};
-			
-			insertAfterButton->clicked = [prvdr](morda::PushButton& b){
-				if(auto p = prvdr.lock()){
-					p->insertAfter();
-				}
-			};
-			
-			insertChild->clicked = [prvdr](morda::PushButton& b){
-				if(auto p = prvdr.lock()){
-					p->insertChild();
 				}
 			};
 		}
