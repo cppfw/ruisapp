@@ -18,8 +18,8 @@
 
 #include <morda/widgets/CharInputWidget.hpp>
 #include <morda/widgets/group/ScrollArea.hpp>
-#include <morda/widgets/group/LinearContainer.hpp>
-#include <morda/widgets/slider/Slider.hpp>
+#include <morda/widgets/group/Row.hpp>
+#include <morda/widgets/slider/ScrollBar.hpp>
 #include <morda/widgets/group/List.hpp>
 #include <morda/widgets/group/TreeView.hpp>
 #include <morda/widgets/proxy/MouseProxy.hpp>
@@ -453,7 +453,7 @@ public:
 			isLastItemInParent.push_back(n->next() == nullptr);
 		}
 		
-		auto ret = utki::makeShared<morda::Row>();
+		auto ret = utki::makeShared<morda::Row>(nullptr);
 
 		ASSERT(isLastItemInParent.size() == path.size())
 		
@@ -645,10 +645,10 @@ public:
 			auto scrollArea = c->findByNameAs<morda::ScrollArea>("scroll_area");
 			auto sa = utki::makeWeak(scrollArea);
 			
-			auto vertSlider = c->findByNameAs<morda::HandleSlider>("scroll_area_vertical_slider");
+			auto vertSlider = c->findByNameAs<morda::FractionBandWidget>("scroll_area_vertical_slider");
 			auto vs = utki::makeWeak(vertSlider);
 			
-			auto horiSlider = c->findByNameAs<morda::HandleSlider>("scroll_area_horizontal_slider");
+			auto horiSlider = c->findByNameAs<morda::FractionBandWidget>("scroll_area_horizontal_slider");
 			auto hs = utki::makeWeak(horiSlider);
 			
 			auto resizeProxy = c->findByNameAs<morda::ResizeProxy>("scroll_area_resize_proxy");
@@ -688,11 +688,11 @@ public:
 		
 		//VerticalList
 		{
-			auto verticalList = c->findByNameAs<morda::VerticalList>("vertical_list");
-			std::weak_ptr<morda::VerticalList> vl = verticalList;
+			auto verticalList = c->findByNameAs<morda::VList>("vertical_list");
+			std::weak_ptr<morda::VList> vl = verticalList;
 			
-			auto verticalSlider = c->findByNameAs<morda::VerticalSlider>("vertical_list_slider");
-			std::weak_ptr<morda::VerticalSlider> vs = verticalSlider;
+			auto verticalSlider = c->findByNameAs<morda::VScrollBar>("vertical_list_slider");
+			std::weak_ptr<morda::VScrollBar> vs = verticalSlider;
 			
 			verticalSlider->fractionChange = [vl](morda::FractionWidget& slider){
 				if(auto l = vl.lock()){
@@ -724,7 +724,7 @@ public:
 			treeview->setItemsProvider(provider);
 			auto tv = utki::makeWeak(treeview);
 			
-			auto verticalSlider = c->findByNameAs<morda::VerticalSlider>("treeview_vertical_slider");
+			auto verticalSlider = c->findByNameAs<morda::VScrollBar>("treeview_vertical_slider");
 			auto vs = utki::makeWeak(verticalSlider);
 			
 			verticalSlider->fractionChange = [tv](morda::FractionWidget& slider){
@@ -733,7 +733,7 @@ public:
 				}
 			};
 			
-			auto horizontalSlider = c->findByNameAs<morda::HorizontalSlider>("treeview_horizontal_slider");
+			auto horizontalSlider = c->findByNameAs<morda::HScrollBar>("treeview_horizontal_slider");
 			ASSERT(horizontalSlider)
 			auto hs = utki::makeWeak(horizontalSlider);
 			

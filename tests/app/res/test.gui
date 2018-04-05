@@ -1,15 +1,15 @@
 defs{
+	trololo{"saf"}
+
 	Text{
 		Text{
-	//		text{"trololo"}
+//			text{"trololo"}
 
-	//		color{0xff0000ff}
+//			color{0xff0000ff}
 
-	//		dx{34}
+//			dx{34}
 		}
 	}
-
-	trololo{"saf"}
 }
 
 
@@ -50,19 +50,20 @@ Container{
 			bbb{dDd}
 //			clr{0xffff0000}
 			clr{@{another_color}}
+			
+			lllayout{
+				dy{max} dx{max}
+			}
 		}
 
 		Column{
 			layout{
-				dx{max} dy{max}
+//				dx{max} dy{max}
+				@{lllayout}
 			}
 
 
-			Row{
-				layout{
-					dx{max} dy{min}
-				}
-				
+			Right{
 				Margins{
 					left{5pt}
 					right{5pt}
@@ -70,15 +71,11 @@ Container{
 					bottom{5pt}
 
 					CheckBox{
-						checked{true}
+						pressed{true}
 					}
 				}
 
 				Text{
-					layout{
-						dx{0} dy{min}
-						weight{1}
-					}
 					text{"some checkbox"}
 				}
 			}
@@ -100,7 +97,8 @@ Container{
 				Text{text{item9}}
 				Text{text{item10}}
 			}
-			Row{
+
+			Left{
 				PushButton{
 					name{showhide_mousecursor_button}
 
@@ -159,66 +157,147 @@ Container{
 			background{WindowEmptyBackground}
 		}
 
-		Row{
-			padding {20 30 10 40}
-
-			x{50} y{100}
-			dx{220} dy{100}
-
-			name {someContainer}
-
-			clip {true}
-
+		Column{
 			layout{
-				dx{max} dy{max}
-
-				weight{7}
+				dx{fill} dy{fill}
 			}
 
-			Text{
-				name {label1}
-				text {trololo}
-				padding {10 20 30 40}
+			Row{
+				x{50} y{100}
+				dx{220} dy{100}
 
-				
+				name { someContainer }
+
+				clip {true}
+
 				layout{
-					weight {0}
+					dx{max} dy{min}
 				}
-
-			}
-
-			Text{
-				name {label2}
-				text {"blah bla"}
-				padding {0}
-
-				
-				layout{
-					weight {0}
-				}
-				
-			}
-
-			PushButton{
-				name {show_VK_button}
-				x{50} y{80}
-				dx{10} dy{30}
-
-				clip{true}
-
-				
-				layout{
-					dx{20mm} dy{min}
-					weight {1}
-				}
-				
 
 				Text{
-					text {"Show VK"}
-					color{0xffccfbff}
+					name {label1}
+					text {trololo}
+					padding {10 20 30 40}
+
+
+					layout{
+						weight {0}
+					}
+
+				}
+
+				Text{
+					name {label2}
+					text {"blah bla"}
+					padding {0}
+
+
+					layout{
+						weight {0}
+					}
+
+				}
+
+				PushButton{
+					name {show_VK_button}
+					x{50} y{80}
+					dx{10} dy{30}
+
+					clip{true}
+
+
+					layout{
+						dx{20mm} dy{min}
+						weight {1}
+					}
+
+
+					Text{
+						text {"Show VK"}
+						color{0xffccfbff}
+					}
 				}
 			}
-		}
+
+			Pile{
+				layout{dx{fill} dy{50pt}}
+				Color{
+					layout{dx{fill}dy{fill}}
+					color{0xff808080}
+				}
+				MouseProxy{
+					layout{dx{fill} dy{fill}}
+					name{horizontal_list_mouseproxy}
+				}
+			}
+			Pile{
+				layout{
+					dx{fill}
+					dy{0}
+					weight{1}
+				}
+				HList{
+					layout{
+						dx{fill}
+						dy{fill}
+					}
+					name{horizontal_list}
+
+					Text{
+						text{item1|}
+						layout{dy{max}}
+					}
+					Text{
+						text{item2|}
+					}
+					Text{
+						text{item3|}
+					}
+					Text{
+						text{item4|}
+					}
+					Text{
+						text{item5|}
+					}
+					Text{
+						text{item6|}
+					}
+					Text{
+						text{item7|}
+					}
+					Text{
+						text{item8|}
+					}
+					Text{
+						text{item9|}
+					}
+					Text{
+						text{item10|}
+					}
+					Text{
+						text{item11|}
+					}
+					Text{
+						text{item12|}
+					}
+				}
+				ResizeProxy{
+					layout{
+						dx{fill} dy{fill}
+					}
+					name{horizontal_list_resize_proxy}
+				}
+			}
+
+			HScrollBar{
+				name{horizontal_list_slider}
+
+				layout{
+					dx{fill}
+				}
+			}
+
+		}//~Column
 	}//~Window
 
 	Window{
@@ -233,14 +312,15 @@ Container{
 			background{WindowEmptyBackground}
 		}
 
-		Table{
+
+		Column{
 			layout{
 				dx{max} dy{max}
 			}
 
-			TableRow{
+			Row{
 				layout{
-					dx{0} dy{0}
+					dx{max} dy{0}
 					weight{1}
 				}
 
@@ -265,7 +345,7 @@ Container{
 				}
 
 				
-				VerticalSlider{
+				VScrollBar{
 
 					name{treeview_vertical_slider}
 
@@ -275,38 +355,36 @@ Container{
 				}
 			}
 
-			TableRow{
-				HorizontalSlider{
-					name{treeview_horizontal_slider}
+			HScrollBar{
+				name{treeview_horizontal_slider}
 
-					layout{
-						dx{0}
+				layout{
+					dx{max}
+				}
+			}
+
+			Row{
+				layout{dx{max}}
+
+				Text{
+					text{Insert:}
+				}
+				PushButton{
+					name{insert_before}
+					Text{
+						text{"before"}
 					}
 				}
-				Widget{}
-			}
-			TableRow{
-				Row{
+				PushButton{
+					name{insert_after}
 					Text{
-						text{Insert:}
+						text{"after"}
 					}
-					PushButton{
-						name{insert_before}
-						Text{
-							text{"before"}
-						}
-					}
-					PushButton{
-						name{insert_after}
-						Text{
-							text{"after"}
-						}
-					}
-					PushButton{
-						name{insert_child}
-						Text{
-							text{"child"}
-						}
+				}
+				PushButton{
+					name{insert_child}
+					Text{
+						text{"child"}
 					}
 				}
 			}
@@ -339,14 +417,14 @@ Container{
 				}
 			}
 
-			HorizontalSlider{
+			HScrollBar{
 				layout{
 					dx{50} dy{40} //TODO: min min
 					weight{1}
 				}
 			}
 
-			VerticalSlider{
+			VScrollBar{
 				name {"vertical slider"}
 
 				layout{
@@ -394,13 +472,46 @@ Container{
 			}
 		}*/
 
+		Column{
+			layout{dx{max}dy{max}}
 
-		Row{
-			layout{
-				dx{max} dy{min}
+			Tabs{
+				layout{dx{max}}
+
+				Tab{
+					name{tab1}
+					Text{text{tab1}}
+				}
+				Tab{
+					Text{text{tab2}}
+				}
+				Tab{
+					Text{text{"tab 3"}}
+				}
+				Tab{
+					Text{text{"tab four"}}
+				}
 			}
 
-			Widget{layout{dx{5pt}}}
+			NinePatch{
+				layout{dx{max}}
+
+				image{morda_npt_frame}
+
+				CollapseArea{
+					layout{dx{max}}
+					title{Text{text{Hi!}}}
+					Column{
+						Text{text{Hello!}}
+						Row{
+							PushButton{Text{text{button!!!}}}
+							
+						}
+					}
+				}
+			}
+
+			Widget{layout{dy{5pt}}}
 
 			TextInputLine{
 				name{text_input}
@@ -410,10 +521,20 @@ Container{
 				color{ @{morda_color_text} }
 
 				layout{
-					dx{min} dy{min} weight{1}
+					dx{max} dy{min}
 				}
 			}
-			Widget{layout{dx{5pt}}}
+			PushButton{layout{dy{0}weight{1}}Text{text{button!!!}}}
+			PushButton{layout{dy{0}weight{1}}Text{text{button!!!}}}
+			PushButton{layout{dy{0}weight{1}}Text{text{button!!!}}}
+			PushButton{layout{dy{0}weight{1}}Text{text{button!!!}}}
+			PushButton{layout{dy{0}weight{1}}Text{text{button!!!}}}
+			PushButton{layout{dy{0}weight{1}}Text{text{button!!!}}}
+			PushButton{layout{dy{0}weight{1}}Text{text{button!!!}}}
+			PushButton{layout{dy{0}weight{1}}Text{text{button!!!}}}
+			PushButton{layout{dy{0}weight{1}}Text{text{button!!!}}}
+			PushButton{layout{dy{0}weight{1}}Text{text{button!!!}}}
+
 		}
 	}
 
@@ -424,15 +545,14 @@ Container{
 		title{"ScrollArea"}
 
 
-		Table{
+		Column{
 			layout{
 				dx{max} dy{max}
 			}
 
-			TableRow{
-
+			Row{
 				layout{
-					dx{0} dy{0}
+					dx{max} dy{0}
 					weight{1}
 				}
 
@@ -459,6 +579,19 @@ Container{
 							}
 						}
 
+						CollapseArea{
+							x{20} y{450}
+							title{
+								Text{
+									text{"Collapsable stuff"}
+								}
+							}
+
+							Text{
+								text{"I'm collapsable!!!"}
+							}
+						}
+
 						PushButton{
 							name{push_button_in_scroll_container}
 							x{10mm} y{20mm}
@@ -478,7 +611,7 @@ Container{
 					}
 				}
 				
-				VerticalSlider{
+				VScrollBar{
 
 					name{scroll_area_vertical_slider}
 
@@ -488,15 +621,12 @@ Container{
 				}
 			}
 
-			TableRow{
-				HorizontalSlider{
-					name{scroll_area_horizontal_slider}
+			HScrollBar{
+				name{scroll_area_horizontal_slider}
 
-					layout{
-						dx{0}
-					}
+				layout{
+					dx{max}
 				}
-				Widget
 			}
 		}
 	}
@@ -508,68 +638,15 @@ Container{
 
 		clip{true}
 
-		title{"Table"}
+		title{"none"}
 
 
-		Color{
+		Gradient{
 			layout{dx{max}dy{max}}
-			color{0xff008000}
 			gradient{grd_sample}
 		}
 
-
-
-		Table{
-			layout{
-				dx{max} dy{max}
-			}
-
-			TableRow{
-				Color{
-					color{0xff00ff00}
-					layout{
-						dx{50} dy{30}
-					}
-				}
-
-				Color{
-					color{0xffff0000}
-					layout{
-						dx{70} dy{20}
-						weight{1}
-					}
-				}
-
-				Color{
-					color{0xffffffff}
-					layout{
-						dx{10} dy{20}
-					}
-				}
-			}
-
-			TableRow{
-				Color{
-					color{0xff0000ff}
-					layout{
-						dx{20} dy{30}
-					}
-				}
-
-				Color{
-					color{0xffffff00}
-					layout{
-						dx{90} dy{20}
-					}
-				}
-
-				Text{
-					text{"Long text"}
-				}
-			}
-
-			TableRow{}
-		}
+		
 	}
 
 	Window{
@@ -583,13 +660,18 @@ Container{
 				dx{max} dy{max}
 			}
 
+			MouseProxy{
+				layout{dx{50pt} dy{fill}}
+				name{list_mouseproxy}
+			}
+
 
 			Pile{
 				layout{
 					dx{0} dy{max}
 					weight{1}
 				}
-				VerticalList{
+				VList{
 					name{vertical_list}
 					layout{
 						dx{max} dy{max}
@@ -642,6 +724,87 @@ Container{
 					Text{
 						text{item_10}
 					}
+
+					Text{
+						text{item_4}
+					}
+
+					Text{
+						text{item_5}
+					}
+
+					Text{
+						text{item_6}
+					}
+
+					Text{
+						text{item_7}
+					}
+
+					Text{
+						text{item_8}
+					}
+
+					Text{
+						text{item_4}
+					}
+
+					Text{
+						text{item_5}
+					}
+
+					Text{
+						text{item_6}
+					}
+
+					Text{
+						text{item_7}
+					}
+
+					Text{
+						text{item_8}
+					}
+
+					Text{
+						text{item_4}
+					}
+
+					Text{
+						text{item_5}
+					}
+
+					Text{
+						text{item_6}
+					}
+
+					Text{
+						text{item_7}
+					}
+
+					Text{
+						text{item_8}
+					}
+
+					Text{
+						text{item_4}
+					}
+
+					Text{
+						text{item_5}
+					}
+
+					Text{
+						text{item_6}
+					}
+
+					Text{
+						text{item_7}
+					}
+
+					Text{
+						text{item_8}
+					}
+
 				}
 				ResizeProxy{
 					layout{
@@ -651,7 +814,7 @@ Container{
 				}
 			}
 
-			VerticalSlider{
+			VScrollBar{
 				name{vertical_list_slider}
 				layout{
 					dy{max}
