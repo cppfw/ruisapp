@@ -1371,7 +1371,7 @@ int OnQueueHasMessages(int fd, int events, void* data){
 void OnNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window){
 	TRACE(<< "OnNativeWindowCreated(): invoked" << std::endl)
 
-	//save window in a static var, so it is accessible for OGL initializers from morda::App class
+	//save window in a static var, so it is accessible for OpenGL initializers from morda::App class
 	androidWindow = window;
 
 	curWinDim.x = float(ANativeWindow_getWidth(window));
