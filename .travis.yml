@@ -58,6 +58,7 @@ env:
 
 before_install:
 - if [ "$BUILD_NAME" == "macosx" ]; then
+    gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 &&
     echo rvm_autoupdate_flag=2 >> ~/.rvmrc &&
     rvm install ruby-2.3.3 &&
     rvm use ruby-2.3.3 &&
