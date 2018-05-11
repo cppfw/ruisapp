@@ -89,7 +89,6 @@
           <incDir>
             <pElem>/usr/include/morda</pElem>
             <pElem>/usr/include/unikod</pElem>
-            <pElem>/usr/include/stob</pElem>
             <pElem>/usr/include/kolme</pElem>
             <pElem>src/mordavokne</pElem>
             <pElem>src/mordavokne/glue</pElem>
@@ -99,6 +98,7 @@
             <pElem>/usr/include/morda/util</pElem>
             <pElem>/usr/include/morda/render</pElem>
             <pElem>/usr/include/morda/widgets</pElem>
+            <pElem>/usr/include/stob</pElem>
             <pElem>/usr/include/X11</pElem>
             <pElem>/usr/include/KHR</pElem>
             <pElem>/usr/include/EGL</pElem>
@@ -123,12 +123,12 @@
           <incDir>
             <pElem>/usr/include/papki</pElem>
             <pElem>/usr/include/morda</pElem>
+            <pElem>/usr/include/stob</pElem>
             <pElem>src/mordavokne</pElem>
             <pElem>/usr/include/kolme</pElem>
             <pElem>/usr/include/morda/util</pElem>
             <pElem>/usr/include/morda/widgets</pElem>
             <pElem>/usr/include/unikod</pElem>
-            <pElem>/usr/include/stob</pElem>
             <pElem>.</pElem>
           </incDir>
         </ccTool>
