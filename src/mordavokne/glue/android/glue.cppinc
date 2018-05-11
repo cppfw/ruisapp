@@ -35,6 +35,7 @@ ANativeActivity* nativeActivity = 0;
 
 mordavokne::App& getApp(ANativeActivity* activity){
 	ASSERT(activity)
+	ASSERT(activity->instance)
 	return *static_cast<mordavokne::App*>(activity->instance);
 }
 
@@ -1244,7 +1245,6 @@ void OnDestroy(ANativeActivity* activity){
 void OnStart(ANativeActivity* activity){
 	TRACE(<< "OnStart(): invoked" << std::endl)
 	//TODO:
-//    static_cast<morda::App*>(activity->instance)->OnStart();
 }
 
 
@@ -1252,16 +1252,26 @@ void OnStart(ANativeActivity* activity){
 void OnResume(ANativeActivity* activity){
 	TRACE(<< "OnResume(): invoked" << std::endl)
 	//TODO:
-//    static_cast<morda::App*>(activity->instance)->OnResume();
 }
 
 
 
 void* OnSaveInstanceState(ANativeActivity* activity, size_t* outSize){
 	TRACE(<< "OnSaveInstanceState(): invoked" << std::endl)
-	//TODO:
-//    return static_cast<morda::App*>(activity->instance)->OnSaveInstanceState(outSize);
-	return nullptr;
+
+	auto data = getApp(activity).onSaveState();
+
+	//According to NativeActivity documentation the returned memory buffer has to be allocated by
+	//malloc() and the framework will take care of calling free() on it for us.
+	void* buf = malloc(data.size());
+	if(!buf){
+		return nullptr;
+	}
+
+	memcpy(buf, &*data.begin(), data.size());
+	*outSize = data.size();
+
+	return buf;
 }
 
 
