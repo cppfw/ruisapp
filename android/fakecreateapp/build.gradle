@@ -23,14 +23,10 @@ model {
         }
         ndk {
             platformVersion = 21
-            moduleName = "mordavokne"
+            moduleName = "fakecreateapp"
             toolchain = 'clang'
             abiFilters.addAll(['armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64']) //this is default
-            ldLibs.addAll(['android', 'log', 'EGL', 'nitki', 'morda-opengles2-ren',
-                            'morda', 'stob', 'papki',
-                            'png', 'jpeg', 'GLESv2', 'z', 'freetype2',
-                            'svgren', 'svgdom', 'cairo', 'pixman', 'mikroxml', 'unikod', 'c++',
-                            'fakecreateapp'])
+            ldLibs.addAll(['android', 'log', 'c++'])
             stl = 'c++_shared'
             cppFlags.add("-std=c++11")
             cppFlags.add("-fexceptions")
@@ -49,34 +45,24 @@ model {
             create("armeabi-v7a") {
                 ldFlags.add("-L" + projectDir.getAbsolutePath() + "/build/ndkLibs/armeabi-v7a")
                 cppFlags.addAll(["-isystem", ndkInc + "/arm-linux-androideabi"])
-                ldFlags.add("-L" + projectDir.getAbsolutePath() + "/../fakecreateapp/build/intermediates/binaries/release/lib/armeabi-v7a")
             }
             create("arm64-v8a") {
                 ldFlags.add("-L" + projectDir.getAbsolutePath() + "/build/ndkLibs/arm64-v8a")
                 cppFlags.addAll(["-isystem", ndkInc + "/aarch64-linux-android"])
-                ldFlags.add("-L" + projectDir.getAbsolutePath() + "/../fakecreateapp/build/intermediates/binaries/release/lib/arm64-v8a")
             }
             create("x86") {
                 ldFlags.add("-L" + projectDir.getAbsolutePath() + "/build/ndkLibs/x86")
                 cppFlags.addAll(["-isystem", ndkInc + "/i686-linux-android"])
-                ldFlags.add("-L" + projectDir.getAbsolutePath() + "/../fakecreateapp/build/intermediates/binaries/release/lib/x86")
             }
             create("x86_64") {
                 ldFlags.add("-L" + projectDir.getAbsolutePath() + "/build/ndkLibs/x86_64")
                 cppFlags.addAll(["-isystem", ndkInc + "/x86_64-linux-android"])
-                ldFlags.add("-L" + projectDir.getAbsolutePath() + "/../fakecreateapp/build/intermediates/binaries/release/lib/x86_64")
             }
         }
         buildTypes {
             release {
                 ndk {
                     debuggable true
-                }
-            }
-            debug{
-                ndk {
-                    debuggable true
-                    cppFlags.add("-DDEBUG")
                 }
             }
         }
@@ -89,11 +75,8 @@ model {
     android.sources {
         main {
             jni {
-                exportedHeaders {
-                    srcDir "../../src/"
-                }
                 source {
-                    srcDirs '../../src'
+                    srcDirs 'src/main/cpp'
                 }
             }
         }
@@ -107,13 +90,6 @@ repositories {
 }
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'io.github.igagis:libutki:+'
-    compile 'io.github.igagis:libpapki:+'
-    compile 'io.github.igagis:libkolme:+'
-    compile 'io.github.igagis:libmorda:0.5.36'
-    compile 'io.github.igagis:libmorda_opengles2_ren:+'
-    compile 'io.github.igagis:libnitki:+'
-    compile project(':fakecreateapp')
 }
 
 

@@ -24,7 +24,7 @@
 
 using namespace mordavokne;
 
-#include "../createAppUnix.cppinc"
+
 
 namespace{
 
@@ -1394,7 +1394,7 @@ void OnNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window){
 		//retrieve current configuration
 		AConfiguration_fromAssetManager(cfg->ac, appInfo.assetManager);
 
-		App* app = createAppUnix(0, 0, utki::wrapBuf(appInfo.savedState)).release();
+		App* app = mordavokne::createApp(0, nullptr, utki::wrapBuf(appInfo.savedState)).release();
 
 		activity->instance = app;
 
