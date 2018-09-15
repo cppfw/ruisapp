@@ -597,6 +597,11 @@ class Application : public mordavokne::App{
 		return wp;
 	}
 public:
+
+	std::vector<std::uint8_t> onSaveState()override{
+		return {{13,66,6}};
+	}
+
 	Application() :
 			App(GetWindowParams())
 	{

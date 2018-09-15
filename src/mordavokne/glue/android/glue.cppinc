@@ -1456,14 +1456,15 @@ void OnNativeWindowRedrawNeeded(ANativeActivity* activity, ANativeWindow* window
 
 
 
+//This function is called right before destroying Window object, according to documentation:
+//https://developer.android.com/ndk/reference/struct/a-native-activity-callbacks#onnativewindowdestroyed
 void OnNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow* window){
 	TRACE(<< "OnNativeWindowDestroyed(): invoked" << std::endl)
 
 	//remove fdFlag from looper
 	ALooper_removeFd(ALooper_prepare(0), fdFlag.GetFD());
 
-	//TODO: need to destroy app right before window is destroyed, i.e. OGL de-initialized
-	//destroy app object
+	//Need to destroy app right before window is destroyed, i.e. before OGL is de-initialized
 	delete static_cast<mordavokne::App*>(activity->instance);
 	activity->instance = 0;
 
