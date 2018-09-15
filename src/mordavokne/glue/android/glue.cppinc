@@ -1254,8 +1254,6 @@ void OnResume(ANativeActivity* activity){
 	//TODO:
 }
 
-
-
 void* OnSaveInstanceState(ANativeActivity* activity, size_t* outSize){
 	TRACE(<< "OnSaveInstanceState(): invoked" << std::endl)
 
@@ -1270,6 +1268,8 @@ void* OnSaveInstanceState(ANativeActivity* activity, size_t* outSize){
 
 	memcpy(buf, &*data.begin(), data.size());
 	*outSize = data.size();
+
+	appInfo.savedState = std::move(data);
 
 	return buf;
 }
@@ -1393,6 +1393,8 @@ void OnNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window){
 		std::unique_ptr<AndroidConfiguration> cfg = AndroidConfiguration::New();
 		//retrieve current configuration
 		AConfiguration_fromAssetManager(cfg->ac, appInfo.assetManager);
+
+		TRACE(<< "OnNativeWindowCreated(): saved state data size = " << appInfo.savedState.size() << std::endl)
 
 		App* app = mordavokne::createApp(0, nullptr, utki::wrapBuf(appInfo.savedState)).release();
 
@@ -1591,6 +1593,7 @@ void ANativeActivity_onCreate(
 	appInfo.internalDataPath = activity->internalDataPath;
 	appInfo.externalDataPath = activity->externalDataPath;
 	appInfo.assetManager = activity->assetManager;
+	TRACE(<< "ANativeActivity_onCreate(): savedStateSize = " << savedStateSize << std::endl)
 	if(savedState){
 		//copy saved state data because no guarantee that the data will be kept alive after returning from this function
 		appInfo.savedState.resize(savedStateSize);
