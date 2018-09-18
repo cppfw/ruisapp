@@ -9,6 +9,7 @@
 #include <papki/FSFile.hpp>
 
 #include <windowsx.h>
+#include <Shlobj.h>
 
 #include <mordaren/OpenGL2Renderer.hpp>
 
