@@ -1,6 +1,8 @@
 #include "../../App.hpp"
 #include "../../AppFactory.hpp"
 
+#include <papki/FSFile.hpp>
+
 #include <morda/util/util.hpp>
 
 #include <mordaren/OpenGL2Renderer.hpp>
