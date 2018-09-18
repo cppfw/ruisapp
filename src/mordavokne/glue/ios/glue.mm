@@ -334,7 +334,8 @@ namespace{
 	
 }//~namespace
 
-App::App(const App::WindowParams& wp) :
+App::App(std::string&& name, const App::WindowParams& wp) :
+		name(name),
 		windowPimpl(utki::makeUnique<WindowWrapper>(wp)),
 		gui(
 				std::make_shared<mordaren::OpenGLES2Renderer>(),
@@ -348,7 +349,8 @@ App::App(const App::WindowParams& wp) :
 						(*m)();
 					});
 				}
-			)
+			),
+		storageDir("") //TODO: initialize to proper value
 {
 	this->setFullscreen(false);//this will intialize the viewport
 }

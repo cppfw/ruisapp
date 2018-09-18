@@ -38,7 +38,9 @@ class App :
 	friend T_Singleton;
 	static T_Instance instance;
 	
-public:	
+public:
+	const std::string name;
+	
 	/**
 	 * @brief Desired window parameters.
 	 */
@@ -48,6 +50,8 @@ public:
 		 */
 		kolme::Vec2ui dim;
 
+		//TODO: add window title string
+		
 		enum class Buffer_e{
 			DEPTH,
 			STENCIL,
@@ -87,6 +91,16 @@ public:
 	 */
 	std::unique_ptr<papki::File> getResFile(const std::string& path = std::string())const;
 	
+private:
+	static std::string initializeStorageDir(const std::string& appName);
+public:
+	/**
+	 * @brief Storage directory path.
+	 * Path to the application's storage directory. This is the directory
+	 * where application generated files are to be stored, like configurations,
+	 * saved states, etc.
+	 */
+	const std::string storageDir;
 	
 private:
 	//this is a viewport rectangle in coordinates that are as follows: x grows right, y grows up.
@@ -130,18 +144,19 @@ private:
 	}
 	
 	friend void handleMouseHover(App& app, bool isHovered, unsigned pointerID);
-
+	
 protected:
 	/**
 	 * @brief Application constructor.
+	 * @param name - name of the application.
 	 * @param requestedWindowParams - requested window parameters.
 	 */
-	App(const WindowParams& requestedWindowParams);
+	App(std::string&& name, const WindowParams& requestedWindowParams);
 
 public:
 
 	virtual ~App()noexcept{}
-
+	
 	/**
 	 * @brief Bring up the virtual keyboard.
 	 * On mobile platforms this function will summon the on-screen keyboard.
@@ -168,7 +183,6 @@ public:
 	
 private:
 	
-
 	//The idea with UnicodeResolver parameter is that we don't want to calculate the unicode unless it is really needed, thus postpone it
 	//as much as possible.
 	void handleCharacterInput(const morda::Morda::UnicodeProvider& unicodeResolver, morda::Key_e key){
@@ -224,12 +238,12 @@ public:
 	
 	
 	/**
-	 * @brief Find dots per point for given display parameters.
-	 * The size of the point for desktop displays should normally be equal to one pixel.
-	 * For handheld devices size of the point depends on physical screen size and pixel resolution.
+	 * @brief Find dots per density pixel (dp) for given display parameters.
+	 * The size of the dp for desktop displays should normally be equal to one pixel.
+	 * For hand held devices size of the dp depends on physical screen size and pixel resolution.
 	 * @param resolution - resolution of the display in pixels.
 	 * @param screenSizeMm - size of the display in millimeters.
-	 * @return Size of one display point in pixels.
+	 * @return Size of one display density pixel in pixels.
 	 */
 	static morda::real findDotsPerDp(kolme::Vec2ui resolution, kolme::Vec2ui screenSizeMm);
 };

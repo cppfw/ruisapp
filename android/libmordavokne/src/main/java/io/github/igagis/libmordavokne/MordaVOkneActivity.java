@@ -106,4 +106,8 @@ public class MordaVOkneActivity extends NativeActivity {
 		}
 		return null;
 	}
+	
+	public String getStorageDir(){
+		return this.getFilesDir().getPath();
+	}
 }

@@ -603,7 +603,7 @@ public:
 	}
 
 	Application() :
-			App(GetWindowParams())
+			App("mordavokne_testapp", GetWindowParams())
 	{
 		morda::Morda::inst().initStandardWidgets(*this->getResFile());
 		

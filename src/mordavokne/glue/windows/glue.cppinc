@@ -608,7 +608,8 @@ morda::real getDotsPerPt(HDC dc){
 }//~namespace
 
 
-App::App(const WindowParams& wp) :
+App::App(std::string&& name, const WindowParams& wp) :
+		name(name),
 		windowPimpl(utki::makeUnique<WindowWrapper>(wp)),
 		curWinRect(0, 0, -1, -1),
 		gui(
@@ -621,7 +622,8 @@ App::App(const WindowParams& wp) :
 						throw morda::Exc("PostMessage(): failed");
 					}
 				}
-			)
+			),
+		storageDir(initializeStorageDir(this->name))
 {
 	this->updateWindowRect(
 			morda::Rectr(
@@ -633,7 +635,23 @@ App::App(const WindowParams& wp) :
 		);
 }
 
-
+std::string App::initializeStorageDir(const std::string& appName){
+	CHAR path[MAX_PATH];
+	if (SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, path) != S_OK) {
+		throw utki::Exc("failed to get user's profile directory.");
+	}
+	
+	path[sizeof(path) - 1] = '\0';//null-terminate the string just in case
+	
+	std::string homeDirStr(path, strlen(path));
+	
+	papki::FSFile dir(homeDirStr);
+	if(!dir.exists()){
+		dir.makeDir();
+	}
+	
+	return homeDirStr;
+}
 
 void App::quit()noexcept {
 	auto& ww = getImpl(this->windowPimpl);

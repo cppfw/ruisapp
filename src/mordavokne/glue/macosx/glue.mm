@@ -811,7 +811,8 @@ morda::real getDotsPerPt(){
 }//~namespace
 
 
-App::App(const App::WindowParams& wp) :
+App::App(std::string&& name, const App::WindowParams& wp) :
+		name(name),
 		windowPimpl(utki::makeUnique<WindowWrapper>(wp)),
 		gui(
 				std::make_shared<mordaren::OpenGL2Renderer>(),
@@ -834,7 +835,8 @@ App::App(const App::WindowParams& wp) :
 
 					[ww.applicationObjectId postEvent:e atStart:NO];
 				}
-			)
+			),
+		storageDir(initializeStorageDir(this->name))
 {
 	TRACE(<< "App::App(): enter" << std::endl)
 	this->updateWindowRect(
@@ -847,7 +849,27 @@ App::App(const App::WindowParams& wp) :
 		);
 }
 
-
+std::string App::initializeStorageDir(const std::string& appName){
+	auto homeDir = getenv("HOME");
+	if(!homeDir){
+		throw utki::Exc("failed to get user home directory. Is HOME environment variable set?");
+	}
+	
+	std::string homeDirStr(homeDir);
+	
+	if(*homeDirStr.rend() != '/'){
+		homeDirStr.append(1, '/');
+	}
+	
+	homeDirStr.append(appName).append(1, '/');
+	
+	papki::FSFile dir(homeDirStr);
+	if(!dir.exists()){
+		dir.makeDir();
+	}
+	
+	return homeDirStr;
+}
 
 void App::swapFrameBuffers(){
 	auto& ww = getImpl(this->windowPimpl);
