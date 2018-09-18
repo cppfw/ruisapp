@@ -231,7 +231,7 @@ public:
 	 * @param screenSizeMm - size of the display in millimeters.
 	 * @return Size of one display point in pixels.
 	 */
-	static morda::real findDotsPerPt(kolme::Vec2ui resolution, kolme::Vec2ui screenSizeMm);
+	static morda::real findDotsPerDp(kolme::Vec2ui resolution, kolme::Vec2ui screenSizeMm);
 };
 
 inline App& inst(){

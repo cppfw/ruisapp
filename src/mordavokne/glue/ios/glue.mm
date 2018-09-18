@@ -324,10 +324,10 @@ namespace{
 		return value;
 	}
 	
-	morda::real getDotsPerPt(){
+	morda::real getDotsPerDp(){
 		float scale = [[UIScreen mainScreen] scale];
 		
-		//TODO: use findDotsPerPt() function from morda util
+		//TODO: use findDotsPerDp() function from morda util
 		
 		return morda::real(scale);
 	}
@@ -339,7 +339,7 @@ App::App(const App::WindowParams& wp) :
 		gui(
 				std::make_shared<mordaren::OpenGLES2Renderer>(),
 				getDotsPerInch(),
-				getDotsPerPt(),
+				getDotsPerDp(),
 				[this](std::function<void()>&& a){
 					auto p = reinterpret_cast<NSInteger>(new std::function<void()>(std::move(a)));
 	

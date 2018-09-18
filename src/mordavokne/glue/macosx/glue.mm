@@ -805,7 +805,7 @@ morda::real getDotsPerPt(){
 	kolme::Vec2ui resolution(displayPixelSize.width, displayPixelSize.height);
 	kolme::Vec2ui screenSizeMm(displayPhysicalSize.width, displayPhysicalSize.height);
 	
-	return App::findDotsPerPt(resolution, screenSizeMm);
+	return App::findDotsPerDp(resolution, screenSizeMm);
 }
 
 }//~namespace

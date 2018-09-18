@@ -602,7 +602,7 @@ morda::real getDotsPerPt(HDC dc){
 	kolme::Vec2ui resolution(GetDeviceCaps(dc, HORZRES), GetDeviceCaps(dc, VERTRES));
 	kolme::Vec2ui screenSizeMm(GetDeviceCaps(dc, HORZSIZE), GetDeviceCaps(dc, VERTSIZE));
 
-	return mordavokne::App::findDotsPerPt(resolution, screenSizeMm);
+	return mordavokne::App::findDotsPerDp(resolution, screenSizeMm);
 }
 
 }//~namespace
