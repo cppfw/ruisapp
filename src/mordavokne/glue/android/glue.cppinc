@@ -79,7 +79,7 @@ public:
 		this->hideVirtualKeyboardMeth = this->env->GetMethodID(this->clazz, "hideVirtualKeyboard", "()V");
 		ASSERT(this->hideVirtualKeyboardMeth)
 		
-		this->getStorageDirMeth = this->env->GetMethodID(this->clazz, "getStorageDir", "()Ljava/lang/String;")
+		this->getStorageDirMeth = this->env->GetMethodID(this->clazz, "getStorageDir", "()Ljava/lang/String;");
 		ASSERT(this->getStorageDirMeth)
 	}
 
@@ -150,7 +150,7 @@ public:
 		});
 		
 		auto chars = env->GetStringUTFChars(str, nullptr);
-		utki::ScopeExit charsScopeExit([this, &chars](){
+		utki::ScopeExit charsScopeExit([this, &chars, &str](){
 			this->env->ReleaseStringUTFChars(str, chars);
 		});
 		
