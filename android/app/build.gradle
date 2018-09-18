@@ -118,6 +118,7 @@ dependencies {
     compile 'io.github.igagis:libmorda:+'
     compile 'io.github.igagis:libnitki:+'
     compile 'io.github.igagis:libmorda_opengles2_ren:+'
+    compile project(':libmordavokne')
 }
 
 
