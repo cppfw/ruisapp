@@ -605,6 +605,8 @@ public:
 	Application() :
 			App("mordavokne_testapp", GetWindowParams())
 	{
+		TRACE(<< "storageDir = " << this->storageDir << std::endl)
+		
 		morda::Morda::inst().initStandardWidgets(*this->getResFile());
 		
 		morda::Morda::inst().resMan.mountResPack(*this->getResFile("res/"));
