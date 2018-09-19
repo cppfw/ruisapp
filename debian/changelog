@@ -1,3 +1,9 @@
+libmordavokne (0.2.33) unstable; urgency=medium
+
+  * storageDir API added
+
+ -- Ivan Gagis <igagis@gmail.com>  Wed, 19 Sep 2018 20:41:08 +0300
+
 libmordavokne (0.2.32) unstable; urgency=medium
 
   * android: fix for saving/restoring state on activity kill by os
