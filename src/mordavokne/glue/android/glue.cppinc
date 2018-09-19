@@ -145,9 +145,6 @@ public:
 		});
 		
 		jstring str = static_cast<jstring>(res);
-		utki::ScopeExit strScopeExit([this, &str](){
-			this->env->DeleteLocalRef(str);
-		});
 		
 		auto chars = env->GetStringUTFChars(str, nullptr);
 		utki::ScopeExit charsScopeExit([this, &chars, &str](){
@@ -1290,19 +1287,17 @@ void OnResume(ANativeActivity* activity){
 void* OnSaveInstanceState(ANativeActivity* activity, size_t* outSize){
 	TRACE(<< "OnSaveInstanceState(): invoked" << std::endl)
 
-	auto data = getApp(activity).onSaveState();
+	appInfo.savedState = getApp(activity).onSaveState();
 
 	//According to NativeActivity documentation the returned memory buffer has to be allocated by
 	//malloc() and the framework will take care of calling free() on it for us.
-	void* buf = malloc(data.size());
+	void* buf = malloc(appInfo.savedState.size());
 	if(!buf){
 		return nullptr;
 	}
 
-	memcpy(buf, &*data.begin(), data.size());
-	*outSize = data.size();
-
-	appInfo.savedState = std::move(data);
+	memcpy(buf, &*appInfo.savedState.begin(), appInfo.savedState.size());
+	*outSize = appInfo.savedState.size();
 
 	return buf;
 }
