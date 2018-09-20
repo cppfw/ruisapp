@@ -66,9 +66,9 @@ public class MordaVOkneActivity extends NativeActivity {
 		return super.dispatchKeyEvent(event);
 	}
 
+	//Override the Back button handler to prevent activity from automatically closing by Back key.
 	@Override
 	public void onBackPressed() {
-
 	}
 	
 	private InputMethodManager imm;
@@ -103,7 +103,7 @@ public class MordaVOkneActivity extends NativeActivity {
 				}
 			}
 
-//			Log.d("wefwe", "file list = " + list);
+//			Log.d(LOGTAG, "file list = " + list);
 			return list;
 		}catch (IOException e){
 			Log.d(LOGTAG, e.getMessage());
