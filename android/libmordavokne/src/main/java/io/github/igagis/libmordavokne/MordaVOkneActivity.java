@@ -65,7 +65,11 @@ public class MordaVOkneActivity extends NativeActivity {
 		}
 		return super.dispatchKeyEvent(event);
 	}
-	
+
+	@Override
+	public void onBackPressed() {
+
+	}
 	
 	private InputMethodManager imm;
 	

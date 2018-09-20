@@ -528,7 +528,7 @@ public:
 
 
 //================
-// for Updateable
+// for Updatable
 //================
 
 class FDFlag{
@@ -1009,10 +1009,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved){
 }
 
 
-namespace mordavokne{
-
-
-App::App(std::string&& name, const WindowParams& requestedWindowParams) :
+mordavokne::App::App(std::string&& name, const WindowParams& requestedWindowParams) :
 		name(name),
 		windowPimpl(utki::makeUnique<WindowWrapper>(requestedWindowParams)),
 		gui(
@@ -1037,7 +1034,7 @@ App::App(std::string&& name, const WindowParams& requestedWindowParams) :
 	this->updateWindowRect(morda::Rectr(morda::Vec2r(0), winSize.to<morda::real>()));
 }
 
-std::string App::initializeStorageDir(const std::string& appName){
+std::string mordavokne::App::initializeStorageDir(const std::string& appName){
 	ASSERT(javaFunctionsWrapper)
 	
 	auto dir = javaFunctionsWrapper->getStorageDir();
@@ -1048,20 +1045,20 @@ std::string App::initializeStorageDir(const std::string& appName){
 	return dir;
 }
 
-std::unique_ptr<papki::File> App::getResFile(const std::string& path)const{
+std::unique_ptr<papki::File> mordavokne::App::getResFile(const std::string& path)const{
 	return utki::makeUnique<AssetFile>(appInfo.assetManager, path);
 }
 
-void App::swapFrameBuffers() {
+void mordavokne::App::swapFrameBuffers() {
 	auto& ww = getImpl(this->windowPimpl);
 	ww.swapBuffers();
 }
 
-void App::setMouseCursorVisible(bool visible) {
+void mordavokne::App::setMouseCursorVisible(bool visible) {
 	//do nothing
 }
 
-void App::setFullscreen(bool enable) {
+void mordavokne::App::setFullscreen(bool enable) {
 	ASSERT(nativeActivity)
 	if(enable) {
 		ANativeActivity_setWindowFlags(nativeActivity, AWINDOW_FLAG_FULLSCREEN, 0);
@@ -1070,12 +1067,15 @@ void App::setFullscreen(bool enable) {
 	}
 }
 
-void App::quit() noexcept{
-	//TODO:
+void mordavokne::App::quit() noexcept{
+    ASSERT(nativeActivity)
+	ANativeActivity_finish(nativeActivity);
 }
 
-void App::showVirtualKeyboard()noexcept{
+void mordavokne::App::showVirtualKeyboard()noexcept{
+	//NOTE:
 	//ANativeActivity_showSoftInput(nativeActivity, ANATIVEACTIVITY_SHOW_SOFT_INPUT_FORCED);
+	//did not work for some reason.
 
 	ASSERT(javaFunctionsWrapper)
 	javaFunctionsWrapper->showVirtualKeyboard();
@@ -1083,15 +1083,14 @@ void App::showVirtualKeyboard()noexcept{
 
 
 
-void App::hideVirtualKeyboard()noexcept{
+void mordavokne::App::hideVirtualKeyboard()noexcept{
+	//NOTE:
 	//ANativeActivity_hideSoftInput(nativeActivity, ANATIVEACTIVITY_HIDE_SOFT_INPUT_NOT_ALWAYS);
+	//did not work for some reason
 
 	ASSERT(javaFunctionsWrapper)
 	javaFunctionsWrapper->hideVirtualKeyboard();
 }
-
-
-}//~namespace
 
 
 
@@ -1263,9 +1262,9 @@ namespace{
 
 		fdFlag.Set();
 	}
+	}
 
-
-
+namespace{
 void OnDestroy(ANativeActivity* activity){
 	TRACE(<< "OnDestroy(): invoked" << std::endl)
 
@@ -1577,10 +1576,7 @@ void OnContentRectChanged(ANativeActivity* activity, const ARect* rect){
 	//redraw, since WindowRedrawNeeded not always comes
 	render(app);
 }
-
-
-
-}//~namespace
+}
 
 
 

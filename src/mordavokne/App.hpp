@@ -99,6 +99,7 @@ public:
 	 * Path to the application's storage directory. This is the directory
 	 * where application generated files are to be stored, like configurations,
 	 * saved states, etc.
+	 * The path is always ended with '/' character.
 	 */
 	const std::string storageDir;
 	
