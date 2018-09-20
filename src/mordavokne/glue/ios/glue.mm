@@ -29,7 +29,7 @@ using namespace mordavokne;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-	self->app = createAppUnix(0, nullptr, utki::Buf<std::uint8_t>()).release();
+	self->app = createAppUnix(0, nullptr).release();
 	
 	return YES;
 }
@@ -301,7 +301,7 @@ void App::setFullscreen(bool enable){
 }
 
 
-void App::quit()noexcept{
+void App::quitInternal()noexcept{
 	//TODO:
 }
 

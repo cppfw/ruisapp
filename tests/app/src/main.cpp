@@ -598,10 +598,6 @@ class Application : public mordavokne::App{
 	}
 public:
 
-	std::vector<std::uint8_t> onSaveState()override{
-		return {{13,66,6}};
-	}
-
 	Application() :
 			App("mordavokne_testapp", GetWindowParams())
 	{
@@ -825,6 +821,6 @@ public:
 
 
 
-std::unique_ptr<mordavokne::App> mordavokne::createApp(int argc, const char** argv, const utki::Buf<std::uint8_t> savedState){
+std::unique_ptr<mordavokne::App> mordavokne::createApp(int argc, const char** argv){
 	return utki::makeUnique<Application>();
 }

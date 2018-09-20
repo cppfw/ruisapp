@@ -450,15 +450,6 @@ struct AppInfo{
 	//Pointer to the Asset Manager instance for the application. The application
 	//uses this to access binary assets bundled inside its own .apk file.
 	AAssetManager* assetManager;
-
-	//Holds info about saved state if restoring from previously saved state.
-	std::vector<std::uint8_t> savedState;
-
-	//Shows that state was saved, even if buffer size is 0 we don't need to ask App to save state second time.
-	bool savedStateIsActual = false;
-
-	//Shows that the program quit was explicitly requested by user
-	bool explicitQuit = false;
 } appInfo;
 
 
@@ -1064,7 +1055,7 @@ void mordavokne::App::setFullscreen(bool enable) {
 	}
 }
 
-void mordavokne::App::quit() noexcept{
+void mordavokne::App::quitInternal() noexcept{
 	appInfo.explicitQuit = true;
 	ASSERT(nativeActivity)
 	ANativeActivity_finish(nativeActivity);
@@ -1282,35 +1273,9 @@ void OnResume(ANativeActivity* activity){
 void* OnSaveInstanceState(ANativeActivity* activity, size_t* outSize){
 	TRACE(<< "OnSaveInstanceState(): invoked" << std::endl)
 
-	//NOTE: it is possible that mordavokne::App object is already destroyed at this point.
-	//      If the App object is destroyed at this point, then the state has already been
-	//      saved to appInfo.savedState, just return it to Android system.
-
-	//Check if mordavokne::App object is still alive
-	if(activity->instance){
-		ASSERT(!appInfo.savedStateIsActual)
-		appInfo.savedState = getApp(activity).onSaveState();
-		appInfo.savedStateIsActual = true;
-	}
-
-	ASSERT(appInfo.savedStateIsActual)
-
-	//Check if we have something to save
-	if(appInfo.savedState.size() == 0){
-		return nullptr;
-	}
-
-	//According to NativeActivity documentation the returned memory buffer has to be allocated by
-	//malloc() and the framework will take care of calling free() on it for us.
-	void* buf = malloc(appInfo.savedState.size());
-	if(!buf){
-		return nullptr;
-	}
-
-	memcpy(buf, &*appInfo.savedState.begin(), appInfo.savedState.size());
-	*outSize = appInfo.savedState.size();
-
-	return buf;
+	//Do nothing, we don't use this mechanism of saving state.
+	
+	return nullptr;
 }
 
 
@@ -1427,15 +1392,7 @@ void OnNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window){
 		//retrieve current configuration
 		AConfiguration_fromAssetManager(cfg->ac, appInfo.assetManager);
 
-		TRACE(<< "OnNativeWindowCreated(): saved state data size = " << appInfo.savedState.size() << std::endl)
-
-		appInfo.explicitQuit = false;
-
-		App* app = mordavokne::createApp(0, nullptr, utki::wrapBuf(appInfo.savedState)).release();
-
-		//The saved state was already restored, no need to keep it.
-		appInfo.savedState.clear();
-		appInfo.savedStateIsActual = false;
+		App* app = mordavokne::createApp(0, nullptr).release();
 
 		activity->instance = app;
 
@@ -1501,13 +1458,6 @@ void OnNativeWindowRedrawNeeded(ANativeActivity* activity, ANativeWindow* window
 //https://developer.android.com/ndk/reference/struct/a-native-activity-callbacks#onnativewindowdestroyed
 void OnNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow* window){
 	TRACE(<< "OnNativeWindowDestroyed(): invoked" << std::endl)
-
-	if(!appInfo.explicitQuit){
-		if(!appInfo.savedStateIsActual){
-			appInfo.savedState = getApp(activity).onSaveState();
-			appInfo.savedStateIsActual = true;
-		}
-	}
 
 	//remove fdFlag from looper
 	ALooper_removeFd(ALooper_prepare(0), fdFlag.GetFD());
@@ -1636,12 +1586,6 @@ void ANativeActivity_onCreate(
 	appInfo.internalDataPath = activity->internalDataPath;
 	appInfo.externalDataPath = activity->externalDataPath;
 	appInfo.assetManager = activity->assetManager;
-	TRACE(<< "ANativeActivity_onCreate(): savedStateSize = " << savedStateSize << std::endl)
-	if(savedState){
-		//copy saved state data because no guarantee that the data will be kept alive after returning from this function
-		appInfo.savedState.resize(savedStateSize);
-		memcpy(&*appInfo.savedState.begin(), savedState, savedStateSize);
-	}
 
 	javaFunctionsWrapper = utki::makeUnique<JavaFunctionsWrapper>(activity);
 }

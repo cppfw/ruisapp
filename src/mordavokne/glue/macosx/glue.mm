@@ -704,7 +704,7 @@ WindowWrapper::~WindowWrapper()noexcept{
 
 
 
-void App::quit()noexcept{
+void App::quitInternal()noexcept{
 	auto& ww = getImpl(this->windowPimpl);
 	ww.quitFlag = true;
 }
@@ -715,7 +715,7 @@ void App::quit()noexcept{
 
 int main (int argc, const char** argv){
 	TRACE(<< "main(): enter" << std::endl)
-	auto app = createAppUnix(argc, argv, utki::Buf<std::uint8_t>());
+	auto app = createAppUnix(argc, argv);
 
 	TRACE(<< "main(): app created" << std::endl)
 	

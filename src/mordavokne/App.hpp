@@ -171,16 +171,6 @@ public:
 	 * On desktop platforms this function does nothing.
 	 */
 	void hideVirtualKeyboard()noexcept;
-
-	/**
-	 * @brief Request to save application state.
-	 * This function is called by the framework when application is about to be
-	 * temporarily destroyed by the system. So the application can save its state
-	 * to restore it later. The storage is persistent.
-	 * @return data to save in persistent storage, it will be passed to createApp()
-	 * method later, when application is launched again.
-	 */
-	virtual std::vector<std::uint8_t> onSaveState();
 	
 private:
 	
@@ -207,9 +197,31 @@ public:
 	 * the main loop will be terminated and application will exit. The Application
 	 * object will be destroyed and all resources freed.
 	 */
-	void quit()noexcept;
+	void quit()noexcept{
+		this->explicitQuit = true;
+		this->quitInternal();
+	}
 
+	/**
+	 * @brief Check if application quits by explicit request.
+	 * On some operating systems, like Android or iOS, the application can be
+	 * closed by operating system to free some resources when OS lacks those.
+	 * In this case user might need to know if mordavokne::App object is destroyed
+	 * by operating system or by program explicit quit request.
+	 * So, if application is destroyed implicitly, then it might want to save its
+	 * current state in persistent storage and restore it upon next start.
+	 * @return true if application quits by explicit request.
+	 * @return false if application is being closed by operating system.
+	 */
+	bool isExplicitQuit()const noexcept{
+		return this->explicitQuit;
+	}
+	
 private:
+	bool explicitQuit = false;
+	
+	void quitInternal()noexcept;
+	
 	bool isFullscreen_v = false;
 
 	kolme::Rectu beforeFullScreenWindowRect;

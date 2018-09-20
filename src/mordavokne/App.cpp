@@ -93,7 +93,3 @@ morda::real App::findDotsPerDp(kolme::Vec2ui resolution, kolme::Vec2ui screenSiz
 	return morda::real(1);
 #endif
 }
-
-std::vector<std::uint8_t> App::onSaveState() {
-	return std::vector<std::uint8_t>();
-}

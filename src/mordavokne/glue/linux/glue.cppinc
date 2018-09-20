@@ -932,7 +932,7 @@ public:
 }
 
 
-void App::quit()noexcept{
+void App::quitInternal()noexcept{
 	auto& ww = getImpl(this->windowPimpl);
 	
 	ww.quitFlag = true;
@@ -943,7 +943,7 @@ void App::quit()noexcept{
 
 
 int main(int argc, const char** argv){
-	std::unique_ptr<mordavokne::App> app = createAppUnix(argc, argv, utki::Buf<std::uint8_t>());
+	std::unique_ptr<mordavokne::App> app = createAppUnix(argc, argv);
 	
 	ASSERT(app)
 
