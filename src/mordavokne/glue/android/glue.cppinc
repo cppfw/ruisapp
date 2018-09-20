@@ -12,7 +12,6 @@
 
 #include <sys/eventfd.h>
 
-
 #include "../../App.hpp"
 #include "../../AppFactory.hpp"
 
@@ -20,17 +19,9 @@
 
 #include <EGL/egl.h>
 
-
-
 using namespace mordavokne;
 
-
-
 namespace{
-
-
-
-
 ANativeActivity* nativeActivity = 0;
 
 mordavokne::App& getApp(ANativeActivity* activity){
@@ -55,7 +46,7 @@ class JavaFunctionsWrapper : public utki::Unique{
 	jmethodID hideVirtualKeyboardMeth;
 
 	jmethodID listDirContentsMeth;
-	
+
 	jmethodID getStorageDirMeth;
 public:
 	JavaFunctionsWrapper(ANativeActivity* a){
@@ -78,7 +69,7 @@ public:
 
 		this->hideVirtualKeyboardMeth = this->env->GetMethodID(this->clazz, "hideVirtualKeyboard", "()V");
 		ASSERT(this->hideVirtualKeyboardMeth)
-		
+
 		this->getStorageDirMeth = this->env->GetMethodID(this->clazz, "getStorageDir", "()Ljava/lang/String;");
 		ASSERT(this->getStorageDirMeth)
 	}
@@ -137,20 +128,20 @@ public:
 
 		return ret;
 	}
-	
+
 	std::string getStorageDir(){
 		jobject res = this->env->CallObjectMethod(this->obj, this->getStorageDirMeth);
 		utki::ScopeExit resScopeExit([this, &res](){
 			this->env->DeleteLocalRef(res);
 		});
-		
+
 		jstring str = static_cast<jstring>(res);
-		
+
 		auto chars = env->GetStringUTFChars(str, nullptr);
 		utki::ScopeExit charsScopeExit([this, &chars, &str](){
 			this->env->ReleaseStringUTFChars(str, chars);
 		});
-		
+
 		return std::string(chars);
 	}
 };
@@ -465,6 +456,9 @@ struct AppInfo{
 
 	//Shows that state was saved, even if buffer size is 0 we don't need to ask App to save state second time.
 	bool savedStateIsActual = false;
+
+	//Shows that the program quit was explicitly requested by user
+	bool explicitQuit = false;
 } appInfo;
 
 
@@ -1039,9 +1033,9 @@ mordavokne::App::App(std::string&& name, const WindowParams& requestedWindowPara
 
 std::string mordavokne::App::initializeStorageDir(const std::string& appName){
 	ASSERT(javaFunctionsWrapper)
-	
+
 	auto dir = javaFunctionsWrapper->getStorageDir();
-	
+
 	if(*dir.rend() != '/'){
 		dir.append(1, '/');
 	}
@@ -1071,7 +1065,8 @@ void mordavokne::App::setFullscreen(bool enable) {
 }
 
 void mordavokne::App::quit() noexcept{
-    ASSERT(nativeActivity)
+	appInfo.explicitQuit = true;
+	ASSERT(nativeActivity)
 	ANativeActivity_finish(nativeActivity);
 }
 
@@ -1099,169 +1094,169 @@ void mordavokne::App::hideVirtualKeyboard()noexcept{
 
 namespace{
 void handleInputEvents(){
-    auto& app = mordavokne::inst();
+	auto& app = mordavokne::inst();
 
-    //Read and handle input events
-    AInputEvent* event;
-    while(AInputQueue_getEvent(curInputQueue, &event) >= 0){
-        ASSERT(event)
+	//Read and handle input events
+	AInputEvent* event;
+	while(AInputQueue_getEvent(curInputQueue, &event) >= 0){
+		ASSERT(event)
 
 //		TRACE(<< "New input event: type = " << AInputEvent_getType(event) << std::endl)
-        if(AInputQueue_preDispatchEvent(curInputQueue, event)){
-            continue;
-        }
+		if(AInputQueue_preDispatchEvent(curInputQueue, event)){
+			continue;
+		}
 
-        int32_t eventType = AInputEvent_getType(event);
-        int32_t eventAction = AMotionEvent_getAction(event);
+		int32_t eventType = AInputEvent_getType(event);
+		int32_t eventAction = AMotionEvent_getAction(event);
 
-        bool consume = false;
+		bool consume = false;
 
-        switch(eventType){
-            case AINPUT_EVENT_TYPE_MOTION:
-                switch(eventAction & AMOTION_EVENT_ACTION_MASK){
-                    case AMOTION_EVENT_ACTION_POINTER_DOWN:
+		switch(eventType){
+			case AINPUT_EVENT_TYPE_MOTION:
+				switch(eventAction & AMOTION_EVENT_ACTION_MASK){
+					case AMOTION_EVENT_ACTION_POINTER_DOWN:
 //						TRACE(<< "Pointer down" << std::endl)
-                    case AMOTION_EVENT_ACTION_DOWN:
-                    {
-                        unsigned pointerIndex = ((eventAction & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
-                        unsigned pointerId = unsigned(AMotionEvent_getPointerId(event, pointerIndex));
+					case AMOTION_EVENT_ACTION_DOWN:
+					{
+						unsigned pointerIndex = ((eventAction & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
+						unsigned pointerId = unsigned(AMotionEvent_getPointerId(event, pointerIndex));
 
-                        if(pointerId >= pointers.size()){
-                            TRACE(<< "Pointer ID is too big, only " << pointers.size() << " pointers supported at maximum")
-                            continue;
-                        }
+						if(pointerId >= pointers.size()){
+							TRACE(<< "Pointer ID is too big, only " << pointers.size() << " pointers supported at maximum")
+							continue;
+						}
 
 //								TRACE(<< "Action down, ptr id = " << pointerId << std::endl)
 
-                        morda::Vec2r p(AMotionEvent_getX(event, pointerIndex), AMotionEvent_getY(event, pointerIndex));
-                        pointers[pointerId] = p;
+						morda::Vec2r p(AMotionEvent_getX(event, pointerIndex), AMotionEvent_getY(event, pointerIndex));
+						pointers[pointerId] = p;
 
-                        handleMouseButton(
-                                app,
-                                true,
-                                AndroidWinCoordsToMordaWinRectCoords(app.winDim(), p),
-                                morda::MouseButton_e::LEFT,
-                                pointerId
-                        );
-                    }
-                        break;
-                    case AMOTION_EVENT_ACTION_POINTER_UP:
+						handleMouseButton(
+								app,
+								true,
+								AndroidWinCoordsToMordaWinRectCoords(app.winDim(), p),
+								morda::MouseButton_e::LEFT,
+								pointerId
+						);
+					}
+						break;
+					case AMOTION_EVENT_ACTION_POINTER_UP:
 //						TRACE(<< "Pointer up" << std::endl)
-                    case AMOTION_EVENT_ACTION_UP:
-                    {
-                        unsigned pointerIndex = ((eventAction & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
-                        unsigned pointerId = unsigned(AMotionEvent_getPointerId(event, pointerIndex));
+					case AMOTION_EVENT_ACTION_UP:
+					{
+						unsigned pointerIndex = ((eventAction & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
+						unsigned pointerId = unsigned(AMotionEvent_getPointerId(event, pointerIndex));
 
-                        if(pointerId >= pointers.size()){
-                            TRACE(<< "Pointer ID is too big, only " << pointers.size() << " pointers supported at maximum")
-                            continue;
-                        }
+						if(pointerId >= pointers.size()){
+							TRACE(<< "Pointer ID is too big, only " << pointers.size() << " pointers supported at maximum")
+							continue;
+						}
 
 //								TRACE(<< "Action up, ptr id = " << pointerId << std::endl)
 
-                        morda::Vec2r p(AMotionEvent_getX(event, pointerIndex), AMotionEvent_getY(event, pointerIndex));
-                        pointers[pointerId] = p;
+						morda::Vec2r p(AMotionEvent_getX(event, pointerIndex), AMotionEvent_getY(event, pointerIndex));
+						pointers[pointerId] = p;
 
-                        handleMouseButton(
-                                app,
-                                false,
-                                AndroidWinCoordsToMordaWinRectCoords(app.winDim(), p),
-                                morda::MouseButton_e::LEFT,
-                                pointerId
-                        );
-                    }
-                        break;
-                    case AMOTION_EVENT_ACTION_MOVE:
-                    {
-                        size_t numPointers = AMotionEvent_getPointerCount(event);
-                        ASSERT(numPointers >= 1)
-                        for(size_t pointerNum = 0; pointerNum < numPointers; ++pointerNum){
-                            unsigned pointerId = unsigned(AMotionEvent_getPointerId(event, pointerNum));
-                            if(pointerId >= pointers.size()){
-                                TRACE(<< "Pointer ID is too big, only " << pointers.size() << " pointers supported at maximum")
-                                continue;
-                            }
+						handleMouseButton(
+								app,
+								false,
+								AndroidWinCoordsToMordaWinRectCoords(app.winDim(), p),
+								morda::MouseButton_e::LEFT,
+								pointerId
+						);
+					}
+						break;
+					case AMOTION_EVENT_ACTION_MOVE:
+					{
+						size_t numPointers = AMotionEvent_getPointerCount(event);
+						ASSERT(numPointers >= 1)
+						for(size_t pointerNum = 0; pointerNum < numPointers; ++pointerNum){
+							unsigned pointerId = unsigned(AMotionEvent_getPointerId(event, pointerNum));
+							if(pointerId >= pointers.size()){
+								TRACE(<< "Pointer ID is too big, only " << pointers.size() << " pointers supported at maximum")
+								continue;
+							}
 
-                            //notify root Container only if there was actual movement
-                            morda::Vec2r p(AMotionEvent_getX(event, pointerNum), AMotionEvent_getY(event, pointerNum));
-                            if(pointers[pointerId] == p){
-                                //pointer position did not change
-                                continue;
-                            }
+							//notify root Container only if there was actual movement
+							morda::Vec2r p(AMotionEvent_getX(event, pointerNum), AMotionEvent_getY(event, pointerNum));
+							if(pointers[pointerId] == p){
+								//pointer position did not change
+								continue;
+							}
 
 //								TRACE(<< "Action move, ptr id = " << pointerId << std::endl)
 
-                            pointers[pointerId] = p;
+							pointers[pointerId] = p;
 
-                            handleMouseMove(
-                                    app,
-                                    AndroidWinCoordsToMordaWinRectCoords(app.winDim(), p),
-                                    pointerId
-                            );
-                        }//~for(every pointer)
-                    }
-                        break;
-                    default:
-                        TRACE(<< "unknown eventAction = " << eventAction << std::endl)
-                        break;
-                }//~switch(event action)
-                consume = true;
-                break;
-            case AINPUT_EVENT_TYPE_KEY:
-                {
+							handleMouseMove(
+									app,
+									AndroidWinCoordsToMordaWinRectCoords(app.winDim(), p),
+									pointerId
+							);
+						}//~for(every pointer)
+					}
+						break;
+					default:
+						TRACE(<< "unknown eventAction = " << eventAction << std::endl)
+						break;
+				}//~switch(event action)
+				consume = true;
+				break;
+			case AINPUT_EVENT_TYPE_KEY:
+				{
 //					TRACE(<< "AINPUT_EVENT_TYPE_KEY" << std::endl)
 
-                    ASSERT(event)
-                    morda::Key_e key = getKeyFromKeyEvent(*event);
+					ASSERT(event)
+					morda::Key_e key = getKeyFromKeyEvent(*event);
 
-                    keyUnicodeResolver.kc = AKeyEvent_getKeyCode(event);
-                    keyUnicodeResolver.ms = AKeyEvent_getMetaState(event);
-                    keyUnicodeResolver.di = AInputEvent_getDeviceId(event);
+					keyUnicodeResolver.kc = AKeyEvent_getKeyCode(event);
+					keyUnicodeResolver.ms = AKeyEvent_getMetaState(event);
+					keyUnicodeResolver.di = AInputEvent_getDeviceId(event);
 
 //    				TRACE(<< "AINPUT_EVENT_TYPE_KEY: keyUnicodeResolver.kc = " << keyUnicodeResolver.kc << std::endl)
 
-                    switch(eventAction){
-                        case AKEY_EVENT_ACTION_DOWN:
+					switch(eventAction){
+						case AKEY_EVENT_ACTION_DOWN:
 //    						TRACE(<< "AKEY_EVENT_ACTION_DOWN, count = " << AKeyEvent_getRepeatCount(event) << std::endl)
-                            //detect auto-repeated key events
-                            if(AKeyEvent_getRepeatCount(event) == 0){
-                                handleKeyEvent(app, true, key);
-                            }
-                            handleCharacterInput(app, keyUnicodeResolver, key);
-                            break;
-                        case AKEY_EVENT_ACTION_UP:
+							//detect auto-repeated key events
+							if(AKeyEvent_getRepeatCount(event) == 0){
+								handleKeyEvent(app, true, key);
+							}
+							handleCharacterInput(app, keyUnicodeResolver, key);
+							break;
+						case AKEY_EVENT_ACTION_UP:
 //    						TRACE(<< "AKEY_EVENT_ACTION_UP" << std::endl)
-                            handleKeyEvent(app, false, key);
-                            break;
-                        case AKEY_EVENT_ACTION_MULTIPLE:
+							handleKeyEvent(app, false, key);
+							break;
+						case AKEY_EVENT_ACTION_MULTIPLE:
 //                          TRACE(<< "AKEY_EVENT_ACTION_MULTIPLE"
 //                                  << " count = " << AKeyEvent_getRepeatCount(event)
 //                                  << " keyCode = " << AKeyEvent_getKeyCode(event)
 //                                  << std::endl)
 
-                            //Ignore, it is handled on Java side.
+							//Ignore, it is handled on Java side.
 
-                            break;
-                        default:
-                            TRACE(<< "unknown AINPUT_EVENT_TYPE_KEY eventAction: " << eventAction << std::endl)
-                            break;
-                    }
-                }
-                break;
-            default:
-                break;
-        }//~switch(event type)
+							break;
+						default:
+							TRACE(<< "unknown AINPUT_EVENT_TYPE_KEY eventAction: " << eventAction << std::endl)
+							break;
+					}
+				}
+				break;
+			default:
+				break;
+		}//~switch(event type)
 
-        AInputQueue_finishEvent(
-                curInputQueue,
-                event,
-                consume
-        );
-    }//~while(there are events in input queue)
+		AInputQueue_finishEvent(
+				curInputQueue,
+				event,
+				consume
+		);
+	}//~while(there are events in input queue)
 
-    render(app);
+	render(app);
 
-    fdFlag.Set();
+	fdFlag.Set();
 }
 }
 
@@ -1291,19 +1286,19 @@ void* OnSaveInstanceState(ANativeActivity* activity, size_t* outSize){
 	//      If the App object is destroyed at this point, then the state has already been
 	//      saved to appInfo.savedState, just return it to Android system.
 
-    //Check if mordavokne::App object is still alive
+	//Check if mordavokne::App object is still alive
 	if(activity->instance){
-	    ASSERT(!appInfo.savedStateIsActual)
+		ASSERT(!appInfo.savedStateIsActual)
 		appInfo.savedState = getApp(activity).onSaveState();
 		appInfo.savedStateIsActual = true;
 	}
 
-    ASSERT(appInfo.savedStateIsActual)
+	ASSERT(appInfo.savedStateIsActual)
 
-    //Check if we have something to save
-    if(appInfo.savedState.size() == 0){
-        return nullptr;
-    }
+	//Check if we have something to save
+	if(appInfo.savedState.size() == 0){
+		return nullptr;
+	}
 
 	//According to NativeActivity documentation the returned memory buffer has to be allocated by
 	//malloc() and the framework will take care of calling free() on it for us.
@@ -1434,11 +1429,13 @@ void OnNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window){
 
 		TRACE(<< "OnNativeWindowCreated(): saved state data size = " << appInfo.savedState.size() << std::endl)
 
+		appInfo.explicitQuit = false;
+
 		App* app = mordavokne::createApp(0, nullptr, utki::wrapBuf(appInfo.savedState)).release();
 
-        //The saved state was already restored, no need to keep it.
-        appInfo.savedState.clear();
-        appInfo.savedStateIsActual = false;
+		//The saved state was already restored, no need to keep it.
+		appInfo.savedState.clear();
+		appInfo.savedStateIsActual = false;
 
 		activity->instance = app;
 
@@ -1505,10 +1502,12 @@ void OnNativeWindowRedrawNeeded(ANativeActivity* activity, ANativeWindow* window
 void OnNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow* window){
 	TRACE(<< "OnNativeWindowDestroyed(): invoked" << std::endl)
 
-    if(!appInfo.savedStateIsActual){
-        appInfo.savedState = getApp(activity).onSaveState();
-        appInfo.savedStateIsActual = true;
-    }
+	if(!appInfo.explicitQuit){
+		if(!appInfo.savedStateIsActual){
+			appInfo.savedState = getApp(activity).onSaveState();
+			appInfo.savedStateIsActual = true;
+		}
+	}
 
 	//remove fdFlag from looper
 	ALooper_removeFd(ALooper_prepare(0), fdFlag.GetFD());

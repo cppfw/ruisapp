@@ -129,6 +129,5 @@
     <orderEntry type="library" exported="" name="Gradle: org.pixman:pixman-0.32.4" level="project" />
     <orderEntry type="library" exported="" name="Gradle: io.github.igagis:libstob-3.3.19" level="project" />
     <orderEntry type="module" module-name="libmordavokne" exported="" />
-    <orderEntry type="library" exported="" name="Gradle: android-android-25" level="project" />
   </component>
 </module>
