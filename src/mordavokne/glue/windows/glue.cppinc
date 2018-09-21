@@ -647,21 +647,23 @@ std::string App::initializeStorageDir(const std::string& appName){
 	
 	std::string homeDirStr(path, strlen(path));
 	
-	if(homeDirStr.size() == 0){
-		homeDirStr = "C:\\";
+	ASSERT(homeDirStr.size() != 0)
+
+	if(homeDirStr[homeDirStr.size() - 1] == '\\'){
+		homeDirStr[homeDirStr.size() - 1] = '/';
 	}
 
-	if(homeDirStr[homeDirStr.size() - 1] != '\\'){
-		homeDirStr.append(1, '\\');
+	if(homeDirStr[homeDirStr.size() - 1] != '/'){
+		homeDirStr.append(1, '/');
 	}
 
-	homeDirStr.append(appName).append(1, '\\');
+	homeDirStr.append(1, '.').append(appName).append(1, '/');
 
 	papki::FSFile dir(homeDirStr);
 	if(!dir.exists()){
 		dir.makeDir();
 	}
-	
+
 	return homeDirStr;
 }
 
