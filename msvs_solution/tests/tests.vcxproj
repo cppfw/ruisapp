@@ -171,7 +171,6 @@
     <Import Project="..\packages\freetype.2.8.0.1\build\native\freetype.targets" Condition="Exists('..\packages\freetype.2.8.0.1\build\native\freetype.targets')" />
     <Import Project="..\packages\libutki.1.1.17\build\native\libutki.targets" Condition="Exists('..\packages\libutki.1.1.17\build\native\libutki.targets')" />
     <Import Project="..\packages\libkolme.1.0.12\build\native\libkolme.targets" Condition="Exists('..\packages\libkolme.1.0.12\build\native\libkolme.targets')" />
-    <Import Project="..\packages\libpapki.1.0.43\build\native\libpapki.targets" Condition="Exists('..\packages\libpapki.1.0.43\build\native\libpapki.targets')" />
     <Import Project="..\packages\libpogodi.1.0.17\build\native\libpogodi.targets" Condition="Exists('..\packages\libpogodi.1.0.17\build\native\libpogodi.targets')" />
     <Import Project="..\packages\libnitki.1.0.18\build\native\libnitki.targets" Condition="Exists('..\packages\libnitki.1.0.18\build\native\libnitki.targets')" />
     <Import Project="..\packages\libunikod.2.0.21\build\native\libunikod.targets" Condition="Exists('..\packages\libunikod.2.0.21\build\native\libunikod.targets')" />
@@ -182,6 +181,7 @@
     <Import Project="..\packages\libmorda.0.5.82\build\native\libmorda.targets" Condition="Exists('..\packages\libmorda.0.5.82\build\native\libmorda.targets')" />
     <Import Project="..\packages\libmorda-opengl2-ren.0.1.16\build\native\libmorda-opengl2-ren.targets" Condition="Exists('..\packages\libmorda-opengl2-ren.0.1.16\build\native\libmorda-opengl2-ren.targets')" />
     <Import Project="..\packages\libmikroxml.0.1.6\build\native\libmikroxml.targets" Condition="Exists('..\packages\libmikroxml.0.1.6\build\native\libmikroxml.targets')" />
+    <Import Project="..\packages\libpapki.1.0.47\build\native\libpapki.targets" Condition="Exists('..\packages\libpapki.1.0.47\build\native\libpapki.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -200,7 +200,6 @@
     <Error Condition="!Exists('..\packages\freetype.2.8.0.1\build\native\freetype.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\freetype.2.8.0.1\build\native\freetype.targets'))" />
     <Error Condition="!Exists('..\packages\libutki.1.1.17\build\native\libutki.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libutki.1.1.17\build\native\libutki.targets'))" />
     <Error Condition="!Exists('..\packages\libkolme.1.0.12\build\native\libkolme.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libkolme.1.0.12\build\native\libkolme.targets'))" />
-    <Error Condition="!Exists('..\packages\libpapki.1.0.43\build\native\libpapki.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libpapki.1.0.43\build\native\libpapki.targets'))" />
     <Error Condition="!Exists('..\packages\libpogodi.1.0.17\build\native\libpogodi.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libpogodi.1.0.17\build\native\libpogodi.targets'))" />
     <Error Condition="!Exists('..\packages\libnitki.1.0.18\build\native\libnitki.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libnitki.1.0.18\build\native\libnitki.targets'))" />
     <Error Condition="!Exists('..\packages\libunikod.2.0.21\build\native\libunikod.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libunikod.2.0.21\build\native\libunikod.targets'))" />
@@ -211,5 +210,6 @@
     <Error Condition="!Exists('..\packages\libmorda.0.5.82\build\native\libmorda.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libmorda.0.5.82\build\native\libmorda.targets'))" />
     <Error Condition="!Exists('..\packages\libmorda-opengl2-ren.0.1.16\build\native\libmorda-opengl2-ren.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libmorda-opengl2-ren.0.1.16\build\native\libmorda-opengl2-ren.targets'))" />
     <Error Condition="!Exists('..\packages\libmikroxml.0.1.6\build\native\libmikroxml.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libmikroxml.0.1.6\build\native\libmikroxml.targets'))" />
+    <Error Condition="!Exists('..\packages\libpapki.1.0.47\build\native\libpapki.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libpapki.1.0.47\build\native\libpapki.targets'))" />
   </Target>
 </Project>
