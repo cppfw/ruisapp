@@ -1055,8 +1055,7 @@ void mordavokne::App::setFullscreen(bool enable) {
 	}
 }
 
-void mordavokne::App::quitInternal() noexcept{
-	appInfo.explicitQuit = true;
+void mordavokne::App::quit()noexcept{
 	ASSERT(nativeActivity)
 	ANativeActivity_finish(nativeActivity);
 }

@@ -665,7 +665,7 @@ std::string App::initializeStorageDir(const std::string& appName){
 	return homeDirStr;
 }
 
-void App::quitInternal()noexcept {
+void App::quit()noexcept{
 	auto& ww = getImpl(this->windowPimpl);
 	ww.quitFlag = true;
 }
