@@ -662,15 +662,13 @@ void App::quitInternal()noexcept {
 namespace mordavokne{
 
 void winmain(int argc, const char** argv){
-	typedef std::unique_ptr<mordavokne::App>(*Factory)(int, const char**, const utki::Buf<std::uint8_t>&);
-
-	Factory f;
+	decltype(mordavokne::createApp)* f;
 
 	//Try GCC name mangling first
-	f = reinterpret_cast<Factory>(GetProcAddress(GetModuleHandle(NULL), TEXT("_ZN10mordavokne9createAppEiPPKcN4utki3BufIhEE")));
+	f = reinterpret_cast<decltype(f)>(GetProcAddress(GetModuleHandle(NULL), TEXT("_ZN10mordavokne9createAppEiPPKc")));
 
 	if(!f){ //try MSVC function mangling style
-		f = reinterpret_cast<Factory>(GetProcAddress(
+		f = reinterpret_cast<decltype(f)>(GetProcAddress(
 				GetModuleHandle(NULL),			
 #if M_CPU == M_CPU_X86_64
 				TEXT("?createApp@mordavokne@@YA?AV?$unique_ptr@VApp@mordavokne@@U?$default_delete@VApp@mordavokne@@@std@@@std@@HPEAPEBDV?$Buf@E@utki@@@Z")
@@ -681,16 +679,16 @@ void winmain(int argc, const char** argv){
 	}
 
 	ASSERT_INFO(f, "no app factory function found")
-	std::unique_ptr<mordavokne::App> a = f(argc, argv, nullptr);
+	std::unique_ptr<mordavokne::App> app = f(argc, argv);
 
-	ASSERT(a)
+	ASSERT(app)
 
-	auto& ww = getImpl(getWindowPimpl(*a));
+	auto& ww = getImpl(getWindowPimpl(*app));
 
 	ShowWindow(ww.hwnd, SW_SHOW);
 
 	while (!ww.quitFlag){
-		std::uint32_t timeout = a->gui.update();
+		std::uint32_t timeout = app->gui.update();
 		//		TRACE(<< "timeout = " << timeout << std::endl)
 
 		DWORD status = MsgWaitForMultipleObjectsEx(
@@ -716,12 +714,12 @@ void winmain(int argc, const char** argv){
 			}
 		}
 
-		render(*a);
+		render(*app);
 		//		TRACE(<< "loop" << std::endl)
 	}
 }
 
-}//~namespace
+}
 
 
 
