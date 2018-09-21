@@ -647,6 +647,16 @@ std::string App::initializeStorageDir(const std::string& appName){
 	
 	std::string homeDirStr(path, strlen(path));
 	
+	if(homeDirStr.size() == 0){
+		homeDirStr = "C:\\";
+	}
+
+	if(homeDirStr[homeDirStr.size() - 1] != '\\'){
+		homeDirStr.append(1, '\\');
+	}
+
+	homeDirStr.append(appName).append(1, '\\');
+
 	papki::FSFile dir(homeDirStr);
 	if(!dir.exists()){
 		dir.makeDir();
@@ -672,9 +682,9 @@ void winmain(int argc, const char** argv){
 		f = reinterpret_cast<decltype(f)>(GetProcAddress(
 				GetModuleHandle(NULL),			
 #if M_CPU == M_CPU_X86_64
-				TEXT("?createApp@mordavokne@@YA?AV?$unique_ptr@VApp@mordavokne@@U?$default_delete@VApp@mordavokne@@@std@@@std@@HPEAPEBDV?$Buf@E@utki@@@Z")
+				TEXT("?createApp@mordavokne@@YA?AV?$unique_ptr@VApp@mordavokne@@U?$default_delete@VApp@mordavokne@@@std@@@std@@HPEAPEBD@Z")
 #else
-				TEXT("?createApp@mordavokne@@YA?AV?$unique_ptr@VApp@mordavokne@@U?$default_delete@VApp@mordavokne@@@std@@@std@@HPAPBDV?$Buf@E@utki@@@Z")
+				TEXT("?createApp@mordavokne@@YA?AV?$unique_ptr@VApp@mordavokne@@U?$default_delete@VApp@mordavokne@@@std@@@std@@HPAPBD@Z")
 #endif
 			));
 	}
