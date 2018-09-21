@@ -15,7 +15,7 @@ std::unique_ptr<mordavokne::App> createAppUnix(int argc, const char** argv){
 	});
 
 	auto factory = reinterpret_cast<decltype(mordavokne::createApp)*>(
-			dlsym(libHandle, "_ZN10mordavokne9createAppEiPPKcN4utki3BufIhEE")
+			dlsym(libHandle, "_ZN10mordavokne9createAppEiPPKc")
 		);
 									
 	if(!factory){
