@@ -301,7 +301,7 @@ void App::setFullscreen(bool enable){
 }
 
 
-void App::quitInternal()noexcept{
+void App::quit()noexcept{
 	//TODO:
 }
 

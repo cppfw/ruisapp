@@ -704,7 +704,7 @@ WindowWrapper::~WindowWrapper()noexcept{
 
 
 
-void App::quitInternal()noexcept{
+void App::quit()noexcept{
 	auto& ww = getImpl(this->windowPimpl);
 	ww.quitFlag = true;
 }

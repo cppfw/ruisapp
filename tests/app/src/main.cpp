@@ -453,7 +453,7 @@ public:
 			isLastItemInParent.push_back(n->next() == nullptr);
 		}
 		
-		auto ret = utki::makeShared<morda::Row>(nullptr);
+		auto ret = std::make_shared<morda::Row>(nullptr);
 
 		ASSERT(isLastItemInParent.size() == path.size())
 		
@@ -723,7 +723,7 @@ public:
 		{
 			auto treeview = c->findByNameAs<morda::TreeView>("treeview_widget");
 			ASSERT(treeview)
-			auto provider = utki::makeShared<TreeViewItemsProvider>();
+			auto provider = std::make_shared<TreeViewItemsProvider>();
 			treeview->setItemsProvider(provider);
 			auto tv = utki::makeWeak(treeview);
 			
