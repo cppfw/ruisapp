@@ -1,5 +1,3 @@
-#include "../../App.hpp"
-
 #include <morda/util/util.hpp>
 #include <morda/Morda.hpp>
 
@@ -13,6 +11,9 @@
 
 #include <mordaren/OpenGL2Renderer.hpp>
 
+#include "../../App.hpp"
+
+#include "../../AppFactory.hpp"
 
 using namespace mordavokne;
 
