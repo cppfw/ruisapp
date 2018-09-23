@@ -1535,6 +1535,14 @@ void OnContentRectChanged(ANativeActivity* activity, const ARect* rect){
 	TRACE(<< "OnContentRectChanged(): invoked, left = " << rect->left << " right = " << rect->right << " top = " << rect->top << " bottom = " << rect->bottom << std::endl)
 	TRACE(<< "OnContentRectChanged(): curWinDim = " << curWinDim << std::endl)
 
+	//Sometimes Android calls OnContentRectChanged() even after native window was destroyed,
+	//i.e. OnNativeWindowDestroyed() was called and, thus, application object was destroyed.
+	//So need to check if our application is still alive.
+	if(!activity->instance){
+		TRACE(<< "OnContentRectChanged(): application is not alive, ignoring content rect change." << std::endl)
+		return;
+	}
+	
 	auto& app = getApp(activity);
 
 	updateWindowRect(
