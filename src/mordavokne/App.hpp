@@ -90,9 +90,7 @@ public:
 	 * @return Instance of the file interface into the resources storage.
 	 */
 	std::unique_ptr<papki::File> getResFile(const std::string& path = std::string())const;
-	
-private:
-	static std::string initializeStorageDir(const std::string& appName);
+
 public:
 	/**
 	 * @brief Storage directory path.

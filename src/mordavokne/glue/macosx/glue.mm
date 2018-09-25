@@ -13,7 +13,7 @@
 using namespace mordavokne;
 
 
-#include "../createAppUnix.cppinc"
+#include "../unixCommon.cppinc"
 #include "../friendAccessors.cppinc"
 
 @interface CocoaView : NSView{
@@ -849,28 +849,6 @@ App::App(std::string&& name, const App::WindowParams& wp) :
 					float(wp.dim.y)
 				)
 		);
-}
-
-std::string App::initializeStorageDir(const std::string& appName){
-	auto homeDir = getenv("HOME");
-	if(!homeDir){
-		throw utki::Exc("failed to get user home directory. Is HOME environment variable set?");
-	}
-	
-	std::string homeDirStr(homeDir);
-	
-	if(*homeDirStr.rend() != '/'){
-		homeDirStr.append(1, '/');
-	}
-	
-	homeDirStr.append(appName).append(1, '/');
-	
-	papki::FSFile dir(homeDirStr);
-	if(!dir.exists()){
-		dir.makeDir();
-	}
-	
-	return homeDirStr;
 }
 
 void App::swapFrameBuffers(){

@@ -609,35 +609,8 @@ morda::real getDotsPerPt(HDC dc){
 
 }//~namespace
 
-
-App::App(std::string&& name, const WindowParams& wp) :
-		name(name),
-		windowPimpl(utki::makeUnique<WindowWrapper>(wp)),
-		curWinRect(0, 0, -1, -1),
-		gui(
-				std::make_shared<mordaren::OpenGL2Renderer>(),
-				getDotsPerInch(getImpl(this->windowPimpl).hdc),
-				getDotsPerPt(getImpl(this->windowPimpl).hdc),
-				[this](std::function<void()>&& a){
-					auto& ww = getImpl(getWindowPimpl(mordavokne::inst()));
-					if (PostMessage(ww.hwnd, WM_USER, 0, reinterpret_cast<LPARAM>(new std::remove_reference<decltype(a)>::type(std::move(a)))) == 0){
-						throw morda::Exc("PostMessage(): failed");
-					}
-				}
-			),
-		storageDir(initializeStorageDir(this->name))
-{
-	this->updateWindowRect(
-			morda::Rectr(
-					0,
-					0,
-					float(wp.dim.x),
-					float(wp.dim.y)
-				)
-		);
-}
-
-std::string App::initializeStorageDir(const std::string& appName){
+namespace{
+std::string initializeStorageDir(const std::string& appName){
 	CHAR path[MAX_PATH];
 	if (SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, path) != S_OK) {
 		throw utki::Exc("failed to get user's profile directory.");
@@ -665,6 +638,34 @@ std::string App::initializeStorageDir(const std::string& appName){
 	}
 
 	return homeDirStr;
+}
+}
+
+App::App(std::string&& name, const WindowParams& wp) :
+		name(name),
+		windowPimpl(utki::makeUnique<WindowWrapper>(wp)),
+		curWinRect(0, 0, -1, -1),
+		gui(
+				std::make_shared<mordaren::OpenGL2Renderer>(),
+				getDotsPerInch(getImpl(this->windowPimpl).hdc),
+				getDotsPerPt(getImpl(this->windowPimpl).hdc),
+				[this](std::function<void()>&& a){
+					auto& ww = getImpl(getWindowPimpl(mordavokne::inst()));
+					if (PostMessage(ww.hwnd, WM_USER, 0, reinterpret_cast<LPARAM>(new std::remove_reference<decltype(a)>::type(std::move(a)))) == 0){
+						throw morda::Exc("PostMessage(): failed");
+					}
+				}
+			),
+		storageDir(initializeStorageDir(this->name))
+{
+	this->updateWindowRect(
+			morda::Rectr(
+					0,
+					0,
+					float(wp.dim.x),
+					float(wp.dim.y)
+				)
+		);
 }
 
 void App::quit()noexcept{
