@@ -125,9 +125,9 @@
     <orderEntry type="library" exported="" name="Gradle: io.github.igagis:libkolme-1.0.12" level="project" />
     <orderEntry type="library" exported="" name="Gradle: io.github.igagis:libmikroxml-0.1.6" level="project" />
     <orderEntry type="library" exported="" name="Gradle: org.libpng:libpng-1.4.1" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: io.github.igagis:libmorda-0.5.82" level="project" />
     <orderEntry type="library" exported="" name="Gradle: io.github.igagis:libsvgdom-0.3.18" level="project" />
     <orderEntry type="library" exported="" name="Gradle: org.pixman:pixman-0.32.4" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: io.github.igagis:libmorda-0.5.80" level="project" />
     <orderEntry type="library" exported="" name="Gradle: io.github.igagis:libstob-3.3.19" level="project" />
   </component>
 </module>
