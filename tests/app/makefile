@@ -59,7 +59,7 @@ $(eval $(prorab-build-app))
 
 
 define this_rules
-test:: $(prorab_this_name)
+run:: $(prorab_this_name)
 	@echo running $$^...
 	@(cd $(prorab_this_dir); LD_LIBRARY_PATH=../../src $$^)
 endef
