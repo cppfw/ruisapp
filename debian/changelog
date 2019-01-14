@@ -1,3 +1,9 @@
+libmordavokne (0.2.38) unstable; urgency=medium
+
+  * linux build fix
+
+ -- Ivan Gagis <igagis@gmail.com>  Mon, 14 Jan 2019 22:44:32 +0200
+
 libmordavokne (0.2.37) unstable; urgency=medium
 
   * msys2 deployment
