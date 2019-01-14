@@ -64,8 +64,8 @@ endif
 this_common_ldlibs += -lmorda -lpapki -lstob -lstdc++
 
 
-this_cxxflags := $(this_common_cxxflags) -DM_RENDER_OPENGL2
-this_ldlibs := $(this_common_ldlibs) -lmorda-opengl2-ren
+this_cxxflags += $(this_common_cxxflags) -DM_RENDER_OPENGL2
+this_ldlibs += $(this_common_ldlibs) -lmorda-opengl2-ren
 
 $(eval $(prorab-build-lib))
 
@@ -86,8 +86,8 @@ endif
 ifeq ($(ogles2), true)
     this_name := mordavokne-opengles2
 
-    this_cxxflags := $(this_common_cxxflags) -DM_RENDER_OPENGLES2
-    this_ldlibs := $(this_common_ldlibs) -lmorda-opengles2-ren
+    this_cxxflags += $(this_common_cxxflags) -DM_RENDER_OPENGLES2
+    this_ldlibs += $(this_common_ldlibs) -lmorda-opengles2-ren
 
     ifeq ($(raspberrypi), true)
         this_cxxflags += -DM_RASPBERRYPI -I/opt/vc/include

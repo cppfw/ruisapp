@@ -8,7 +8,7 @@ this_name := mordavokne-test
 this_srcs += src/main.cpp
 
 
-this_cxxflags := -Wall
+this_cxxflags += -Wall
 this_cxxflags += -Wno-comment #no warnings on nested comments
 this_cxxflags += -Wno-format
 this_cxxflags += -DDEBUG
