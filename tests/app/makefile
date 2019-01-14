@@ -49,6 +49,8 @@ endif
 
 this_ldlibs += -lstob -lmorda -lunikod -lm -lstdc++
 
+this_no_install := true
+
 $(eval $(prorab-build-app))
 
 
