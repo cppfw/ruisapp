@@ -37,23 +37,17 @@ endif
 
 ifeq ($(prorab_os),windows)
     this_ldlibs += -lmingw32 #these should go first, otherwise linker will complain about undefined reference to WinMain
-    this_ldlibs += $(prorab_this_dir)../../src/$(this_mordavoknelib)$(prorab_lib_extension)
-    this_ldflags += -L/usr/lib -L/usr/local/lib
+    this_ldlibs += $(d)../../src/$(this_mordavoknelib)$(soext)
     this_ldlibs +=  -lglew32 -lopengl32 -lpng -ljpeg -lz -lfreetype -mwindows
-
-    this_cxxflags += -I/usr/include -I/usr/local/include
-
-    #WORKAROUND for MinGW bug:
-    this_cxxflags += -D__STDC_FORMAT_MACROS
 else ifeq ($(prorab_os),macosx)
     this_ldlibs += $(prorab_this_dir)../../src/$(this_mordavoknelib)$(prorab_lib_extension) -lGLEW -framework OpenGL -framework Cocoa -lpng -ljpeg -lfreetype
+    this_ldflags += -rdynamic
 else ifeq ($(prorab_os),linux)
     this_ldlibs += $(prorab_this_dir)../../src/$(this_mordavoknelib)$(prorab_lib_extension) -pthread
+    this_ldflags += -rdynamic
 endif
 
 this_ldlibs += -lstob -lmorda -lunikod -lm -lstdc++
-
-this_ldflags += -rdynamic
 
 $(eval $(prorab-build-app))
 
@@ -61,7 +55,7 @@ $(eval $(prorab-build-app))
 define this_rules
 run:: $(prorab_this_name)
 	@echo running $$^...
-	@(cd $(prorab_this_dir); LD_LIBRARY_PATH=../../src $$^)
+	@(cd $(d); LD_LIBRARY_PATH=../../src $$^)
 endef
 $(eval $(this_rules))
 

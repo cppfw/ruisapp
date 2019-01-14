@@ -42,18 +42,12 @@ this_name := mordavokne-opengl2
 
 ifeq ($(prorab_os), linux)
     this_common_cxxflags += -fPIC #generate position independent code
-    this_common_ldlibs += -ldl -lnitki -lpogodi -lX11
+    this_common_ldlibs += -lGLEW -ldl -lnitki -lpogodi -lX11
 else ifeq ($(prorab_os), windows)
-#    this_common_cxxflags += -Wno-format #due to bugs in some g++ versions it warns about format when not needed, so disable format warnings
-#    this_common_cxxflags += -I/usr/include -I/usr/local/include/ -I/usr/local/include/freetype2
-    this_common_cxxflags += -DM_MORDA_ENFORCE_OPENGL_UNDER_WINDOWS
-#    this_ldflags += -L/usr/local/lib -L/usr/lib
-
-    #NOTE: order matters in MinGW, libs referenced by other libs should go after those libs which reference them.
-    #this_common_ldlibs += -lfreetype -ljpeg -lpng -lz -lopengl32 -lglew32 -lgdi32
+    this_common_ldlibs += -lgdi32 -lopengl32 -lglew32
 else ifeq ($(prorab_os), macosx)
     this_common_cxxflags += -stdlib=libc++ #this is needed to be able to use c++11 std lib
-    this_common_ldlibs += -lc++
+    this_common_ldlibs += -lGLEW -lc++
     this_common_ldlibs += -framework Cocoa -framework OpenGL -ldl
     
     this_mm_obj := $(d)obj_$(this_name)/objc/mordavokne/glue/macosx/glue.o
@@ -71,7 +65,7 @@ this_common_ldlibs += -lmorda -lpapki -lstob -lstdc++
 
 
 this_cxxflags := $(this_common_cxxflags) -DM_RENDER_OPENGL2
-this_ldlibs := $(this_common_ldlibs) -lmorda-opengl2-ren -lGLEW
+this_ldlibs := $(this_common_ldlibs) -lmorda-opengl2-ren
 
 $(eval $(prorab-build-lib))
 

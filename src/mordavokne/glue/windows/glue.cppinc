@@ -500,7 +500,7 @@ LRESULT	CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 		}
 		case WM_MOUSEWHEEL:
 			{
-				short int times = HIWORD(wParam);
+				unsigned short int times = HIWORD(wParam);
 				times /= 120;
 				morda::MouseButton_e button;
 				if(times >= 0){
@@ -644,7 +644,6 @@ std::string initializeStorageDir(const std::string& appName){
 App::App(std::string&& name, const WindowParams& wp) :
 		name(name),
 		windowPimpl(utki::makeUnique<WindowWrapper>(wp)),
-		curWinRect(0, 0, -1, -1),
 		gui(
 				std::make_shared<mordaren::OpenGL2Renderer>(),
 				getDotsPerInch(getImpl(this->windowPimpl).hdc),
@@ -656,7 +655,8 @@ App::App(std::string&& name, const WindowParams& wp) :
 					}
 				}
 			),
-		storageDir(initializeStorageDir(this->name))
+		storageDir(initializeStorageDir(this->name)),
+		curWinRect(0, 0, -1, -1)
 {
 	this->updateWindowRect(
 			morda::Rectr(
