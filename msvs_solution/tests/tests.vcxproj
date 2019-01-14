@@ -292,7 +292,6 @@
     <Import Project="..\packages\freetype.redist.2.8.0.1\build\native\freetype.redist.targets" Condition="Exists('..\packages\freetype.redist.2.8.0.1\build\native\freetype.redist.targets')" />
     <Import Project="..\packages\freetype.2.8.0.1\build\native\freetype.targets" Condition="Exists('..\packages\freetype.2.8.0.1\build\native\freetype.targets')" />
     <Import Project="..\packages\pugixml.1.9.0\build\native\pugixml.targets" Condition="Exists('..\packages\pugixml.1.9.0\build\native\pugixml.targets')" />
-    <Import Project="..\packages\libmorda-opengl2-ren.0.1.16\build\native\libmorda-opengl2-ren.targets" Condition="Exists('..\packages\libmorda-opengl2-ren.0.1.16\build\native\libmorda-opengl2-ren.targets')" />
     <Import Project="..\packages\libjpeg_static.6.1.1.2\build\native\libjpeg_static.targets" Condition="Exists('..\packages\libjpeg_static.6.1.1.2\build\native\libjpeg_static.targets')" />
     <Import Project="..\packages\libpng_native.redist.1.6.30\build\native\libpng_native.redist.targets" Condition="Exists('..\packages\libpng_native.redist.1.6.30\build\native\libpng_native.redist.targets')" />
     <Import Project="..\packages\libutki.1.1.25\build\native\libutki.targets" Condition="Exists('..\packages\libutki.1.1.25\build\native\libutki.targets')" />
@@ -311,6 +310,7 @@
     <Import Project="..\packages\cairo_static.1.15.4.2\build\native\cairo_static.targets" Condition="Exists('..\packages\cairo_static.1.15.4.2\build\native\cairo_static.targets')" />
     <Import Project="..\packages\libsvgren.0.4.57\build\native\libsvgren.targets" Condition="Exists('..\packages\libsvgren.0.4.57\build\native\libsvgren.targets')" />
     <Import Project="..\packages\libmorda.0.5.86\build\native\libmorda.targets" Condition="Exists('..\packages\libmorda.0.5.86\build\native\libmorda.targets')" />
+    <Import Project="..\packages\libmorda-opengl2-ren.0.1.17\build\native\libmorda-opengl2-ren.targets" Condition="Exists('..\packages\libmorda-opengl2-ren.0.1.17\build\native\libmorda-opengl2-ren.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -320,7 +320,6 @@
     <Error Condition="!Exists('..\packages\freetype.redist.2.8.0.1\build\native\freetype.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\freetype.redist.2.8.0.1\build\native\freetype.redist.targets'))" />
     <Error Condition="!Exists('..\packages\freetype.2.8.0.1\build\native\freetype.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\freetype.2.8.0.1\build\native\freetype.targets'))" />
     <Error Condition="!Exists('..\packages\pugixml.1.9.0\build\native\pugixml.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\pugixml.1.9.0\build\native\pugixml.targets'))" />
-    <Error Condition="!Exists('..\packages\libmorda-opengl2-ren.0.1.16\build\native\libmorda-opengl2-ren.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libmorda-opengl2-ren.0.1.16\build\native\libmorda-opengl2-ren.targets'))" />
     <Error Condition="!Exists('..\packages\libjpeg_static.6.1.1.2\build\native\libjpeg_static.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libjpeg_static.6.1.1.2\build\native\libjpeg_static.targets'))" />
     <Error Condition="!Exists('..\packages\libpng_native.redist.1.6.30\build\native\libpng_native.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libpng_native.redist.1.6.30\build\native\libpng_native.redist.targets'))" />
     <Error Condition="!Exists('..\packages\libutki.1.1.25\build\native\libutki.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libutki.1.1.25\build\native\libutki.targets'))" />
@@ -339,5 +338,6 @@
     <Error Condition="!Exists('..\packages\cairo_static.1.15.4.2\build\native\cairo_static.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cairo_static.1.15.4.2\build\native\cairo_static.targets'))" />
     <Error Condition="!Exists('..\packages\libsvgren.0.4.57\build\native\libsvgren.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libsvgren.0.4.57\build\native\libsvgren.targets'))" />
     <Error Condition="!Exists('..\packages\libmorda.0.5.86\build\native\libmorda.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libmorda.0.5.86\build\native\libmorda.targets'))" />
+    <Error Condition="!Exists('..\packages\libmorda-opengl2-ren.0.1.17\build\native\libmorda-opengl2-ren.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libmorda-opengl2-ren.0.1.17\build\native\libmorda-opengl2-ren.targets'))" />
   </Target>
 </Project>
