@@ -1,3 +1,9 @@
+libmordavokne (0.2.37) unstable; urgency=medium
+
+  * msys2 deployment
+
+ -- Ivan Gagis <igagis@gmail.com>  Mon, 14 Jan 2019 19:59:51 +0200
+
 libmordavokne (0.2.36) unstable; urgency=medium
 
   * android fix for not working drop down list
