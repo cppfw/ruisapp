@@ -2,12 +2,12 @@ include prorab.mk
 
 include $(d)../raspberrypi.mk
 
-this_soname := $(shell cat $(prorab_this_dir)/soname.txt)
+this_soname := $(shell cat $(d)/soname.txt)
 
 this_srcs += mordavokne/App.cpp
 
 
-ifeq ($(prorab_os), macosx)
+ifeq ($(os), macosx)
     this_mm_src := mordavokne/glue/macosx/glue.mm
 else
     this_srcs += mordavokne/glue/glue.cpp
@@ -40,12 +40,12 @@ endif
 
 this_name := mordavokne-opengl2
 
-ifeq ($(prorab_os), linux)
+ifeq ($(os), linux)
     this_common_cxxflags += -fPIC #generate position independent code
     this_common_ldlibs += -lGLEW -ldl -lnitki -lpogodi -lX11
-else ifeq ($(prorab_os), windows)
+else ifeq ($(os), windows)
     this_common_ldlibs += -lgdi32 -lopengl32 -lglew32
-else ifeq ($(prorab_os), macosx)
+else ifeq ($(os), macosx)
     this_common_cxxflags += -stdlib=libc++ #this is needed to be able to use c++11 std lib
     this_common_ldlibs += -lGLEW -lc++
     this_common_ldlibs += -framework Cocoa -framework OpenGL -ldl
@@ -70,12 +70,11 @@ this_ldlibs += $(this_common_ldlibs) -lmorda-opengl2-ren
 $(eval $(prorab-build-lib))
 
 
-ifeq ($(prorab_os), macosx)
+ifeq ($(os), macosx)
     $(prorab_this_staticlib): $(this_mm_obj)
 
     $(prorab_this_name): $(this_mm_obj)
 endif
-
 
 
 
@@ -86,8 +85,8 @@ endif
 ifeq ($(ogles2), true)
     this_name := mordavokne-opengles2
 
-    this_cxxflags += $(this_common_cxxflags) -DM_RENDER_OPENGLES2
-    this_ldlibs += $(this_common_ldlibs) -lmorda-opengles2-ren
+    this_cxxflags := $(CXXFLAGS) $(this_common_cxxflags) -DM_RENDER_OPENGLES2
+    this_ldlibs := $(LDLIBS) $(this_common_ldlibs) -lmorda-opengles2-ren
 
     ifeq ($(raspberrypi), true)
         this_cxxflags += -DM_RASPBERRYPI -I/opt/vc/include
