@@ -10,7 +10,7 @@ this_srcs += src/main.cpp
 
 this_cxxflags += -Wall
 this_cxxflags += -Wno-comment #no warnings on nested comments
-this_cxxflags += -Wno-format
+this_cxxflags += -Werror
 this_cxxflags += -DDEBUG
 this_cxxflags += -fstrict-aliasing #strict aliasing!!!
 this_cxxflags += -g
