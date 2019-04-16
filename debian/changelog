@@ -1,3 +1,9 @@
+libmordavokne (0.2.40) unstable; urgency=medium
+
+  * deploy to bionic
+
+ -- Ivan Gagis <igagis@gmail.com>  Wed, 17 Apr 2019 02:30:34 +0300
+
 libmordavokne (0.2.39) unstable; urgency=medium
 
   * deploy to bionic
