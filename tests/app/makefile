@@ -38,7 +38,8 @@ endif
 ifeq ($(prorab_os),windows)
     this_ldlibs += -lmingw32 #these should go first, otherwise linker will complain about undefined reference to WinMain
     this_ldlibs += $(d)../../src/$(this_mordavoknelib)$(soext)
-    this_ldlibs +=  -lglew32 -lopengl32 -lpng -ljpeg -lz -lfreetype -mwindows
+    this_ldlibs += -lglew32 -lopengl32 -lpng -ljpeg -lz -lfreetype -mwindows
+    this_ldlibs += -lpapki
 else ifeq ($(prorab_os),macosx)
     this_ldlibs += $(prorab_this_dir)../../src/$(this_mordavoknelib)$(prorab_lib_extension) -lGLEW -framework OpenGL -framework Cocoa -lpng -ljpeg -lfreetype
     this_ldflags += -rdynamic
