@@ -1,3 +1,9 @@
+libmordavokne (0.2.39) unstable; urgency=medium
+
+  * deploy to bionic
+
+ -- Ivan Gagis <igagis@gmail.com>  Wed, 17 Apr 2019 01:01:35 +0300
+
 libmordavokne (0.2.38) unstable; urgency=medium
 
   * linux build fix
