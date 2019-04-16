@@ -85,8 +85,8 @@ endif
 ifeq ($(ogles2), true)
     this_name := mordavokne-opengles2
 
-    this_cxxflags := $(CXXFLAGS) $(this_common_cxxflags) -DM_RENDER_OPENGLES2
-    this_ldlibs := $(LDLIBS) $(this_common_ldlibs) -lmorda-opengles2-ren
+    this_cxxflags = $(CXXFLAGS) $(this_common_cxxflags) -DM_RENDER_OPENGLES2
+    this_ldlibs = $(LDLIBS) $(this_common_ldlibs) -lmorda-opengles2-ren
 
     ifeq ($(raspberrypi), true)
         this_cxxflags += -DM_RASPBERRYPI -I/opt/vc/include
