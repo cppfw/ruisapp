@@ -1,1 +1,1 @@
-include ':app', ':libmordavokne', ':fakecreateapp'
+include ':app', ':libmordavokne'
