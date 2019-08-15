@@ -53,7 +53,6 @@ env:
   - secure: "Cgtaw3UWmsVfWGeBJJu3aNm7N9rY167JnyJQIfKGLuNEuxN6al6SJxkoeSs8bQp7WOm/CQV/VtqzR+yqClxbKOi66F8qrxV1BnhUiatLQ6CZ7QB07plVTKD5RVgZ6Q7R1RSZ8SObXypcWShqd1AYcmMygBEt9XMf+uiZNnv4yL9OvrkgTFAubL+JoUefdKEQTSCUyomHAjxDKPYH2NVAcKIQTB3Q0G8ZOTN4z8PXhXR/f5Puj5EOqMHTgBlsyFmI2DW1EyaoftcY6N4MfNzff6dQI2AxWE0K0bZX50KeNsUB7XXaXKd0XCPF87zY65HzNFXlX9ISsh/y1zaJ+dSrZ9J+cOfvk3sSx7dsrWHgplopdSQm8TmoGd46sw0xWwR/fIeXEzf7YJLxLAABj2a6Wz/LXCJkIu1RPZSexe8wj6T7/ZYVCJ3N2gYfWHMBIQmBO+EcSi0DmyakK3jDh30G4TdgDblMQrYZWwwW6SCJqe21RWG0WHyzSO9zDppKJKO3ghm/mDQv+DG0mpCKbiMtaLVgGIhSyEgLDiHKhpi9waQfeefgdUM88N9jBTLg1ypjzSjzT20UAMFdA/8HPRQgSJ3ptJXS/9QwTtmXrjsCOh54zgkGta+FAjcXCfSCShVQpzkvmF6aR8vT6+ymUkAr17QZqNIvMx5K3+JEGeaq6mc="
   - MYCI_GIT_USERNAME=igagis
   - MYCI_GIT_ACCESS_TOKEN=$HOMEBREW_GITHUB_ACCESS_TOKEN
-  - USE_ANDROID_NDK_VERSION=15c
   - PACKAGE_NAME=mordavokne
   matrix:
   - OS_REL=xenial OS=ubuntu DOCKER_IMAGE=$OS:$OS_REL PACKAGE_TYPE=deb
@@ -98,18 +97,7 @@ before_install:
     pod repo add --silent igagis https://$MYCI_GIT_USERNAME:$MYCI_GIT_ACCESS_TOKEN@github.com/igagis/cocoapods-repo.git &&
     pod install --project-directory=ios;
   fi
-# download and install android NDK
-- if [ "$TRAVIS_JOB_NAME" == "android" ]; then
-    export TERM=dumb &&
-    curl -L https://dl.google.com/android/repository/android-ndk-r$USE_ANDROID_NDK_VERSION-linux-x86_64.zip -O &&
-    unzip ./android-ndk-r$USE_ANDROID_NDK_VERSION-linux-x86_64.zip > /dev/null &&
-    rm android-ndk-r$USE_ANDROID_NDK_VERSION-linux-x86_64.zip &&
-    export ANDROID_NDK_HOME=`pwd`/android-ndk-r$USE_ANDROID_NDK_VERSION &&
-    export LOCAL_ANDROID_NDK_HOME="$ANDROID_NDK_HOME" &&
-    export LOCAL_ANDROID_NDK_HOST_PLATFORM="linux-x86_64" &&
-    export PATH=$PATH:${ANDROID_NDK_HOME} &&
-    env;
-  fi
+
 
 install:
 - if [ "$TRAVIS_OS_NAME" == "linux" ] && [ -z "$TRAVIS_JOB_NAME" ]; then

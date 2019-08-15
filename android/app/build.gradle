@@ -115,10 +115,8 @@ task copyNdkLibsToAAR(type: Zip) {
     from zipTree("build/outputs/aar/" + aarName + "-release.aar")
     exclude('**/*.so') //do not include shared libraries into final AAR
     from("../../src") {
-        exclude('makefile')
-        exclude('soname.txt')
-        exclude('**/*.cpp')
-        exclude('**/*.c')
+        include('**/*.hpp')
+        include('**/*.h')
         into('ndkLibs/include')
     }
     from("build/intermediates/cmake/debug/obj"){
