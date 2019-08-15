@@ -40,8 +40,8 @@ matrix:
         components:
           - platform-tools
           - tools
-          - build-tools-25.0.2
-          - android-25
+          - build-tools-28.0.3
+          - android-28
 #          - sys-img-armeabi-v7a-android-22
           - extra-android-m2repository
 
@@ -114,6 +114,11 @@ before_install:
 install:
 - if [ "$TRAVIS_OS_NAME" == "linux" ] && [ -z "$TRAVIS_JOB_NAME" ]; then
     docker exec ccc myci-deb-install-build-deps.sh;
+  fi
+# Accept android SDK licenses and install android tools
+- if [ "$TRAVIS_JOB_NAME" == "android" ]; then
+    echo y | sdkmanager "ndk-bundle" &&
+    echo y | sdkmanager "cmake;3.6.4111459";
   fi
 
 script:

@@ -1,107 +1,40 @@
-apply plugin: 'com.android.model.application'
+apply plugin: 'com.android.application'
 
-def ndkDir = System.getenv("ANDROID_NDK_HOME")
-def propertiesFile = project.rootProject.file('local.properties')
-if (propertiesFile.exists()) {
-    Properties properties = new Properties()
-    properties.load(propertiesFile.newDataInputStream())
-    ndkDir = properties.getProperty('ndk.dir')
-}
+android {
+    compileSdkVersion 28
+    defaultConfig {
+        applicationId "io.github.igagis.tiktaksy"
+        minSdkVersion 21
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
 
-def ndkInc = ndkDir + "/sysroot/usr/include"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
-model {
+        externalNativeBuild {
+            cmake {
+                targets "mordavokneapp"
 
-    repositories {
-        libs(PrebuiltLibraries) {
-        }
-    }
-
-    android {
-        compileSdkVersion = 25
-        buildToolsVersion = '25.0.2'
-
-        defaultConfig{
-            applicationId = "io.github.igagis.mordavoknetests"
-            minSdkVersion.apiLevel = 21
-            targetSdkVersion.apiLevel = 21
-            versionCode = 1
-            versionName = '1.0'
-        }
-
-        ndk {
-            platformVersion = 21
-            moduleName = 'mordavokneapp'
-            toolchain = 'clang'
-            stl = 'c++_shared'
-            cppFlags.add("-std=c++11")
-            cppFlags.add("-fexceptions")
-            cppFlags.add("-frtti")
-            cppFlags.add("-g")
-            cppFlags.add("-fintegrated-as") //needed to avoid assembler error since NDK r15
-            cppFlags.add("-I" + projectDir.getAbsolutePath() + "/build/ndkLibs/include")
-            cppFlags.addAll(["-isystem", ndkInc])
-            cppFlags.add("-D__ANDROID_API__=" + platformVersion)
-            cppFlags.add("-DANDROID_STL=c++_shared")
-            ldLibs.addAll(['android', 'log',
-                           'EGL', 'morda-opengles2-ren', 'morda', 'nitki', 'stob', 'papki',
-                           'png', 'jpeg', 'GLESv2', 'z', 'freetype2', 'svgren', 'svgdom',
-                           'mikroxml', 'unikod', 'cairo', 'pixman', 'c++'])
-            // build a default combined apk including all ABIs.
-            abiFilters.addAll(['armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64']) //this is default
-        }
-        abis {
-            create("armeabi-v7a") {
-                ldFlags.add("-L" + projectDir.getAbsolutePath() + "/build/ndkLibs/armeabi-v7a")
-                cppFlags.addAll(["-isystem", ndkInc + "/arm-linux-androideabi"])
-            }
-            create("arm64-v8a") {
-                ldFlags.add("-L" + projectDir.getAbsolutePath() + "/build/ndkLibs/arm64-v8a")
-                cppFlags.addAll(["-isystem", ndkInc + "/aarch64-linux-android"])
-            }
-            create("x86") {
-                ldFlags.add("-L" + projectDir.getAbsolutePath() + "/build/ndkLibs/x86")
-                cppFlags.addAll(["-isystem", ndkInc + "/i686-linux-android"])
-            }
-            create("x86_64") {
-                ldFlags.add("-L" + projectDir.getAbsolutePath() + "/build/ndkLibs/x86_64")
-                cppFlags.addAll(["-isystem", ndkInc + "/x86_64-linux-android"])
-            }
-        }
-        sources {
-            main {
-                jni {
-                    dependencies {
-                        project ":libmordavokne" linkage "static"
-                    }
-                    source {
-                        srcDirs '../../tests'
-//                        exclude('**/main.cpp')
-                    }
-                }
-                jniLibs {
-                    // for shared lib, lib need to be pushed to the target too
-                    // Once libs are copied into app/src/main/jniLibs directory,
-                    // Android Studio will pack them into APK's lib/ directory
-                    // Here we like to avoid another duplication by pointing
-                    // to the files that containing our libs' distribution location
-                    // so the same file is used by compiler at host, also packed
-                    // into APk to be used at Target (phone/tablet)
-                    source {
-                    }
-                }
-            }
-        }
-        buildTypes {
-            release {
-                minifyEnabled false
-                proguardFiles.add(file('proguard-rules.pro'))
+                arguments "-DANDROID_STL=c++_shared", "-DANDROID_TOOLCHAIN=clang"
             }
         }
     }
 
-    android.lintOptions {
-        abortOnError false
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    // Encapsulates your external native build configurations.
+    externalNativeBuild {
+
+        // Encapsulates your CMake build configurations.
+        cmake {
+            // Provides a relative path to your CMake build script.
+            path "CMakeLists.txt"
+        }
     }
 }
 
@@ -111,50 +44,237 @@ repositories {
     }
 }
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'io.github.igagis:libutki:+'
-    compile 'io.github.igagis:libkolme:+'
-    compile 'io.github.igagis:libpapki:+'
-    compile 'io.github.igagis:libmorda:+'
-    compile 'io.github.igagis:libnitki:+'
-    compile 'io.github.igagis:libmorda_opengles2_ren:+'
-    compile project(':libmordavokne')
+    implementation 'io.github.igagis:libutki:+'
+    implementation 'io.github.igagis:libkolme:+'
+    implementation 'io.github.igagis:libpapki:+'
+    implementation 'io.github.igagis:libmorda:+'
+    implementation 'io.github.igagis:libnitki:+'
+    implementation 'io.github.igagis:libmorda_opengles2_ren:+'
+//    implementation project(':libmordavokne')
 }
 
 
+//===================================
+//=== Extract NDK files from AARs ===
+
+// This is needed to be able to write "configurations.implementation.each" below.
+configurations.implementation.setCanBeResolved(true)
 
 task extractNDKLibs {
     doLast {
-        configurations.compile.each {
-            if (!it.name.contains("libmordavokne")) {
-                def file = it.absoluteFile
-                copy {
-                    from zipTree(file)
-                    into "build/"
-                    include "ndkLibs/**/*"
-                }
+        configurations.implementation.each {
+            def file = it.absoluteFile
+            copy {
+                from zipTree(file)
+                into "build/"
+                include "ndkLibs/**/*"
             }
         }
     }
 }
-build.dependsOn('extractNDKLibs')
+
 tasks.whenTaskAdded { task ->
-    if (task.name.startsWith('compile')) {
-        task.dependsOn('extractNDKLibs')
+    logger.info('task added')
+    if (task.name.startsWith('externalNativeBuild')) {
+        task.dependsOn extractNDKLibs
     }
 }
 
-task copyResToAssets {
-    doLast {
-        copy{
-            from "../../tests/app/res"
-            into "src/main/assets/res"
-            include "**/*"
-        }
+
+
+//=================================
+//=== pack library files to aar ===
+//This stuff re-packs the release AAR file adding headers and static libs to there, but removing all shared (.so) libs, as we don't need them. The resulting AAR is put to the project root directory and can be uploaded to Maven along with POM file (you need to write one by hand).
+
+def aarName = name
+
+task copyNdkLibsToAAR(type: Zip) {
+    baseName = aarName
+    version = "\$(version)"
+    extension = 'aar.in'
+    destinationDir = file('..') //put resulting AAR file to upper level directory
+
+    from zipTree("build/outputs/aar/" + aarName + "-release.aar")
+    exclude('**/*.so') //do not include shared libraries into final AAR
+    from("../../src") {
+        exclude('makefile')
+        exclude('soname.txt')
+        exclude('**/*.cpp')
+        exclude('**/*.c')
+        into('ndkLibs/include')
+    }
+    from("build/intermediates/cmake/debug/obj"){
+        include('**/*.a')
+        into('ndkLibs')
     }
 }
-tasks.whenTaskAdded { task ->
-    if (task.name.startsWith('generate')) {
-        task.dependsOn('copyResToAssets')
-    }
-}
+
+// This is only needed for libraries
+//afterEvaluate {
+//    bundleReleaseAar.finalizedBy copyNdkLibsToAAR
+//}
+
+
+
+
+
+//apply plugin: 'com.android.model.application'
+//
+//def ndkDir = System.getenv("ANDROID_NDK_HOME")
+//def propertiesFile = project.rootProject.file('local.properties')
+//if (propertiesFile.exists()) {
+//    Properties properties = new Properties()
+//    properties.load(propertiesFile.newDataInputStream())
+//    ndkDir = properties.getProperty('ndk.dir')
+//}
+//
+//def ndkInc = ndkDir + "/sysroot/usr/include"
+//
+//model {
+//
+//    repositories {
+//        libs(PrebuiltLibraries) {
+//        }
+//    }
+//
+//    android {
+//        compileSdkVersion = 25
+//        buildToolsVersion = '25.0.2'
+//
+//        defaultConfig{
+//            applicationId = "io.github.igagis.mordavoknetests"
+//            minSdkVersion.apiLevel = 21
+//            targetSdkVersion.apiLevel = 21
+//            versionCode = 1
+//            versionName = '1.0'
+//        }
+//
+//        ndk {
+//            platformVersion = 21
+//            moduleName = 'mordavokneapp'
+//            toolchain = 'clang'
+//            stl = 'c++_shared'
+//            cppFlags.add("-std=c++11")
+//            cppFlags.add("-fexceptions")
+//            cppFlags.add("-frtti")
+//            cppFlags.add("-g")
+//            cppFlags.add("-fintegrated-as") //needed to avoid assembler error since NDK r15
+//            cppFlags.add("-I" + projectDir.getAbsolutePath() + "/build/ndkLibs/include")
+//            cppFlags.addAll(["-isystem", ndkInc])
+//            cppFlags.add("-D__ANDROID_API__=" + platformVersion)
+//            cppFlags.add("-DANDROID_STL=c++_shared")
+//            ldLibs.addAll(['android', 'log',
+//                           'EGL', 'morda-opengles2-ren', 'morda', 'nitki', 'stob', 'papki',
+//                           'png', 'jpeg', 'GLESv2', 'z', 'freetype2', 'svgren', 'svgdom',
+//                           'mikroxml', 'unikod', 'cairo', 'pixman', 'c++'])
+//            // build a default combined apk including all ABIs.
+//            abiFilters.addAll(['armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64']) //this is default
+//        }
+//        abis {
+//            create("armeabi-v7a") {
+//                ldFlags.add("-L" + projectDir.getAbsolutePath() + "/build/ndkLibs/armeabi-v7a")
+//                cppFlags.addAll(["-isystem", ndkInc + "/arm-linux-androideabi"])
+//            }
+//            create("arm64-v8a") {
+//                ldFlags.add("-L" + projectDir.getAbsolutePath() + "/build/ndkLibs/arm64-v8a")
+//                cppFlags.addAll(["-isystem", ndkInc + "/aarch64-linux-android"])
+//            }
+//            create("x86") {
+//                ldFlags.add("-L" + projectDir.getAbsolutePath() + "/build/ndkLibs/x86")
+//                cppFlags.addAll(["-isystem", ndkInc + "/i686-linux-android"])
+//            }
+//            create("x86_64") {
+//                ldFlags.add("-L" + projectDir.getAbsolutePath() + "/build/ndkLibs/x86_64")
+//                cppFlags.addAll(["-isystem", ndkInc + "/x86_64-linux-android"])
+//            }
+//        }
+//        sources {
+//            main {
+//                jni {
+//                    dependencies {
+//                        project ":libmordavokne" linkage "static"
+//                    }
+//                    source {
+//                        srcDirs '../../tests'
+////                        exclude('**/main.cpp')
+//                    }
+//                }
+//                jniLibs {
+//                    // for shared lib, lib need to be pushed to the target too
+//                    // Once libs are copied into app/src/main/jniLibs directory,
+//                    // Android Studio will pack them into APK's lib/ directory
+//                    // Here we like to avoid another duplication by pointing
+//                    // to the files that containing our libs' distribution location
+//                    // so the same file is used by compiler at host, also packed
+//                    // into APk to be used at Target (phone/tablet)
+//                    source {
+//                    }
+//                }
+//            }
+//        }
+//        buildTypes {
+//            release {
+//                minifyEnabled false
+//                proguardFiles.add(file('proguard-rules.pro'))
+//            }
+//        }
+//    }
+//
+//    android.lintOptions {
+//        abortOnError false
+//    }
+//}
+//
+//repositories {
+//    maven {
+//        url 'https://dl.bintray.com/igagis/android/'
+//    }
+//}
+//dependencies {
+//    compile fileTree(include: ['*.jar'], dir: 'libs')
+//    compile 'io.github.igagis:libutki:+'
+//    compile 'io.github.igagis:libkolme:+'
+//    compile 'io.github.igagis:libpapki:+'
+//    compile 'io.github.igagis:libmorda:+'
+//    compile 'io.github.igagis:libnitki:+'
+//    compile 'io.github.igagis:libmorda_opengles2_ren:+'
+//    compile project(':libmordavokne')
+//}
+//
+//
+//
+//task extractNDKLibs {
+//    doLast {
+//        configurations.compile.each {
+//            if (!it.name.contains("libmordavokne")) {
+//                def file = it.absoluteFile
+//                copy {
+//                    from zipTree(file)
+//                    into "build/"
+//                    include "ndkLibs/**/*"
+//                }
+//            }
+//        }
+//    }
+//}
+//build.dependsOn('extractNDKLibs')
+//tasks.whenTaskAdded { task ->
+//    if (task.name.startsWith('compile')) {
+//        task.dependsOn('extractNDKLibs')
+//    }
+//}
+//
+//task copyResToAssets {
+//    doLast {
+//        copy{
+//            from "../../tests/app/res"
+//            into "src/main/assets/res"
+//            include "**/*"
+//        }
+//    }
+//}
+//tasks.whenTaskAdded { task ->
+//    if (task.name.startsWith('generate')) {
+//        task.dependsOn('copyResToAssets')
+//    }
+//}
