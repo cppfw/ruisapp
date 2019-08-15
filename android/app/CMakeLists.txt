@@ -12,7 +12,9 @@ cmake_minimum_required(VERSION 3.4.1)
 
 file(GLOB_RECURSE srcs "../../tests/app/*.cpp")
 
-link_directories( build/ndkLibs/${ANDROID_ABI}/ ../libmordavokne/build/intermediates/cmake/debug/obj/${ANDROID_ABI} )
+string(TOLOWER ${CMAKE_BUILD_TYPE} cmake_build_type)
+
+link_directories( build/ndkLibs/${ANDROID_ABI}/ ../libmordavokne/build/intermediates/cmake/${cmake_build_type}/obj/${ANDROID_ABI} )
 
 add_library( # Specifies the name of the library.
              mordavokneapp # this has to be 'mordavokneapp' so that MordaVOkneActivity loads that named .so
