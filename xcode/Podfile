@@ -1,0 +1,14 @@
+source 'https://github.com/igagis/cocoapods-repo.git'
+
+project 'mordavokne/mordavokne.xcodeproj'
+
+platform :ios, '8.0'
+
+target "mordavokne" do
+	pod 'utki', '>= 1.0.32'
+	pod 'papki', '>= 1.0.3'
+	pod 'r4', '>= 0.1.0'
+	pod 'puu', '>= 0.1.0'
+	pod 'morda', '>= 0.5.71'
+	pod 'morda-opengles2-ren', '>= 0.1.7'
+end
