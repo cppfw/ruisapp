@@ -37,7 +37,7 @@
 	  </dependency>
 	  <dependency>
 		  <groupId>io.github.igagis</groupId>
-		  <artifactId>morda_opengles2_ren</artifactId>
+		  <artifactId>morda-opengles2-ren</artifactId>
 		  <version>[0.1.9,)</version>
 		  <type>aar</type>
 		  <scope>compile</scope>
