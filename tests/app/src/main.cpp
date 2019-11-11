@@ -810,7 +810,7 @@ public:
 			auto b = c->findByNameAs<morda::PushButton>("showhide_mousecursor_button");
 			bool visible = false;
 			this->setMouseCursorVisible(visible);
-			b->clicked = [this, visible](morda::PushButton&) mutable{
+			b->clicked = [visible](morda::PushButton&) mutable{
 				visible = !visible;
 				mordavokne::App::inst().setMouseCursorVisible(visible);
 			};
