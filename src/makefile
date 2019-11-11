@@ -49,7 +49,7 @@ else ifeq ($(os), macosx)
     this_common_cxxflags += -stdlib=libc++ #this is needed to be able to use c++11 std lib
     this_common_ldlibs += -lGLEW -lc++
     this_common_ldlibs += -framework Cocoa -framework OpenGL -ldl
-    
+
     this_mm_obj := $(d)obj_$(this_name)/objc/mordavokne/glue/macosx/glue.o
 
     define this_rules
@@ -61,7 +61,7 @@ else ifeq ($(os), macosx)
     $(eval $(this_rules))
 endif
 
-this_common_ldlibs += -lmorda -lpapki -lstob -lstdc++
+this_common_ldlibs += -lmorda -lpapki -lpuu -lstdc++
 
 
 this_cxxflags += $(this_common_cxxflags) -DM_RENDER_OPENGL2
