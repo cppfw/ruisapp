@@ -76,7 +76,7 @@ before_install:
     brew update > /dev/null &&
     brew tap igagis/tap &&
     brew update > /dev/null &&
-    brew install prorab prorab-extra myci libutki libpapki glew libmorda libkolme libstob libnitki libmorda-opengl2-ren;
+    brew install prorab prorab-extra myci libutki libpapki glew libmorda r4 puu libnitki morda-opengl2-ren;
   fi
 - if [ "$TRAVIS_JOB_NAME" == "ios" ]; then
     rvm install ruby-2.3.3 &&

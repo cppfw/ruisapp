@@ -46,12 +46,12 @@ repositories {
     }
 }
 dependencies {
-    implementation 'io.github.igagis:libutki:+'
-    implementation 'io.github.igagis:libpapki:+'
-    implementation 'io.github.igagis:libkolme:+'
-    implementation 'io.github.igagis:libmorda:+'
-    implementation 'io.github.igagis:libmorda_opengles2_ren:+'
-    implementation 'io.github.igagis:libnitki:+'
+    implementation 'io.github.igagis:utki:+'
+    implementation 'io.github.igagis:papki:+'
+    implementation 'io.github.igagis:r4:+'
+    implementation 'io.github.igagis:morda:+'
+    implementation 'io.github.igagis:morda_opengles2_ren:+'
+    implementation 'io.github.igagis:nitki:+'
 }
 
 

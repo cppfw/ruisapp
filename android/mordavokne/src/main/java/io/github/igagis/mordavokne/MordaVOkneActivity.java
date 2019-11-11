@@ -1,4 +1,4 @@
-package io.github.igagis.libmordavokne;
+package io.github.igagis.mordavokne;
 
 import android.app.NativeActivity;
 import android.app.Service;
@@ -39,10 +39,10 @@ public class MordaVOkneActivity extends NativeActivity {
 				return 0;//could not load char map, thus could not resolve character
 			}
 		}
-		
+
 		return this.curCharMap.get(keyCode, metaState);
 	}
-	
+
 	public float getDotsPerInch(){
 		Display d = ((WindowManager)getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 		DisplayMetrics m = new DisplayMetrics();
@@ -50,9 +50,9 @@ public class MordaVOkneActivity extends NativeActivity {
 		Log.d(LOGTAG, "getDotsPerInch(): xdpi = " + m.xdpi + " ydpi = " + m.ydpi + " density = " + m.density);
 		return (m.xdpi + m.ydpi) / 2.0f;
 	}
-	
+
 	private static native void handleCharacterStringInput(String str);
-	
+
 	@Override
 	public boolean dispatchKeyEvent(KeyEvent event) {
 		Log.d(LOGTAG, "dispatchKeyEvent(): invoked");
@@ -70,24 +70,24 @@ public class MordaVOkneActivity extends NativeActivity {
 	@Override
 	public void onBackPressed() {
 	}
-	
+
 	private InputMethodManager imm;
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
 
 		this.imm = (InputMethodManager)this.getSystemService(Service.INPUT_METHOD_SERVICE);
 	}
-	
-	
+
+
 	public void showVirtualKeyboard(){
 		this.imm.showSoftInput(this.getWindow().getDecorView(), InputMethodManager.SHOW_FORCED);
 		Rect r = new Rect();
 		this.getWindow().getDecorView().getWindowVisibleDisplayFrame(r);
 		Log.d(LOGTAG, "showVirtualKeyboard(): visible rect = " + r.left + ", " + r.right + ", " + r.top + ", " + r.bottom);
 	}
-	
+
 	public void hideVirtualKeyboard(){
 		this.imm.hideSoftInputFromWindow(this.getWindow().getDecorView().getWindowToken(), InputMethodManager.HIDE_IMPLICIT_ONLY);
 	}
@@ -110,7 +110,7 @@ public class MordaVOkneActivity extends NativeActivity {
 		}
 		return null;
 	}
-	
+
 	public String getStorageDir(){
 		return this.getFilesDir().getPath();
 	}

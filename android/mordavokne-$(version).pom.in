@@ -3,48 +3,48 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.github.igagis</groupId>
-  <artifactId>libmordavokne</artifactId>
+  <artifactId>mordavokne</artifactId>
   <version>$(version)</version>
   <packaging>aar</packaging>
   <dependencies>
 	  <dependency>
 		  <groupId>io.github.igagis</groupId>
-		  <artifactId>libutki</artifactId>
+		  <artifactId>utki</artifactId>
 		  <version>[1.1.7,)</version>
 		  <type>aar</type>
 		  <scope>compile</scope>
 	  </dependency>
 	  <dependency>
 		  <groupId>io.github.igagis</groupId>
-		  <artifactId>libpapki</artifactId>
+		  <artifactId>papki</artifactId>
 		  <version>[1.0.35,)</version>
 		  <type>aar</type>
 		  <scope>compile</scope>
 	  </dependency>
 	  <dependency>
 		  <groupId>io.github.igagis</groupId>
-		  <artifactId>libkolme</artifactId>
-		  <version>[1.0.10,)</version>
+		  <artifactId>r4</artifactId>
+		  <version>[0.1.0,)</version>
 		  <type>aar</type>
 		  <scope>compile</scope>
 	  </dependency>
 	  <dependency>
 		  <groupId>io.github.igagis</groupId>
-		  <artifactId>libmorda</artifactId>
+		  <artifactId>morda</artifactId>
 		  <version>[0.5.71,)</version>
 		  <type>aar</type>
 		  <scope>compile</scope>
 	  </dependency>
 	  <dependency>
 		  <groupId>io.github.igagis</groupId>
-		  <artifactId>libmorda_opengles2_ren</artifactId>
+		  <artifactId>morda_opengles2_ren</artifactId>
 		  <version>[0.1.9,)</version>
 		  <type>aar</type>
 		  <scope>compile</scope>
 	  </dependency>
 	  <dependency>
 		  <groupId>io.github.igagis</groupId>
-		  <artifactId>libnitki</artifactId>
+		  <artifactId>nitki</artifactId>
 		  <version>[1.0.16,)</version>
 		  <type>aar</type>
 		  <scope>compile</scope>

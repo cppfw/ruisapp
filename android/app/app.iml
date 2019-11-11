@@ -151,7 +151,7 @@
     <orderEntry type="library" name="Gradle: io.github.igagis:libmorda_opengles2_ren:0.1.20@aar" level="project" />
     <orderEntry type="library" name="Gradle: org.freetype:freetype2:1.0.0@aar" level="project" />
     <orderEntry type="library" name="Gradle: io.github.igagis:libunikod:2.0.25@aar" level="project" />
-    <orderEntry type="library" name="Gradle: artifacts:libmordavokne:unspecified@jar" level="project" />
+    <orderEntry type="library" name="Gradle: artifacts:mordavokne:unspecified@jar" level="project" />
     <orderEntry type="library" name="Gradle: io.github.igagis:libnitki:1.0.21@aar" level="project" />
     <orderEntry type="library" name="Gradle: io.github.igagis:libmikroxml:0.1.10@aar" level="project" />
     <orderEntry type="library" name="Gradle: io.github.igagis:libsvgdom:0.3.24@aar" level="project" />
