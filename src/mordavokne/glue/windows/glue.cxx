@@ -357,7 +357,7 @@ LRESULT	CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 		{
 			auto& ww = getImpl(getWindowPimpl(mordavokne::inst()));
 			if(!ww.isHovered){
-				
+
 				TRACKMOUSEEVENT tme = { sizeof(tme) };
 				tme.dwFlags = TME_LEAVE;
 				tme.hwndTrack = hwnd;
@@ -509,7 +509,7 @@ LRESULT	CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 					times = -times;
 					button = morda::MouseButton_e::WHEEL_DOWN;
 				}
-				
+
 				POINT pos;
 				pos.x = GET_X_LPARAM(lParam);
 				pos.y = GET_Y_LPARAM(lParam);
@@ -601,8 +601,8 @@ morda::real getDotsPerInch(HDC dc){
 }
 
 morda::real getDotsPerPt(HDC dc){
-	kolme::Vec2ui resolution(GetDeviceCaps(dc, HORZRES), GetDeviceCaps(dc, VERTRES));
-	kolme::Vec2ui screenSizeMm(GetDeviceCaps(dc, HORZSIZE), GetDeviceCaps(dc, VERTSIZE));
+	r4::vec2ui resolution(GetDeviceCaps(dc, HORZRES), GetDeviceCaps(dc, VERTRES));
+	r4::vec2ui screenSizeMm(GetDeviceCaps(dc, HORZSIZE), GetDeviceCaps(dc, VERTSIZE));
 
 	return mordavokne::App::findDotsPerDp(resolution, screenSizeMm);
 }
@@ -615,11 +615,11 @@ std::string initializeStorageDir(const std::string& appName){
 	if (SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, path) != S_OK) {
 		throw utki::Exc("failed to get user's profile directory.");
 	}
-	
+
 	path[sizeof(path) - 1] = '\0';//null-terminate the string just in case
-	
+
 	std::string homeDirStr(path, strlen(path));
-	
+
 	ASSERT(homeDirStr.size() != 0)
 
 	if(homeDirStr[homeDirStr.size() - 1] == '\\'){
@@ -683,7 +683,7 @@ void winmain(int argc, const char** argv){
 
 	if(!f){ //try MSVC function mangling style
 		f = reinterpret_cast<decltype(f)>(GetProcAddress(
-				GetModuleHandle(NULL),			
+				GetModuleHandle(NULL),
 #if M_CPU == M_CPU_X86_64
 				TEXT("?createApp@mordavokne@@YA?AV?$unique_ptr@VApp@mordavokne@@U?$default_delete@VApp@mordavokne@@@std@@@std@@HPEAPEBD@Z")
 #else
@@ -919,7 +919,7 @@ WindowWrapper::WindowWrapper(const App::WindowParams& wp){
 	});
 
 	//	TRACE_AND_LOG(<< "App::DeviceContextWrapper::DeviceContextWrapper(): DC created" << std::endl)
-	
+
 	{
 		static PIXELFORMATDESCRIPTOR pfd = {
 			sizeof(PIXELFORMATDESCRIPTOR),

@@ -239,11 +239,11 @@ struct WindowWrapper : public utki::Unique{
 		eglDisplayScopeExit.reset();
 	}
 
-	kolme::Vec2ui getWindowSize(){
+	r4::vec2ui getWindowSize(){
 		EGLint width, height;
 		eglQuerySurface(this->display, this->surface, EGL_WIDTH, &width);
 		eglQuerySurface(this->display, this->surface, EGL_HEIGHT, &height);
-		return kolme::Vec2ui(width, height);
+		return r4::vec2ui(width, height);
 	}
 
 	void swapBuffers(){
@@ -491,7 +491,7 @@ std::unique_ptr<AndroidConfiguration> curConfig;
 
 
 class KeyEventToUnicodeResolver : public morda::Morda::UnicodeProvider{
-public:	
+public:
 	int32_t kc;//key code
 	int32_t ms;//meta state
 	int32_t di;//device id
@@ -567,7 +567,7 @@ class LinuxTimer{
 		fdFlag.Set();
 	}
 
-public:	
+public:
 	LinuxTimer(){
 		int res = timer_create(
 				CLOCK_MONOTONIC,

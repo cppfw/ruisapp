@@ -13,8 +13,8 @@
 using namespace mordavokne;
 
 
-#include "../unixCommon.cppinc"
-#include "../friendAccessors.cppinc"
+#include "../unixCommon.cxx"
+#include "../friendAccessors.cxx"
 
 @interface CocoaView : NSView{
 	NSTrackingArea* ta;
@@ -67,13 +67,13 @@ struct WindowWrapper : public utki::Unique{
 	NSApplication* applicationObjectId;
 	CocoaWindow* windowObjectId;
 	NSOpenGLContext* openglContextId;
-	
+
 	bool quitFlag = false;
-	
+
 	bool mouseCursorIsCurrentlyVisible = true;
-	
+
 	WindowWrapper(const App::WindowParams& wp);
-	
+
 	~WindowWrapper()noexcept;
 };
 
@@ -88,7 +88,7 @@ WindowWrapper& getImpl(const std::unique_ptr<utki::Unique>& pimpl){
 
 namespace{
 
-	
+
 void mouseButton(NSEvent* e, bool isDown, morda::MouseButton_e button){
 	NSPoint winPos = [e locationInWindow];
 	auto pos = morda::Vec2r(winPos.x, winPos.y).rounded();
@@ -119,7 +119,7 @@ void macosx_HandleMouseHover(bool isHovered){
 			[NSCursor unhide];
 		}
 	}
-	
+
 	handleMouseHover(mordavokne::App::inst(), isHovered, 0);
 }
 
@@ -134,19 +134,19 @@ public:
 	MacosxUnicodeProvider(const NSString* nsStr = nullptr) :
 			nsStr(nsStr)
 	{}
-	
+
 	std::u32string get()const override{
 		if(!this->nsStr){
 			return std::u32string();
 		}
-		
+
 		NSUInteger len = [this->nsStr length];
-		
+
 		std::u32string ret(len, 0);
 		for(unsigned i = 0; i != len; ++i){
 			ret[i] = [this->nsStr characterAtIndex:i];
 		}
-		
+
 		return ret;
 	}
 };
@@ -478,7 +478,7 @@ const std::array<morda::Key_e, std::uint8_t(-1) + 1> keyCodeMap = {{
 
 -(void)scrollWheel: (NSEvent*)e{
 //	TRACE(<< "mouse wheel!!!!!" << std::endl)
-	
+
 	if([e hasPreciseScrollingDeltas] == NO){
 		morda::MouseButton_e button;
 //		TRACE(<< "dy = " << float(dy) << std::endl)
@@ -488,7 +488,7 @@ const std::array<morda::Key_e, std::uint8_t(-1) + 1> keyCodeMap = {{
 			button = morda::MouseButton_e::WHEEL_UP;
 		}
 //		TRACE(<< "button = " << unsigned(button) << std::endl)
-		
+
 		mouseButton(e, true, button);
 		mouseButton(e, false, button);
 	}else{
@@ -534,14 +534,14 @@ const std::array<morda::Key_e, std::uint8_t(-1) + 1> keyCodeMap = {{
 //	TRACE(<< "keyDown event!!!!!" << std::endl)
 	std::uint8_t kc = [e keyCode];
 	morda::Key_e key = keyCodeMap[kc];
-	
+
 	if([e isARepeat] == YES){
 		macosx_HandleCharacterInput([e characters], key);
 		return;
 	}
-	
+
 	macosx_HandleKeyEvent(true, key);
-	
+
 	macosx_HandleCharacterInput([e characters], key);
 }
 
@@ -564,17 +564,17 @@ const std::array<morda::Key_e, std::uint8_t(-1) + 1> keyCodeMap = {{
 	}
 //	[self setLevel:NSFloatingWindowLevel];
 	[self setLevel:NSNormalWindowLevel];
-	
+
 	self->v = [[CocoaView alloc] initWithFrame:[self frameRectForContentRect:contentRect]];
 	[self setContentView:self->v];
-	
+
 	[self initStuff];
-	
+
 	[self setShowsResizeIndicator:YES];
 	[self setMinSize:NSMakeSize(0, 0)];
 	[self setMaxSize:NSMakeSize(1000000000, 1000000000)];
 	[self setIgnoresMouseEvents:NO];
-	
+
 	return self;
 }
 
@@ -686,11 +686,11 @@ WindowWrapper::WindowWrapper(const App::WindowParams& wp){
 	if(glewInit() != GLEW_OK){
 		throw morda::Exc("GLEW initialization failed");
 	}
-	
+
 	scopeExitOpenGLContext.reset();
 	scopeExitWindow.reset();
 	scopeExitApplication.reset();
-	
+
 	TRACE(<< "WindowWrapper::WindowWrapper(): exit" << std::endl)
 }
 
@@ -718,15 +718,15 @@ int main (int argc, const char** argv){
 	auto app = createAppUnix(argc, argv);
 
 	TRACE(<< "main(): app created" << std::endl)
-	
+
 	auto& ww = getImpl(getWindowPimpl(*app));
-	
+
 	[ww.applicationObjectId activateIgnoringOtherApps:YES];
-	
+
 	[ww.windowObjectId makeKeyAndOrderFront:nil];
 
 	[ww.windowObjectId orderFrontRegardless];
-	
+
 	//in order to get keyboard events we need to be foreground application
 	{
 		ProcessSerialNumber psn = {0, kCurrentProcess};
@@ -735,12 +735,12 @@ int main (int argc, const char** argv){
 			ASSERT(false)
 		}
 	}
-	
+
 	do{
 		render(mordavokne::inst());
-		
+
 		std::uint32_t millis = mordavokne::inst().gui.update();
-		
+
 		NSEvent *event = [ww.applicationObjectId
 				nextEventMatchingMask:NSEventMaskAny
 				untilDate:[NSDate dateWithTimeIntervalSinceNow:(double(millis) / 1000.0)]
@@ -751,7 +751,7 @@ int main (int argc, const char** argv){
 		if(!event){
 			continue;
 		}
-		
+
 		do{
 //			TRACE_ALWAYS(<< "Event: type = "<< [event type] << std::endl)
 			switch([event type]){
@@ -766,7 +766,7 @@ int main (int argc, const char** argv){
 					[ww.applicationObjectId updateWindows];
 					break;
 			}
-			
+
 			event = [ww.applicationObjectId
 					nextEventMatchingMask:NSEventMaskAny
 					untilDate:[NSDate distantPast]
@@ -803,10 +803,10 @@ morda::real getDotsPerPt(){
 	CGSize displayPhysicalSize = CGDisplayScreenSize(
 			[[description objectForKey:@"NSScreenNumber"] unsignedIntValue]
 		);
-	
-	kolme::Vec2ui resolution(displayPixelSize.width, displayPixelSize.height);
-	kolme::Vec2ui screenSizeMm(displayPhysicalSize.width, displayPhysicalSize.height);
-	
+
+	r4::vec2ui resolution(displayPixelSize.width, displayPixelSize.height);
+	r4::vec2ui screenSizeMm(displayPhysicalSize.width, displayPhysicalSize.height);
+
 	return App::findDotsPerDp(resolution, screenSizeMm);
 }
 
@@ -862,9 +862,9 @@ void App::setFullscreen(bool enable){
 	if(enable == this->isFullscreen()){
 		return;
 	}
-	
+
 	auto& ww = getImpl(this->windowPimpl);
-	
+
 	if(enable){
 		//save old window size
 		NSRect rect = [ww.windowObjectId frame];
@@ -872,26 +872,26 @@ void App::setFullscreen(bool enable){
 		this->beforeFullScreenWindowRect.p.y = rect.origin.y;
 		this->beforeFullScreenWindowRect.d.x = rect.size.width;
 		this->beforeFullScreenWindowRect.d.y = rect.size.height;
-		
+
 		[ww.windowObjectId setStyleMask:([ww.windowObjectId styleMask] & (~(NSWindowStyleMaskTitled | NSWindowStyleMaskResizable)))];
-		
+
 		[ww.windowObjectId setFrame:[[NSScreen mainScreen] frame] display:YES animate:NO];
 		[ww.windowObjectId setLevel:NSScreenSaverWindowLevel];
 	}else{
 		[ww.windowObjectId setStyleMask:([ww.windowObjectId styleMask] | NSWindowStyleMaskTitled | NSWindowStyleMaskResizable)];
-		
+
 		NSRect oldFrame;
 		oldFrame.origin.x = this->beforeFullScreenWindowRect.p.x;
 		oldFrame.origin.y = this->beforeFullScreenWindowRect.p.y;
 		oldFrame.size.width = this->beforeFullScreenWindowRect.d.x;
 		oldFrame.size.height = this->beforeFullScreenWindowRect.d.y;
-		
+
 		[ww.windowObjectId setFrame:oldFrame display:YES animate:NO];
 		[ww.windowObjectId setLevel:NSNormalWindowLevel];
 	}
-	
+
 	[ww.windowObjectId initStuff];
-	
+
 	this->isFullscreen_v = enable;
 }
 

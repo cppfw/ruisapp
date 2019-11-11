@@ -38,7 +38,7 @@
 using namespace mordavokne;
 
 
-#include "../unixCommon.cppinc"
+#include "../unixCommon.cxx"
 
 
 namespace{
@@ -66,9 +66,9 @@ struct WindowWrapper : public utki::Unique{
 	XIC inputContext;
 
 	nitki::Queue uiQueue;
-	
+
 	volatile bool quitFlag = false;
-	
+
 	WindowWrapper(const App::WindowParams& wp){
 		this->display = XOpenDisplay(0);
 		if(!this->display){
@@ -90,7 +90,7 @@ struct WindowWrapper : public utki::Unique{
 				throw utki::Exc("GLX version 1.3 or above is required");
 			}
 		}
-		
+
 		GLXFBConfig bestFbc;
 		{
 			std::vector<int> visualAttribs;
@@ -152,12 +152,12 @@ struct WindowWrapper : public utki::Unique{
 		utki::ScopeExit scopeExitEGLDisplay([this](){
 			eglTerminate(this->eglDisplay);
 		});
-		
+
 		if(eglInitialize(this->eglDisplay, nullptr, nullptr) == EGL_FALSE){
 			eglTerminate(this->eglDisplay);
 			throw utki::Exc("eglInitialize() failed");
 		}
-		
+
 		EGLConfig eglConfig;
 		{
 			//TODO: allow stencil and depth configuration etc. via WindowParams
@@ -184,7 +184,7 @@ struct WindowWrapper : public utki::Unique{
 				throw utki::Exc("eglChooseConfig() failed, no matching config found");
 			}
 		}
-		
+
 		if(eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE){
 			throw utki::Exc("eglBindApi() failed");
 		}
@@ -218,7 +218,7 @@ struct WindowWrapper : public utki::Unique{
 #	else
 		{
 			EGLint vid;
-	
+
 			if(!eglGetConfigAttrib(this->eglDisplay, eglConfig, EGL_NATIVE_VISUAL_ID, &vid)) {
 				throw utki::Exc("eglGetConfigAttrib() failed");
 			}
@@ -329,7 +329,7 @@ struct WindowWrapper : public utki::Unique{
 			bcm_host_init();
 
 			VC_RECT_T dst_rect, src_rect;
-   
+
 			std::uint32_t display_width, display_height;
 
 			// create an EGL window surface, passing context width/height
@@ -350,7 +350,7 @@ struct WindowWrapper : public utki::Unique{
 			src_rect.x = 0;
 			src_rect.y = 0;
 			src_rect.width = display_width << 16;
-			src_rect.height = display_height << 16;   
+			src_rect.height = display_height << 16;
 
 			this->rpiDispmanDisplay = vc_dispmanx_display_open(0); //0 = LCD
 			this->rpiDispmanUpdate = vc_dispmanx_update_start(0);
@@ -391,7 +391,7 @@ struct WindowWrapper : public utki::Unique{
 		utki::ScopeExit scopeExitEGLSurface([this](){
 			eglDestroySurface(this->eglDisplay, this->eglSurface);
 		});
-		
+
 		{
 			EGLint contextAttrs[] = {
 				EGL_CONTEXT_CLIENT_VERSION, 2, //This is needed at least on Android, otherwise eglCreateContext() thinks that we want OpenGL ES 1.1, but we want 2.0
@@ -415,7 +415,7 @@ struct WindowWrapper : public utki::Unique{
 #else
 #	error "Unknown graphics API"
 #endif
-		
+
 		{
 			Pixmap blank;
 			XColor dummy;
@@ -495,11 +495,11 @@ struct WindowWrapper : public utki::Unique{
 
 		XDestroyWindow(this->display, this->window);
 		XFreeColormap(this->display, this->colorMap);
-		
+
 #ifdef M_RENDER_OPENGLES2
 		eglTerminate(this->eglDisplay);
 #endif
-		
+
 		XCloseDisplay(this->display);
 	}
 };
@@ -524,9 +524,9 @@ morda::real getDotsPerInch(Display* display){
 
 morda::real getDotsPerPt(Display* display){
 	int scrNum = 0;
-	kolme::Vec2ui resolution(DisplayWidth(display, scrNum), DisplayHeight(display, scrNum));
-	kolme::Vec2ui screenSizeMm(DisplayWidthMM(display, scrNum), DisplayHeightMM(display, scrNum));
-	
+	r4::vec2ui resolution(DisplayWidth(display, scrNum), DisplayHeight(display, scrNum));
+	r4::vec2ui screenSizeMm(DisplayWidthMM(display, scrNum), DisplayHeightMM(display, scrNum));
+
 	return App::findDotsPerDp(resolution, screenSizeMm);
 }
 }//~namespace
@@ -913,7 +913,7 @@ public:
 
 void App::quit()noexcept{
 	auto& ww = getImpl(this->windowPimpl);
-	
+
 	ww.quitFlag = true;
 }
 
@@ -923,13 +923,13 @@ void App::quit()noexcept{
 
 int main(int argc, const char** argv){
 	std::unique_ptr<mordavokne::App> app = createAppUnix(argc, argv);
-	
+
 	ASSERT(app)
 
 	auto& ww = getImpl(getWindowPimpl(*app));
-	
-	
-	
+
+
+
 	XEventWaitable xew(ww.display);
 
 	pogodi::WaitSet waitSet(2);
@@ -1061,7 +1061,7 @@ int main(int argc, const char** argv){
 
 	waitSet.remove(ww.uiQueue);
 	waitSet.remove(xew);
-	
+
 	return 0;
 }
 
@@ -1076,7 +1076,7 @@ void App::setFullscreen(bool enable){
 	if(enable == this->isFullscreen()){
 		return;
 	}
-	
+
 	auto& ww = getImpl(this->windowPimpl);
 
 	XEvent event;
@@ -1107,7 +1107,7 @@ void App::setFullscreen(bool enable){
 
 void App::setMouseCursorVisible(bool visible){
 	auto& ww = getImpl(this->windowPimpl);
-	
+
 	if(visible){
 		XUndefineCursor(ww.display, ww.window);
 	}else{
@@ -1120,7 +1120,7 @@ void App::setMouseCursorVisible(bool visible){
 void App::swapFrameBuffers(){
 	auto& ww = getImpl(this->windowPimpl);
 
-#ifdef M_RENDER_OPENGL2	
+#ifdef M_RENDER_OPENGL2
 	glXSwapBuffers(ww.display, ww.window);
 #elif defined(M_RENDER_OPENGLES2)
 	eglSwapBuffers(ww.eglDisplay, ww.eglSurface);

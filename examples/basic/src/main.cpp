@@ -8,27 +8,27 @@
 class Application : public mordavokne::App{
 public:
 	Application() :
-			mordavokne::App(mordavokne::App::WindowParams(kolme::Vec2ui(800, 600)))
+			mordavokne::App(mordavokne::App::WindowParams(r4::vec2ui(800, 600)))
 	{
 		morda::Morda::inst().initStandardWidgets(*this->getResFile());
-		
+
 		//Inflate widgets hierarchy from GUI description script
 		auto c = morda::Morda::inst().inflater.inflate(
 				*this->getResFile("res/main.gui")
 			);
-		
+
 		//set the widgets hierarchy to the application
 		morda::Morda::inst().setRootWidget(c);
-		
+
 		auto textLabel = c->findChildByNameAs<morda::TextLabel>("info_text");
 		ASSERT(textLabel)
-		
+
 		auto button = c->findChildByNameAs<morda::PushButton>("hw_button");
-		
+
 		auto textLabelWeak = utki::makeWeak(textLabel);//make a weak pointer to the TextLabel widget.
-		
+
 		bool even = true;
-		
+
 		//connect some action on button click
 		button->clicked = [textLabelWeak, even](morda::PushButton&) mutable {
 			if(auto tl = textLabelWeak.lock()){

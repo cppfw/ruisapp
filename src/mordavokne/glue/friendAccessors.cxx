@@ -1,5 +1,5 @@
 namespace mordavokne{
-	
+
 const decltype(App::windowPimpl)& getWindowPimpl(App& app){
 	return app.windowPimpl;
 }
@@ -12,11 +12,11 @@ void updateWindowRect(App& app, const morda::Rectr& rect){
 	app.updateWindowRect(rect);
 }
 
-void handleMouseMove(App& app, const kolme::Vec2f& pos, unsigned id){
+void handleMouseMove(App& app, const r4::vec2f& pos, unsigned id){
 	app.handleMouseMove(pos, id);
 }
 
-void handleMouseButton(App& app, bool isDown, const kolme::Vec2f& pos, morda::MouseButton_e button, unsigned id){
+void handleMouseButton(App& app, bool isDown, const r4::vec2f& pos, morda::MouseButton_e button, unsigned id){
 	app.handleMouseButton(isDown, pos, button, id);
 }
 

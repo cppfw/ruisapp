@@ -3,13 +3,13 @@
 #include "../App.hpp"
 
 
-#include "friendAccessors.cppinc"
+#include "friendAccessors.cxx"
 
 
 #if M_OS == M_OS_WINDOWS
-#	include "windows/glue.cppinc"
+#	include "windows/glue.cxx"
 #elif M_OS == M_OS_LINUX && M_OS_NAME == M_OS_NAME_ANDROID
-#	include "android/glue.cppinc"
+#	include "android/glue.cxx"
 #elif M_OS == M_OS_LINUX
-#	include "linux/glue.cppinc"
+#	include "linux/glue.cxx"
 #endif

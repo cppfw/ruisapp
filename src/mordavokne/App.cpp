@@ -19,9 +19,9 @@ App::T_Instance App::instance;
 void App::render(){
 	//TODO: render only if needed?
 	this->gui.renderer().clearFramebuffer();
-	
+
 	this->gui.render(this->gui.renderer().initialMatrix);
-	
+
 	this->swapFrameBuffers();
 }
 
@@ -31,19 +31,19 @@ void App::updateWindowRect(const morda::Rectr& rect){
 	if(this->curWinRect == rect){
 		return;
 	}
-	
+
 	this->curWinRect = rect;
 
 	TRACE(<< "App::UpdateWindowRect(): this->curWinRect = " << this->curWinRect << std::endl)
-	this->gui.renderer().setViewport(kolme::Recti(
+	this->gui.renderer().setViewport(r4::recti(
 			int(this->curWinRect.p.x),
 			int(this->curWinRect.p.y),
 			int(this->curWinRect.d.x),
 			int(this->curWinRect.d.y)
 		));
-	
+
 	this->gui.setViewportSize(this->curWinRect.d);
-	
+
 }
 
 
@@ -68,8 +68,8 @@ void App::hideVirtualKeyboard()noexcept{
 
 
 
-morda::real App::findDotsPerDp(kolme::Vec2ui resolution, kolme::Vec2ui screenSizeMm){
-	
+morda::real App::findDotsPerDp(r4::vec2ui resolution, r4::vec2ui screenSizeMm){
+
 	//NOTE: for ordinary desktop displays the PT size should be equal to 1 pixel.
 	//For high density displays it should be more than one pixel, depending on display ppi.
 	//For hand held devices the size of PT should be determined from physical screen size and pixel resolution.
@@ -83,13 +83,13 @@ morda::real App::findDotsPerDp(kolme::Vec2ui resolution, kolme::Vec2ui screenSiz
 	}else{
 		xIndex = 1;
 	}
-	
+
 	if(screenSizeMm[xIndex] < 300){
 		return resolution[xIndex] / morda::real(700);
 	}else if(screenSizeMm[xIndex] < 150) {
         return resolution[xIndex] / morda::real(200);
     }
-	
+
 	return morda::real(1);
 #endif
 }

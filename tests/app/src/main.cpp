@@ -1,4 +1,4 @@
-#include <kolme/Quaternion.hpp>
+#include <r4/quaternion.hpp>
 #include <utki/debug.hpp>
 #include <utki/config.hpp>
 #include <papki/FSFile.hpp>
@@ -39,37 +39,37 @@
 
 class SimpleWidget : virtual public morda::Widget, public morda::Updateable, public morda::CharInputWidget{
 	std::shared_ptr<morda::ResTexture> tex;
-	
-public:	
+
+public:
 	SimpleWidget(const stob::Node* desc) :
 			morda::Widget(desc)
 	{
 //		TRACE(<< "loading texture" << std::endl)
 		this->tex = morda::Morda::inst().resMan.load<morda::ResTexture>("tex_sample");
 	}
-	
+
 	std::uint32_t timer = 0;
 	std::uint32_t cnt = 0;
-	
+
 	void update(std::uint32_t dt) override{
 		this->timer += dt;
 		++this->cnt;
-		
+
 		if(this->timer > 1000){
 			this->timer -= 1000;
-			
+
 			TRACE(<< "Update(): UPS = " << this->cnt << std::endl)
-			
+
 			this->cnt = 0;
 		}
 	}
-	
+
 	bool onMouseButton(bool isDown, const morda::Vec2r& pos, morda::MouseButton_e button, unsigned pointerId) override{
 		TRACE(<< "OnMouseButton(): isDown = " << isDown << ", pos = " << pos << ", button = " << unsigned(button) << ", pointerId = " << pointerId << std::endl)
 		if(!isDown){
 			return false;
 		}
-		
+
 		if(this->isUpdating()){
 			this->stopUpdating();
 		}else{
@@ -78,7 +78,7 @@ public:
 		this->focus();
 		return true;
 	}
-	
+
 	bool onKey(bool isDown, morda::Key_e keyCode) override{
 		if(isDown){
 			TRACE(<< "SimpleWidget::OnKey(): down, keyCode = " << unsigned(keyCode) << std::endl)
@@ -107,15 +107,15 @@ public:
 		}
 		return false;
 	}
-	
+
 	void onCharacterInput(const std::u32string& unicode, morda::Key_e key) override{
 		if(unicode.size() == 0){
 			return;
 		}
-		
+
 		TRACE(<< "SimpleWidget::OnCharacterInput(): unicode = " << unicode[0] << std::endl)
 	}
-	
+
 	void render(const morda::Matr4r& matrix)const override{
 		morda::Matr4r matr(matrix);
 		matr.scale(this->rect().d);
@@ -129,103 +129,103 @@ public:
 
 class CubeWidget : public morda::Widget, public morda::Updateable{
 	std::shared_ptr<morda::ResTexture> tex;
-	
+
 	morda::Quatr rot = morda::Quatr().identity();
 public:
 	std::shared_ptr<morda::VertexArray> cubeVAO;
-	
+
 	CubeWidget(const stob::Node* desc) :
 			Widget(desc)
 	{
 		std::array<morda::Vec3r, 36> cubePos = {{
-			kolme::Vec3f(-1, -1, 1), kolme::Vec3f(1, -1, 1), kolme::Vec3f(-1, 1, 1),
-			kolme::Vec3f(1, -1, 1), kolme::Vec3f(1, 1, 1), kolme::Vec3f(-1, 1, 1),
-			
-			kolme::Vec3f(1, -1, 1), kolme::Vec3f(1, -1, -1), kolme::Vec3f(1, 1, 1),
-			kolme::Vec3f(1, -1, -1), kolme::Vec3f(1, 1, -1), kolme::Vec3f(1, 1, 1),
-			
-			kolme::Vec3f(1, -1, -1), kolme::Vec3f(-1, -1, -1), kolme::Vec3f(1, 1, -1),
-			kolme::Vec3f(-1, -1, -1), kolme::Vec3f(-1, 1, -1), kolme::Vec3f(1, 1, -1),
-			
-			kolme::Vec3f(-1, -1, -1), kolme::Vec3f(-1, -1, 1), kolme::Vec3f(-1, 1, -1),
-			kolme::Vec3f(-1, -1, 1), kolme::Vec3f(-1, 1, 1), kolme::Vec3f(-1, 1, -1),
-			
-			kolme::Vec3f(-1, 1, -1), kolme::Vec3f(-1, 1, 1), kolme::Vec3f(1, 1, -1),
-			kolme::Vec3f(-1, 1, 1), kolme::Vec3f(1, 1, 1), kolme::Vec3f(1, 1, -1),
-			
-			kolme::Vec3f(-1, -1, -1), kolme::Vec3f(1, -1, -1), kolme::Vec3f(-1, -1, 1),
-			kolme::Vec3f(-1, -1, 1), kolme::Vec3f(1, -1, -1), kolme::Vec3f(1, -1, 1)
+			r4::vec3f(-1, -1, 1), r4::vec3f(1, -1, 1), r4::vec3f(-1, 1, 1),
+			r4::vec3f(1, -1, 1), r4::vec3f(1, 1, 1), r4::vec3f(-1, 1, 1),
+
+			r4::vec3f(1, -1, 1), r4::vec3f(1, -1, -1), r4::vec3f(1, 1, 1),
+			r4::vec3f(1, -1, -1), r4::vec3f(1, 1, -1), r4::vec3f(1, 1, 1),
+
+			r4::vec3f(1, -1, -1), r4::vec3f(-1, -1, -1), r4::vec3f(1, 1, -1),
+			r4::vec3f(-1, -1, -1), r4::vec3f(-1, 1, -1), r4::vec3f(1, 1, -1),
+
+			r4::vec3f(-1, -1, -1), r4::vec3f(-1, -1, 1), r4::vec3f(-1, 1, -1),
+			r4::vec3f(-1, -1, 1), r4::vec3f(-1, 1, 1), r4::vec3f(-1, 1, -1),
+
+			r4::vec3f(-1, 1, -1), r4::vec3f(-1, 1, 1), r4::vec3f(1, 1, -1),
+			r4::vec3f(-1, 1, 1), r4::vec3f(1, 1, 1), r4::vec3f(1, 1, -1),
+
+			r4::vec3f(-1, -1, -1), r4::vec3f(1, -1, -1), r4::vec3f(-1, -1, 1),
+			r4::vec3f(-1, -1, 1), r4::vec3f(1, -1, -1), r4::vec3f(1, -1, 1)
 		}};
-		
+
 		auto posVBO = morda::inst().renderer().factory->createVertexBuffer(utki::wrapBuf(cubePos));
-		
-		std::array<kolme::Vec2f, 36> cubeTex = {{
-			kolme::Vec2f(0, 0), kolme::Vec2f(1, 0), kolme::Vec2f(0, 1),
-			kolme::Vec2f(1, 0), kolme::Vec2f(1, 1), kolme::Vec2f(0, 1),
-			
-			kolme::Vec2f(0, 0), kolme::Vec2f(1, 0), kolme::Vec2f(0, 1),
-			kolme::Vec2f(1, 0), kolme::Vec2f(1, 1), kolme::Vec2f(0, 1),
-			
-			kolme::Vec2f(0, 0), kolme::Vec2f(1, 0), kolme::Vec2f(0, 1),
-			kolme::Vec2f(1, 0), kolme::Vec2f(1, 1), kolme::Vec2f(0, 1),
-		
-			kolme::Vec2f(0, 0), kolme::Vec2f(1, 0), kolme::Vec2f(0, 1),
-			kolme::Vec2f(1, 0), kolme::Vec2f(1, 1), kolme::Vec2f(0, 1),
-			
-			kolme::Vec2f(0, 0), kolme::Vec2f(1, 0), kolme::Vec2f(0, 1),
-			kolme::Vec2f(1, 0), kolme::Vec2f(1, 1), kolme::Vec2f(0, 1),
-			
-			kolme::Vec2f(0, 0), kolme::Vec2f(1, 0), kolme::Vec2f(0, 1),
-			kolme::Vec2f(1, 0), kolme::Vec2f(1, 1), kolme::Vec2f(0, 1)
+
+		std::array<r4::vec2f, 36> cubeTex = {{
+			r4::vec2f(0, 0), r4::vec2f(1, 0), r4::vec2f(0, 1),
+			r4::vec2f(1, 0), r4::vec2f(1, 1), r4::vec2f(0, 1),
+
+			r4::vec2f(0, 0), r4::vec2f(1, 0), r4::vec2f(0, 1),
+			r4::vec2f(1, 0), r4::vec2f(1, 1), r4::vec2f(0, 1),
+
+			r4::vec2f(0, 0), r4::vec2f(1, 0), r4::vec2f(0, 1),
+			r4::vec2f(1, 0), r4::vec2f(1, 1), r4::vec2f(0, 1),
+
+			r4::vec2f(0, 0), r4::vec2f(1, 0), r4::vec2f(0, 1),
+			r4::vec2f(1, 0), r4::vec2f(1, 1), r4::vec2f(0, 1),
+
+			r4::vec2f(0, 0), r4::vec2f(1, 0), r4::vec2f(0, 1),
+			r4::vec2f(1, 0), r4::vec2f(1, 1), r4::vec2f(0, 1),
+
+			r4::vec2f(0, 0), r4::vec2f(1, 0), r4::vec2f(0, 1),
+			r4::vec2f(1, 0), r4::vec2f(1, 1), r4::vec2f(0, 1)
 		}};
-		
+
 		auto texVBO = morda::inst().renderer().factory->createVertexBuffer(utki::wrapBuf(cubeTex));
-		
+
 		std::array<std::uint16_t, 36> indices = {{
 			0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35
 		}};
-		
+
 		auto cubeIndices = morda::inst().renderer().factory->createIndexBuffer(utki::wrapBuf(indices));
-		
+
 		this->cubeVAO = morda::inst().renderer().factory->createVertexArray({posVBO, texVBO}, cubeIndices, morda::VertexArray::Mode_e::TRIANGLES);
-		
+
 		this->tex = morda::Morda::inst().resMan.load<morda::ResTexture>("tex_sample");
 		this->rot.identity();
-		
-		
+
+
 	}
-	
+
 	unsigned fps = 0;
 	std::uint32_t fpsSecCounter = 0;
-	
+
 	void update(std::uint32_t dt) override{
 		this->fpsSecCounter += dt;
 		++this->fps;
-		this->rot %= morda::Quatr().initRot(kolme::Vec3f(1, 2, 1).normalize(), 1.5f * (float(dt) / 1000));
+		this->rot %= morda::Quatr().initRot(r4::vec3f(1, 2, 1).normalize(), 1.5f * (float(dt) / 1000));
 		if(this->fpsSecCounter >= 1000){
 			TRACE_ALWAYS(<< "fps = " << fps << std::endl)
 			this->fpsSecCounter = 0;
 			this->fps = 0;
 		}
 	}
-	
+
 	void render(const morda::Matr4r& matrix)const override{
 		this->Widget::render(matrix);
-		
+
 		morda::Matr4r matr(matrix);
 		matr.scale(this->rect().d / 2);
 		matr.translate(1, 1);
 		matr.frustum(-2, 2, -1.5, 1.5, 2, 100);
-		
+
 		morda::Matr4r m(matr);
 		m.translate(0, 0, -4);
-		
+
 		m.rotate(this->rot);
 
 //		glEnable(GL_CULL_FACE);
-		
+
 		morda::inst().renderer().shader->posTex->render(m, *this->cubeVAO, this->tex->tex());
-		
+
 //		glDisable(GL_CULL_FACE);
 	}
 };
@@ -234,9 +234,9 @@ public:
 
 class TreeViewItemsProvider : public morda::TreeView::ItemsProvider{
 	std::unique_ptr<stob::Node> root;
-	
+
 public:
-	
+
 	TreeViewItemsProvider(){
 		this->root = stob::parse(R"qwertyuiop(
 				{
@@ -269,11 +269,11 @@ public:
 				}
 			)qwertyuiop");
 	}
-	
+
 	~TreeViewItemsProvider(){
-		
+
 	}
-	
+
 	const char* DPlusMinus = R"qwertyuiop(
 			Pile{
 				Image{
@@ -287,7 +287,7 @@ public:
 				}
 			}
 		)qwertyuiop";
-	
+
 	const char* DLine = R"qwertyuiop(
 			Pile{
 				layout{dx{5mm} dy{fill}}
@@ -297,7 +297,7 @@ public:
 				}
 			}
 		)qwertyuiop";
-	
+
 	const char* DLineEnd = R"qwertyuiop(
 			Pile{
 				layout{dx{5mm} dy{max}}
@@ -319,7 +319,7 @@ public:
 				}
 			}
 		)qwertyuiop";
-	
+
 	const char* DLineMiddle = R"qwertyuiop(
 			Pile{
 				layout{dx{5mm} dy{max}}
@@ -337,134 +337,134 @@ public:
 				}
 			}
 		)qwertyuiop";
-	
+
 	const char* DEmpty = R"qwertyuiop(
 			Widget{layout{dx{5mm}dy{0}}}
 		)qwertyuiop";
-	
+
 private:
 	std::vector<size_t> selectedItem;
-	
+
 	unsigned newItemNumber = 0;
-	
+
 	std::string generateNewItemvalue(){
 		std::stringstream ss;
 		ss << "newItem" << newItemNumber;
 		++newItemNumber;
 		return ss.str();
 	}
-	
+
 public:
 	void insertBefore(){
 		if(this->selectedItem.size() == 0){
 			return;
 		}
-		
+
 		auto n = this->root.get();
 		if(!n){
 			return;
 		}
-		
+
 		decltype(n) parent = nullptr;
 		decltype(n) prev = nullptr;
-		
+
 		for(auto i = this->selectedItem.begin(); n && i != this->selectedItem.end(); ++i){
 			parent = n;
 			auto next = n->child(*i);
-			
-			n = next.node();
+
+			n = next.get_node();
 			prev = next.prev();
 		}
-		
+
 		if(!n){
 			return;
 		}
-		
+
 		if(prev){
 			prev->insertNext(utki::makeUnique<stob::Node>(this->generateNewItemvalue().c_str()));
 		}else{
 			parent->addAsFirstChild(this->generateNewItemvalue().c_str());
 		}
-		
+
 		this->notifyItemAdded(this->selectedItem);
 		++this->selectedItem.back();
 	}
-	
+
 	void insertAfter(){
 		if(this->selectedItem.size() == 0){
 			return;
 		}
-		
+
 		auto n = this->root.get();
 		if(!n){
 			return;
 		}
-		
+
 		for(auto i = this->selectedItem.begin(); n && i != this->selectedItem.end(); ++i){
 			auto next = n->child(*i);
-			n = next.node();
+			n = next.get_node();
 		}
-		
+
 		if(!n){
 			return;
 		}
-		
+
 		n->insertNext(utki::makeUnique<stob::Node>(this->generateNewItemvalue().c_str()));
-		
+
 		++this->selectedItem.back();
 		this->notifyItemAdded(this->selectedItem);
 		--this->selectedItem.back();
 	}
-	
+
 	void insertChild(){
 		auto n = this->root.get();
 		if(!n){
 			return;
 		}
-		
+
 		for(auto i = this->selectedItem.begin(); n && i != this->selectedItem.end(); ++i){
 			auto next = n->child(*i);
-			n = next.node();
+			n = next.get_node();
 		}
-		
+
 		if(!n || this->selectedItem.size() == 0){
 			this->selectedItem.clear();
 			n = this->root.get();
 		}
-		
+
 		n->addAsFirstChild(this->generateNewItemvalue().c_str());
-		
+
 		this->selectedItem.push_back(0);
 		this->notifyItemAdded(this->selectedItem);
 		this->selectedItem.pop_back();
 	}
-	
+
 	std::shared_ptr<morda::Widget> getWidget(const std::vector<size_t>& path, bool isCollapsed)override{
 		ASSERT(path.size() >= 1)
-		
+
 		auto n = this->root.get();
 		decltype(n) parent = nullptr;
-		
+
 		std::vector<bool> isLastItemInParent;
-		
+
 		for(auto i = path.begin(); i != path.end(); ++i){
 			parent = n;
-			n = n->child(*i).node();
+			n = n->child(*i).get_node();
 			isLastItemInParent.push_back(n->next() == nullptr);
 		}
-		
+
 		auto ret = std::make_shared<morda::Row>(nullptr);
 
 		ASSERT(isLastItemInParent.size() == path.size())
-		
+
 		for(unsigned i = 0; i != path.size() - 1; ++i){
 			ret->add(*(isLastItemInParent[i] ? stob::parse(DEmpty) : stob::parse(DLine)));
 		}
-		
+
 		{
 			auto widget = std::dynamic_pointer_cast<morda::Pile>(morda::Morda::inst().inflater.inflate(*stob::parse(isLastItemInParent.back() ? DLineEnd : DLineMiddle)));
 			ASSERT(widget)
-			
+
 			if(n->child()){
 				auto w = morda::Morda::inst().inflater.inflate(*stob::parse(DPlusMinus));
 
@@ -504,7 +504,7 @@ public:
 			}
 			ret->add(widget);
 		}
-		
+
 		{
 			auto v = morda::Morda::inst().inflater.inflate(*stob::parse(
 					R"qwertyuiop(
@@ -525,7 +525,7 @@ public:
 							}
 						)qwertyuiop"
 				));
-			
+
 			{
 				auto value = v->findByNameAs<morda::Text>("value");
 				ASSERT(value)
@@ -533,27 +533,27 @@ public:
 			}
 			{
 				auto colorLabel = v->findByNameAs<morda::Color>("selection");
-				
+
 				colorLabel->setVisible(this->selectedItem == path);
-				
+
 				auto mp = v->findByNameAs<morda::MouseProxy>("mouse_proxy");
 				ASSERT(mp)
 				mp->mouseButton = [this, path](morda::Widget&, bool isDown, const morda::Vec2r&, morda::MouseButton_e button, unsigned pointerId) -> bool{
 					if(!isDown || button != morda::MouseButton_e::LEFT){
 						return false;
 					}
-					
+
 					this->selectedItem = path;
 					this->notifyItemChanged();
 					//TODO:
-					
+
 					return true;
 				};
 			}
 
 			ret->add(v);
 		}
-		
+
 		{
 			auto b = std::dynamic_pointer_cast<morda::PushButton>(morda::Morda::inst().inflater.inflate(*stob::parse(
 					R"qwertyuiop(
@@ -572,17 +572,17 @@ public:
 			};
 			ret->add(b);
 		}
-		
+
 		return ret;
 	}
-	
+
 	size_t count(const std::vector<size_t>& path) const noexcept override{
 		auto n = this->root.get();
-		
+
 		for(auto i = path.begin(); i != path.end(); ++i){
-			n = n->child(*i).node();
+			n = n->child(*i).get_node();
 		}
-		
+
 		return n->count();
 	}
 
@@ -592,8 +592,8 @@ public:
 
 class Application : public mordavokne::App{
 	static mordavokne::App::WindowParams GetWindowParams()noexcept{
-		mordavokne::App::WindowParams wp(kolme::Vec2ui(1024, 800));
-		
+		mordavokne::App::WindowParams wp(r4::vec2ui(1024, 800));
+
 		return wp;
 	}
 public:
@@ -602,12 +602,12 @@ public:
 			App("mordavokne_testapp", GetWindowParams())
 	{
 		TRACE(<< "storageDir = " << this->storageDir << std::endl)
-		
+
 		morda::Morda::inst().initStandardWidgets(*this->getResFile());
-		
+
 		morda::Morda::inst().resMan.mountResPack(*this->getResFile("res/"));
 //		this->ResMan().MountResPack(morda::ZipFile::New(papki::FSFile::New("res.zip")));
-		
+
 		morda::Morda::inst().inflater.addWidget<SimpleWidget>("U_SimpleWidget");
 		morda::Morda::inst().inflater.addWidget<CubeWidget>("CubeWidget");
 
@@ -615,7 +615,7 @@ public:
 				*this->getResFile("res/test.gui")
 			);
 		morda::Morda::inst().setRootWidget(c);
-		
+
 		std::dynamic_pointer_cast<morda::KeyProxy>(c)->key = [this](bool isDown, morda::Key_e keyCode) -> bool{
 			if(isDown){
 				if(keyCode == morda::Key_e::ESCAPE){
@@ -627,12 +627,12 @@ public:
 
 //		morda::ZipFile zf(papki::FSFile::New("res.zip"), "test.gui.stob");
 //		std::shared_ptr<morda::Widget> c = morda::Morda::inst().inflater().Inflate(zf);
-		
-		
+
+
 		std::dynamic_pointer_cast<morda::PushButton>(c->findByName("show_VK_button"))->clicked = [this](morda::PushButton&){
 			this->showVirtualKeyboard();
 		};
-		
+
 		std::dynamic_pointer_cast<morda::PushButton>(c->findByName("push_button_in_scroll_container"))->clicked = [this](morda::PushButton&){
 			morda::Morda::inst().postToUiThread_ts(
 					[](){
@@ -640,29 +640,29 @@ public:
 					}
 				);
 		};
-		
+
 		std::dynamic_pointer_cast<CubeWidget>(c->findByName("cube_widget"))->startUpdating(0);
-		
+
 		//ScrollArea
 		{
 			auto scrollArea = c->findByNameAs<morda::ScrollArea>("scroll_area");
 			auto sa = utki::makeWeak(scrollArea);
-			
+
 			auto vertSlider = c->findByNameAs<morda::FractionBandWidget>("scroll_area_vertical_slider");
 			auto vs = utki::makeWeak(vertSlider);
-			
+
 			auto horiSlider = c->findByNameAs<morda::FractionBandWidget>("scroll_area_horizontal_slider");
 			auto hs = utki::makeWeak(horiSlider);
-			
+
 			auto resizeProxy = c->findByNameAs<morda::ResizeProxy>("scroll_area_resize_proxy");
 			auto rp = utki::makeWeak(resizeProxy);
-			
+
 			resizeProxy->resized = [vs, hs, sa](const morda::Vec2r& newSize){
 				auto sc = sa.lock();
 				if(!sc){
 					return;
 				}
-				
+
 				if(auto v = vs.lock()){
 					v->setFraction(sc->scrollFactor().y);
 				}
@@ -670,8 +670,8 @@ public:
 					h->setFraction(sc->scrollFactor().x);
 				}
 			};
-			
-			
+
+
 			vertSlider->fractionChange = [sa](morda::FractionWidget& slider){
 				if(auto s = sa.lock()){
 					auto sf = s->scrollFactor();
@@ -679,7 +679,7 @@ public:
 					s->setScrollPosAsFactor(sf);
 				}
 			};
-			
+
 			horiSlider->fractionChange = [sa](morda::FractionWidget& slider){
 				if(auto s = sa.lock()){
 					auto sf = s->scrollFactor();
@@ -688,24 +688,24 @@ public:
 				}
 			};
 		}
-		
+
 		//VerticalList
 		{
 			auto verticalList = c->findByNameAs<morda::VList>("vertical_list");
 			std::weak_ptr<morda::VList> vl = verticalList;
-			
+
 			auto verticalSlider = c->findByNameAs<morda::VScrollBar>("vertical_list_slider");
 			std::weak_ptr<morda::VScrollBar> vs = verticalSlider;
-			
+
 			verticalSlider->fractionChange = [vl](morda::FractionWidget& slider){
 				if(auto l = vl.lock()){
 					l->setScrollPosAsFactor(slider.fraction());
 				}
 			};
-			
+
 			auto resizeProxy = c->findByNameAs<morda::ResizeProxy>("vertical_list_resize_proxy");
 			ASSERT(resizeProxy)
-			
+
 			resizeProxy->resized = [vs, vl](const morda::Vec2r& newSize){
 				auto l = vl.lock();
 				if(!l){
@@ -718,7 +718,7 @@ public:
 				}
 			};
 		}
-		
+
 		//TreeView
 		{
 			auto treeview = c->findByNameAs<morda::TreeView>("treeview_widget");
@@ -726,30 +726,30 @@ public:
 			auto provider = std::make_shared<TreeViewItemsProvider>();
 			treeview->setItemsProvider(provider);
 			auto tv = utki::makeWeak(treeview);
-			
+
 			auto verticalSlider = c->findByNameAs<morda::VScrollBar>("treeview_vertical_slider");
 			auto vs = utki::makeWeak(verticalSlider);
-			
+
 			verticalSlider->fractionChange = [tv](morda::FractionWidget& slider){
 				if(auto t = tv.lock()){
 					t->setVerticalScrollPosAsFactor(slider.fraction());
 				}
 			};
-			
+
 			auto horizontalSlider = c->findByNameAs<morda::HScrollBar>("treeview_horizontal_slider");
 			ASSERT(horizontalSlider)
 			auto hs = utki::makeWeak(horizontalSlider);
-			
+
 			horizontalSlider->fractionChange = [tv](morda::FractionWidget& slider){
 				if(auto t = tv.lock()){
 					t->setHorizontalScrollPosAsFactor(slider.fraction());
 				}
 			};
-			
+
 			auto resizeProxy = c->findByNameAs<morda::ResizeProxy>("treeview_resize_proxy");
 			ASSERT(resizeProxy)
 			auto rp = utki::makeWeak(resizeProxy);
-			
+
 			resizeProxy->resized = [vs, hs, tv](const morda::Vec2r& newSize){
 				auto t = tv.lock();
 				if(!t){
@@ -762,7 +762,7 @@ public:
 					v->setFraction(t->scrollFactor().y);
 				}
 			};
-			
+
 			treeview->viewChanged = [rp](morda::TreeView&){
 				if(auto r = rp.lock()){
 					if(r->resized){
@@ -770,25 +770,25 @@ public:
 					}
 				}
 			};
-			
-			
+
+
 			auto insertBeforeButton = c->findByNameAs<morda::PushButton>("insert_before");
 			auto insertAfterButton = c->findByNameAs<morda::PushButton>("insert_after");
 			auto insertChild = c->findByNameAs<morda::PushButton>("insert_child");
-			
+
 			auto prvdr = utki::makeWeak(provider);
 			insertBeforeButton->clicked = [prvdr](morda::PushButton& b){
 				if(auto p = prvdr.lock()){
 					p->insertBefore();
 				}
 			};
-			
+
 			insertAfterButton->clicked = [prvdr](morda::PushButton& b){
 				if(auto p = prvdr.lock()){
 					p->insertAfter();
 				}
 			};
-			
+
 			insertChild->clicked = [prvdr](morda::PushButton& b){
 				if(auto p = prvdr.lock()){
 					p->insertChild();
@@ -804,7 +804,7 @@ public:
 				this->setFullscreen(!this->isFullscreen());
 			};
 		}
-		
+
 		//mouse cursor
 		{
 			auto b = c->findByNameAs<morda::PushButton>("showhide_mousecursor_button");

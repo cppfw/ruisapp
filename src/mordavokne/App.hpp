@@ -10,7 +10,7 @@
 
 #include <papki/File.hpp>
 
-#include <kolme/Vector2.hpp>
+#include <r4/vector2.hpp>
 
 #include <morda/Morda.hpp>
 
@@ -37,10 +37,10 @@ class App :
 {
 	friend T_Singleton;
 	static T_Instance instance;
-	
+
 public:
 	const std::string name;
-	
+
 	/**
 	 * @brief Desired window parameters.
 	 */
@@ -48,30 +48,30 @@ public:
 		/**
 		 * @brief Desired dimensions of the window
 		 */
-		kolme::Vec2ui dim;
+		r4::vec2ui dim;
 
 		//TODO: add window title string
-		
+
 		enum class Buffer_e{
 			DEPTH,
 			STENCIL,
-			
+
 			ENUM_SIZE
 		};
-		
+
 		/**
 		 * @brief Flags describing desired buffers for OpneGL context.
 		 */
 		utki::Flags<Buffer_e> buffers = utki::Flags<Buffer_e>(false);
-		
-		WindowParams(kolme::Vec2ui dim) :
+
+		WindowParams(r4::vec2ui dim) :
 				dim(dim)
 		{}
 	};
-	
+
 private:
 	std::unique_ptr<utki::Unique> windowPimpl;
-	
+
 	friend const decltype(windowPimpl)& getWindowPimpl(App& app);
 
 private:
@@ -79,7 +79,7 @@ private:
 
 public:
 	morda::Morda gui;
-	
+
 public:
 
 	/**
@@ -100,7 +100,7 @@ public:
 	 * The path is always ended with '/' character.
 	 */
 	const std::string storageDir;
-	
+
 private:
 	//this is a viewport rectangle in coordinates that are as follows: x grows right, y grows up.
 	morda::Rectr curWinRect = morda::Rectr(0, 0, 0, 0);
@@ -112,38 +112,38 @@ public:
 
 private:
 	void render();
-	
+
 	friend void render(App& app);
-	
+
 	void updateWindowRect(const morda::Rectr& rect);
 
 	friend void updateWindowRect(App& app, const morda::Rectr& rect);
-	
+
 	//pos is in usual window coordinates, y goes down.
-	morda::Vec2r nativeWindowToRootCoordinates(const kolme::Vec2f& pos)const noexcept{
+	morda::Vec2r nativeWindowToRootCoordinates(const r4::vec2f& pos)const noexcept{
 		return pos;
 	}
 
 	//pos is in usual window coordinates, y goes down.
-	void handleMouseMove(const kolme::Vec2f& pos, unsigned id){
+	void handleMouseMove(const r4::vec2f& pos, unsigned id){
 		this->gui.onMouseMove(this->nativeWindowToRootCoordinates(pos), id);
 	}
-	
-	friend void handleMouseMove(App& app, const kolme::Vec2f& pos, unsigned id);
+
+	friend void handleMouseMove(App& app, const r4::vec2f& pos, unsigned id);
 
 	//pos is in usual window coordinates, y goes down.
-	void handleMouseButton(bool isDown, const kolme::Vec2f& pos, morda::MouseButton_e button, unsigned id){
+	void handleMouseButton(bool isDown, const r4::vec2f& pos, morda::MouseButton_e button, unsigned id){
 		this->gui.onMouseButton(isDown, this->nativeWindowToRootCoordinates(pos), button, id);
 	}
-	
-	friend void handleMouseButton(App& app, bool isDown, const kolme::Vec2f& pos, morda::MouseButton_e button, unsigned id);
+
+	friend void handleMouseButton(App& app, bool isDown, const r4::vec2f& pos, morda::MouseButton_e button, unsigned id);
 
 	void handleMouseHover(bool isHovered, unsigned pointerID){
 		this->gui.onMouseHover(isHovered, pointerID);
 	}
-	
+
 	friend void handleMouseHover(App& app, bool isHovered, unsigned pointerID);
-	
+
 protected:
 	/**
 	 * @brief Application constructor.
@@ -155,7 +155,7 @@ protected:
 public:
 
 	virtual ~App()noexcept{}
-	
+
 	/**
 	 * @brief Bring up the virtual keyboard.
 	 * On mobile platforms this function will summon the on-screen keyboard.
@@ -169,25 +169,25 @@ public:
 	 * On desktop platforms this function does nothing.
 	 */
 	void hideVirtualKeyboard()noexcept;
-	
+
 private:
-	
+
 	//The idea with UnicodeResolver parameter is that we don't want to calculate the unicode unless it is really needed, thus postpone it
 	//as much as possible.
 	void handleCharacterInput(const morda::Morda::UnicodeProvider& unicodeResolver, morda::Key_e key){
 		this->gui.onCharacterInput(unicodeResolver, key);
 	}
-	
+
 	friend void handleCharacterInput(App& app, const morda::Morda::UnicodeProvider& unicodeResolver, morda::Key_e key);
 
 	void handleKeyEvent(bool isDown, morda::Key_e keyCode){
 		this->gui.onKeyEvent(isDown, keyCode);
 	}
-	
+
 	friend void handleKeyEvent(App& app, bool isDown, morda::Key_e keyCode);
 
 public:
-	
+
 	/**
 	 * @brief Requests application to exit.
 	 * This function posts an exit message to the applications message queue.
@@ -200,7 +200,7 @@ public:
 private:
 	bool isFullscreen_v = false;
 
-	kolme::Rectu beforeFullScreenWindowRect;
+	r4::rectu beforeFullScreenWindowRect;
 
 public:
 	/**
@@ -217,15 +217,15 @@ public:
 	 * @param enable - whether to enable or to disable fullscreen mode.
 	 */
 	void setFullscreen(bool enable);
-	
+
 
 	/**
 	 * @brief Show/hide mouse cursor.
 	 * @param visible - whether to show (true) or hide (false) mouse cursor.
 	 */
 	void setMouseCursorVisible(bool visible);
-	
-	
+
+
 	/**
 	 * @brief Find dots per density pixel (dp) for given display parameters.
 	 * The size of the dp for desktop displays should normally be equal to one pixel.
@@ -234,7 +234,7 @@ public:
 	 * @param screenSizeMm - size of the display in millimeters.
 	 * @return Size of one display density pixel in pixels.
 	 */
-	static morda::real findDotsPerDp(kolme::Vec2ui resolution, kolme::Vec2ui screenSizeMm);
+	static morda::real findDotsPerDp(r4::vec2ui resolution, r4::vec2ui screenSizeMm);
 };
 
 inline App& inst(){
