@@ -1,3 +1,9 @@
+libmordavokne (0.2.41) unstable; urgency=medium
+
+  * adapt to r4~
+
+ -- Ivan Gagis <igagis@gmail.com>  Mon, 11 Nov 2019 23:52:29 +0200
+
 libmordavokne (0.2.40) unstable; urgency=medium
 
   * deploy to bionic
