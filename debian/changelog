@@ -1,3 +1,9 @@
+libmordavokne (0.2.42) unstable; urgency=medium
+
+  * podspec dependency corrected
+
+ -- Ivan Gagis <igagis@gmail.com>  Tue, 12 Nov 2019 14:49:50 +0200
+
 libmordavokne (0.2.41) unstable; urgency=medium
 
   * adapt to r4~
