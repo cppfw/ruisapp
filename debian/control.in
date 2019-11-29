@@ -3,7 +3,7 @@ Section: libs
 Priority: extra
 Maintainer: Ivan Gagis <igagis@gmail.com>
 Build-Depends: debhelper (>= 9), prorab, prorab-extra, myci,
-		libutki-dev, libpapki-dev, libmorda-dev (>= 0.5.71), libkolme-dev, libstob-dev,
+		libutki-dev, libpapki-dev, libmorda-dev (>= 0.5.71), libr4-dev, libpuu-dev,
 		libglew-dev, libnitki-dev,
 		libmorda-opengl2-ren-dev,
 		libmorda-opengles2-ren-dev,

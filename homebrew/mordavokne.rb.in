@@ -9,9 +9,9 @@ class Mordavokne < Formula
   depends_on "libpapki"
   depends_on "libpogodi"
   depends_on "libaika"
-  depends_on "libstob"
+  depends_on "puu"
   depends_on "glew"
-  depends_on "libkolme"
+  depends_on "r4"
   depends_on "libmorda"
   depends_on "morda-opengl2-ren"
 
