@@ -1,3 +1,9 @@
+libmordavokne (0.2.44) unstable; urgency=medium
+
+  * nuget update
+
+ -- Ivan Gagis <igagis@gmail.com>  Sat, 30 Nov 2019 15:08:43 +0200
+
 libmordavokne (0.2.43) unstable; urgency=medium
 
   * debian buster
