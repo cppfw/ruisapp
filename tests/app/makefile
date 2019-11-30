@@ -40,10 +40,10 @@ ifeq ($(prorab_os),windows)
     this_ldlibs += $(d)../../src/$(this_mordavoknelib)$(soext)
     this_ldlibs += -lglew32 -lopengl32 -lpng -ljpeg -lz -lfreetype -mwindows
 else ifeq ($(prorab_os),macosx)
-    this_ldlibs += $(prorab_this_dir)../../src/$(this_mordavoknelib)$(prorab_lib_extension) -lGLEW -framework OpenGL -framework Cocoa -lpng -ljpeg -lfreetype
+    this_ldlibs += $(prorab_this_dir)../../src/$(this_mordavoknelib)$(soext) -lGLEW -framework OpenGL -framework Cocoa -lpng -ljpeg -lfreetype
     this_ldflags += -rdynamic
 else ifeq ($(prorab_os),linux)
-    this_ldlibs += $(prorab_this_dir)../../src/$(this_mordavoknelib)$(prorab_lib_extension) -pthread
+    this_ldlibs += $(prorab_this_dir)../../src/$(this_mordavoknelib)$(soext) -pthread
     this_ldflags += -rdynamic
 endif
 
@@ -61,16 +61,16 @@ endef
 $(eval $(this_rules))
 
 
-#add dependency on libmordavokne
+# add dependency on libmordavokne
 ifeq ($(prorab_os),windows)
-    $(prorab_this_dir)$(this_mordavoknelib)$(prorab_lib_extension): $(abspath $(prorab_this_dir)../../src/$(this_mordavoknelib)$(prorab_lib_extension))
+    $(d)$(this_mordavoknelib)$(soext): $(abspath $(d)../../src/$(this_mordavoknelib)$(soext))
 	@cp $< $@
 
-    $(prorab_this_name): $(prorab_this_dir)$(this_mordavoknelib)$(prorab_lib_extension)
+    $(prorab_this_name): $(d)$(this_mordavoknelib)$(soext)
 
     define this_rules
         clean::
-		@rm -f $(prorab_this_dir)$(this_mordavoknelib)$(prorab_lib_extension)
+		@rm -f $(d)$(this_mordavoknelib)$(soext)
     endef
     $(eval $(this_rules))
 else
@@ -78,4 +78,4 @@ else
 endif
 
 
-$(eval $(call prorab-try-include,$(prorab_this_dir)../../src/makefile))
+$(eval $(call prorab-try-include,$(d)../../src/makefile))
