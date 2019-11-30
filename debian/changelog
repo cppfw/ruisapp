@@ -1,3 +1,9 @@
+libmordavokne (0.2.43) unstable; urgency=medium
+
+  * debian buster
+
+ -- Ivan Gagis <igagis@gmail.com>  Sat, 30 Nov 2019 14:11:53 +0200
+
 libmordavokne (0.2.42) unstable; urgency=medium
 
   * podspec dependency corrected
