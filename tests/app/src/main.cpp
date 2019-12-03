@@ -277,13 +277,13 @@ public:
 	const char* DPlusMinus = R"qwertyuiop(
 			Pile{
 				Image{
-					name{plusminus}
+					id{plusminus}
 				}
 				MouseProxy{
 					layout{
 						dx{fill} dy{fill}
 					}
-					name{plusminus_mouseproxy}
+					id{plusminus_mouseproxy}
 				}
 			}
 		)qwertyuiop";
@@ -468,7 +468,7 @@ public:
 			if(n->child()){
 				auto w = morda::Morda::inst().inflater.inflate(*stob::parse(DPlusMinus));
 
-				auto plusminus = w->findByNameAs<morda::Image>("plusminus");
+				auto plusminus = w->findByIdAs<morda::Image>("plusminus");
 				ASSERT(plusminus)
 				plusminus->setImage(
 						isCollapsed ?
@@ -476,7 +476,7 @@ public:
 								morda::Morda::inst().resMan.load<morda::ResImage>("morda_img_treeview_minus")
 					);
 
-				auto plusminusMouseProxy = w->findByNameAs<morda::MouseProxy>("plusminus_mouseproxy");
+				auto plusminusMouseProxy = w->findByIdAs<morda::MouseProxy>("plusminus_mouseproxy");
 				ASSERT(plusminusMouseProxy)
 				plusminusMouseProxy->mouseButton = [this, path, isCollapsed](morda::Widget& widget, bool isDown, const morda::Vec2r& pos, morda::MouseButton_e button, unsigned pointerId) -> bool{
 					if(button != morda::MouseButton_e::LEFT){
@@ -510,16 +510,16 @@ public:
 					R"qwertyuiop(
 							Pile{
 								Color{
-									name{selection}
+									id{selection}
 									layout{dx{max}dy{max}}
 									color{@{morda_color_highlight}}
 									visible{false}
 								}
 								Text{
-									name{value}
+									id{value}
 								}
 								MouseProxy{
-									name{mouse_proxy}
+									id{mouse_proxy}
 									layout{dx{max}dy{max}}
 								}
 							}
@@ -527,16 +527,16 @@ public:
 				));
 
 			{
-				auto value = v->findByNameAs<morda::Text>("value");
+				auto value = v->findByIdAs<morda::Text>("value");
 				ASSERT(value)
 				value->setText(n->value());
 			}
 			{
-				auto colorLabel = v->findByNameAs<morda::Color>("selection");
+				auto colorLabel = v->findByIdAs<morda::Color>("selection");
 
 				colorLabel->setVisible(this->selectedItem == path);
 
-				auto mp = v->findByNameAs<morda::MouseProxy>("mouse_proxy");
+				auto mp = v->findByIdAs<morda::MouseProxy>("mouse_proxy");
 				ASSERT(mp)
 				mp->mouseButton = [this, path](morda::Widget&, bool isDown, const morda::Vec2r&, morda::MouseButton_e button, unsigned pointerId) -> bool{
 					if(!isDown || button != morda::MouseButton_e::LEFT){
@@ -608,8 +608,8 @@ public:
 		morda::Morda::inst().resMan.mountResPack(*this->getResFile("res/"));
 //		this->ResMan().MountResPack(morda::ZipFile::New(papki::FSFile::New("res.zip")));
 
-		morda::Morda::inst().inflater.addWidget<SimpleWidget>("U_SimpleWidget");
-		morda::Morda::inst().inflater.addWidget<CubeWidget>("CubeWidget");
+		morda::Morda::inst().inflater.registerType<SimpleWidget>("U_SimpleWidget");
+		morda::Morda::inst().inflater.registerType<CubeWidget>("CubeWidget");
 
 		std::shared_ptr<morda::Widget> c = morda::Morda::inst().inflater.inflate(
 				*this->getResFile("res/test.gui")
@@ -629,11 +629,11 @@ public:
 //		std::shared_ptr<morda::Widget> c = morda::Morda::inst().inflater().Inflate(zf);
 
 
-		std::dynamic_pointer_cast<morda::PushButton>(c->findByName("show_VK_button"))->clicked = [this](morda::PushButton&){
+		std::dynamic_pointer_cast<morda::PushButton>(c->findById("show_VK_button"))->clicked = [this](morda::PushButton&){
 			this->showVirtualKeyboard();
 		};
 
-		std::dynamic_pointer_cast<morda::PushButton>(c->findByName("push_button_in_scroll_container"))->clicked = [](morda::PushButton&){
+		std::dynamic_pointer_cast<morda::PushButton>(c->findById("push_button_in_scroll_container"))->clicked = [](morda::PushButton&){
 			morda::Morda::inst().postToUiThread_ts(
 					[](){
 						TRACE_ALWAYS(<< "Print from UI thread!!!!!!!!" << std::endl)
@@ -641,20 +641,20 @@ public:
 				);
 		};
 
-		std::dynamic_pointer_cast<CubeWidget>(c->findByName("cube_widget"))->startUpdating(0);
+		std::dynamic_pointer_cast<CubeWidget>(c->findById("cube_widget"))->startUpdating(0);
 
 		//ScrollArea
 		{
-			auto scrollArea = c->findByNameAs<morda::ScrollArea>("scroll_area");
+			auto scrollArea = c->findByIdAs<morda::ScrollArea>("scroll_area");
 			auto sa = utki::makeWeak(scrollArea);
 
-			auto vertSlider = c->findByNameAs<morda::FractionBandWidget>("scroll_area_vertical_slider");
+			auto vertSlider = c->findByIdAs<morda::FractionBandWidget>("scroll_area_vertical_slider");
 			auto vs = utki::makeWeak(vertSlider);
 
-			auto horiSlider = c->findByNameAs<morda::FractionBandWidget>("scroll_area_horizontal_slider");
+			auto horiSlider = c->findByIdAs<morda::FractionBandWidget>("scroll_area_horizontal_slider");
 			auto hs = utki::makeWeak(horiSlider);
 
-			auto resizeProxy = c->findByNameAs<morda::ResizeProxy>("scroll_area_resize_proxy");
+			auto resizeProxy = c->findByIdAs<morda::ResizeProxy>("scroll_area_resize_proxy");
 			auto rp = utki::makeWeak(resizeProxy);
 
 			resizeProxy->resized = [vs, hs, sa](const morda::Vec2r& newSize){
@@ -691,10 +691,10 @@ public:
 
 		//VerticalList
 		{
-			auto verticalList = c->findByNameAs<morda::VList>("vertical_list");
+			auto verticalList = c->findByIdAs<morda::VList>("vertical_list");
 			std::weak_ptr<morda::VList> vl = verticalList;
 
-			auto verticalSlider = c->findByNameAs<morda::VScrollBar>("vertical_list_slider");
+			auto verticalSlider = c->findByIdAs<morda::VScrollBar>("vertical_list_slider");
 			std::weak_ptr<morda::VScrollBar> vs = verticalSlider;
 
 			verticalSlider->fractionChange = [vl](morda::FractionWidget& slider){
@@ -703,7 +703,7 @@ public:
 				}
 			};
 
-			auto resizeProxy = c->findByNameAs<morda::ResizeProxy>("vertical_list_resize_proxy");
+			auto resizeProxy = c->findByIdAs<morda::ResizeProxy>("vertical_list_resize_proxy");
 			ASSERT(resizeProxy)
 
 			resizeProxy->resized = [vs, vl](const morda::Vec2r& newSize){
@@ -721,13 +721,13 @@ public:
 
 		//TreeView
 		{
-			auto treeview = c->findByNameAs<morda::TreeView>("treeview_widget");
+			auto treeview = c->findByIdAs<morda::TreeView>("treeview_widget");
 			ASSERT(treeview)
 			auto provider = std::make_shared<TreeViewItemsProvider>();
 			treeview->setItemsProvider(provider);
 			auto tv = utki::makeWeak(treeview);
 
-			auto verticalSlider = c->findByNameAs<morda::VScrollBar>("treeview_vertical_slider");
+			auto verticalSlider = c->findByIdAs<morda::VScrollBar>("treeview_vertical_slider");
 			auto vs = utki::makeWeak(verticalSlider);
 
 			verticalSlider->fractionChange = [tv](morda::FractionWidget& slider){
@@ -736,7 +736,7 @@ public:
 				}
 			};
 
-			auto horizontalSlider = c->findByNameAs<morda::HScrollBar>("treeview_horizontal_slider");
+			auto horizontalSlider = c->findByIdAs<morda::HScrollBar>("treeview_horizontal_slider");
 			ASSERT(horizontalSlider)
 			auto hs = utki::makeWeak(horizontalSlider);
 
@@ -746,7 +746,7 @@ public:
 				}
 			};
 
-			auto resizeProxy = c->findByNameAs<morda::ResizeProxy>("treeview_resize_proxy");
+			auto resizeProxy = c->findByIdAs<morda::ResizeProxy>("treeview_resize_proxy");
 			ASSERT(resizeProxy)
 			auto rp = utki::makeWeak(resizeProxy);
 
@@ -772,9 +772,9 @@ public:
 			};
 
 
-			auto insertBeforeButton = c->findByNameAs<morda::PushButton>("insert_before");
-			auto insertAfterButton = c->findByNameAs<morda::PushButton>("insert_after");
-			auto insertChild = c->findByNameAs<morda::PushButton>("insert_child");
+			auto insertBeforeButton = c->findByIdAs<morda::PushButton>("insert_before");
+			auto insertAfterButton = c->findByIdAs<morda::PushButton>("insert_after");
+			auto insertChild = c->findByIdAs<morda::PushButton>("insert_child");
 
 			auto prvdr = utki::makeWeak(provider);
 			insertBeforeButton->clicked = [prvdr](morda::PushButton& b){
@@ -799,7 +799,7 @@ public:
 
 		//fullscreen
 		{
-			auto b = c->findByNameAs<morda::PushButton>("fullscreen_button");
+			auto b = c->findByIdAs<morda::PushButton>("fullscreen_button");
 			b->clicked = [this](morda::PushButton&) {
 				this->setFullscreen(!this->isFullscreen());
 			};
@@ -807,7 +807,7 @@ public:
 
 		//mouse cursor
 		{
-			auto b = c->findByNameAs<morda::PushButton>("showhide_mousecursor_button");
+			auto b = c->findByIdAs<morda::PushButton>("showhide_mousecursor_button");
 			bool visible = false;
 			this->setMouseCursorVisible(visible);
 			b->clicked = [visible](morda::PushButton&) mutable{
