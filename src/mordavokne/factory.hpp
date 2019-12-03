@@ -1,6 +1,6 @@
 #pragma once
 
-#include "App.hpp"
+#include "application.hpp"
 
 #include <utki/config.hpp>
 
@@ -20,14 +20,14 @@ namespace mordavokne{
 __declspec(dllexport)
 #endif
 
-std::unique_ptr<App> create_application(int argc, const char** argv);
+std::unique_ptr<application> create_application(int argc, const char** argv);
 
 
 //TODO: deprecated, remove createApp() function.
 #if M_OS == M_OS_WINDOWS
 __declspec(dllexport)
 #endif
-std::unique_ptr<App> createApp(int argc, const char** argv);
+std::unique_ptr<application> createApp(int argc, const char** argv);
 
 
 }

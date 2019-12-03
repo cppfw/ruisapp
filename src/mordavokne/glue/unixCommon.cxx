@@ -1,10 +1,10 @@
 #include <dlfcn.h>
 
-#include "../AppFactory.hpp"
+#include "../factory.hpp"
 
 namespace{
 
-std::unique_ptr<mordavokne::App> createAppUnix(int argc, const char** argv){
+std::unique_ptr<mordavokne::application> createAppUnix(int argc, const char** argv){
 	void* libHandle = dlopen(nullptr, RTLD_NOW);
 	if(!libHandle){
 		throw morda::Exc("dlopen(): failed");
@@ -18,15 +18,15 @@ std::unique_ptr<mordavokne::App> createAppUnix(int argc, const char** argv){
 			dlsym(libHandle, "_ZN10mordavokne18create_applicationEiPPKc")
 		);
 
+	// TODO: deprecated, remove createApp() function search
 	if(!factory){
-		// TODO: deprecated, remove createApp() function search
-
 		factory = reinterpret_cast<decltype(mordavokne::create_application)*>(
 			dlsym(libHandle, "_ZN10mordavokne9createAppEiPPKc")
 		);
-		if(!factory){
-			throw morda::Exc("dlsym(): mordavokne::create_application() function not found!");
-		}
+	}
+
+	if(!factory){
+		throw morda::Exc("dlsym(): mordavokne::create_application() function not found!");
 	}
 
 	return factory(argc, argv);

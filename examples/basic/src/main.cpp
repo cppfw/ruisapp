@@ -1,14 +1,14 @@
-#include <mordavokne/App.hpp>
-#include <mordavokne/AppFactory.hpp>
+#include <mordavokne/application.hpp>
+#include <mordavokne/factory.hpp>
 
 #include <morda/widgets/label/TextLabel.hpp>
 #include <morda/widgets/button/Button.hpp>
 
 
-class Application : public mordavokne::App{
+class Application : public mordavokne::application{
 public:
 	Application() :
-			mordavokne::App(mordavokne::App::WindowParams(r4::vec2ui(800, 600)))
+			mordavokne::App(mordavokne::window_params(r4::vec2ui(800, 600)))
 	{
 		morda::Morda::inst().initStandardWidgets(*this->getResFile());
 
@@ -45,7 +45,7 @@ public:
 
 
 
-std::unique_ptr<mordavokne::App> mordavokne::createApp(int argc, const char** argv, const utki::Buf<std::uint8_t> savedState){
+std::unique_ptr<mordavokne::application> mordavokne::create_application(int argc, const char** argv, const utki::Buf<std::uint8_t> savedState){
 	return utki::makeUnique<Application>();
 }
 

@@ -22,17 +22,44 @@
 
 namespace mordavokne{
 
+/**
+ * @brief Desired window parameters.
+ */
+struct window_params{
+	/**
+	 * @brief Desired dimensions of the window
+	 */
+	r4::vec2ui dim;
+
+	//TODO: add window title string
+
+	enum class buffer_type{
+		depth,
+		stencil,
+
+		ENUM_SIZE
+	};
+
+	/**
+	 * @brief Flags describing desired buffers for OpneGL context.
+	 */
+	utki::Flags<buffer_type> buffers = utki::Flags<buffer_type>(false);
+
+	window_params(r4::vec2ui dim) :
+			dim(dim)
+	{}
+};
 
 
 /**
- * @brief Base singleton class of Application.
+ * @brief Base singleton class of application.
  * An application should subclass this class and return an instance from the
- * application factory function createApp(), see AppFactory.hpp for details.
+ * application factory function create_application(), see factory.hpp for details.
  * When instance of this class is created it also creates a window and
  * initializes rendering API (e.g. OpenGL or OpenGL ES).
  */
-class App :
-		public utki::IntrusiveSingleton<App>,
+class application :
+		public utki::IntrusiveSingleton<application>,
 		public utki::Unique
 {
 	friend T_Singleton;
@@ -41,38 +68,13 @@ class App :
 public:
 	const std::string name;
 
-	/**
-	 * @brief Desired window parameters.
-	 */
-	struct WindowParams{
-		/**
-		 * @brief Desired dimensions of the window
-		 */
-		r4::vec2ui dim;
-
-		//TODO: add window title string
-
-		enum class Buffer_e{
-			DEPTH,
-			STENCIL,
-
-			ENUM_SIZE
-		};
-
-		/**
-		 * @brief Flags describing desired buffers for OpneGL context.
-		 */
-		utki::Flags<Buffer_e> buffers = utki::Flags<Buffer_e>(false);
-
-		WindowParams(r4::vec2ui dim) :
-				dim(dim)
-		{}
-	};
+	// TODO: deprecated, remove.
+	// typedef window_params WindowParams;
 
 private:
 	std::unique_ptr<utki::Unique> windowPimpl;
 
-	friend const decltype(windowPimpl)& getWindowPimpl(App& app);
+	friend const decltype(windowPimpl)& getWindowPimpl(application& app);
 
 private:
 	void swapFrameBuffers();
@@ -113,11 +115,11 @@ public:
 private:
 	void render();
 
-	friend void render(App& app);
+	friend void render(application& app);
 
 	void updateWindowRect(const morda::Rectr& rect);
 
-	friend void updateWindowRect(App& app, const morda::Rectr& rect);
+	friend void updateWindowRect(application& app, const morda::Rectr& rect);
 
 	//pos is in usual window coordinates, y goes down.
 	morda::Vec2r nativeWindowToRootCoordinates(const r4::vec2f& pos)const noexcept{
@@ -129,20 +131,20 @@ private:
 		this->gui.onMouseMove(this->nativeWindowToRootCoordinates(pos), id);
 	}
 
-	friend void handleMouseMove(App& app, const r4::vec2f& pos, unsigned id);
+	friend void handleMouseMove(application& app, const r4::vec2f& pos, unsigned id);
 
 	//pos is in usual window coordinates, y goes down.
 	void handleMouseButton(bool isDown, const r4::vec2f& pos, morda::MouseButton_e button, unsigned id){
 		this->gui.onMouseButton(isDown, this->nativeWindowToRootCoordinates(pos), button, id);
 	}
 
-	friend void handleMouseButton(App& app, bool isDown, const r4::vec2f& pos, morda::MouseButton_e button, unsigned id);
+	friend void handleMouseButton(application& app, bool isDown, const r4::vec2f& pos, morda::MouseButton_e button, unsigned id);
 
 	void handleMouseHover(bool isHovered, unsigned pointerID){
 		this->gui.onMouseHover(isHovered, pointerID);
 	}
 
-	friend void handleMouseHover(App& app, bool isHovered, unsigned pointerID);
+	friend void handleMouseHover(application& app, bool isHovered, unsigned pointerID);
 
 protected:
 	/**
@@ -150,11 +152,11 @@ protected:
 	 * @param name - name of the application.
 	 * @param requestedWindowParams - requested window parameters.
 	 */
-	App(std::string&& name, const WindowParams& requestedWindowParams);
+	application(std::string&& name, const window_params& requestedWindowParams);
 
 public:
 
-	virtual ~App()noexcept{}
+	virtual ~application()noexcept{}
 
 	/**
 	 * @brief Bring up the virtual keyboard.
@@ -178,13 +180,13 @@ private:
 		this->gui.onCharacterInput(unicodeResolver, key);
 	}
 
-	friend void handleCharacterInput(App& app, const morda::Morda::UnicodeProvider& unicodeResolver, morda::Key_e key);
+	friend void handleCharacterInput(application& app, const morda::Morda::UnicodeProvider& unicodeResolver, morda::Key_e key);
 
 	void handleKeyEvent(bool isDown, morda::Key_e keyCode){
 		this->gui.onKeyEvent(isDown, keyCode);
 	}
 
-	friend void handleKeyEvent(App& app, bool isDown, morda::Key_e keyCode);
+	friend void handleKeyEvent(application& app, bool isDown, morda::Key_e keyCode);
 
 public:
 
@@ -237,8 +239,11 @@ public:
 	static morda::real findDotsPerDp(r4::vec2ui resolution, r4::vec2ui screenSizeMm);
 };
 
-inline App& inst(){
-	return App::inst();
+inline application& inst(){
+	return application::inst();
 }
+
+// TODO: deprecaed, remove.
+typedef application App;
 
 }

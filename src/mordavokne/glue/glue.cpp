@@ -1,6 +1,6 @@
 #include <utki/config.hpp>
 
-#include "../App.hpp"
+#include "../application.hpp"
 
 
 #include "friendAccessors.cxx"

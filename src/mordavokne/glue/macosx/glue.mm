@@ -1,5 +1,5 @@
-#include "../../App.hpp"
-#include "../../AppFactory.hpp"
+#include "../../application.hpp"
+#include "../../factory.hpp"
 
 #include <papki/FSFile.hpp>
 
@@ -72,7 +72,7 @@ struct WindowWrapper : public utki::Unique{
 
 	bool mouseCursorIsCurrentlyVisible = true;
 
-	WindowWrapper(const App::WindowParams& wp);
+	WindowWrapper(const window_params& wp);
 
 	~WindowWrapper()noexcept;
 };
@@ -93,9 +93,9 @@ void mouseButton(NSEvent* e, bool isDown, morda::MouseButton_e button){
 	NSPoint winPos = [e locationInWindow];
 	auto pos = morda::Vec2r(winPos.x, winPos.y).rounded();
 	handleMouseButton(
-			mordavokne::App::inst(),
+			mordavokne::application::inst(),
 			isDown,
-			morda::Vec2r(pos.x, mordavokne::App::inst().winDim().y - pos.y),
+			morda::Vec2r(pos.x, mordavokne::application::inst().winDim().y - pos.y),
 			button,
 			0
 		);
@@ -104,14 +104,14 @@ void mouseButton(NSEvent* e, bool isDown, morda::MouseButton_e button){
 void macosx_HandleMouseMove(const morda::Vec2r& pos, unsigned id){
 //	TRACE(<< "Macosx_HandleMouseMove(): pos = " << pos << std::endl)
 	handleMouseMove(
-			mordavokne::App::inst(),
-			morda::Vec2r(pos.x, mordavokne::App::inst().winDim().y - pos.y),
+			mordavokne::application::inst(),
+			morda::Vec2r(pos.x, mordavokne::application::inst().winDim().y - pos.y),
 			id
 		);
 }
 
 void macosx_HandleMouseHover(bool isHovered){
-	auto& ww = getImpl(getWindowPimpl(mordavokne::App::inst()));
+	auto& ww = getImpl(getWindowPimpl(mordavokne::application::inst()));
 	if(!ww.mouseCursorIsCurrentlyVisible){
 		if(isHovered){
 			[NSCursor hide];
@@ -120,12 +120,12 @@ void macosx_HandleMouseHover(bool isHovered){
 		}
 	}
 
-	handleMouseHover(mordavokne::App::inst(), isHovered, 0);
+	handleMouseHover(mordavokne::application::inst(), isHovered, 0);
 }
 
 void macosx_HandleKeyEvent(bool isDown, morda::Key_e keyCode){
-	auto& ww = getImpl(getWindowPimpl(mordavokne::App::inst()));
-	handleKeyEvent(mordavokne::App::inst(), isDown, keyCode);
+	auto& ww = getImpl(getWindowPimpl(mordavokne::application::inst()));
+	handleKeyEvent(mordavokne::application::inst(), isDown, keyCode);
 }
 
 class MacosxUnicodeProvider : public morda::Morda::UnicodeProvider{
@@ -152,14 +152,14 @@ public:
 };
 
 void macosx_HandleCharacterInput(const void* nsstring, morda::Key_e key){
-	auto& ww = getImpl(getWindowPimpl(mordavokne::App::inst()));
-	handleCharacterInput(mordavokne::App::inst(), MacosxUnicodeProvider(reinterpret_cast<const NSString*>(nsstring)), key);
+	auto& ww = getImpl(getWindowPimpl(mordavokne::application::inst()));
+	handleCharacterInput(mordavokne::application::inst(), MacosxUnicodeProvider(reinterpret_cast<const NSString*>(nsstring)), key);
 }
 
 void macosx_UpdateWindowRect(const morda::Rectr& r){
-	auto& ww = getImpl(getWindowPimpl(mordavokne::App::inst()));
+	auto& ww = getImpl(getWindowPimpl(mordavokne::application::inst()));
 	[ww.openglContextId update];//after resizing window we need to update OpenGL context
-	updateWindowRect(mordavokne::App::inst(), r);
+	updateWindowRect(mordavokne::application::inst(), r);
 }
 
 const std::array<morda::Key_e, std::uint8_t(-1) + 1> keyCodeMap = {{
@@ -604,7 +604,7 @@ const std::array<morda::Key_e, std::uint8_t(-1) + 1> keyCodeMap = {{
 
 -(BOOL)windowShouldClose:(id)sender{
 	TRACE(<< "window wants to close!!!!" << std::endl)
-	App::inst().quit();
+	application::inst().quit();
 	return NO;
 }
 
@@ -620,12 +620,12 @@ const std::array<morda::Key_e, std::uint8_t(-1) + 1> keyCodeMap = {{
 namespace{
 
 
-WindowWrapper::WindowWrapper(const App::WindowParams& wp){
+WindowWrapper::WindowWrapper(const window_params& wp){
 	TRACE(<< "WindowWrapper::WindowWrapper(): enter" << std::endl)
 	this->applicationObjectId = [NSApplication sharedApplication];
 
 	if(!this->applicationObjectId){
-		throw morda::Exc("morda::App::ApplicationObject::ApplicationObject(): failed to create application object");
+		throw morda::Exc("morda::application::ApplicationObject::ApplicationObject(): failed to create application object");
 	}
 
 	utki::ScopeExit scopeExitApplication([this](){
@@ -640,7 +640,7 @@ WindowWrapper::WindowWrapper(const App::WindowParams& wp){
 	];
 
 	if(!this->windowObjectId){
-		throw morda::Exc("morda::App::WindowObject::WindowObject(): failed to create Window object");
+		throw morda::Exc("morda::application::WindowObject::WindowObject(): failed to create Window object");
 	}
 
 	utki::ScopeExit scopeExitWindow([this](){
@@ -653,10 +653,10 @@ WindowWrapper::WindowWrapper(const App::WindowParams& wp){
 		std::vector<NSOpenGLPixelFormatAttribute> attributes;
 		attributes.push_back(NSOpenGLPFAAccelerated);
 		attributes.push_back(NSOpenGLPFAColorSize); attributes.push_back(24);
-		if(wp.buffers.get(App::WindowParams::Buffer_e::DEPTH)){
+		if(wp.buffers.get(window_params::buffer_type::depth)){
 			attributes.push_back(NSOpenGLPFADepthSize); attributes.push_back(16);
 		}
-		if(wp.buffers.get(App::WindowParams::Buffer_e::STENCIL)){
+		if(wp.buffers.get(window_params::buffer_type::stencil)){
 			attributes.push_back(NSOpenGLPFAStencilSize); attributes.push_back(8);
 		}
 		attributes.push_back(NSOpenGLPFADoubleBuffer);
@@ -665,14 +665,14 @@ WindowWrapper::WindowWrapper(const App::WindowParams& wp){
 
 		NSOpenGLPixelFormat *pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:&*attributes.begin()];
 		if(pixelFormat == nil){
-			throw morda::Exc("morda::App::OpenGLContext::OpenGLContext(): failed to create pixel format");
+			throw morda::Exc("morda::application::OpenGLContext::OpenGLContext(): failed to create pixel format");
 		}
 
 		this->openglContextId = [[NSOpenGLContext alloc] initWithFormat:pixelFormat shareContext:nil];
 		[pixelFormat release];
 
 		if(!this->openglContextId){
-			throw morda::Exc("morda::App::OpenGLContext::OpenGLContext(): failed to create OpenGL context");
+			throw morda::Exc("morda::application::OpenGLContext::OpenGLContext(): failed to create OpenGL context");
 		}
 	}
 
@@ -704,7 +704,7 @@ WindowWrapper::~WindowWrapper()noexcept{
 
 
 
-void App::quit()noexcept{
+void application::quit()noexcept{
 	auto& ww = getImpl(this->windowPimpl);
 	ww.quitFlag = true;
 }
@@ -807,13 +807,13 @@ morda::real getDotsPerPt(){
 	r4::vec2ui resolution(displayPixelSize.width, displayPixelSize.height);
 	r4::vec2ui screenSizeMm(displayPhysicalSize.width, displayPhysicalSize.height);
 
-	return App::findDotsPerDp(resolution, screenSizeMm);
+	return application::findDotsPerDp(resolution, screenSizeMm);
 }
 
 }//~namespace
 
 
-App::App(std::string&& name, const App::WindowParams& wp) :
+application::App(std::string&& name, const window_params& wp) :
 		name(name),
 		windowPimpl(utki::makeUnique<WindowWrapper>(wp)),
 		gui(
@@ -840,7 +840,7 @@ App::App(std::string&& name, const App::WindowParams& wp) :
 			),
 		storageDir(initializeStorageDir(this->name))
 {
-	TRACE(<< "App::App(): enter" << std::endl)
+	TRACE(<< "application::App(): enter" << std::endl)
 	this->updateWindowRect(
 			morda::Rectr(
 					0,
@@ -851,14 +851,14 @@ App::App(std::string&& name, const App::WindowParams& wp) :
 		);
 }
 
-void App::swapFrameBuffers(){
+void application::swapFrameBuffers(){
 	auto& ww = getImpl(this->windowPimpl);
 	[ww.openglContextId flushBuffer];
 }
 
 
 
-void App::setFullscreen(bool enable){
+void application::setFullscreen(bool enable){
 	if(enable == this->isFullscreen()){
 		return;
 	}
@@ -897,7 +897,7 @@ void App::setFullscreen(bool enable){
 
 
 
-void App::setMouseCursorVisible(bool visible){
+void application::setMouseCursorVisible(bool visible){
 	auto& ww = getImpl(this->windowPimpl);
 	if(visible){
 		if(!ww.mouseCursorIsCurrentlyVisible){

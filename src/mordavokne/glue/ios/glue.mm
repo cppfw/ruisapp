@@ -1,5 +1,5 @@
-#include "../../App.hpp"
-#include "../../AppFactory.hpp"
+#include "../../application.hpp"
+#include "../../factory.hpp"
 
 #include <papki/FSFile.hpp>
 #include <papki/RootDirFile.hpp>
@@ -87,12 +87,12 @@ int main(int argc, char * argv[]){
 
 
 namespace{
-	App::WindowParams windowParams(0);
+	window_params windowParams(0);
 
 	struct WindowWrapper : public utki::Unique{
 		UIWindow *window;
 
-		WindowWrapper(const App::WindowParams& wp){
+		WindowWrapper(const window_params& wp){
 			windowParams = wp;
 
 			this->window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
@@ -152,13 +152,13 @@ namespace{
 	view.drawableColorFormat = GLKViewDrawableColorFormatRGBA8888;
 
 	{
-		const App::WindowParams& wp = windowParams;
-		if(wp.buffers.get(App::WindowParams::Buffer_e::DEPTH)){
+		const window_params& wp = windowParams;
+		if(wp.buffers.get(window_params::buffer_type::depth)){
 			view.drawableDepthFormat = GLKViewDrawableDepthFormat16;
 		}else{
 			view.drawableDepthFormat = GLKViewDrawableDepthFormatNone;
 		}
-		if(wp.buffers.get(App::WindowParams::Buffer_e::STENCIL)){
+		if(wp.buffers.get(window_params::buffer_type::stencil)){
 			view.drawableStencilFormat = GLKViewDrawableStencilFormat8;
 		}else{
 			view.drawableStencilFormat = GLKViewDrawableStencilFormatNone;
@@ -256,7 +256,7 @@ namespace{
 
 
 
-void App::setFullscreen(bool enable){
+void application::setFullscreen(bool enable){
 	auto& ww = getImpl(this->windowPimpl);
 	UIWindow* w = ww.window;
 
@@ -301,7 +301,7 @@ void App::setFullscreen(bool enable){
 }
 
 
-void App::quit()noexcept{
+void application::quit()noexcept{
 	//TODO:
 }
 
@@ -334,7 +334,7 @@ namespace{
 
 }//~namespace
 
-App::App(std::string&& name, const App::WindowParams& wp) :
+application::App(std::string&& name, const window_params& wp) :
 		name(name),
 		windowPimpl(utki::makeUnique<WindowWrapper>(wp)),
 		gui(
@@ -356,20 +356,20 @@ App::App(std::string&& name, const App::WindowParams& wp) :
 }
 
 
-void App::swapFrameBuffers(){
+void application::swapFrameBuffers(){
 	//do nothing
 }
 
-void App::showVirtualKeyboard()noexcept{
+void application::showVirtualKeyboard()noexcept{
 	//TODO:
 }
 
-void App::hideVirtualKeyboard()noexcept{
+void application::hideVirtualKeyboard()noexcept{
 	//TODO:
 }
 
 
-std::unique_ptr<papki::File> App::getResFile(const std::string& path)const{
+std::unique_ptr<papki::File> application::getResFile(const std::string& path)const{
 	std::string dir([[[NSBundle mainBundle] resourcePath] fileSystemRepresentation]);
 
 //	TRACE(<< "res path = " << dir << std::endl)
@@ -380,6 +380,6 @@ std::unique_ptr<papki::File> App::getResFile(const std::string& path)const{
 	return std::move(rdf);
 }
 
-void App::setMouseCursorVisible(bool visible){
+void application::setMouseCursorVisible(bool visible){
 	//do nothing
 }

@@ -3,7 +3,7 @@
 #include <vector>
 #include <array>
 
-#include "../../AppFactory.hpp"
+#include "../../factory.hpp"
 
 #include <pogodi/WaitSet.hpp>
 #include <papki/FSFile.hpp>
@@ -69,7 +69,7 @@ struct WindowWrapper : public utki::Unique{
 
 	volatile bool quitFlag = false;
 
-	WindowWrapper(const App::WindowParams& wp){
+	WindowWrapper(const window_params& wp){
 		this->display = XOpenDisplay(0);
 		if(!this->display){
 			throw utki::Exc("XOpenDisplay() failed");
@@ -104,10 +104,10 @@ struct WindowWrapper : public utki::Unique{
 			visualAttribs.push_back(GLX_BLUE_SIZE); visualAttribs.push_back(8);
 			visualAttribs.push_back(GLX_ALPHA_SIZE); visualAttribs.push_back(8);
 
-			if(wp.buffers.get(App::WindowParams::Buffer_e::DEPTH)){
+			if(wp.buffers.get(window_params::buffer_type::depth)){
 				visualAttribs.push_back(GLX_DEPTH_SIZE); visualAttribs.push_back(24);
 			}
-			if(wp.buffers.get(App::WindowParams::Buffer_e::STENCIL)){
+			if(wp.buffers.get(window_params::buffer_type::stencil)){
 				visualAttribs.push_back(GLX_STENCIL_SIZE); visualAttribs.push_back(8);
 			}
 
@@ -160,7 +160,7 @@ struct WindowWrapper : public utki::Unique{
 
 		EGLConfig eglConfig;
 		{
-			//TODO: allow stencil and depth configuration etc. via WindowParams
+			//TODO: allow stencil and depth configuration etc. via window_params
 			//Here specify the attributes of the desired configuration.
 			//Below, we select an EGLConfig with at least 8 bits per color
 			//component compatible with on-screen windows
@@ -423,7 +423,7 @@ struct WindowWrapper : public utki::Unique{
 
 			blank = XCreateBitmapFromData(this->display, this->window, data, 1, 1);
 			if(blank == None){
-				throw utki::Exc("App::XEmptyMouseCursor::XEmptyMouseCursor(): could not create bitmap");
+				throw utki::Exc("application::XEmptyMouseCursor::XEmptyMouseCursor(): could not create bitmap");
 			}
 			utki::ScopeExit scopeExit([this, &blank](){
 				XFreePixmap(this->display, blank);
@@ -527,12 +527,12 @@ morda::real getDotsPerPt(Display* display){
 	r4::vec2ui resolution(DisplayWidth(display, scrNum), DisplayHeight(display, scrNum));
 	r4::vec2ui screenSizeMm(DisplayWidthMM(display, scrNum), DisplayHeightMM(display, scrNum));
 
-	return App::findDotsPerDp(resolution, screenSizeMm);
+	return application::findDotsPerDp(resolution, screenSizeMm);
 }
 }//~namespace
 
 
-App::App(std::string&& name, const WindowParams& requestedWindowParams) :
+application::application(std::string&& name, const window_params& requestedWindowParams) :
 		name(name),
 		windowPimpl(utki::makeUnique<WindowWrapper>(requestedWindowParams)),
 		gui(
@@ -911,7 +911,7 @@ public:
 }
 
 
-void App::quit()noexcept{
+void application::quit()noexcept{
 	auto& ww = getImpl(this->windowPimpl);
 
 	ww.quitFlag = true;
@@ -922,7 +922,7 @@ void App::quit()noexcept{
 
 
 int main(int argc, const char** argv){
-	std::unique_ptr<mordavokne::App> app = createAppUnix(argc, argv);
+	std::unique_ptr<mordavokne::application> app = createAppUnix(argc, argv);
 
 	ASSERT(app)
 
@@ -1067,7 +1067,7 @@ int main(int argc, const char** argv){
 
 
 
-void App::setFullscreen(bool enable){
+void application::setFullscreen(bool enable){
 #ifdef M_RASPBERRYPI
 	if(this->isFullscreen()){
 		return;
@@ -1105,7 +1105,7 @@ void App::setFullscreen(bool enable){
 
 
 
-void App::setMouseCursorVisible(bool visible){
+void application::setMouseCursorVisible(bool visible){
 	auto& ww = getImpl(this->windowPimpl);
 
 	if(visible){
@@ -1117,7 +1117,7 @@ void App::setMouseCursorVisible(bool visible){
 
 
 
-void App::swapFrameBuffers(){
+void application::swapFrameBuffers(){
 	auto& ww = getImpl(this->windowPimpl);
 
 #ifdef M_RENDER_OPENGL2

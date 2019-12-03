@@ -4,13 +4,11 @@ include $(d)../raspberrypi.mk
 
 this_soname := $(shell cat $(d)/soname.txt)
 
-this_srcs += mordavokne/App.cpp
+this_srcs += $(call prorab-src-dir, .)
 
 
 ifeq ($(os), macosx)
     this_mm_src := mordavokne/glue/macosx/glue.mm
-else
-    this_srcs += mordavokne/glue/glue.cpp
 endif
 
 

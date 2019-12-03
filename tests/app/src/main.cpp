@@ -3,7 +3,7 @@
 #include <utki/config.hpp>
 #include <papki/FSFile.hpp>
 
-#include "../../../src/mordavokne/AppFactory.hpp"
+#include "../../../src/mordavokne/factory.hpp"
 
 #include <morda/widgets/Widget.hpp>
 #include <morda/widgets/Container.hpp>
@@ -590,16 +590,16 @@ public:
 
 
 
-class Application : public mordavokne::App{
-	static mordavokne::App::WindowParams GetWindowParams()noexcept{
-		mordavokne::App::WindowParams wp(r4::vec2ui(1024, 800));
+class Application : public mordavokne::application{
+	static mordavokne::window_params GetWindowParams()noexcept{
+		mordavokne::window_params wp(r4::vec2ui(1024, 800));
 
 		return wp;
 	}
 public:
 
 	Application() :
-			App("mordavokne_testapp", GetWindowParams())
+			application("mordavokne_testapp", GetWindowParams())
 	{
 		TRACE(<< "storageDir = " << this->storageDir << std::endl)
 
@@ -812,7 +812,7 @@ public:
 			this->setMouseCursorVisible(visible);
 			b->clicked = [visible](morda::PushButton&) mutable{
 				visible = !visible;
-				mordavokne::App::inst().setMouseCursorVisible(visible);
+				mordavokne::inst().setMouseCursorVisible(visible);
 			};
 		}
 		TRACE(<< "Application constructor exit" << std::endl)
@@ -820,11 +820,6 @@ public:
 };
 
 
-
-// std::unique_ptr<mordavokne::App> mordavokne::createApp(int argc, const char** argv){
-// 	return utki::makeUnique<Application>();
-// }
-
-std::unique_ptr<mordavokne::App> mordavokne::create_application(int argc, const char** argv){
+std::unique_ptr<mordavokne::application> mordavokne::create_application(int argc, const char** argv){
 	return utki::makeUnique<Application>();
 }

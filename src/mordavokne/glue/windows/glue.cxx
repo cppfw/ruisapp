@@ -11,9 +11,9 @@
 
 #include <mordaren/OpenGL2Renderer.hpp>
 
-#include "../../App.hpp"
+#include "../../application.hpp"
 
-#include "../../AppFactory.hpp"
+#include "../../factory.hpp"
 
 using namespace mordavokne;
 
@@ -33,7 +33,7 @@ struct WindowWrapper : public utki::Unique{
 
 	bool mouseCursorIsCurrentlyVisible = true;
 
-	WindowWrapper(const App::WindowParams& wp);
+	WindowWrapper(const window_params& wp);
 
 	~WindowWrapper()noexcept;
 };
@@ -604,7 +604,7 @@ morda::real getDotsPerPt(HDC dc){
 	r4::vec2ui resolution(GetDeviceCaps(dc, HORZRES), GetDeviceCaps(dc, VERTRES));
 	r4::vec2ui screenSizeMm(GetDeviceCaps(dc, HORZSIZE), GetDeviceCaps(dc, VERTSIZE));
 
-	return mordavokne::App::findDotsPerDp(resolution, screenSizeMm);
+	return mordavokne::application::findDotsPerDp(resolution, screenSizeMm);
 }
 
 }//~namespace
@@ -641,7 +641,7 @@ std::string initializeStorageDir(const std::string& appName){
 }
 }
 
-App::App(std::string&& name, const WindowParams& wp) :
+application::App(std::string&& name, const window_params& wp) :
 		name(name),
 		windowPimpl(utki::makeUnique<WindowWrapper>(wp)),
 		gui(
@@ -668,7 +668,7 @@ App::App(std::string&& name, const WindowParams& wp) :
 		);
 }
 
-void App::quit()noexcept{
+void application::quit()noexcept{
 	auto& ww = getImpl(this->windowPimpl);
 	ww.quitFlag = true;
 }
@@ -676,7 +676,7 @@ void App::quit()noexcept{
 namespace mordavokne{
 
 void winmain(int argc, const char** argv){
-	decltype(mordavokne::createApp)* f;
+	decltype(mordavokne::create_application)* f;
 
 	// Try GCC name mangling first
 	f = reinterpret_cast<decltype(f)>(GetProcAddress(GetModuleHandle(NULL), TEXT("_ZN10mordavokne18create_applicationEiPPKc")));
@@ -691,9 +691,9 @@ void winmain(int argc, const char** argv){
 		f = reinterpret_cast<decltype(f)>(GetProcAddress(
 				GetModuleHandle(NULL),
 #if M_CPU == M_CPU_X86_64
-				TEXT("?createApp@mordavokne@@YA?AV?$unique_ptr@VApp@mordavokne@@U?$default_delete@VApp@mordavokne@@@std@@@std@@HPEAPEBD@Z")
+				TEXT("?createApp@mordavokne@@YA?AV?$unique_ptr@Vapplication@mordavokne@@U?$default_delete@Vapplication@mordavokne@@@std@@@std@@HPEAPEBD@Z")
 #else
-				TEXT("?createApp@mordavokne@@YA?AV?$unique_ptr@VApp@mordavokne@@U?$default_delete@VApp@mordavokne@@@std@@@std@@HPAPBD@Z")
+				TEXT("?createApp@mordavokne@@YA?AV?$unique_ptr@Vapplication@mordavokne@@U?$default_delete@Vapplication@mordavokne@@@std@@@std@@HPAPBD@Z")
 #endif
 			));
 	}
@@ -702,9 +702,9 @@ void winmain(int argc, const char** argv){
 		f = reinterpret_cast<decltype(f)>(GetProcAddress(
 				GetModuleHandle(NULL),
 #if M_CPU == M_CPU_X86_64
-				TEXT("?create_application@mordavokne@@YA?AV?$unique_ptr@VApp@mordavokne@@U?$default_delete@VApp@mordavokne@@@std@@@std@@HPEAPEBD@Z")
+				TEXT("?create_application@mordavokne@@YA?AV?$unique_ptr@Vapplication@mordavokne@@U?$default_delete@Vapplication@mordavokne@@@std@@@std@@HPEAPEBD@Z")
 #else
-				TEXT("?create_application@mordavokne@@YA?AV?$unique_ptr@VApp@mordavokne@@U?$default_delete@VApp@mordavokne@@@std@@@std@@HPAPBD@Z")
+				TEXT("?create_application@mordavokne@@YA?AV?$unique_ptr@Vapplication@mordavokne@@U?$default_delete@Vapplication@mordavokne@@@std@@@std@@HPAPBD@Z")
 #endif
 			));
 	}
@@ -767,7 +767,7 @@ int WINAPI WinMain(
 }
 
 
-void App::setFullscreen(bool enable) {
+void application::setFullscreen(bool enable) {
 	if (enable == this->isFullscreen()) {
 		return;
 	}
@@ -842,7 +842,7 @@ void App::setFullscreen(bool enable) {
 }
 
 
-void App::setMouseCursorVisible(bool visible){
+void application::setMouseCursorVisible(bool visible){
 	auto& ww = getImpl(this->windowPimpl);
 
 	if(visible){
@@ -859,7 +859,7 @@ void App::setMouseCursorVisible(bool visible){
 }
 
 
-void App::swapFrameBuffers(){
+void application::swapFrameBuffers(){
 	auto& ww = getImpl(this->windowPimpl);
 	SwapBuffers(ww.hdc);
 }
@@ -867,7 +867,7 @@ void App::swapFrameBuffers(){
 
 
 namespace{
-WindowWrapper::WindowWrapper(const App::WindowParams& wp){
+WindowWrapper::WindowWrapper(const window_params& wp){
 	this->windowClassName = "MordavokneWindowClassName";
 
 	{
@@ -935,7 +935,7 @@ WindowWrapper::WindowWrapper(const App::WindowParams& wp){
 		}
 	});
 
-	//	TRACE_AND_LOG(<< "App::DeviceContextWrapper::DeviceContextWrapper(): DC created" << std::endl)
+	//	TRACE_AND_LOG(<< "application::DeviceContextWrapper::DeviceContextWrapper(): DC created" << std::endl)
 
 	{
 		static PIXELFORMATDESCRIPTOR pfd = {
@@ -949,8 +949,8 @@ WindowWrapper::WindowWrapper(const App::WindowParams& wp){
 			BYTE(0), //shift bit ignored
 			BYTE(0), //no accumulation buffer
 			BYTE(0), BYTE(0), BYTE(0), BYTE(0), //accumulation bits ignored
-			wp.buffers.get(App::WindowParams::Buffer_e::DEPTH) ? BYTE(16) : BYTE(0), //16bit depth buffer
-			wp.buffers.get(App::WindowParams::Buffer_e::STENCIL) ? BYTE(8) : BYTE(0),
+			wp.buffers.get(window_params::buffer_type::depth) ? BYTE(16) : BYTE(0), //16bit depth buffer
+			wp.buffers.get(window_params::buffer_type::stencil) ? BYTE(8) : BYTE(0),
 			BYTE(0), //no auxiliary buffer
 			BYTE(PFD_MAIN_PLANE), //main drawing layer
 			BYTE(0), //reserved
@@ -962,7 +962,7 @@ WindowWrapper::WindowWrapper(const App::WindowParams& wp){
 			throw morda::Exc("Could not find suitable pixel format");
 		}
 
-		//	TRACE_AND_LOG(<< "App::DeviceContextWrapper::DeviceContextWrapper(): pixel format chosen" << std::endl)
+		//	TRACE_AND_LOG(<< "application::DeviceContextWrapper::DeviceContextWrapper(): pixel format chosen" << std::endl)
 
 		if (!SetPixelFormat(this->hdc, pixelFormat, &pfd)){
 			throw morda::Exc("Could not sent pixel format");
@@ -983,7 +983,7 @@ WindowWrapper::WindowWrapper(const App::WindowParams& wp){
 		}
 	});
 
-	//	TRACE_AND_LOG(<< "App::GLContextWrapper::GLContextWrapper(): GL rendering context created" << std::endl)
+	//	TRACE_AND_LOG(<< "application::GLContextWrapper::GLContextWrapper(): GL rendering context created" << std::endl)
 
 	if (!wglMakeCurrent(hdc, this->hrc)) {
 		throw morda::Exc("Failed to activate OpenGL rendering context");
