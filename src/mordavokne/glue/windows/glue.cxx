@@ -605,7 +605,7 @@ morda::real getDotsPerPt(HDC dc){
 	r4::vec2ui resolution(GetDeviceCaps(dc, HORZRES), GetDeviceCaps(dc, VERTRES));
 	r4::vec2ui screenSizeMm(GetDeviceCaps(dc, HORZSIZE), GetDeviceCaps(dc, VERTSIZE));
 
-	return mordavokne::application::findDotsPerDp(resolution, screenSizeMm);
+	return mordavokne::application::get_pixels_per_dp(resolution, screenSizeMm);
 }
 
 }//~namespace

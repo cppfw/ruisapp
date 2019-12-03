@@ -807,7 +807,7 @@ morda::real getDotsPerPt(){
 	r4::vec2ui resolution(displayPixelSize.width, displayPixelSize.height);
 	r4::vec2ui screenSizeMm(displayPhysicalSize.width, displayPhysicalSize.height);
 
-	return application::findDotsPerDp(resolution, screenSizeMm);
+	return application::get_pixels_per_dp(resolution, screenSizeMm);
 }
 
 }//~namespace

@@ -256,17 +256,23 @@ public:
 
 
 	/**
-	 * @brief Find dots per density pixel (dp) for given display parameters.
+	 * @brief Get dots per density pixel (dp) for given display parameters.
 	 * The size of the dp for desktop displays should normally be equal to one pixel.
 	 * For hand held devices size of the dp depends on physical screen size and pixel resolution.
-	 * @param resolution - resolution of the display in pixels.
-	 * @param screenSizeMm - size of the display in millimeters.
+	 * @param screen_size_pixels - resolution of the display in pixels.
+	 * @param screen_size_mm - size of the display in millimeters.
 	 * @return Size of one display density pixel in pixels.
 	 */
-	static morda::real findDotsPerDp(r4::vec2ui resolution, r4::vec2ui screenSizeMm);
+	static morda::real get_pixels_per_dp(r4::vec2ui screen_size_pixels, r4::vec2ui screen_size_mm);
+
+	// TODO: deprecated, remove.
+	static morda::real findDotsPerDp(r4::vec2ui resolution, r4::vec2ui screenSizeMm){
+		return get_pixels_per_dp(resolution, screenSizeMm);
+	}
 };
 
 inline application& inst(){
+
 	return application::inst();
 }
 

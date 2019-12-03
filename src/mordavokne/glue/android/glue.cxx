@@ -1024,7 +1024,7 @@ mordavokne::application::application(std::string&& name, const window_params& re
 				[this]() -> float{
 					auto res = getImpl(this->windowPimpl).getWindowSize();
 					auto dim = (res.to<float>() / javaFunctionsWrapper->getDotsPerInch()) * 25.4f;
-					return application::findDotsPerDp(res, dim.to<unsigned>());
+					return application::get_pixels_per_dp(res, dim.to<unsigned>());
 				}(),
 				[this](std::function<void()>&& a){
 					getImpl(getWindowPimpl(*this)).uiQueue.pushMessage(std::move(a));

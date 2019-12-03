@@ -68,7 +68,7 @@ void application::hide_virtual_keyboard()noexcept{
 
 
 
-morda::real application::findDotsPerDp(r4::vec2ui resolution, r4::vec2ui screenSizeMm){
+morda::real application::get_pixels_per_dp(r4::vec2ui resolution, r4::vec2ui screenSizeMm){
 
 	//NOTE: for ordinary desktop displays the PT size should be equal to 1 pixel.
 	//For high density displays it should be more than one pixel, depending on display ppi.
