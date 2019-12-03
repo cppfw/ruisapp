@@ -175,14 +175,14 @@ public:
 	 * On mobile platforms this function will summon the on-screen keyboard.
 	 * On desktop platforms this function does nothing.
 	 */
-	void showVirtualKeyboard()noexcept;
+	void show_virtual_keyboard()noexcept;
 
 	/**
 	 * @brief Hide virtual keyboard.
 	 * On mobile platforms this function hides the on-screen keyboard.
 	 * On desktop platforms this function does nothing.
 	 */
-	void hideVirtualKeyboard()noexcept;
+	void hide_virtual_keyboard()noexcept;
 
 private:
 
@@ -222,8 +222,13 @@ public:
 	 * @return true if application is in fullscreen mode.
 	 * @return false if application is in windowed mode.
 	 */
-	bool isFullscreen()const noexcept {
+	bool is_fullscreen()const noexcept {
 		return this->isFullscreen_v;
+	}
+
+	// TODO: deprecated, remove.
+	bool isFullscreen()const noexcept {
+		return this->is_fullscreen();
 	}
 
 	/**

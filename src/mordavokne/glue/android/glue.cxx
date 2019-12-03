@@ -93,11 +93,11 @@ public:
 		return float(this->env->CallFloatMethod(this->obj, this->getDotsPerInchMeth));
 	}
 
-	void hideVirtualKeyboard(){
+	void hide_virtual_keyboard(){
 		this->env->CallVoidMethod(this->obj, this->hideVirtualKeyboardMeth);
 	}
 
-	void showVirtualKeyboard(){
+	void show_virtual_keyboard(){
 		this->env->CallVoidMethod(this->obj, this->showVirtualKeyboardMeth);
 	}
 
@@ -1063,24 +1063,24 @@ void mordavokne::application::quit()noexcept{
 	ANativeActivity_finish(nativeActivity);
 }
 
-void mordavokne::application::showVirtualKeyboard()noexcept{
+void mordavokne::application::show_virtual_keyboard()noexcept{
 	//NOTE:
 	//ANativeActivity_showSoftInput(nativeActivity, ANATIVEACTIVITY_SHOW_SOFT_INPUT_FORCED);
 	//did not work for some reason.
 
 	ASSERT(javaFunctionsWrapper)
-	javaFunctionsWrapper->showVirtualKeyboard();
+	javaFunctionsWrapper->show_virtual_keyboard();
 }
 
 
 
-void mordavokne::application::hideVirtualKeyboard()noexcept{
+void mordavokne::application::hide_virtual_keyboard()noexcept{
 	//NOTE:
 	//ANativeActivity_hideSoftInput(nativeActivity, ANATIVEACTIVITY_HIDE_SOFT_INPUT_NOT_ALWAYS);
 	//did not work for some reason
 
 	ASSERT(javaFunctionsWrapper)
-	javaFunctionsWrapper->hideVirtualKeyboard();
+	javaFunctionsWrapper->hide_virtual_keyboard();
 }
 
 

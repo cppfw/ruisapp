@@ -53,14 +53,14 @@ std::unique_ptr<papki::File> application::get_res_file(const std::string& path)c
 	return utki::makeUnique<papki::FSFile>(path);
 }
 
-void application::showVirtualKeyboard()noexcept{
+void application::show_virtual_keyboard()noexcept{
 	TRACE(<< "application::ShowVirtualKeyboard(): invoked" << std::endl)
 	//do nothing
 }
 
 
 
-void application::hideVirtualKeyboard()noexcept{
+void application::hide_virtual_keyboard()noexcept{
 	TRACE(<< "application::HideVirtualKeyboard(): invoked" << std::endl)
 	//do nothing
 }

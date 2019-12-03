@@ -769,7 +769,7 @@ int WINAPI WinMain(
 
 
 void application::setFullscreen(bool enable) {
-	if (enable == this->isFullscreen()) {
+	if (enable == this->is_fullscreen()) {
 		return;
 	}
 

@@ -360,11 +360,11 @@ void application::swapFrameBuffers(){
 	//do nothing
 }
 
-void application::showVirtualKeyboard()noexcept{
+void application::show_virtual_keyboard()noexcept{
 	//TODO:
 }
 
-void application::hideVirtualKeyboard()noexcept{
+void application::hide_virtual_keyboard()noexcept{
 	//TODO:
 }
 

@@ -630,7 +630,7 @@ public:
 
 
 		std::dynamic_pointer_cast<morda::PushButton>(c->findById("show_VK_button"))->clicked = [this](morda::PushButton&){
-			this->showVirtualKeyboard();
+			this->show_virtual_keyboard();
 		};
 
 		std::dynamic_pointer_cast<morda::PushButton>(c->findById("push_button_in_scroll_container"))->clicked = [](morda::PushButton&){
@@ -801,7 +801,7 @@ public:
 		{
 			auto b = c->findByIdAs<morda::PushButton>("fullscreen_button");
 			b->clicked = [this](morda::PushButton&) {
-				this->setFullscreen(!this->isFullscreen());
+				this->setFullscreen(!this->is_fullscreen());
 			};
 		}
 

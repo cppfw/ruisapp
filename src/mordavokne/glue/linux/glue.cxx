@@ -1069,11 +1069,11 @@ int main(int argc, const char** argv){
 
 void application::setFullscreen(bool enable){
 #ifdef M_RASPBERRYPI
-	if(this->isFullscreen()){
+	if(this->is_fullscreen()){
 		return;
 	}
 #endif
-	if(enable == this->isFullscreen()){
+	if(enable == this->is_fullscreen()){
 		return;
 	}
 
