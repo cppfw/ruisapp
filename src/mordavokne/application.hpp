@@ -247,7 +247,12 @@ public:
 	 * @brief Show/hide mouse cursor.
 	 * @param visible - whether to show (true) or hide (false) mouse cursor.
 	 */
-	void setMouseCursorVisible(bool visible);
+	void set_mouse_cursor_visible(bool visible);
+
+	// TODO: deprecated, remove.
+	void setMouseCursorVisible(bool visible){
+		this->set_mouse_cursor_visible(visible);
+	}
 
 
 	/**

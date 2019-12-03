@@ -809,10 +809,10 @@ public:
 		{
 			auto b = c->findByIdAs<morda::PushButton>("showhide_mousecursor_button");
 			bool visible = false;
-			this->setMouseCursorVisible(visible);
+			this->set_mouse_cursor_visible(visible);
 			b->clicked = [visible](morda::PushButton&) mutable{
 				visible = !visible;
-				mordavokne::inst().setMouseCursorVisible(visible);
+				mordavokne::inst().set_mouse_cursor_visible(visible);
 			};
 		}
 		TRACE(<< "Application constructor exit" << std::endl)

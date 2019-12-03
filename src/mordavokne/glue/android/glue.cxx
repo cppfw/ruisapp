@@ -1045,7 +1045,7 @@ void mordavokne::application::swapFrameBuffers() {
 	ww.swapBuffers();
 }
 
-void mordavokne::application::setMouseCursorVisible(bool visible) {
+void mordavokne::application::set_mouse_cursor_visible(bool visible) {
 	//do nothing
 }
 

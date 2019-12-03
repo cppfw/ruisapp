@@ -1105,7 +1105,7 @@ void application::set_fullscreen(bool enable){
 
 
 
-void application::setMouseCursorVisible(bool visible){
+void application::set_mouse_cursor_visible(bool visible){
 	auto& ww = getImpl(this->windowPimpl);
 
 	if(visible){

@@ -380,6 +380,6 @@ std::unique_ptr<papki::File> application::get_res_file(const std::string& path)c
 	return std::move(rdf);
 }
 
-void application::setMouseCursorVisible(bool visible){
+void application::set_mouse_cursor_visible(bool visible){
 	//do nothing
 }
