@@ -813,7 +813,7 @@ morda::real getDotsPerPt(){
 }//~namespace
 
 
-application::App(std::string&& name, const window_params& wp) :
+application::application(std::string&& name, const window_params& wp) :
 		name(name),
 		windowPimpl(utki::makeUnique<WindowWrapper>(wp)),
 		gui(
@@ -840,7 +840,7 @@ application::App(std::string&& name, const window_params& wp) :
 			),
 		storageDir(initializeStorageDir(this->name))
 {
-	TRACE(<< "application::App(): enter" << std::endl)
+	TRACE(<< "application::application(): enter" << std::endl)
 	this->updateWindowRect(
 			morda::Rectr(
 					0,
