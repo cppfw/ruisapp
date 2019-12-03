@@ -641,7 +641,7 @@ std::string initializeStorageDir(const std::string& appName){
 }
 }
 
-application::App(std::string&& name, const window_params& wp) :
+application::application(std::string&& name, const window_params& wp) :
 		name(name),
 		windowPimpl(utki::makeUnique<WindowWrapper>(wp)),
 		gui(
@@ -710,7 +710,7 @@ void winmain(int argc, const char** argv){
 	}
 
 	ASSERT_INFO(f, "no app factory function found")
-	std::unique_ptr<mordavokne::App> app = f(argc, argv);
+	std::unique_ptr<mordavokne::application> app = f(argc, argv);
 
 	ASSERT(app)
 
