@@ -1,6 +1,6 @@
 #include <dlfcn.h>
 
-#include "../factory.hpp"
+#include "../application.hpp"
 
 namespace{
 

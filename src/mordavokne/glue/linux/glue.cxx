@@ -3,7 +3,6 @@
 #include <vector>
 #include <array>
 
-#include "../../factory.hpp"
 #include "../../application.hpp"
 
 #include <pogodi/WaitSet.hpp>

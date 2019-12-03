@@ -12,7 +12,6 @@
 #include <mordaren/OpenGL2Renderer.hpp>
 
 #include "../../application.hpp"
-#include "../../factory.hpp"
 
 #include "../friendAccessors.cxx"
 

@@ -3,7 +3,7 @@
 #include <utki/config.hpp>
 #include <papki/FSFile.hpp>
 
-#include "../../../src/mordavokne/factory.hpp"
+#include "../../../src/mordavokne/application.hpp"
 
 #include <morda/widgets/Widget.hpp>
 #include <morda/widgets/Container.hpp>

@@ -1,5 +1,4 @@
 #include <mordavokne/application.hpp>
-#include <mordavokne/factory.hpp>
 
 #include <morda/widgets/label/TextLabel.hpp>
 #include <morda/widgets/button/Button.hpp>

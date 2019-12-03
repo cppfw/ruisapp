@@ -13,7 +13,6 @@
 #include <sys/eventfd.h>
 
 #include "../../application.hpp"
-#include "../../factory.hpp"
 
 #include <mordaren/OpenGLES2Renderer.hpp>
 
