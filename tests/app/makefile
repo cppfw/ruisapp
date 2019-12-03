@@ -36,15 +36,16 @@ ifeq ($(debug), true)
     this_cxxflags += -DDEBUG
 endif
 
+this_ldlibs += $(d)../../src/build/$(this_mordavoknelib)$(soext)
+
 ifeq ($(prorab_os),windows)
     this_ldlibs += -lmingw32 #these should go first, otherwise linker will complain about undefined reference to WinMain
-    this_ldlibs += $(d)../../src/$(this_mordavoknelib)$(soext)
     this_ldlibs += -lglew32 -lopengl32 -lpng -ljpeg -lz -lfreetype -mwindows
 else ifeq ($(prorab_os),macosx)
-    this_ldlibs += $(prorab_this_dir)../../src/build/$(this_mordavoknelib)$(soext) -lGLEW -framework OpenGL -framework Cocoa -lpng -ljpeg -lfreetype
+    this_ldlibs += -lGLEW -framework OpenGL -framework Cocoa -lpng -ljpeg -lfreetype
     this_ldflags += -rdynamic
 else ifeq ($(prorab_os),linux)
-    this_ldlibs += $(prorab_this_dir)../../src/build/$(this_mordavoknelib)$(soext) -pthread
+    this_ldlibs += -pthread
     this_ldflags += -rdynamic
 endif
 
