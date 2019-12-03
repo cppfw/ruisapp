@@ -252,8 +252,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\mordavokne\App.cpp" />
-    <ClCompile Include="..\..\src\mordavokne\glue\glue.cpp" />
+    <ClCompile Include="..\..\src\mordavokne\**\*.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
