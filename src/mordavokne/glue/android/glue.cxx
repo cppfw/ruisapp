@@ -1127,7 +1127,7 @@ void handleInputEvents(){
 						handleMouseButton(
 								app,
 								true,
-								AndroidWinCoordsToMordaWinRectCoords(app.winDim(), p),
+								AndroidWinCoordsToMordaWinRectCoords(app.window_dimensions(), p),
 								morda::MouseButton_e::LEFT,
 								pointerId
 						);
@@ -1153,7 +1153,7 @@ void handleInputEvents(){
 						handleMouseButton(
 								app,
 								false,
-								AndroidWinCoordsToMordaWinRectCoords(app.winDim(), p),
+								AndroidWinCoordsToMordaWinRectCoords(app.window_dimensions(), p),
 								morda::MouseButton_e::LEFT,
 								pointerId
 						);
@@ -1183,7 +1183,7 @@ void handleInputEvents(){
 
 							handleMouseMove(
 									app,
-									AndroidWinCoordsToMordaWinRectCoords(app.winDim(), p),
+									AndroidWinCoordsToMordaWinRectCoords(app.window_dimensions(), p),
 									pointerId
 							);
 						}//~for(every pointer)
