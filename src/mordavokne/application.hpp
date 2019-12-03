@@ -235,7 +235,12 @@ public:
 	 * @brief Set/unset fullscreen mode.
 	 * @param enable - whether to enable or to disable fullscreen mode.
 	 */
-	void setFullscreen(bool enable);
+	void set_fullscreen(bool enable);
+
+	// TODO: deprecated, remove.
+	void setFullscreen(bool enable){
+		this->set_fullscreen(enable);
+	}
 
 
 	/**

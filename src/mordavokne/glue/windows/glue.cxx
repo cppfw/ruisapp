@@ -768,7 +768,7 @@ int WINAPI WinMain(
 }
 
 
-void application::setFullscreen(bool enable) {
+void application::set_fullscreen(bool enable) {
 	if (enable == this->is_fullscreen()) {
 		return;
 	}

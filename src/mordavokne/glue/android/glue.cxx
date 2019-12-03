@@ -1049,7 +1049,7 @@ void mordavokne::application::setMouseCursorVisible(bool visible) {
 	//do nothing
 }
 
-void mordavokne::application::setFullscreen(bool enable) {
+void mordavokne::application::set_fullscreen(bool enable) {
 	ASSERT(nativeActivity)
 	if(enable) {
 		ANativeActivity_setWindowFlags(nativeActivity, AWINDOW_FLAG_FULLSCREEN, 0);

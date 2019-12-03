@@ -801,7 +801,7 @@ public:
 		{
 			auto b = c->findByIdAs<morda::PushButton>("fullscreen_button");
 			b->clicked = [this](morda::PushButton&) {
-				this->setFullscreen(!this->is_fullscreen());
+				this->set_fullscreen(!this->is_fullscreen());
 			};
 		}
 

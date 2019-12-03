@@ -552,7 +552,7 @@ application::application(std::string&& name, const window_params& requestedWindo
 		storage_dir(initializeStorageDir(this->name))
 {
 #ifdef M_RASPBERRYPI
-	this->setFullscreen(true);
+	this->set_fullscreen(true);
 #endif
 }
 
@@ -1067,7 +1067,7 @@ int main(int argc, const char** argv){
 
 
 
-void application::setFullscreen(bool enable){
+void application::set_fullscreen(bool enable){
 #ifdef M_RASPBERRYPI
 	if(this->is_fullscreen()){
 		return;

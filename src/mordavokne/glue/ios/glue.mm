@@ -256,7 +256,7 @@ namespace{
 
 
 
-void application::setFullscreen(bool enable){
+void application::set_fullscreen(bool enable){
 	auto& ww = getImpl(this->windowPimpl);
 	UIWindow* w = ww.window;
 
@@ -352,7 +352,7 @@ application::App(std::string&& name, const window_params& wp) :
 			),
 		storage_dir("") //TODO: initialize to proper value
 {
-	this->setFullscreen(false);//this will intialize the viewport
+	this->set_fullscreen(false);//this will intialize the viewport
 }
 
 
