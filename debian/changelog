@@ -1,3 +1,9 @@
+libmordavokne (0.2.45) unstable; urgency=medium
+
+  * refactoring
+
+ -- Ivan Gagis <igagis@gmail.com>  Tue, 03 Dec 2019 19:13:40 +0200
+
 libmordavokne (0.2.44) unstable; urgency=medium
 
   * nuget update
