@@ -11,6 +11,7 @@ ifeq ($(os), macosx)
     this_mm_src := mordavokne/glue/macosx/glue.mm
 endif
 
+this_out_dir := build
 
 
 this_common_cxxflags += -Wall #enable all warnings

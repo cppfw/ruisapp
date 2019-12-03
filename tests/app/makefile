@@ -4,6 +4,7 @@ include $(d)../../raspberrypi.mk
 
 this_name := mordavokne-test
 
+this_out_dir := build
 
 this_srcs += src/main.cpp
 
@@ -40,10 +41,10 @@ ifeq ($(prorab_os),windows)
     this_ldlibs += $(d)../../src/$(this_mordavoknelib)$(soext)
     this_ldlibs += -lglew32 -lopengl32 -lpng -ljpeg -lz -lfreetype -mwindows
 else ifeq ($(prorab_os),macosx)
-    this_ldlibs += $(prorab_this_dir)../../src/$(this_mordavoknelib)$(soext) -lGLEW -framework OpenGL -framework Cocoa -lpng -ljpeg -lfreetype
+    this_ldlibs += $(prorab_this_dir)../../src/build/$(this_mordavoknelib)$(soext) -lGLEW -framework OpenGL -framework Cocoa -lpng -ljpeg -lfreetype
     this_ldflags += -rdynamic
 else ifeq ($(prorab_os),linux)
-    this_ldlibs += $(prorab_this_dir)../../src/$(this_mordavoknelib)$(soext) -pthread
+    this_ldlibs += $(prorab_this_dir)../../src/build/$(this_mordavoknelib)$(soext) -pthread
     this_ldflags += -rdynamic
 endif
 
@@ -56,14 +57,14 @@ $(eval $(prorab-build-app))
 define this_rules
 run:: $(prorab_this_name)
 	@echo running $$^...
-	@(cd $(d); LD_LIBRARY_PATH=../../src $$^)
+	@(cd $(d); LD_LIBRARY_PATH=../../src/build $$^)
 endef
 $(eval $(this_rules))
 
 
 # add dependency on libmordavokne
 ifeq ($(prorab_os),windows)
-    $(d)$(this_mordavoknelib)$(soext): $(abspath $(d)../../src/$(this_mordavoknelib)$(soext))
+    $(d)$(this_mordavoknelib)$(soext): $(abspath $(d)../../src/build/$(this_mordavoknelib)$(soext))
 	@cp $< $@
 
     $(prorab_this_name): $(d)$(this_mordavoknelib)$(soext)
@@ -74,7 +75,7 @@ ifeq ($(prorab_os),windows)
     endef
     $(eval $(this_rules))
 else
-    $(prorab_this_name): $(abspath $(d)../../src/$(this_mordavoknelib)$(soext))
+    $(prorab_this_name): $(abspath $(d)../../src/build/$(this_mordavoknelib)$(soext))
 endif
 
 
