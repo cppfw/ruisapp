@@ -48,7 +48,7 @@ else ifeq ($(os), macosx)
     this_common_ldlibs += -lGLEW -lc++
     this_common_ldlibs += -framework Cocoa -framework OpenGL -ldl
 
-    this_mm_obj := $(d)obj_$(this_name)/objc/mordavokne/glue/macosx/glue.o
+    this_mm_obj := $(d)obj_$(this_name)/objc/mordavokne/glue/macosx/glue.mm.o
 
     define this_rules
         $(this_mm_obj): $(d)mordavokne/glue/macosx/glue.mm

@@ -4,6 +4,7 @@
 #include <array>
 
 #include "../../factory.hpp"
+#include "../../application.hpp"
 
 #include <pogodi/WaitSet.hpp>
 #include <papki/FSFile.hpp>
@@ -33,12 +34,11 @@
 #endif
 
 
+#include "../friendAccessors.cxx"
+#include "../unixCommon.cxx"
 
 
 using namespace mordavokne;
-
-
-#include "../unixCommon.cxx"
 
 
 namespace{

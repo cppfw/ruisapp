@@ -19,6 +19,8 @@
 
 #include <EGL/egl.h>
 
+#include "../friendAccessors.cxx"
+
 using namespace mordavokne;
 
 namespace{

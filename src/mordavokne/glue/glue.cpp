@@ -1,11 +1,5 @@
 #include <utki/config.hpp>
 
-#include "../application.hpp"
-
-
-#include "friendAccessors.cxx"
-
-
 #if M_OS == M_OS_WINDOWS
 #	include "windows/glue.cxx"
 #elif M_OS == M_OS_LINUX && M_OS_NAME == M_OS_NAME_ANDROID
