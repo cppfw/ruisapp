@@ -1030,7 +1030,7 @@ mordavokne::application::application(std::string&& name, const window_params& re
 					getImpl(getWindowPimpl(*this)).uiQueue.pushMessage(std::move(a));
 				}
 			),
-		storageDir(initializeStorageDir(this->name))
+		storage_dir(initializeStorageDir(this->name))
 {
 	auto winSize = getImpl(this->windowPimpl).getWindowSize();
 	this->updateWindowRect(morda::Rectr(morda::Vec2r(0), winSize.to<morda::real>()));

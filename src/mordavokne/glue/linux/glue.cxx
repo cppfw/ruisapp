@@ -549,7 +549,7 @@ application::application(std::string&& name, const window_params& requestedWindo
 					getImpl(getWindowPimpl(*this)).uiQueue.pushMessage(std::move(a));
 				}
 			),
-		storageDir(initializeStorageDir(this->name))
+		storage_dir(initializeStorageDir(this->name))
 {
 #ifdef M_RASPBERRYPI
 	this->setFullscreen(true);

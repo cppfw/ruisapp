@@ -656,7 +656,7 @@ application::application(std::string&& name, const window_params& wp) :
 					}
 				}
 			),
-		storageDir(initializeStorageDir(this->name)),
+		storage_dir(initializeStorageDir(this->name)),
 		curWinRect(0, 0, -1, -1)
 {
 	this->updateWindowRect(

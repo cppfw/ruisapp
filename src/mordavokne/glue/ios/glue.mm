@@ -350,7 +350,7 @@ application::App(std::string&& name, const window_params& wp) :
 					});
 				}
 			),
-		storageDir("") //TODO: initialize to proper value
+		storage_dir("") //TODO: initialize to proper value
 {
 	this->setFullscreen(false);//this will intialize the viewport
 }

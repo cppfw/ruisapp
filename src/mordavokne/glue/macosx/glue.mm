@@ -838,7 +838,7 @@ application::application(std::string&& name, const window_params& wp) :
 					[ww.applicationObjectId postEvent:e atStart:NO];
 				}
 			),
-		storageDir(initializeStorageDir(this->name))
+		storage_dir(initializeStorageDir(this->name))
 {
 	TRACE(<< "application::application(): enter" << std::endl)
 	this->updateWindowRect(

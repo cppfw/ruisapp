@@ -601,7 +601,7 @@ public:
 	Application() :
 			application("mordavokne_testapp", GetWindowParams())
 	{
-		TRACE(<< "storageDir = " << this->storageDir << std::endl)
+		TRACE(<< "storage_dir = " << this->storage_dir << std::endl)
 
 		morda::Morda::inst().initStandardWidgets(*this->get_res_file());
 

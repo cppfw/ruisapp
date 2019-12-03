@@ -105,7 +105,10 @@ public:
 	 * saved states, etc.
 	 * The path is always ended with '/' character.
 	 */
-	const std::string storageDir;
+	const std::string storage_dir;
+
+	// TODO: deprecated, remove.
+	const std::string& storageDir = storage_dir;
 
 private:
 	//this is a viewport rectangle in coordinates that are as follows: x grows right, y grows up.
