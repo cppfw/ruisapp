@@ -69,7 +69,7 @@ public:
 	const std::string name;
 
 	// TODO: deprecated, remove.
-	// typedef window_params WindowParams;
+	typedef window_params WindowParams;
 
 private:
 	std::unique_ptr<utki::Unique> windowPimpl;
@@ -91,7 +91,11 @@ public:
 	 * @param path - file path to initialize the file interface with.
 	 * @return Instance of the file interface into the resources storage.
 	 */
-	std::unique_ptr<papki::File> getResFile(const std::string& path = std::string())const;
+	std::unique_ptr<papki::File> get_res_file(const std::string& path = std::string())const;
+
+	std::unique_ptr<papki::File> getResFile(const std::string& path = std::string())const{
+		return this->get_res_file(path);
+	}
 
 public:
 	/**

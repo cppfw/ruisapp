@@ -603,16 +603,16 @@ public:
 	{
 		TRACE(<< "storageDir = " << this->storageDir << std::endl)
 
-		morda::Morda::inst().initStandardWidgets(*this->getResFile());
+		morda::Morda::inst().initStandardWidgets(*this->get_res_file());
 
-		morda::Morda::inst().resMan.mountResPack(*this->getResFile("res/"));
+		morda::Morda::inst().resMan.mountResPack(*this->get_res_file("res/"));
 //		this->ResMan().MountResPack(morda::ZipFile::New(papki::FSFile::New("res.zip")));
 
 		morda::Morda::inst().inflater.registerType<SimpleWidget>("U_SimpleWidget");
 		morda::Morda::inst().inflater.registerType<CubeWidget>("CubeWidget");
 
 		std::shared_ptr<morda::Widget> c = morda::Morda::inst().inflater.inflate(
-				*this->getResFile("res/test.gui")
+				*this->get_res_file("res/test.gui")
 			);
 		morda::Morda::inst().setRootWidget(c);
 

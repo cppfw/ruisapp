@@ -369,7 +369,7 @@ void application::hideVirtualKeyboard()noexcept{
 }
 
 
-std::unique_ptr<papki::File> application::getResFile(const std::string& path)const{
+std::unique_ptr<papki::File> application::get_res_file(const std::string& path)const{
 	std::string dir([[[NSBundle mainBundle] resourcePath] fileSystemRepresentation]);
 
 //	TRACE(<< "res path = " << dir << std::endl)

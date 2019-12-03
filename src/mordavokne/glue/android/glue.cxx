@@ -1036,7 +1036,7 @@ mordavokne::application::application(std::string&& name, const window_params& re
 	this->updateWindowRect(morda::Rectr(morda::Vec2r(0), winSize.to<morda::real>()));
 }
 
-std::unique_ptr<papki::File> mordavokne::application::getResFile(const std::string& path)const{
+std::unique_ptr<papki::File> mordavokne::application::get_res_file(const std::string& path)const{
 	return utki::makeUnique<AssetFile>(appInfo.assetManager, path);
 }
 
