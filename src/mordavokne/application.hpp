@@ -3,18 +3,18 @@
 #include <memory>
 
 #include <utki/config.hpp>
-#include <utki/Singleton.hpp>
+#include <utki/singleton.hpp>
 #include <utki/Buf.hpp>
 #include <utki/Unique.hpp>
-#include <utki/Flags.hpp>
+#include <utki/flags.hpp>
 
-#include <papki/File.hpp>
+#include <papki/file.hpp>
 
 #include <r4/vector2.hpp>
 
 #include <morda/Morda.hpp>
 
-#include <morda/util/keycodes.hpp>
+#include <morda/util/key.hpp>
 
 #include "config.hpp"
 
@@ -43,7 +43,7 @@ struct window_params{
 	/**
 	 * @brief Flags describing desired buffers for OpneGL context.
 	 */
-	utki::Flags<buffer_type> buffers = utki::Flags<buffer_type>(false);
+	utki::flags<buffer_type> buffers = false;
 
 	window_params(r4::vec2ui dim) :
 			dim(dim)
@@ -59,7 +59,7 @@ struct window_params{
  * initializes rendering API (e.g. OpenGL or OpenGL ES).
  */
 class application :
-		public utki::IntrusiveSingleton<application>,
+		public utki::intrusive_singleton<application>,
 		public utki::Unique
 {
 	friend T_Singleton;
@@ -188,17 +188,17 @@ private:
 
 	//The idea with UnicodeResolver parameter is that we don't want to calculate the unicode unless it is really needed, thus postpone it
 	//as much as possible.
-	void handleCharacterInput(const morda::Morda::UnicodeProvider& unicodeResolver, morda::Key_e key){
+	void handleCharacterInput(const morda::Morda::UnicodeProvider& unicodeResolver, morda::key key){
 		this->gui.onCharacterInput(unicodeResolver, key);
 	}
 
-	friend void handleCharacterInput(application& app, const morda::Morda::UnicodeProvider& unicodeResolver, morda::Key_e key);
+	friend void handleCharacterInput(application& app, const morda::Morda::UnicodeProvider& unicodeResolver, morda::key key);
 
-	void handleKeyEvent(bool isDown, morda::Key_e keyCode){
+	void handleKeyEvent(bool isDown, morda::key keyCode){
 		this->gui.onKeyEvent(isDown, keyCode);
 	}
 
-	friend void handleKeyEvent(application& app, bool isDown, morda::Key_e keyCode);
+	friend void handleKeyEvent(application& app, bool isDown, morda::key keyCode);
 
 public:
 

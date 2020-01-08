@@ -265,84 +265,82 @@ WindowWrapper& getImpl(const std::unique_ptr<utki::Unique>& pimpl){
 }
 
 
-class AssetFile : public papki::File{
+class asset_file : public papki::file{
 	AAssetManager* manager;
 
 	mutable AAsset* handle = nullptr;
 
 public:
 
-	AssetFile(AAssetManager* manager, const std::string& pathName = std::string()) :
+	asset_file(AAssetManager* manager, const std::string& pathName = std::string()) :
 			manager(manager),
-			File(pathName)
+			papki::file(pathName)
 	{
 		ASSERT(this->manager)
 	}
 
 
-	virtual void openInternal(E_Mode mode)override{
+	virtual void open_internal(mode mode)override{
 		switch(mode){
-			case papki::File::E_Mode::WRITE:
-			case papki::File::E_Mode::CREATE:
-				throw papki::Exc("WRITE and CREATE open modes are not supported by Android assets");
-				break;
-			case papki::File::E_Mode::READ:
+			case papki::file::mode::WRITE:
+			case papki::file::mode::CREATE:
+				throw std::invalid_argument("WRITE and CREATE open modes are not supported by Android assets");
+			case papki::file::mode::READ:
 				break;
 			default:
-				throw papki::Exc("unknown mode");
-				break;
+				throw std::invalid_argument("unknown mode");
 		}
 		this->handle = AAssetManager_open(this->manager, this->path().c_str(), AASSET_MODE_UNKNOWN); //don't know what this MODE means at all
 		if(!this->handle){
 			std::stringstream ss;
 			ss << "AAssetManager_open(" << this->path() << ") failed";
-			throw papki::Exc(ss.str());
+			throw std::runtime_error(ss.str());
 		}
 	}
 
-	virtual void closeInternal()const noexcept override{
+	virtual void close_internal()const noexcept override{
 		ASSERT(this->handle)
 		AAsset_close(this->handle);
 		this->handle = 0;
 	}
 
-	virtual size_t readInternal(utki::Buf<std::uint8_t> buf)const override{
+	virtual size_t read_internal(utki::span<std::uint8_t> buf)const override{
 		ASSERT(this->handle)
 		int numBytesRead = AAsset_read(this->handle, &*buf.begin(), buf.size());
-		if(numBytesRead < 0){//something happened
-			throw papki::Exc("AAsset_read() error");
+		if(numBytesRead < 0){ // something happened
+			throw std::runtime_error("AAsset_read() error");
 		}
 		ASSERT(numBytesRead >= 0)
 		return size_t(numBytesRead);
 	}
 
-	virtual size_t writeInternal(const utki::Buf<std::uint8_t> buf)override{
+	virtual size_t write_internal(const utki::span<std::uint8_t> buf)override{
 		ASSERT(this->handle)
-		throw papki::Exc("Write() is not supported by Android assets");
+		throw std::runtime_error("write() is not supported by Android assets");
 		return 0;
 	}
 
-	virtual size_t seekForwardInternal(size_t numBytesToSeek)const override{
+	virtual size_t seek_forward_internal(size_t numBytesToSeek)const override{
 		return this->seek(numBytesToSeek, true);
 	}
 
-	virtual size_t seekBackwardInternal(size_t numBytesToSeek)const override{
+	virtual size_t seek_backward_internal(size_t numBytesToSeek)const override{
 		return this->seek(numBytesToSeek, false);
 	}
 
-	virtual void rewindInternal()const override{
-		if(!this->isOpened()){
-			throw papki::Exc("file is not opened, cannot rewind");
+	virtual void rewind_internal()const override{
+		if(!this->is_open()){
+			throw utki::invalid_state("file is not opened, cannot rewind");
 		}
 
 		ASSERT(this->handle)
 		if(AAsset_seek(this->handle, 0, SEEK_SET) < 0){
-			throw papki::Exc("AAsset_seek() failed");
+			throw std::runtime_error("AAsset_seek() failed");
 		}
 	}
 
 	virtual bool exists()const override{
-		if(this->isOpened()){ //file is opened => it exists
+		if(this->is_open()){ // file is opened => it exists
 			return true;
 		}
 
@@ -350,7 +348,7 @@ public:
 			return false;
 		}
 
-		if(this->isDir()){
+		if(this->is_dir()){
 			//try opening the directory to check its existence
 			AAssetDir* pdir = AAssetManager_openDir(this->manager, this->path().c_str());
 
@@ -361,13 +359,13 @@ public:
 				return true;
 			}
 		}else{
-			return this->File::exists();
+			return this->file::exists();
 		}
 	}
 
-	virtual std::vector<std::string> listDirContents(size_t maxEntries = 0)const override{
+	virtual std::vector<std::string> list_dir(size_t maxEntries = 0)const override{
 		if(!this->isDir()){
-			throw papki::IllegalStateExc("AndroidAssetFile::ListDirContents(): this is not a directory");
+			throw utki::invalid_state("asset_file::list_dir(): this is not a directory");
 		}
 
 		//Trim away trailing '/', as Android does not work with it.
@@ -377,16 +375,16 @@ public:
 		return javaFunctionsWrapper->listDirContents(p);
 	}
 
-	std::unique_ptr<papki::File> spawn()override{
-		return utki::makeUnique<AssetFile>(this->manager);
+	std::unique_ptr<papki::file> spawn()override{
+		return utki::make_unique<asset_file>(this->manager);
 	}
 
-	~AssetFile()noexcept{
+	~asset_file()noexcept{
 	}
 
 	size_t seek(size_t numBytesToSeek, bool seekForward)const{
-		if(!this->isOpened()){
-			throw papki::Exc("file is not opened, cannot seek");
+		if(!this->is_open()){
+			throw utki::invalid_state("file is not opened, cannot seek");
 		}
 
 		ASSERT(this->handle)
@@ -423,7 +421,7 @@ public:
 			ASSERT(offset > 0)
 
 			if(AAsset_seek(this->handle, seekForward ? offset : (-offset), SEEK_CUR) < 0){
-				throw papki::Exc("AAsset_seek() failed");
+				throw std::runtime_error("AAsset_seek() failed");
 			}
 
 			ASSERT(size_t(offset) < size_t(-1))
@@ -526,10 +524,7 @@ public:
 	FDFlag(){
 		this->eventFD = eventfd(0, EFD_NONBLOCK);
 		if(this->eventFD < 0){
-			std::stringstream ss;
-			ss << "FDFlag::FDFlag(): could not create eventFD (*nix) for implementing Waitable,"
-					<< " error code = " << errno << ": " << strerror(errno);
-			throw utki::Exc(ss.str().c_str());
+			throw std::system_error(errno, std::generic_category(), "could not create eventFD (*nix) for implementing Waitable");
 		}
 	}
 
@@ -647,268 +642,268 @@ public:
 
 
 //TODO: this mapping is not final
-const std::array<morda::Key_e, std::uint8_t(-1) + 1> keyCodeMap = {
-	morda::Key_e::UNKNOWN, //AKEYCODE_UNKNOWN
-	morda::Key_e::LEFT, //AKEYCODE_SOFT_LEFT
-	morda::Key_e::RIGHT, //AKEYCODE_SOFT_RIGHT
-	morda::Key_e::HOME, //AKEYCODE_HOME
-	morda::Key_e::ESCAPE, //AKEYCODE_BACK
-	morda::Key_e::F11, //AKEYCODE_CALL
-	morda::Key_e::F12, //AKEYCODE_ENDCALL
-	morda::Key_e::ZERO, //AKEYCODE_0
-	morda::Key_e::ONE, //AKEYCODE_1
-	morda::Key_e::TWO, //AKEYCODE_2
-	morda::Key_e::THREE, //AKEYCODE_3
-	morda::Key_e::FOUR, //AKEYCODE_4
-	morda::Key_e::FIVE, //AKEYCODE_5
-	morda::Key_e::SIX, //AKEYCODE_6
-	morda::Key_e::SEVEN, //AKEYCODE_7
-	morda::Key_e::EIGHT, //AKEYCODE_8
-	morda::Key_e::NINE, //AKEYCODE_9
-	morda::Key_e::UNKNOWN, //AKEYCODE_STAR
-	morda::Key_e::UNKNOWN, //AKEYCODE_POUND
-	morda::Key_e::UP, //AKEYCODE_DPAD_UP
-	morda::Key_e::DOWN, //AKEYCODE_DPAD_DOWN
-	morda::Key_e::LEFT, //AKEYCODE_DPAD_LEFT
-	morda::Key_e::RIGHT, //AKEYCODE_DPAD_RIGHT
-	morda::Key_e::ENTER, //AKEYCODE_DPAD_CENTER
-	morda::Key_e::PAGE_UP, //AKEYCODE_VOLUME_UP
-	morda::Key_e::PAGE_DOWN, //AKEYCODE_VOLUME_DOWN
-	morda::Key_e::F10, //AKEYCODE_POWER
-	morda::Key_e::F9, //AKEYCODE_CAMERA
-	morda::Key_e::BACKSPACE, //AKEYCODE_CLEAR
-	morda::Key_e::A, //AKEYCODE_A
-	morda::Key_e::B, //AKEYCODE_B
-	morda::Key_e::C, //AKEYCODE_C
-	morda::Key_e::D, //AKEYCODE_D
-	morda::Key_e::E, //AKEYCODE_E
-	morda::Key_e::F, //AKEYCODE_F
-	morda::Key_e::G, //AKEYCODE_G
-	morda::Key_e::H, //AKEYCODE_H
-	morda::Key_e::I, //AKEYCODE_I
-	morda::Key_e::G, //AKEYCODE_J
-	morda::Key_e::K, //AKEYCODE_K
-	morda::Key_e::L, //AKEYCODE_L
-	morda::Key_e::M, //AKEYCODE_M
-	morda::Key_e::N, //AKEYCODE_N
-	morda::Key_e::O, //AKEYCODE_O
-	morda::Key_e::P, //AKEYCODE_P
-	morda::Key_e::Q, //AKEYCODE_Q
-	morda::Key_e::R, //AKEYCODE_R
-	morda::Key_e::S, //AKEYCODE_S
-	morda::Key_e::T, //AKEYCODE_T
-	morda::Key_e::U, //AKEYCODE_U
-	morda::Key_e::V, //AKEYCODE_V
-	morda::Key_e::W, //AKEYCODE_W
-	morda::Key_e::X, //AKEYCODE_X
-	morda::Key_e::Y, //AKEYCODE_Y
-	morda::Key_e::Z, //AKEYCODE_Z
-	morda::Key_e::V, //AKEYCODE_COMMA
-	morda::Key_e::B, //AKEYCODE_PERIOD
-	morda::Key_e::N, //AKEYCODE_ALT_LEFT
-	morda::Key_e::M, //AKEYCODE_ALT_RIGHT
-	morda::Key_e::LEFT_SHIFT, //AKEYCODE_SHIFT_LEFT
-	morda::Key_e::RIGHT_SHIFT, //AKEYCODE_SHIFT_RIGHT
-	morda::Key_e::TAB, //AKEYCODE_TAB
-	morda::Key_e::SPACE, //AKEYCODE_SPACE
-	morda::Key_e::LEFT_CONTROL, //AKEYCODE_SYM
-	morda::Key_e::F8, //AKEYCODE_EXPLORER
-	morda::Key_e::F7, //AKEYCODE_ENVELOPE
-	morda::Key_e::ENTER, //AKEYCODE_ENTER
-	morda::Key_e::DELETE, //AKEYCODE_DEL
-	morda::Key_e::F6, //AKEYCODE_GRAVE
-	morda::Key_e::MINUS, //AKEYCODE_MINUS
-	morda::Key_e::EQUALS, //AKEYCODE_EQUALS
-	morda::Key_e::LEFT_SQUARE_BRACKET, //AKEYCODE_LEFT_BRACKET
-	morda::Key_e::RIGHT_SQUARE_BRACKET, //AKEYCODE_RIGHT_BRACKET
-	morda::Key_e::BACKSLASH, //AKEYCODE_BACKSLASH
-	morda::Key_e::SEMICOLON, //AKEYCODE_SEMICOLON
-	morda::Key_e::APOSTROPHE, //AKEYCODE_APOSTROPHE
-	morda::Key_e::SLASH, //AKEYCODE_SLASH
-	morda::Key_e::GRAVE, //AKEYCODE_AT
-	morda::Key_e::F5, //AKEYCODE_NUM
-	morda::Key_e::F4, //AKEYCODE_HEADSETHOOK
-	morda::Key_e::F3, //AKEYCODE_FOCUS (camera focus)
-	morda::Key_e::F2, //AKEYCODE_PLUS
-	morda::Key_e::F1, //AKEYCODE_MENU
-	morda::Key_e::END, //AKEYCODE_NOTIFICATION
-	morda::Key_e::RIGHT_CONTROL, //AKEYCODE_SEARCH
-	morda::Key_e::UNKNOWN, //AKEYCODE_MEDIA_PLAY_PAUSE
-	morda::Key_e::UNKNOWN, //AKEYCODE_MEDIA_STOP
-	morda::Key_e::UNKNOWN, //AKEYCODE_MEDIA_NEXT
-	morda::Key_e::UNKNOWN, //AKEYCODE_MEDIA_PREVIOUS
-	morda::Key_e::UNKNOWN, //AKEYCODE_MEDIA_REWIND
-	morda::Key_e::UNKNOWN, //AKEYCODE_MEDIA_FAST_FORWARD
-	morda::Key_e::UNKNOWN, //AKEYCODE_MUTE
-	morda::Key_e::PAGE_UP, //AKEYCODE_PAGE_UP
-	morda::Key_e::PAGE_DOWN, //AKEYCODE_PAGE_DOWN
-	morda::Key_e::UNKNOWN, //AKEYCODE_PICTSYMBOLS
-	morda::Key_e::CAPSLOCK, //AKEYCODE_SWITCH_CHARSET
-	morda::Key_e::UNKNOWN, //AKEYCODE_BUTTON_A
-	morda::Key_e::UNKNOWN, //AKEYCODE_BUTTON_B
-	morda::Key_e::UNKNOWN, //AKEYCODE_BUTTON_C
-	morda::Key_e::UNKNOWN, //AKEYCODE_BUTTON_X
-	morda::Key_e::UNKNOWN, //AKEYCODE_BUTTON_Y
-	morda::Key_e::UNKNOWN, //AKEYCODE_BUTTON_Z
-	morda::Key_e::UNKNOWN, //AKEYCODE_BUTTON_L1
-	morda::Key_e::UNKNOWN, //AKEYCODE_BUTTON_R1
-	morda::Key_e::UNKNOWN, //AKEYCODE_BUTTON_L2
-	morda::Key_e::UNKNOWN, //AKEYCODE_BUTTON_R2
-	morda::Key_e::UNKNOWN, //AKEYCODE_BUTTON_THUMBL
-	morda::Key_e::UNKNOWN, //AKEYCODE_BUTTON_THUMBR
-	morda::Key_e::UNKNOWN, //AKEYCODE_BUTTON_START
-	morda::Key_e::UNKNOWN, //AKEYCODE_BUTTON_SELECT
-	morda::Key_e::UNKNOWN, //AKEYCODE_BUTTON_MODE
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN, //
-	morda::Key_e::UNKNOWN  //
+const std::array<morda::key, std::uint8_t(-1) + 1> keyCodeMap = {
+	morda::key::unknown, //AKEYCODE_UNKNOWN
+	morda::key::left, //AKEYCODE_SOFT_LEFT
+	morda::key::right, //AKEYCODE_SOFT_RIGHT
+	morda::key::home, //AKEYCODE_HOME
+	morda::key::escape, //AKEYCODE_BACK
+	morda::key::f11, //AKEYCODE_CALL
+	morda::key::f12, //AKEYCODE_ENDCALL
+	morda::key::zero, //AKEYCODE_0
+	morda::key::one, //AKEYCODE_1
+	morda::key::two, //AKEYCODE_2
+	morda::key::three, //AKEYCODE_3
+	morda::key::four, //AKEYCODE_4
+	morda::key::five, //AKEYCODE_5
+	morda::key::six, //AKEYCODE_6
+	morda::key::seven, //AKEYCODE_7
+	morda::key::eight, //AKEYCODE_8
+	morda::key::nine, //AKEYCODE_9
+	morda::key::unknown, //AKEYCODE_STAR
+	morda::key::unknown, //AKEYCODE_POUND
+	morda::key::up, //AKEYCODE_DPAD_UP
+	morda::key::down, //AKEYCODE_DPAD_DOWN
+	morda::key::left, //AKEYCODE_DPAD_LEFT
+	morda::key::right, //AKEYCODE_DPAD_RIGHT
+	morda::key::enter, //AKEYCODE_DPAD_CENTER
+	morda::key::page_up, //AKEYCODE_VOLUME_UP
+	morda::key::page_down, //AKEYCODE_VOLUME_DOWN
+	morda::key::f10, //AKEYCODE_POWER
+	morda::key::f9, //AKEYCODE_CAMERA
+	morda::key::backspace, //AKEYCODE_CLEAR
+	morda::key::a, //AKEYCODE_A
+	morda::key::b, //AKEYCODE_B
+	morda::key::c, //AKEYCODE_C
+	morda::key::d, //AKEYCODE_D
+	morda::key::e, //AKEYCODE_E
+	morda::key::f, //AKEYCODE_F
+	morda::key::g, //AKEYCODE_G
+	morda::key::h, //AKEYCODE_H
+	morda::key::i, //AKEYCODE_I
+	morda::key::g, //AKEYCODE_J
+	morda::key::k, //AKEYCODE_K
+	morda::key::l, //AKEYCODE_L
+	morda::key::m, //AKEYCODE_M
+	morda::key::n, //AKEYCODE_N
+	morda::key::o, //AKEYCODE_O
+	morda::key::p, //AKEYCODE_P
+	morda::key::q, //AKEYCODE_Q
+	morda::key::r, //AKEYCODE_R
+	morda::key::s, //AKEYCODE_S
+	morda::key::t, //AKEYCODE_T
+	morda::key::u, //AKEYCODE_U
+	morda::key::v, //AKEYCODE_V
+	morda::key::w, //AKEYCODE_W
+	morda::key::x, //AKEYCODE_X
+	morda::key::y, //AKEYCODE_Y
+	morda::key::z, //AKEYCODE_Z
+	morda::key::v, //AKEYCODE_COMMA
+	morda::key::b, //AKEYCODE_PERIOD
+	morda::key::n, //AKEYCODE_ALT_LEFT
+	morda::key::m, //AKEYCODE_ALT_RIGHT
+	morda::key::left_shift, //AKEYCODE_SHIFT_LEFT
+	morda::key::right_shift, //AKEYCODE_SHIFT_RIGHT
+	morda::key::tabulator, //AKEYCODE_TAB
+	morda::key::space, //AKEYCODE_SPACE
+	morda::key::left_control, //AKEYCODE_SYM
+	morda::key::f8, //AKEYCODE_EXPLORER
+	morda::key::f7, //AKEYCODE_ENVELOPE
+	morda::key::enter, //AKEYCODE_ENTER
+	morda::key::deletion, //AKEYCODE_DEL
+	morda::key::f6, //AKEYCODE_GRAVE
+	morda::key::minus, //AKEYCODE_MINUS
+	morda::key::equals, //AKEYCODE_EQUALS
+	morda::key::left_square_bracket, //AKEYCODE_LEFT_BRACKET
+	morda::key::right_square_bracket, //AKEYCODE_RIGHT_BRACKET
+	morda::key::backslash, //AKEYCODE_BACKSLASH
+	morda::key::semicolon, //AKEYCODE_SEMICOLON
+	morda::key::apostrophe, //AKEYCODE_APOSTROPHE
+	morda::key::slash, //AKEYCODE_SLASH
+	morda::key::grave, //AKEYCODE_AT
+	morda::key::f5, //AKEYCODE_NUM
+	morda::key::f4, //AKEYCODE_HEADSETHOOK
+	morda::key::f3, //AKEYCODE_FOCUS (camera focus)
+	morda::key::f2, //AKEYCODE_PLUS
+	morda::key::f1, //AKEYCODE_MENU
+	morda::key::end, //AKEYCODE_NOTIFICATION
+	morda::key::right_control, //AKEYCODE_SEARCH
+	morda::key::unknown, //AKEYCODE_MEDIA_PLAY_PAUSE
+	morda::key::unknown, //AKEYCODE_MEDIA_STOP
+	morda::key::unknown, //AKEYCODE_MEDIA_NEXT
+	morda::key::unknown, //AKEYCODE_MEDIA_PREVIOUS
+	morda::key::unknown, //AKEYCODE_MEDIA_REWIND
+	morda::key::unknown, //AKEYCODE_MEDIA_FAST_FORWARD
+	morda::key::unknown, //AKEYCODE_MUTE
+	morda::key::page_up, //AKEYCODE_PAGE_UP
+	morda::key::page_down, //AKEYCODE_PAGE_DOWN
+	morda::key::unknown, //AKEYCODE_PICTSYMBOLS
+	morda::key::capslock, //AKEYCODE_SWITCH_CHARSET
+	morda::key::unknown, //AKEYCODE_BUTTON_A
+	morda::key::unknown, //AKEYCODE_BUTTON_B
+	morda::key::unknown, //AKEYCODE_BUTTON_C
+	morda::key::unknown, //AKEYCODE_BUTTON_X
+	morda::key::unknown, //AKEYCODE_BUTTON_Y
+	morda::key::unknown, //AKEYCODE_BUTTON_Z
+	morda::key::unknown, //AKEYCODE_BUTTON_L1
+	morda::key::unknown, //AKEYCODE_BUTTON_R1
+	morda::key::unknown, //AKEYCODE_BUTTON_L2
+	morda::key::unknown, //AKEYCODE_BUTTON_R2
+	morda::key::unknown, //AKEYCODE_BUTTON_THUMBL
+	morda::key::unknown, //AKEYCODE_BUTTON_THUMBR
+	morda::key::unknown, //AKEYCODE_BUTTON_START
+	morda::key::unknown, //AKEYCODE_BUTTON_SELECT
+	morda::key::unknown, //AKEYCODE_BUTTON_MODE
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown, //
+	morda::key::unknown  //
 };
 
 
 
-morda::Key_e getKeyFromKeyEvent(AInputEvent& event)noexcept{
+morda::key getKeyFromKeyEvent(AInputEvent& event)noexcept{
 	size_t kc = size_t(AKeyEvent_getKeyCode(&event));
 	ASSERT(kc < keyCodeMap.size())
 	return keyCodeMap[kc];
@@ -968,7 +963,7 @@ JNIEXPORT void JNICALL Java_io_github_igagis_mordavokne_MordaVOkneActivity_handl
 
 //    TRACE(<< "handleCharacterStringInput(): resolver.chars = " << resolver.chars << std::endl)
 
-	mordavokne::handleCharacterInput(mordavokne::inst(), resolver, morda::Key_e::UNKNOWN);
+	mordavokne::handleCharacterInput(mordavokne::inst(), resolver, morda::key::unknown);
 }
 
 
@@ -1035,8 +1030,8 @@ mordavokne::application::application(std::string&& name, const window_params& re
 	this->updateWindowRect(morda::Rectr(morda::Vec2r(0), winSize.to<morda::real>()));
 }
 
-std::unique_ptr<papki::File> mordavokne::application::get_res_file(const std::string& path)const{
-	return utki::makeUnique<AssetFile>(appInfo.assetManager, path);
+std::unique_ptr<papki::file> mordavokne::application::get_res_file(const std::string& path)const{
+	return utki::make_unique<asset_file>(appInfo.assetManager, path);
 }
 
 void mordavokne::application::swapFrameBuffers() {
@@ -1199,7 +1194,7 @@ void handleInputEvents(){
 //					TRACE(<< "AINPUT_EVENT_TYPE_KEY" << std::endl)
 
 					ASSERT(event)
-					morda::Key_e key = getKeyFromKeyEvent(*event);
+					morda::key key = getKeyFromKeyEvent(*event);
 
 					keyUnicodeResolver.kc = AKeyEvent_getKeyCode(event);
 					keyUnicodeResolver.ms = AKeyEvent_getMetaState(event);
@@ -1349,18 +1344,18 @@ int OnUpdateTimerExpired(int fd, int events, void* data){
 
 	std::uint32_t dt = app.gui.update();
 	if(dt == 0){
-		//do not arm the timer and do not clear the flag
+		// do not arm the timer and do not clear the flag
 	}else{
 		fdFlag.Clear();
 		timer.Arm(dt);
 	}
 
-	//after updating need to re-render everything
+	// after updating need to re-render everything
 	render(app);
 
 //	TRACE(<< "OnUpdateTimerExpired(): armed timer for " << dt << std::endl)
 
-	return 1; //1 means do not remove descriptor from looper
+	return 1; // 1 means do not remove descriptor from looper
 }
 
 
@@ -1372,7 +1367,7 @@ int OnQueueHasMessages(int fd, int events, void* data){
 		m();
 	}
 
-	return 1; //1 means do not remove descriptor from looper
+	return 1; // 1 means do not remove descriptor from looper
 }
 
 
@@ -1380,7 +1375,7 @@ int OnQueueHasMessages(int fd, int events, void* data){
 void OnNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window){
 	TRACE(<< "OnNativeWindowCreated(): invoked" << std::endl)
 
-	//save window in a static var, so it is accessible for OpenGL initializers from morda::application class
+	// save window in a static var, so it is accessible for OpenGL initializers from morda::application class
 	androidWindow = window;
 
 	curWinDim.x = float(ANativeWindow_getWidth(window));
@@ -1388,22 +1383,22 @@ void OnNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window){
 
 	ASSERT(!activity->instance)
 	try{
-		//use local auto-pointer for now because an exception can be thrown and need to delete object then.
+		// use local auto-pointer for now because an exception can be thrown and need to delete object then.
 		std::unique_ptr<AndroidConfiguration> cfg = AndroidConfiguration::New();
-		//retrieve current configuration
+		// retrieve current configuration
 		AConfiguration_fromAssetManager(cfg->ac, appInfo.assetManager);
 
 		application* app = mordavokne::create_application(0, nullptr).release();
 
 		activity->instance = app;
 
-		//save current configuration in global variable
+		// save current configuration in global variable
 		curConfig = std::move(cfg);
 
 		ALooper* looper = ALooper_prepare(0);
 		ASSERT(looper)
 
-		//Add timer descriptor to looper, this is needed for Updatable to work
+		// Add timer descriptor to looper, this is needed for Updatable to work
 		if(ALooper_addFd(
 				looper,
 				fdFlag.GetFD(),
@@ -1413,10 +1408,10 @@ void OnNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window){
 				0
 			) == -1)
 		{
-			throw utki::Exc("failed to add timer descriptor to looper");
+			throw std::runtime_error("failed to add timer descriptor to looper");
 		}
 
-		//Add UI message queue descriptor to looper
+		// Add UI message queue descriptor to looper
 		if(ALooper_addFd(
 				looper,
 				static_cast<pogodi::Waitable&>(getImpl(getWindowPimpl(*app)).uiQueue).getHandle(),
@@ -1426,10 +1421,10 @@ void OnNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window){
 				0
 			) == -1)
 		{
-			throw utki::Exc("failed to add UI message queue descriptor to looper");
+			throw std::runtime_error("failed to add UI message queue descriptor to looper");
 		}
 
-		fdFlag.Set();//this is to call the Update() for the first time if there were any Updateables started during creating application object
+		fdFlag.Set(); // this is to call the Update() for the first time if there were any Updateables started during creating application object
 	}catch(std::exception& e){
 		TRACE(<< "std::exception uncaught while creating application instance: " << e.what() << std::endl)
 		throw;

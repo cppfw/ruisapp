@@ -27,9 +27,9 @@ struct WindowWrapper : public utki::Unique{
 
 	bool quitFlag = false;
 
-	bool isHovered = false; //for tracking when mouse enters or leaves window.
+	bool isHovered = false; // for tracking when mouse enters or leaves window.
 
-	utki::Flags<morda::MouseButton_e> mouseButtonState;
+	utki::flags<morda::MouseButton_e> mouseButtonState;
 
 	bool mouseCursorIsCurrentlyVisible = true;
 
@@ -47,284 +47,284 @@ WindowWrapper& getImpl(const std::unique_ptr<utki::Unique>& pimpl){
 
 namespace{
 
-	const std::array<morda::Key_e, std::uint8_t(-1) + 1> keyCodeMap = {
-		morda::Key_e::UNKNOWN, //Undefined
-		morda::Key_e::UNKNOWN, //VK_LBUTTON
-		morda::Key_e::UNKNOWN, //VK_RBUTTON
-		morda::Key_e::UNKNOWN, //VK_CANCEL
-		morda::Key_e::UNKNOWN, //VK_MBUTTON
-		morda::Key_e::UNKNOWN, //VK_XBUTTON1, 5
-		morda::Key_e::UNKNOWN, //VK_XBUTTON2
-		morda::Key_e::UNKNOWN, //Undefined
-		morda::Key_e::BACKSPACE, //VK_BACK = backspace key
-		morda::Key_e::TAB, //VK_TAB
-		morda::Key_e::UNKNOWN, //Reserved, 10
-		morda::Key_e::UNKNOWN, //Reserved
-		morda::Key_e::UNKNOWN, //VK_CLEAR = clear key???
-		morda::Key_e::ENTER, //VK_RETURN
-		morda::Key_e::UNKNOWN, //Undefined
-		morda::Key_e::UNKNOWN, //Undefined, 15
-		morda::Key_e::LEFT_SHIFT, //VK_SHIFT
-		morda::Key_e::LEFT_CONTROL, //VK_CONTROL
-		morda::Key_e::LEFT_ALT, //VK_MENU = alt key
-		morda::Key_e::PAUSE, //VK_PAUSE
-		morda::Key_e::CAPSLOCK, //VK_CAPITAL = caps lock key, 20
-		morda::Key_e::UNKNOWN, //VK_KANA, VK_HANGUEL, VK_HANGUL
-		morda::Key_e::UNKNOWN, //Undefined
-		morda::Key_e::UNKNOWN, //VK_JUNJA
-		morda::Key_e::UNKNOWN, //VK_FINAL
-		morda::Key_e::UNKNOWN, //VK_HANJA, VK_KANJI, 25
-		morda::Key_e::UNKNOWN, //Undefined
-		morda::Key_e::ESCAPE, //VK_ESCAPE
-		morda::Key_e::UNKNOWN, //VK_CONVERT
-		morda::Key_e::UNKNOWN, //VK_NONCONVERT
-		morda::Key_e::UNKNOWN, //VK_ACCEPT, 30
-		morda::Key_e::UNKNOWN, //VK_MODECHANGE
-		morda::Key_e::SPACE, //VK_SPACE = space bar key
-		morda::Key_e::PAGE_UP, //VK_PRIOR = page up key
-		morda::Key_e::PAGE_DOWN,//VK_NEXT = page down key
-		morda::Key_e::END, //VK_END, 35
-		morda::Key_e::HOME,//VK_HOME
-		morda::Key_e::LEFT,//VK_LEFT
-		morda::Key_e::UP, //VK_UP
-		morda::Key_e::RIGHT, //VK_RIGHT
-		morda::Key_e::DOWN, //VK_DOWN, 40
-		morda::Key_e::UNKNOWN, //VK_SELECT
-		morda::Key_e::UNKNOWN, //VK_PRINT
-		morda::Key_e::UNKNOWN, //VK_EXECUTE
-		morda::Key_e::PRINT_SCREEN,//VK_SNAPSHOT = print screen key
-		morda::Key_e::INSERT, //VK_INSERT, 45
-		morda::Key_e::DELETE, //VK_DELETE
-		morda::Key_e::UNKNOWN, //VK_HELP
-		morda::Key_e::ZERO, //0 key
-		morda::Key_e::ONE, //1 key
-		morda::Key_e::TWO, //2 key, 50
-		morda::Key_e::THREE, //3 key
-		morda::Key_e::FOUR, //4 key
-		morda::Key_e::FIVE, //5 key
-		morda::Key_e::SIX, //6 key
-		morda::Key_e::SEVEN, //7 key, 55
-		morda::Key_e::EIGHT, //8 key
-		morda::Key_e::NINE, //9 key
-		morda::Key_e::UNKNOWN, //Undefined
-		morda::Key_e::UNKNOWN, //Undefined
-		morda::Key_e::UNKNOWN, //Undefined, 60
-		morda::Key_e::UNKNOWN, //Undefined
-		morda::Key_e::UNKNOWN, //Undefined
-		morda::Key_e::UNKNOWN, //Undefined
-		morda::Key_e::UNKNOWN, //Undefined
-		morda::Key_e::A, //A key, 65
-		morda::Key_e::B, //B key
-		morda::Key_e::C, //C key
-		morda::Key_e::D, //D key
-		morda::Key_e::E, //E key
-		morda::Key_e::F, //F key, 70
-		morda::Key_e::G, //G key
-		morda::Key_e::H, //H key
-		morda::Key_e::I, //I key
-		morda::Key_e::J, //J key
-		morda::Key_e::K, //K key, 75
-		morda::Key_e::L, //L key
-		morda::Key_e::M, //M key
-		morda::Key_e::N, //N key
-		morda::Key_e::O, //O key
-		morda::Key_e::P, //P key, 80
-		morda::Key_e::Q, //Q key
-		morda::Key_e::R, //R key
-		morda::Key_e::S, //S key
-		morda::Key_e::T, //T key
-		morda::Key_e::U, //U key, 85
-		morda::Key_e::V, //V key
-		morda::Key_e::W, //W key
-		morda::Key_e::X, //X key
-		morda::Key_e::Y, //Y key
-		morda::Key_e::Z, //Z key, 90
-		morda::Key_e::WINDOWS, //VK_LWIN = left windows key
-		morda::Key_e::WINDOWS, //VK_RWIN = right windows key
-		morda::Key_e::UNKNOWN, //VK_APPS = applications key
-		morda::Key_e::UNKNOWN, //Reserved
-		morda::Key_e::UNKNOWN, //VK_SLEEP = computer sleep key, 95
-		morda::Key_e::ZERO, //VK_NUMPAD0 = numeric keypad 0 key
-		morda::Key_e::ONE, //VK_NUMPAD1 = numeric keypad 1 key
-		morda::Key_e::TWO, //VK_NUMPAD2 = numeric keypad 2 key
-		morda::Key_e::THREE, //VK_NUMPAD3 = numeric keypad 3 key
-		morda::Key_e::FOUR, //VK_NUMPAD4 = numeric keypad 4 key, 100
-		morda::Key_e::FIVE, //VK_NUMPAD5 = numeric keypad 5 key
-		morda::Key_e::SIX, //VK_NUMPAD6 = numeric keypad 6 key
-		morda::Key_e::SEVEN, //VK_NUMPAD7 = numeric keypad 7 key
-		morda::Key_e::EIGHT, //VK_NUMPAD8 = numeric keypad 8 key
-		morda::Key_e::NINE, //VK_NUMPAD9 = numeric keypad 9 key, 105
-		morda::Key_e::UNKNOWN, //VK_MULTIPLY = multiply key
-		morda::Key_e::UNKNOWN, //VK_ADD
-		morda::Key_e::UNKNOWN, //VK_SEPARATOR
-		morda::Key_e::UNKNOWN, //VK_SUBTRACT
-		morda::Key_e::UNKNOWN, //VK_DECIMAL, 110
-		morda::Key_e::UNKNOWN, //VK_DIVIDE
-		morda::Key_e::F1, //VK_F1
-		morda::Key_e::F2, //VK_F2
-		morda::Key_e::F3, //VK_F3
-		morda::Key_e::F4, //VK_F4, 115
-		morda::Key_e::F5, //VK_F5
-		morda::Key_e::F6, //VK_F6
-		morda::Key_e::F7, //VK_F7
-		morda::Key_e::F8, //VK_F8
-		morda::Key_e::F9, //VK_F9, 120
-		morda::Key_e::F10, //VK_F10
-		morda::Key_e::F11, //VK_F11
-		morda::Key_e::F12, //VK_F12
-		morda::Key_e::UNKNOWN, //VK_F13
-		morda::Key_e::UNKNOWN, //VK_F14, 125
-		morda::Key_e::UNKNOWN, //VK_F15
-		morda::Key_e::UNKNOWN, //VK_F16
-		morda::Key_e::UNKNOWN, //VK_F17
-		morda::Key_e::UNKNOWN, //VK_F18
-		morda::Key_e::UNKNOWN, //VK_F19, 130
-		morda::Key_e::UNKNOWN, //VK_F20
-		morda::Key_e::UNKNOWN, //VK_F21
-		morda::Key_e::UNKNOWN, //VK_F22
-		morda::Key_e::UNKNOWN, //VK_F23
-		morda::Key_e::UNKNOWN, //VK_F24, 135
-		morda::Key_e::UNKNOWN, //Unassigned
-		morda::Key_e::UNKNOWN, //Unassigned
-		morda::Key_e::UNKNOWN, //Unassigned
-		morda::Key_e::UNKNOWN, //Unassigned
-		morda::Key_e::UNKNOWN, //Unassigned, 140
-		morda::Key_e::UNKNOWN, //Unassigned
-		morda::Key_e::UNKNOWN, //Unassigned
-		morda::Key_e::UNKNOWN, //Unassigned
-		morda::Key_e::UNKNOWN, //VK_NUMLOCK
-		morda::Key_e::UNKNOWN, //VK_SCROLL = scroll lock key, 145
-		morda::Key_e::UNKNOWN, //OEM specific
-		morda::Key_e::UNKNOWN, //OEM specific
-		morda::Key_e::UNKNOWN, //OEM specific
-		morda::Key_e::UNKNOWN, //OEM specific
-		morda::Key_e::UNKNOWN, //OEM specific, 150
-		morda::Key_e::UNKNOWN, //Unassigned
-		morda::Key_e::UNKNOWN, //Unassigned
-		morda::Key_e::UNKNOWN, //Unassigned
-		morda::Key_e::UNKNOWN, //Unassigned
-		morda::Key_e::UNKNOWN, //Unassigned, 155
-		morda::Key_e::UNKNOWN, //Unassigned
-		morda::Key_e::UNKNOWN, //Unassigned
-		morda::Key_e::UNKNOWN, //Unassigned
-		morda::Key_e::UNKNOWN, //Unassigned
-		morda::Key_e::LEFT_SHIFT, //VK_LSHIFT, 160
-		morda::Key_e::RIGHT_SHIFT, //VK_RSHIFT
-		morda::Key_e::LEFT_CONTROL, //VK_LCONTROL
-		morda::Key_e::RIGHT_CONTROL, //VK_RCONTROL
-		morda::Key_e::WINDOWS_MENU, //VK_LMENU = left menu key
-		morda::Key_e::WINDOWS_MENU, //VK_RMENU, 165
-		morda::Key_e::UNKNOWN, //VK_BROWSER_BACK
-		morda::Key_e::UNKNOWN, //VK_BROWSER_FORWARD
-		morda::Key_e::UNKNOWN, //VK_BROWSER_REFRESH
-		morda::Key_e::UNKNOWN, //VK_BROWSER_STOP
-		morda::Key_e::UNKNOWN, //VK_BROWSER_SEARCH, 170
-		morda::Key_e::UNKNOWN, //VK_BROWSER_FAVORITES
-		morda::Key_e::UNKNOWN, //VK_BROWSER_HOME
-		morda::Key_e::UNKNOWN, //VK_VOLUME_MUTE
-		morda::Key_e::UNKNOWN, //VK_VOLUME_DOWN
-		morda::Key_e::UNKNOWN, //VK_VOLUME_UP, 175
-		morda::Key_e::UNKNOWN, //VK_MEDIA_NEXT_TRACK
-		morda::Key_e::UNKNOWN, //VK_MEDIA_PREV_TRACK
-		morda::Key_e::UNKNOWN, //VK_MEDIA_STOP
-		morda::Key_e::UNKNOWN, //VK_MEDIA_PLAY_PAUSE
-		morda::Key_e::UNKNOWN, //VK_LAUNCH_MAIL, 180
-		morda::Key_e::UNKNOWN, //VK_LAUNCH_MEDIA_SELECT
-		morda::Key_e::UNKNOWN, //VK_LAUNCH_APP1
-		morda::Key_e::UNKNOWN, //VK_LAUNCH_APP2
-		morda::Key_e::UNKNOWN, //Reserved
-		morda::Key_e::UNKNOWN, //Reserved, 185
-		morda::Key_e::UNKNOWN, //VK_OEM_1
-		morda::Key_e::UNKNOWN, //VK_OEM_PLUS
-		morda::Key_e::UNKNOWN, //VK_OEM_COMMA
-		morda::Key_e::UNKNOWN, //VK_OEM_MINUS
-		morda::Key_e::UNKNOWN, //VK_OEM_PERIOD, 190
-		morda::Key_e::UNKNOWN, //VK_OEM_2
-		morda::Key_e::UNKNOWN, //VK_OEM_3
-		morda::Key_e::UNKNOWN, //Reserved
-		morda::Key_e::UNKNOWN, //Reserved
-		morda::Key_e::UNKNOWN, //Reserved, 195
-		morda::Key_e::UNKNOWN, //Reserved
-		morda::Key_e::UNKNOWN, //Reserved
-		morda::Key_e::UNKNOWN, //Reserved
-		morda::Key_e::UNKNOWN, //Reserved
-		morda::Key_e::UNKNOWN, //Reserved, 200
-		morda::Key_e::UNKNOWN, //Reserved
-		morda::Key_e::UNKNOWN, //Reserved
-		morda::Key_e::UNKNOWN, //Reserved
-		morda::Key_e::UNKNOWN, //Reserved
-		morda::Key_e::UNKNOWN, //Reserved, 205
-		morda::Key_e::UNKNOWN, //Reserved
-		morda::Key_e::UNKNOWN, //Reserved
-		morda::Key_e::UNKNOWN, //Reserved
-		morda::Key_e::UNKNOWN, //Reserved
-		morda::Key_e::UNKNOWN, //Reserved, 210
-		morda::Key_e::UNKNOWN, //Reserved
-		morda::Key_e::UNKNOWN, //Reserved
-		morda::Key_e::UNKNOWN, //Reserved
-		morda::Key_e::UNKNOWN, //Reserved
-		morda::Key_e::UNKNOWN, //Reserved, 215
-		morda::Key_e::UNKNOWN, //Unassigned
-		morda::Key_e::UNKNOWN, //Unassigned
-		morda::Key_e::UNKNOWN, //Unassigned
-		morda::Key_e::UNKNOWN, //VK_OEM_4
-		morda::Key_e::UNKNOWN, //VK_OEM_5, 220
-		morda::Key_e::UNKNOWN, //VK_OEM_6
-		morda::Key_e::UNKNOWN, //VK_OEM_7
-		morda::Key_e::UNKNOWN, //VK_OEM_8
-		morda::Key_e::UNKNOWN, //Reserved
-		morda::Key_e::UNKNOWN, //OEM specific, 225
-		morda::Key_e::UNKNOWN, //VK_OEM_102
-		morda::Key_e::UNKNOWN, //OEM specific
-		morda::Key_e::UNKNOWN, //OEM specific
-		morda::Key_e::UNKNOWN, //VK_PROCESSKEY
-		morda::Key_e::UNKNOWN, //OEM specific, 230
-		morda::Key_e::UNKNOWN, //VK_PACKET
-		morda::Key_e::UNKNOWN, //Unassigned
-		morda::Key_e::UNKNOWN, //OEM specific
-		morda::Key_e::UNKNOWN, //OEM specific
-		morda::Key_e::UNKNOWN, //OEM specific, 235
-		morda::Key_e::UNKNOWN, //OEM specific
-		morda::Key_e::UNKNOWN, //OEM specific
-		morda::Key_e::UNKNOWN, //OEM specific
-		morda::Key_e::UNKNOWN, //OEM specific
-		morda::Key_e::UNKNOWN, //OEM specific, 240
-		morda::Key_e::UNKNOWN, //OEM specific
-		morda::Key_e::UNKNOWN, //OEM specific
-		morda::Key_e::UNKNOWN, //OEM specific
-		morda::Key_e::UNKNOWN, //OEM specific
-		morda::Key_e::UNKNOWN, //OEM specific, 245
-		morda::Key_e::UNKNOWN, //VK_ATTN
-		morda::Key_e::UNKNOWN, //VK_CRSEL
-		morda::Key_e::UNKNOWN, //VK_EXSEL
-		morda::Key_e::UNKNOWN, //VK_EREOF
-		morda::Key_e::UNKNOWN, //VK_PLAY, 250
-		morda::Key_e::UNKNOWN, //VK_ZOOM
-		morda::Key_e::UNKNOWN, //VK_NONAME
-		morda::Key_e::UNKNOWN, //VK_PA1
-		morda::Key_e::UNKNOWN, //VK_OEM_CLEAR
-		morda::Key_e::UNKNOWN
-	};
+const std::array<morda::key, std::uint8_t(-1) + 1> keyCodeMap = {
+	morda::key::unknown, // Undefined
+	morda::key::unknown, // VK_LBUTTON
+	morda::key::unknown, // VK_RBUTTON
+	morda::key::unknown, // VK_CANCEL
+	morda::key::unknown, // VK_MBUTTON
+	morda::key::unknown, // VK_XBUTTON1, 5
+	morda::key::unknown, // VK_XBUTTON2
+	morda::key::unknown, // Undefined
+	morda::key::backspace, // VK_BACK = backspace key
+	morda::key::tabulator, // VK_TAB
+	morda::key::unknown, // Reserved, 10
+	morda::key::unknown, // Reserved
+	morda::key::unknown, // VK_CLEAR = clear key???
+	morda::key::enter, // VK_RETURN
+	morda::key::unknown, // Undefined
+	morda::key::unknown, // Undefined, 15
+	morda::key::left_shift, // VK_SHIFT
+	morda::key::left_control, // VK_CONTROL
+	morda::key::left_alt, // VK_MENU = alt key
+	morda::key::pause, // VK_PAUSE
+	morda::key::capslock, // VK_CAPITAL = caps lock key, 20
+	morda::key::unknown, // VK_KANA, VK_HANGUEL, VK_HANGUL
+	morda::key::unknown, // Undefined
+	morda::key::unknown, // VK_JUNJA
+	morda::key::unknown, // VK_FINAL
+	morda::key::unknown, // VK_HANJA, VK_KANJI, 25
+	morda::key::unknown, // Undefined
+	morda::key::escape, // VK_ESCAPE
+	morda::key::unknown, // VK_CONVERT
+	morda::key::unknown, // VK_NONCONVERT
+	morda::key::unknown, // VK_ACCEPT, 30
+	morda::key::unknown, // VK_MODECHANGE
+	morda::key::space, // VK_SPACE = space bar key
+	morda::key::page_up, // VK_PRIOR = page up key
+	morda::key::page_down,// VK_NEXT = page down key
+	morda::key::end, // VK_END, 35
+	morda::key::home,// VK_HOME
+	morda::key::left,// VK_LEFT
+	morda::key::up, // VK_UP
+	morda::key::right, // VK_RIGHT
+	morda::key::down, // VK_DOWN, 40
+	morda::key::unknown, // VK_SELECT
+	morda::key::unknown, // VK_PRINT
+	morda::key::unknown, // VK_EXECUTE
+	morda::key::print_screen,// VK_SNAPSHOT = print screen key
+	morda::key::insert, // VK_INSERT, 45
+	morda::key::deletion, // VK_DELETE
+	morda::key::unknown, // VK_HELP
+	morda::key::zero, // 0 key
+	morda::key::one, // 1 key
+	morda::key::two, // 2 key, 50
+	morda::key::three, // 3 key
+	morda::key::four, // 4 key
+	morda::key::five, // 5 key
+	morda::key::six, // 6 key
+	morda::key::seven, // 7 key, 55
+	morda::key::eight, // 8 key
+	morda::key::nine, // 9 key
+	morda::key::unknown, // Undefined
+	morda::key::unknown, // Undefined
+	morda::key::unknown, // Undefined, 60
+	morda::key::unknown, // Undefined
+	morda::key::unknown, // Undefined
+	morda::key::unknown, // Undefined
+	morda::key::unknown, // Undefined
+	morda::key::a, // A key, 65
+	morda::key::b, // B key
+	morda::key::c, // C key
+	morda::key::d, // D key
+	morda::key::e, // E key
+	morda::key::f, // F key, 70
+	morda::key::g, // G key
+	morda::key::h, // H key
+	morda::key::i, // I key
+	morda::key::j, // J key
+	morda::key::k, // K key, 75
+	morda::key::l, // L key
+	morda::key::m, // M key
+	morda::key::n, // N key
+	morda::key::o, // O key
+	morda::key::p, // P key, 80
+	morda::key::q, // Q key
+	morda::key::r, // R key
+	morda::key::s, // S key
+	morda::key::t, // T key
+	morda::key::u, // U key, 85
+	morda::key::v, // V key
+	morda::key::w, // W key
+	morda::key::x, // X key
+	morda::key::y, // Y key
+	morda::key::z, // Z key, 90
+	morda::key::command, // VK_LWIN = left windows key
+	morda::key::command, // VK_RWIN = right windows key
+	morda::key::unknown, // VK_APPS = applications key
+	morda::key::unknown, // Reserved
+	morda::key::unknown, // VK_SLEEP = computer sleep key, 95
+	morda::key::zero, // VK_NUMPAD0 = numeric keypad 0 key
+	morda::key::one, // VK_NUMPAD1 = numeric keypad 1 key
+	morda::key::two, // VK_NUMPAD2 = numeric keypad 2 key
+	morda::key::three, // VK_NUMPAD3 = numeric keypad 3 key
+	morda::key::four, // VK_NUMPAD4 = numeric keypad 4 key, 100
+	morda::key::five, // VK_NUMPAD5 = numeric keypad 5 key
+	morda::key::six, // VK_NUMPAD6 = numeric keypad 6 key
+	morda::key::seven, // VK_NUMPAD7 = numeric keypad 7 key
+	morda::key::eight, // VK_NUMPAD8 = numeric keypad 8 key
+	morda::key::nine, // VK_NUMPAD9 = numeric keypad 9 key, 105
+	morda::key::unknown, // VK_MULTIPLY = multiply key
+	morda::key::unknown, // VK_ADD
+	morda::key::unknown, // VK_SEPARATOR
+	morda::key::unknown, // VK_SUBTRACT
+	morda::key::unknown, // VK_DECIMAL, 110
+	morda::key::unknown, // VK_DIVIDE
+	morda::key::f1, // VK_F1
+	morda::key::f2, // VK_F2
+	morda::key::f3, // VK_F3
+	morda::key::f4, // VK_F4, 115
+	morda::key::f5, // VK_F5
+	morda::key::f6, // VK_F6
+	morda::key::f7, // VK_F7
+	morda::key::f8, // VK_F8
+	morda::key::f9, // VK_F9, 120
+	morda::key::f10, // VK_F10
+	morda::key::f11, // VK_F11
+	morda::key::f12, // VK_F12
+	morda::key::unknown, // VK_F13
+	morda::key::unknown, // VK_F14, 125
+	morda::key::unknown, // VK_F15
+	morda::key::unknown, // VK_F16
+	morda::key::unknown, // VK_F17
+	morda::key::unknown, // VK_F18
+	morda::key::unknown, // VK_F19, 130
+	morda::key::unknown, // VK_F20
+	morda::key::unknown, // VK_F21
+	morda::key::unknown, // VK_F22
+	morda::key::unknown, // VK_F23
+	morda::key::unknown, // VK_F24, 135
+	morda::key::unknown, // Unassigned
+	morda::key::unknown, // Unassigned
+	morda::key::unknown, // Unassigned
+	morda::key::unknown, // Unassigned
+	morda::key::unknown, // Unassigned, 140
+	morda::key::unknown, // Unassigned
+	morda::key::unknown, // Unassigned
+	morda::key::unknown, // Unassigned
+	morda::key::unknown, // VK_NUMLOCK
+	morda::key::unknown, // VK_SCROLL = scroll lock key, 145
+	morda::key::unknown, // OEM specific
+	morda::key::unknown, // OEM specific
+	morda::key::unknown, // OEM specific
+	morda::key::unknown, // OEM specific
+	morda::key::unknown, // OEM specific, 150
+	morda::key::unknown, // Unassigned
+	morda::key::unknown, // Unassigned
+	morda::key::unknown, // Unassigned
+	morda::key::unknown, // Unassigned
+	morda::key::unknown, // Unassigned, 155
+	morda::key::unknown, // Unassigned
+	morda::key::unknown, // Unassigned
+	morda::key::unknown, // Unassigned
+	morda::key::unknown, // Unassigned
+	morda::key::left_shift, // VK_LSHIFT, 160
+	morda::key::right_shift, // VK_RSHIFT
+	morda::key::left_control, // VK_LCONTROL
+	morda::key::right_control, // VK_RCONTROL
+	morda::key::menu, // VK_LMENU = left menu key
+	morda::key::menu, // VK_RMENU, 165
+	morda::key::unknown, // VK_BROWSER_BACK
+	morda::key::unknown, // VK_BROWSER_FORWARD
+	morda::key::unknown, // VK_BROWSER_REFRESH
+	morda::key::unknown, // VK_BROWSER_STOP
+	morda::key::unknown, // VK_BROWSER_SEARCH, 170
+	morda::key::unknown, // VK_BROWSER_FAVORITES
+	morda::key::unknown, // VK_BROWSER_HOME
+	morda::key::unknown, // VK_VOLUME_MUTE
+	morda::key::unknown, // VK_VOLUME_DOWN
+	morda::key::unknown, // VK_VOLUME_UP, 175
+	morda::key::unknown, // VK_MEDIA_NEXT_TRACK
+	morda::key::unknown, // VK_MEDIA_PREV_TRACK
+	morda::key::unknown, // VK_MEDIA_STOP
+	morda::key::unknown, // VK_MEDIA_PLAY_PAUSE
+	morda::key::unknown, // VK_LAUNCH_MAIL, 180
+	morda::key::unknown, // VK_LAUNCH_MEDIA_SELECT
+	morda::key::unknown, // VK_LAUNCH_APP1
+	morda::key::unknown, // VK_LAUNCH_APP2
+	morda::key::unknown, // Reserved
+	morda::key::unknown, // Reserved, 185
+	morda::key::unknown, // VK_OEM_1
+	morda::key::unknown, // VK_OEM_PLUS
+	morda::key::unknown, // VK_OEM_COMMA
+	morda::key::unknown, // VK_OEM_MINUS
+	morda::key::unknown, // VK_OEM_PERIOD, 190
+	morda::key::unknown, // VK_OEM_2
+	morda::key::unknown, // VK_OEM_3
+	morda::key::unknown, // Reserved
+	morda::key::unknown, // Reserved
+	morda::key::unknown, // Reserved, 195
+	morda::key::unknown, // Reserved
+	morda::key::unknown, // Reserved
+	morda::key::unknown, // Reserved
+	morda::key::unknown, // Reserved
+	morda::key::unknown, // Reserved, 200
+	morda::key::unknown, // Reserved
+	morda::key::unknown, // Reserved
+	morda::key::unknown, // Reserved
+	morda::key::unknown, // Reserved
+	morda::key::unknown, // Reserved, 205
+	morda::key::unknown, // Reserved
+	morda::key::unknown, // Reserved
+	morda::key::unknown, // Reserved
+	morda::key::unknown, // Reserved
+	morda::key::unknown, // Reserved, 210
+	morda::key::unknown, // Reserved
+	morda::key::unknown, // Reserved
+	morda::key::unknown, // Reserved
+	morda::key::unknown, // Reserved
+	morda::key::unknown, // Reserved, 215
+	morda::key::unknown, // Unassigned
+	morda::key::unknown, // Unassigned
+	morda::key::unknown, // Unassigned
+	morda::key::unknown, // VK_OEM_4
+	morda::key::unknown, // VK_OEM_5, 220
+	morda::key::unknown, // VK_OEM_6
+	morda::key::unknown, // VK_OEM_7
+	morda::key::unknown, // VK_OEM_8
+	morda::key::unknown, // Reserved
+	morda::key::unknown, // OEM specific, 225
+	morda::key::unknown, // VK_OEM_102
+	morda::key::unknown, // OEM specific
+	morda::key::unknown, // OEM specific
+	morda::key::unknown, // VK_PROCESSKEY
+	morda::key::unknown, // OEM specific, 230
+	morda::key::unknown, // VK_PACKET
+	morda::key::unknown, // Unassigned
+	morda::key::unknown, // OEM specific
+	morda::key::unknown, // OEM specific
+	morda::key::unknown, // OEM specific, 235
+	morda::key::unknown, // OEM specific
+	morda::key::unknown, // OEM specific
+	morda::key::unknown, // OEM specific
+	morda::key::unknown, // OEM specific
+	morda::key::unknown, // OEM specific, 240
+	morda::key::unknown, // OEM specific
+	morda::key::unknown, // OEM specific
+	morda::key::unknown, // OEM specific
+	morda::key::unknown, // OEM specific
+	morda::key::unknown, // OEM specific, 245
+	morda::key::unknown, // VK_ATTN
+	morda::key::unknown, // VK_CRSEL
+	morda::key::unknown, // VK_EXSEL
+	morda::key::unknown, // VK_EREOF
+	morda::key::unknown, // VK_PLAY, 250
+	morda::key::unknown, // VK_ZOOM
+	morda::key::unknown, // VK_NONAME
+	morda::key::unknown, // VK_PA1
+	morda::key::unknown, // VK_OEM_CLEAR
+	morda::key::unknown
+};
 
-	class KeyEventUnicodeProvider : public morda::Morda::UnicodeProvider{
-		char32_t c;
-	public:
-		KeyEventUnicodeProvider(char32_t unicodeChar = 0) :
-			c(unicodeChar)
-		{}
+class KeyEventUnicodeProvider : public morda::Morda::UnicodeProvider{
+	char32_t c;
+public:
+	KeyEventUnicodeProvider(char32_t unicodeChar = 0) :
+		c(unicodeChar)
+	{}
 
-		std::u32string get()const override{
-			if (this->c == 0){
-				return std::u32string();
-			}
-
-			return std::u32string(&this->c, 1);
+	std::u32string get()const override{
+		if (this->c == 0){
+			return std::u32string();
 		}
-	};
+
+		return std::u32string(&this->c, 1);
+	}
+};
 
 
 
-}//~namespace
+}// ~namespace
 
 
 namespace{
@@ -333,19 +333,19 @@ namespace{
 LRESULT	CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 	switch (msg){
 		case WM_ACTIVATE:
-			if (!HIWORD(wParam)){ //Check Minimization State
-				//window active
+			if (!HIWORD(wParam)){ // Check Minimization State
+				// window active
 			}
 			else{
-				//window is no longer active
+				// window is no longer active
 			}
 			return 0;
 
 		case WM_SYSCOMMAND:
 			switch (wParam){
-				case SC_SCREENSAVE: //screensaver trying to start?
-				case SC_MONITORPOWER: //montor trying to enter powersave?
-					return 0; //prevent from happening
+				case SC_SCREENSAVE: // screensaver trying to start?
+				case SC_MONITORPOWER: // montor trying to enter powersave?
+					return 0; // prevent from happening
 			}
 			break;
 
@@ -365,7 +365,7 @@ LRESULT	CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 
 				ww.isHovered = true;
 
-				//restore mouse cursor invisibility
+				// restore mouse cursor invisibility
 				if(!ww.mouseCursorIsCurrentlyVisible){
 					CURSORINFO ci;
 					ci.cbSize = sizeof(CURSORINFO);
@@ -391,8 +391,8 @@ LRESULT	CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 		{
 			auto& ww = getImpl(getWindowPimpl(mordavokne::inst()));
 
-			//Windows hides the mouse cursor even in non-client areas of the window,
-			//like caption bar and borders, so show cursor if it is hidden
+			// Windows hides the mouse cursor even in non-client areas of the window,
+			// like caption bar and borders, so show cursor if it is hidden
 			if(!ww.mouseCursorIsCurrentlyVisible){
 				ShowCursor(TRUE);
 			}
@@ -400,9 +400,9 @@ LRESULT	CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 			ww.isHovered = false;
 			handleMouseHover(mordavokne::inst(), false, 0);
 
-			//Report mouse button up events for all pressed mouse buttons
+			// Report mouse button up events for all pressed mouse buttons
 			for(
-					decltype(ww.mouseButtonState)::index_t i = 0;
+					decltype(ww.mouseButtonState)::index_type i = 0;
 					i != ww.mouseButtonState.size();
 					++i
 				)
@@ -412,7 +412,7 @@ LRESULT	CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 					handleMouseButton(
 							mordavokne::inst(),
 							false,
-							morda::Vec2r(1000000, 1000000), //outside of the window
+							morda::Vec2r(1000000, 1000000), // outside of the window
 							morda::MouseButton_e(i),
 							0
 						);
@@ -514,8 +514,8 @@ LRESULT	CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 				pos.x = GET_X_LPARAM(lParam);
 				pos.y = GET_Y_LPARAM(lParam);
 
-				//For some reason in WM_MOUSEWHEEL message mouse cursor position is sent in screen coordinates,
-				//need to traslate those to window coordinates.
+				// For some reason in WM_MOUSEWHEEL message mouse cursor position is sent in screen coordinates,
+				// need to traslate those to window coordinates.
 				if(ScreenToClient(hwnd, &pos) == 0){
 					break;
 				}
@@ -541,8 +541,8 @@ LRESULT	CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 
 		case WM_KEYDOWN:
 		{
-			morda::Key_e key = keyCodeMap[std::uint8_t(wParam)];
-			if ((lParam & 0x40000000) == 0){//ignore auto-repeated keypress event
+			morda::key key = keyCodeMap[std::uint8_t(wParam)];
+			if ((lParam & 0x40000000) == 0){// ignore auto-repeated keypress event
 				handleKeyEvent(mordavokne::inst(), true, key);
 			}
 			handleCharacterInput(mordavokne::inst(), KeyEventUnicodeProvider(), key);
@@ -554,23 +554,23 @@ LRESULT	CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 
 		case WM_CHAR:
 			switch(char32_t(wParam)){
-				case U'\U00000008': //Backspace character
-				case U'\U0000001b': //Escape character
-				case U'\U0000000d': //Carriage return
+				case U'\U00000008': // Backspace character
+				case U'\U0000001b': // Escape character
+				case U'\U0000000d': // Carriage return
 					break;
 				default:
-					handleCharacterInput(mordavokne::inst(), KeyEventUnicodeProvider(char32_t(wParam)), morda::Key_e::UNKNOWN);
+					handleCharacterInput(mordavokne::inst(), KeyEventUnicodeProvider(char32_t(wParam)), morda::key::unknown);
 					break;
 			}
 			return 0;
 		case WM_PAINT:
-			//we will redraw anyway on every cycle
-			//app.Render();
-			ValidateRect(hwnd, NULL);//This is to tell Windows that we have redrawn contents and WM_PAINT should go away from message queue.
+			// we will redraw anyway on every cycle
+			// app.Render();
+			ValidateRect(hwnd, NULL);// This is to tell Windows that we have redrawn contents and WM_PAINT should go away from message queue.
 			return 0;
 
 		case WM_SIZE:
-			//resize GL, LoWord=Width, HiWord=Height
+			// resize GL, LoWord=Width, HiWord=Height
 			updateWindowRect(mordavokne::inst(), morda::Rectr(0, 0, float(LOWORD(lParam)), float(HIWORD(lParam))));
 			return 0;
 
@@ -588,7 +588,7 @@ LRESULT	CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
-}//~namespac
+}// ~namespace
 
 
 namespace{
@@ -607,16 +607,16 @@ morda::real getDotsPerPt(HDC dc){
 	return mordavokne::application::get_pixels_per_dp(resolution, screenSizeMm);
 }
 
-}//~namespace
+}// ~namespace
 
 namespace{
 std::string initializeStorageDir(const std::string& appName){
 	CHAR path[MAX_PATH];
 	if (SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, path) != S_OK) {
-		throw utki::Exc("failed to get user's profile directory.");
+		throw utki::exception("failed to get user's profile directory.");
 	}
 
-	path[sizeof(path) - 1] = '\0';//null-terminate the string just in case
+	path[sizeof(path) - 1] = '\0';// null-terminate the string just in case
 
 	std::string homeDirStr(path, strlen(path));
 
@@ -634,7 +634,7 @@ std::string initializeStorageDir(const std::string& appName){
 
 	papki::FSFile dir(homeDirStr);
 	if(!dir.exists()){
-		dir.makeDir();
+		dir.make_dir();
 	}
 
 	return homeDirStr;
@@ -651,7 +651,7 @@ application::application(std::string&& name, const window_params& wp) :
 				[this](std::function<void()>&& a){
 					auto& ww = getImpl(getWindowPimpl(mordavokne::inst()));
 					if (PostMessage(ww.hwnd, WM_USER, 0, reinterpret_cast<LPARAM>(new std::remove_reference<decltype(a)>::type(std::move(a)))) == 0){
-						throw morda::Exc("PostMessage(): failed");
+						throw morda::exception("PostMessage(): failed");
 					}
 				}
 			),
@@ -681,12 +681,12 @@ void winmain(int argc, const char** argv){
 	// Try GCC name mangling first
 	f = reinterpret_cast<decltype(f)>(GetProcAddress(GetModuleHandle(NULL), TEXT("_ZN10mordavokne18create_applicationEiPPKc")));
 
-	//TODO: deprecated, remove createApp() function loading
+	// TODO: deprecated, remove createApp() function loading
 	if(!f){
 		f = reinterpret_cast<decltype(f)>(GetProcAddress(GetModuleHandle(NULL), TEXT("_ZN10mordavokne9createAppEiPPKc")));
 	}
 
-	//TODO: deprecated, remove createApp() function loading
+	// TODO: deprecated, remove createApp() function loading
 	if(!f){ // try MSVC function mangling style
 		f = reinterpret_cast<decltype(f)>(GetProcAddress(
 				GetModuleHandle(NULL),
@@ -775,10 +775,10 @@ void application::set_fullscreen(bool enable) {
 	auto& ww = getImpl(this->windowPimpl);
 
 	if (enable) {
-		//save original window size
+		// save original window size
 		RECT rect;
 		if (GetWindowRect(ww.hwnd, &rect) == 0) {
-			throw utki::Exc("Failed to get window rect");
+			throw utki::exception("Failed to get window rect");
 		}
 		this->beforeFullScreenWindowRect.p.x = rect.left;
 		this->beforeFullScreenWindowRect.p.y = rect.top;
@@ -799,7 +799,7 @@ void application::set_fullscreen(bool enable) {
 						& ~(WS_EX_DLGMODALFRAME | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE)
 			);
 
-		//set new window size and position
+		// set new window size and position
 		MONITORINFO mi;
 		mi.cbSize = sizeof(mi);
 		GetMonitorInfo(MonitorFromWindow(ww.hwnd, MONITOR_DEFAULTTONEAREST), &mi);
@@ -874,19 +874,19 @@ WindowWrapper::WindowWrapper(const window_params& wp){
 		WNDCLASS wc;
 		memset(&wc, 0, sizeof(wc));
 
-		wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;//Redraw on resize, own DC for window
+		wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;// Redraw on resize, own DC for window
 		wc.lpfnWndProc = (WNDPROC)wndProc;
-		wc.cbClsExtra = 0;//no extra window data
-		wc.cbWndExtra = 0;//no extra window data
+		wc.cbClsExtra = 0;// no extra window data
+		wc.cbWndExtra = 0;// no extra window data
 		wc.hInstance = GetModuleHandle(NULL);// instance handle
 		wc.hIcon = LoadIcon(NULL, IDI_WINLOGO);
 		wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-		wc.hbrBackground = NULL;//no background required for OpenGL
-		wc.lpszMenuName = NULL;//we don't want a menu
+		wc.hbrBackground = NULL;// no background required for OpenGL
+		wc.lpszMenuName = NULL;// we don't want a menu
 		wc.lpszClassName = this->windowClassName.c_str();// Set the window class Name
 
 		if (!RegisterClass(&wc)){
-			throw morda::Exc("Failed to register window class");
+			throw morda::exception("Failed to register window class");
 		}
 	}
 
@@ -898,22 +898,22 @@ WindowWrapper::WindowWrapper(const window_params& wp){
 
 
 	this->hwnd = CreateWindowEx(
-			WS_EX_APPWINDOW | WS_EX_WINDOWEDGE, //extended style
+			WS_EX_APPWINDOW | WS_EX_WINDOWEDGE, // extended style
 			this->windowClassName.c_str(),
 			"morda app",
 			WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
-			0, //x
-			0, //y
+			0, // x
+			0, // y
 			wp.dim.x + 2 * GetSystemMetrics(SM_CXSIZEFRAME),
 			wp.dim.y + GetSystemMetrics(SM_CYCAPTION) + 2 * GetSystemMetrics(SM_CYSIZEFRAME),
-			NULL, //no parent window
-			NULL, //no menu
+			NULL, // no parent window
+			NULL, // no menu
 			GetModuleHandle(NULL),
-			NULL //do not pass anything to WM_CREATE
+			NULL // do not pass anything to WM_CREATE
 		);
 
 	if (!this->hwnd){
-		throw morda::Exc("Failed to create a window");
+		throw morda::exception("Failed to create a window");
 	}
 
 	utki::ScopeExit scopeExitHwnd([this](){
@@ -922,11 +922,11 @@ WindowWrapper::WindowWrapper(const window_params& wp){
 		}
 	});
 
-	//NOTE: window will be shown later, right before entering main loop and after all initial App data is initialized
+	// NOTE: window will be shown later, right before entering main loop and after all initial App data is initialized
 
 	this->hdc = GetDC(this->hwnd);
 	if (!this->hdc){
-		throw morda::Exc("Failed to create a OpenGL device context");
+		throw morda::exception("Failed to create a OpenGL device context");
 	}
 
 	utki::ScopeExit scopeExitHdc([this](){
@@ -943,35 +943,35 @@ WindowWrapper::WindowWrapper(const window_params& wp){
 			1, // Version number of the structure, should be 1
 			PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
 			BYTE(PFD_TYPE_RGBA),
-			BYTE(32), //color depth
-			BYTE(0), BYTE(0), BYTE(0), BYTE(0), BYTE(0), BYTE(0), //color bits ignored
-			BYTE(0), //no alpha buffer
-			BYTE(0), //shift bit ignored
-			BYTE(0), //no accumulation buffer
-			BYTE(0), BYTE(0), BYTE(0), BYTE(0), //accumulation bits ignored
-			wp.buffers.get(window_params::buffer_type::depth) ? BYTE(16) : BYTE(0), //16bit depth buffer
+			BYTE(32), // color depth
+			BYTE(0), BYTE(0), BYTE(0), BYTE(0), BYTE(0), BYTE(0), // color bits ignored
+			BYTE(0), // no alpha buffer
+			BYTE(0), // shift bit ignored
+			BYTE(0), // no accumulation buffer
+			BYTE(0), BYTE(0), BYTE(0), BYTE(0), // accumulation bits ignored
+			wp.buffers.get(window_params::buffer_type::depth) ? BYTE(16) : BYTE(0), // 16bit depth buffer
 			wp.buffers.get(window_params::buffer_type::stencil) ? BYTE(8) : BYTE(0),
-			BYTE(0), //no auxiliary buffer
-			BYTE(PFD_MAIN_PLANE), //main drawing layer
-			BYTE(0), //reserved
-			0, 0, 0 //layer masks ignored
+			BYTE(0), // no auxiliary buffer
+			BYTE(PFD_MAIN_PLANE), // main drawing layer
+			BYTE(0), // reserved
+			0, 0, 0 // layer masks ignored
 		};
 
 		int pixelFormat = ChoosePixelFormat(this->hdc, &pfd);
 		if (!pixelFormat){
-			throw morda::Exc("Could not find suitable pixel format");
+			throw morda::exception("Could not find suitable pixel format");
 		}
 
 		//	TRACE_AND_LOG(<< "application::DeviceContextWrapper::DeviceContextWrapper(): pixel format chosen" << std::endl)
 
 		if (!SetPixelFormat(this->hdc, pixelFormat, &pfd)){
-			throw morda::Exc("Could not sent pixel format");
+			throw morda::exception("Could not sent pixel format");
 		}
 	}
 
 	this->hrc = wglCreateContext(hdc);
 	if (!this->hrc) {
-		throw morda::Exc("Failed to create OpenGL rendering context");
+		throw morda::exception("Failed to create OpenGL rendering context");
 	}
 
 	utki::ScopeExit scopeExitHrc([this](){
@@ -986,11 +986,11 @@ WindowWrapper::WindowWrapper(const window_params& wp){
 	//	TRACE_AND_LOG(<< "application::GLContextWrapper::GLContextWrapper(): GL rendering context created" << std::endl)
 
 	if (!wglMakeCurrent(hdc, this->hrc)) {
-		throw morda::Exc("Failed to activate OpenGL rendering context");
+		throw morda::exception("Failed to activate OpenGL rendering context");
 	}
 
 	if(glewInit() != GLEW_OK){
-		throw morda::Exc("GLEW initialization failed");
+		throw morda::exception("GLEW initialization failed");
 	}
 
 	scopeExitHrc.reset();

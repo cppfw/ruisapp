@@ -71,7 +71,7 @@ struct WindowWrapper : public utki::Unique{
 	WindowWrapper(const window_params& wp){
 		this->display = XOpenDisplay(0);
 		if(!this->display){
-			throw utki::Exc("XOpenDisplay() failed");
+			throw std::runtime_error("XOpenDisplay() failed");
 		}
 		utki::ScopeExit scopeExitDisplay([this](){
 			XCloseDisplay(this->display);
@@ -81,12 +81,12 @@ struct WindowWrapper : public utki::Unique{
 		{
 			int glxVerMajor, glxVerMinor;
 			if(!glXQueryVersion(this->display, &glxVerMajor, &glxVerMinor)){
-				throw utki::Exc("glXQueryVersion() failed");
+				throw std::runtime_error("glXQueryVersion() failed");
 			}
 
 			// FBConfigs were added in GLX version 1.3.
 			if(glxVerMajor < 1 || (glxVerMajor == 1  && glxVerMinor < 3 )){
-				throw utki::Exc("GLX version 1.3 or above is required");
+				throw std::runtime_error("GLX version 1.3 or above is required");
 			}
 		}
 
@@ -116,7 +116,7 @@ struct WindowWrapper : public utki::Unique{
 			int fbcount;
 			GLXFBConfig* fbc = glXChooseFBConfig(this->display, DefaultScreen(this->display), &*visualAttribs.begin(), &fbcount);
 			if(!fbc){
-				throw utki::Exc("glXChooseFBConfig() returned empty list");
+				throw std::runtime_error("glXChooseFBConfig() returned empty list");
 			}
 			utki::ScopeExit scopeExitFbc([&fbc](){
 				XFree(fbc);
@@ -145,7 +145,7 @@ struct WindowWrapper : public utki::Unique{
 #elif defined(M_RENDER_OPENGLES2)
 		this->eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 		if(this->eglDisplay == EGL_NO_DISPLAY){
-			throw utki::Exc("eglGetDisplay(): failed, no matching display connection found");
+			throw std::runtime_error("eglGetDisplay(): failed, no matching display connection found");
 		}
 
 		utki::ScopeExit scopeExitEGLDisplay([this](){
@@ -154,7 +154,7 @@ struct WindowWrapper : public utki::Unique{
 
 		if(eglInitialize(this->eglDisplay, nullptr, nullptr) == EGL_FALSE){
 			eglTerminate(this->eglDisplay);
-			throw utki::Exc("eglInitialize() failed");
+			throw std::runtime_error("eglInitialize() failed");
 		}
 
 		EGLConfig eglConfig;
@@ -180,12 +180,12 @@ struct WindowWrapper : public utki::Unique{
 			EGLint numConfigs;
 			eglChooseConfig(this->eglDisplay, attribs, &eglConfig, 1, &numConfigs);
 			if(numConfigs <= 0){
-				throw utki::Exc("eglChooseConfig() failed, no matching config found");
+				throw std::runtime_error("eglChooseConfig() failed, no matching config found");
 			}
 		}
 
 		if(eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE){
-			throw utki::Exc("eglBindApi() failed");
+			throw std::runtime_error("eglBindApi() failed");
 		}
 #else
 #	error "Unknown graphics API"
@@ -196,7 +196,7 @@ struct WindowWrapper : public utki::Unique{
 #ifdef M_RENDER_OPENGL2
 		vi = glXGetVisualFromFBConfig(this->display, bestFbc);
 		if (!vi) {
-			throw utki::Exc("glXGetVisualFromFBConfig() failed");
+			throw std::runtime_error("glXGetVisualFromFBConfig() failed");
 		}
 #elif defined(M_RENDER_OPENGLES2)
 #	ifdef M_RASPBERRYPI
@@ -211,7 +211,7 @@ struct WindowWrapper : public utki::Unique{
 					&numVisuals
 				);
 			if (!vi) {
-				throw utki::Exc("XGetVisualInfo() failed");
+				throw std::runtime_error("XGetVisualInfo() failed");
 			}
 		}
 #	else
@@ -219,7 +219,7 @@ struct WindowWrapper : public utki::Unique{
 			EGLint vid;
 
 			if(!eglGetConfigAttrib(this->eglDisplay, eglConfig, EGL_NATIVE_VISUAL_ID, &vid)) {
-				throw utki::Exc("eglGetConfigAttrib() failed");
+				throw std::runtime_error("eglGetConfigAttrib() failed");
 			}
 
 			int numVisuals;
@@ -232,7 +232,7 @@ struct WindowWrapper : public utki::Unique{
 					&numVisuals
 				);
 			if (!vi) {
-				throw utki::Exc("XGetVisualInfo() failed");
+				throw std::runtime_error("XGetVisualInfo() failed");
 			}
 		}
 #	endif
@@ -289,7 +289,7 @@ struct WindowWrapper : public utki::Unique{
 				);
 		}
 		if(!this->window){
-			throw utki::Exc("Failed to create window");
+			throw std::runtime_error("Failed to create window");
 		}
 		utki::ScopeExit scopeExitWindow([this](){
 			XDestroyWindow(this->display, this->window);
@@ -307,7 +307,7 @@ struct WindowWrapper : public utki::Unique{
 #ifdef M_RENDER_OPENGL2
 		this->glContext = glXCreateContext(this->display, vi, 0, GL_TRUE);
 		if(this->glContext == NULL){
-			throw utki::Exc("glXCreateContext() failed");
+			throw std::runtime_error("glXCreateContext() failed");
 		}
 		utki::ScopeExit scopeExitGLContext([this](){
 			glXMakeCurrent(this->display, None, NULL);
@@ -319,7 +319,7 @@ struct WindowWrapper : public utki::Unique{
 		TRACE(<< "OpenGL version: " << glGetString(GL_VERSION) << std::endl)
 
 		if(glewInit() != GLEW_OK){
-			throw utki::Exc("GLEW initialization failed");
+			throw std::runtime_error("GLEW initialization failed");
 		}
 #elif defined(M_RENDER_OPENGLES2)
 
@@ -338,7 +338,7 @@ struct WindowWrapper : public utki::Unique{
 					&display_height
 				) < 0 )
 			{
-				throw utki::Exc("graphics_get_display_size() failed");
+				throw std::runtime_error("graphics_get_display_size() failed");
 			}
 
 			dst_rect.x = 0;
@@ -385,7 +385,7 @@ struct WindowWrapper : public utki::Unique{
 				nullptr
 			);
 		if(this->eglSurface == EGL_NO_SURFACE){
-			throw utki::Exc("eglCreateWindowSurface() failed");
+			throw std::runtime_error("eglCreateWindowSurface() failed");
 		}
 		utki::ScopeExit scopeExitEGLSurface([this](){
 			eglDestroySurface(this->eglDisplay, this->eglSurface);
@@ -399,13 +399,13 @@ struct WindowWrapper : public utki::Unique{
 
 			this->eglContext = eglCreateContext(this->eglDisplay, eglConfig, EGL_NO_CONTEXT, contextAttrs);
 			if(this->eglContext == EGL_NO_CONTEXT){
-				throw utki::Exc("eglCreateContext() failed");
+				throw std::runtime_error("eglCreateContext() failed");
 			}
 		}
 
 		if(eglMakeCurrent(this->eglDisplay, this->eglSurface, this->eglSurface, this->eglContext) == EGL_FALSE){
 			eglDestroyContext(this->eglDisplay, this->eglContext);
-			throw utki::Exc("eglMakeCurrent() failed");
+			throw std::runtime_error("eglMakeCurrent() failed");
 		}
 		utki::ScopeExit scopeExitEGLContext([this](){
 			eglMakeCurrent(this->eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
@@ -422,7 +422,7 @@ struct WindowWrapper : public utki::Unique{
 
 			blank = XCreateBitmapFromData(this->display, this->window, data, 1, 1);
 			if(blank == None){
-				throw utki::Exc("application::XEmptyMouseCursor::XEmptyMouseCursor(): could not create bitmap");
+				throw std::runtime_error("application::XEmptyMouseCursor::XEmptyMouseCursor(): could not create bitmap");
 			}
 			utki::ScopeExit scopeExit([this, &blank](){
 				XFreePixmap(this->display, blank);
@@ -436,7 +436,7 @@ struct WindowWrapper : public utki::Unique{
 
 		this->inputMethod = XOpenIM(this->display, NULL, NULL, NULL);
 		if(this->inputMethod == NULL){
-			throw utki::Exc("XOpenIM() failed");
+			throw std::runtime_error("XOpenIM() failed");
 		}
 		utki::ScopeExit scopeExitInputMethod([this](){
 			XCloseIM(this->inputMethod);
@@ -450,7 +450,7 @@ struct WindowWrapper : public utki::Unique{
 				NULL
 			);
 		if(this->inputContext == NULL){
-			throw utki::Exc("XCreateIC() failed");
+			throw std::runtime_error("XCreateIC() failed");
 		}
 		utki::ScopeExit scopeExitInputContext([this](){
 			XUnsetICFocus(this->inputContext);
@@ -592,263 +592,263 @@ morda::MouseButton_e buttonNumberToEnum(int number){
 
 
 
-const std::array<morda::Key_e, std::uint8_t(-1) + 1> keyCodeMap = {{
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::ESCAPE,//9
-	morda::Key_e::ONE,//10
-	morda::Key_e::TWO,//11
-	morda::Key_e::THREE,//12
-	morda::Key_e::FOUR,//13
-	morda::Key_e::FIVE,//14
-	morda::Key_e::SIX,//15
-	morda::Key_e::SEVEN,//16
-	morda::Key_e::EIGHT,//17
-	morda::Key_e::NINE,//18
-	morda::Key_e::ZERO,//19
-	morda::Key_e::MINUS,//20
-	morda::Key_e::EQUALS,//21
-	morda::Key_e::BACKSPACE,//22
-	morda::Key_e::TAB,//23
-	morda::Key_e::Q,//24
-	morda::Key_e::W,//25
-	morda::Key_e::E,//26
-	morda::Key_e::R,//27
-	morda::Key_e::T,//28
-	morda::Key_e::Y,//29
-	morda::Key_e::U,//30
-	morda::Key_e::I,//31
-	morda::Key_e::O,//32
-	morda::Key_e::P,//33
-	morda::Key_e::LEFT_SQUARE_BRACKET,//34
-	morda::Key_e::RIGHT_SQUARE_BRACKET,//35
-	morda::Key_e::ENTER,//36
-	morda::Key_e::LEFT_CONTROL,//37
-	morda::Key_e::A,//38
-	morda::Key_e::S,//39
-	morda::Key_e::D,//40
-	morda::Key_e::F,//41
-	morda::Key_e::G,//42
-	morda::Key_e::H,//43
-	morda::Key_e::J,//44
-	morda::Key_e::K,//45
-	morda::Key_e::L,//46
-	morda::Key_e::SEMICOLON,//47
-	morda::Key_e::APOSTROPHE,//48
-	morda::Key_e::GRAVE,//49
-	morda::Key_e::LEFT_SHIFT,//50
-	morda::Key_e::BACKSLASH,//51
-	morda::Key_e::Z,//52
-	morda::Key_e::X,//53
-	morda::Key_e::C,//54
-	morda::Key_e::V,//55
-	morda::Key_e::B,//56
-	morda::Key_e::N,//57
-	morda::Key_e::M,//58
-	morda::Key_e::COMMA,//59
-	morda::Key_e::PERIOD,//60
-	morda::Key_e::SLASH,//61
-	morda::Key_e::RIGHT_SHIFT,//62
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::LEFT_ALT,//64
-	morda::Key_e::SPACE,//65
-	morda::Key_e::CAPSLOCK,//66
-	morda::Key_e::F1,//67
-	morda::Key_e::F2,//68
-	morda::Key_e::F3,//69
-	morda::Key_e::F4,//70
-	morda::Key_e::F5,//71
-	morda::Key_e::F6,//72
-	morda::Key_e::F7,//73
-	morda::Key_e::F8,//74
-	morda::Key_e::F9,//75
-	morda::Key_e::F10,//76
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::F11,//95
-	morda::Key_e::F12,//96
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::RIGHT_CONTROL,//105
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::PRINT_SCREEN,//107
-	morda::Key_e::RIGHT_ALT,//108
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::HOME,//110
-	morda::Key_e::UP,//111
-	morda::Key_e::PAGE_UP,//112
-	morda::Key_e::LEFT,//113
-	morda::Key_e::RIGHT,//114
-	morda::Key_e::END,//115
-	morda::Key_e::DOWN,//116
-	morda::Key_e::PAGE_DOWN,//117
-	morda::Key_e::INSERT,//118
-	morda::Key_e::DELETE,//119
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::PAUSE,//127
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::WINDOWS,//133
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::WINDOWS_MENU,//135
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN,
-	morda::Key_e::UNKNOWN
+const std::array<morda::key, std::uint8_t(-1) + 1> keyCodeMap = {{
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::escape,//9
+	morda::key::one,//10
+	morda::key::two,//11
+	morda::key::three,//12
+	morda::key::four,//13
+	morda::key::five,//14
+	morda::key::six,//15
+	morda::key::seven,//16
+	morda::key::eight,//17
+	morda::key::nine,//18
+	morda::key::zero,//19
+	morda::key::minus,//20
+	morda::key::equals,//21
+	morda::key::backspace,//22
+	morda::key::tabulator,//23
+	morda::key::q,//24
+	morda::key::w,//25
+	morda::key::e,//26
+	morda::key::r,//27
+	morda::key::t,//28
+	morda::key::y,//29
+	morda::key::u,//30
+	morda::key::i,//31
+	morda::key::o,//32
+	morda::key::p,//33
+	morda::key::left_square_bracket,//34
+	morda::key::right_square_bracket,//35
+	morda::key::enter,//36
+	morda::key::left_control,//37
+	morda::key::a,//38
+	morda::key::s,//39
+	morda::key::d,//40
+	morda::key::f,//41
+	morda::key::g,//42
+	morda::key::h,//43
+	morda::key::j,//44
+	morda::key::k,//45
+	morda::key::l,//46
+	morda::key::semicolon,//47
+	morda::key::apostrophe,//48
+	morda::key::grave,//49
+	morda::key::left_shift,//50
+	morda::key::backslash,//51
+	morda::key::z,//52
+	morda::key::x,//53
+	morda::key::c,//54
+	morda::key::v,//55
+	morda::key::b,//56
+	morda::key::n,//57
+	morda::key::m,//58
+	morda::key::comma,//59
+	morda::key::period,//60
+	morda::key::slash,//61
+	morda::key::right_shift,//62
+	morda::key::unknown,
+	morda::key::left_alt,//64
+	morda::key::space,//65
+	morda::key::capslock,//66
+	morda::key::f1,//67
+	morda::key::f2,//68
+	morda::key::f3,//69
+	morda::key::f4,//70
+	morda::key::f5,//71
+	morda::key::f6,//72
+	morda::key::f7,//73
+	morda::key::f8,//74
+	morda::key::f9,//75
+	morda::key::f10,//76
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::f11,//95
+	morda::key::f12,//96
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::right_control,//105
+	morda::key::unknown,
+	morda::key::print_screen,//107
+	morda::key::right_alt,//108
+	morda::key::unknown,
+	morda::key::home,//110
+	morda::key::up,//111
+	morda::key::page_up,//112
+	morda::key::left,//113
+	morda::key::right,//114
+	morda::key::end,//115
+	morda::key::down,//116
+	morda::key::page_down,//117
+	morda::key::insert,//118
+	morda::key::deletion,//119
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::pause,//127
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::command,//133
+	morda::key::unknown,
+	morda::key::menu,//135
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown,
+	morda::key::unknown
 }};
 
 
@@ -972,7 +972,7 @@ int main(int argc, const char** argv){
 				case KeyPress:
 //						TRACE(<< "KeyPress X event got" << std::endl)
 					{
-						morda::Key_e key = keyCodeMap[std::uint8_t(event.xkey.keycode)];
+						morda::key key = keyCodeMap[std::uint8_t(event.xkey.keycode)];
 						handleKeyEvent(*app, true, key);
 						handleCharacterInput(*app, KeyEventUnicodeProvider(ww.inputContext, event), key);
 					}
@@ -980,7 +980,7 @@ int main(int argc, const char** argv){
 				case KeyRelease:
 //						TRACE(<< "KeyRelease X event got" << std::endl)
 					{
-						morda::Key_e key = keyCodeMap[std::uint8_t(event.xkey.keycode)];
+						morda::key key = keyCodeMap[std::uint8_t(event.xkey.keycode)];
 
 						//detect auto-repeated key events
 						if(XEventsQueued(ww.display, QueuedAfterReading)){//if there are other events queued
