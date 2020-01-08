@@ -32,11 +32,11 @@ matrix:
     - name: macosx
       os: osx
       compiler: clang
-      osx_image: xcode11
+      osx_image: xcode11.3
     - name: ios
       os: osx
       compiler: clang
-      osx_image: xcode11
+      osx_image: xcode11.3
     - name: android
       language: android
       android:
@@ -80,6 +80,7 @@ before_install:
     fi;
   fi
 - if [ "$TRAVIS_JOB_NAME" == "macosx" ]; then
+    brew unlink python@2 &&
     brew install prorab prorab-extra libutki libpapki glew libmorda r4 puu libnitki morda-opengl2-ren;
   fi
 - if [ "$TRAVIS_JOB_NAME" == "ios" ]; then
