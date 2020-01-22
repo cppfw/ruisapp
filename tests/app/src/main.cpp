@@ -2,6 +2,7 @@
 #include <utki/debug.hpp>
 #include <utki/config.hpp>
 #include <papki/FSFile.hpp>
+#include <puu/dom.hpp>
 
 #include "../../../src/mordavokne/application.hpp"
 
@@ -41,7 +42,7 @@ class SimpleWidget : virtual public morda::Widget, public morda::Updateable, pub
 	std::shared_ptr<morda::ResTexture> tex;
 
 public:
-	SimpleWidget(const stob::Node* desc) :
+	SimpleWidget(const puu::forest& desc) :
 			morda::Widget(desc)
 	{
 //		TRACE(<< "loading texture" << std::endl)
@@ -134,7 +135,7 @@ class CubeWidget : public morda::Widget, public morda::Updateable{
 public:
 	std::shared_ptr<morda::VertexArray> cubeVAO;
 
-	CubeWidget(const stob::Node* desc) :
+	CubeWidget(const puu::forest& desc) :
 			widget(desc)
 	{
 		std::array<morda::Vec3r, 36> cubePos = {{
@@ -453,20 +454,20 @@ public:
 			isLastItemInParent.push_back(n->next() == nullptr);
 		}
 
-		auto ret = std::make_shared<morda::Row>(nullptr);
+		auto ret = std::make_shared<morda::Row>(puu::forest());
 
 		ASSERT(isLastItemInParent.size() == path.size())
 
 		for(unsigned i = 0; i != path.size() - 1; ++i){
-			ret->add(*(isLastItemInParent[i] ? stob::parse(DEmpty) : stob::parse(DLine)));
+			ret->inflate_push_back(isLastItemInParent[i] ? puu::read(DEmpty) : puu::read(DLine));
 		}
 
 		{
-			auto widget = std::dynamic_pointer_cast<morda::Pile>(morda::Morda::inst().inflater.inflate(*stob::parse(isLastItemInParent.back() ? DLineEnd : DLineMiddle)));
+			auto widget = std::dynamic_pointer_cast<morda::Pile>(morda::Morda::inst().inflater.inflate(puu::read(isLastItemInParent.back() ? DLineEnd : DLineMiddle)));
 			ASSERT(widget)
 
 			if(n->child()){
-				auto w = morda::Morda::inst().inflater.inflate(*stob::parse(DPlusMinus));
+				auto w = morda::Morda::inst().inflater.inflate(puu::read(DPlusMinus));
 
 				auto plusminus = w->try_get_widget_as<morda::Image>("plusminus");
 				ASSERT(plusminus)
@@ -506,7 +507,7 @@ public:
 		}
 
 		{
-			auto v = morda::Morda::inst().inflater.inflate(*stob::parse(
+			auto v = morda::Morda::inst().inflater.inflate(puu::read(
 					R"qwertyuiop(
 							Pile{
 								Color{
@@ -555,7 +556,7 @@ public:
 		}
 
 		{
-			auto b = std::dynamic_pointer_cast<morda::PushButton>(morda::Morda::inst().inflater.inflate(*stob::parse(
+			auto b = std::dynamic_pointer_cast<morda::PushButton>(morda::Morda::inst().inflater.inflate(puu::read(
 					R"qwertyuiop(
 							PushButton{
 								Color{
