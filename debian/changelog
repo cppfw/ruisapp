@@ -1,3 +1,9 @@
+libmordavokne (0.2.48) unstable; urgency=medium
+
+  * use libopros
+
+ -- Ivan Gagis <igagis@gmail.com>  Fri, 24 Jan 2020 19:46:00 +0200
+
 libmordavokne (0.2.47) unstable; urgency=medium
 
   * debian/buster i386 packages
