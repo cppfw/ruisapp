@@ -38,7 +38,7 @@ else ifeq ($(prorab_os),linux)
     this_ldlibs += `pkg-config mordavokne-opengl2 --libs`
 endif
 
-this_ldlibs += -lnitki -lpogodi -lstob -lmorda -lstdc++
+this_ldlibs += -lnitki -lopros -lstob -lmorda -lstdc++
 
 
 

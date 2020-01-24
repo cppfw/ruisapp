@@ -41,7 +41,7 @@ this_name := mordavokne-opengl2
 
 ifeq ($(os), linux)
     this_common_cxxflags += -fPIC #generate position independent code
-    this_common_ldlibs += -lGLEW -ldl -lnitki -lpogodi -lX11
+    this_common_ldlibs += -lGLEW -ldl -lnitki -lopros -lX11
 else ifeq ($(os), windows)
     this_common_ldlibs += -lgdi32 -lopengl32 -lglew32
 else ifeq ($(os), macosx)
