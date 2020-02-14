@@ -4,9 +4,9 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "make",
+            "label": "build",
             "type": "shell",
-            "command": "make aj=t",
+            "command": "make autojobs=true",
             "problemMatcher": [
                 "$gcc"
             ]
@@ -21,7 +21,8 @@
             "label": "run",
             "type": "shell",
             "command": "make run",
-            "problemMatcher": []
+            "problemMatcher": [],
+            "dependsOn": "build"
         }
     ]
 }

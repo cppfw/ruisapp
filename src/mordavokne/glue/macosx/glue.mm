@@ -1,8 +1,9 @@
 #include "../../application.hpp"
 
-#include <papki/FSFile.hpp>
+#include <papki/fs_file.hpp>
 
 #include <morda/util/util.hpp>
+#include <morda/gui.hpp>
 
 #include <mordaren/OpenGL2Renderer.hpp>
 
@@ -127,7 +128,7 @@ void macosx_HandleKeyEvent(bool isDown, morda::key keyCode){
 	handleKeyEvent(mordavokne::application::inst(), isDown, keyCode);
 }
 
-class MacosxUnicodeProvider : public morda::Morda::UnicodeProvider{
+class MacosxUnicodeProvider : public morda::gui::UnicodeProvider{
 	const NSString* nsStr;
 public:
 	MacosxUnicodeProvider(const NSString* nsStr = nullptr) :
@@ -624,7 +625,7 @@ WindowWrapper::WindowWrapper(const window_params& wp){
 	this->applicationObjectId = [NSApplication sharedApplication];
 
 	if(!this->applicationObjectId){
-		throw morda::Exc("morda::application::ApplicationObject::ApplicationObject(): failed to create application object");
+		throw std::runtime_error("morda::application::ApplicationObject::ApplicationObject(): failed to create application object");
 	}
 
 	utki::ScopeExit scopeExitApplication([this](){
@@ -639,7 +640,7 @@ WindowWrapper::WindowWrapper(const window_params& wp){
 	];
 
 	if(!this->windowObjectId){
-		throw morda::Exc("morda::application::WindowObject::WindowObject(): failed to create Window object");
+		throw std::runtime_error("morda::application::WindowObject::WindowObject(): failed to create Window object");
 	}
 
 	utki::ScopeExit scopeExitWindow([this](){
@@ -664,14 +665,14 @@ WindowWrapper::WindowWrapper(const window_params& wp){
 
 		NSOpenGLPixelFormat *pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:&*attributes.begin()];
 		if(pixelFormat == nil){
-			throw morda::Exc("morda::application::OpenGLContext::OpenGLContext(): failed to create pixel format");
+			throw std::runtime_error("morda::application::OpenGLContext::OpenGLContext(): failed to create pixel format");
 		}
 
 		this->openglContextId = [[NSOpenGLContext alloc] initWithFormat:pixelFormat shareContext:nil];
 		[pixelFormat release];
 
 		if(!this->openglContextId){
-			throw morda::Exc("morda::application::OpenGLContext::OpenGLContext(): failed to create OpenGL context");
+			throw std::runtime_error("morda::application::OpenGLContext::OpenGLContext(): failed to create OpenGL context");
 		}
 	}
 
@@ -683,7 +684,7 @@ WindowWrapper::WindowWrapper(const window_params& wp){
 	[this->openglContextId makeCurrentContext];
 
 	if(glewInit() != GLEW_OK){
-		throw morda::Exc("GLEW initialization failed");
+		throw std::runtime_error("GLEW initialization failed");
 	}
 
 	scopeExitOpenGLContext.reset();
@@ -817,8 +818,7 @@ application::application(std::string&& name, const window_params& wp) :
 		windowPimpl(utki::makeUnique<WindowWrapper>(wp)),
 		gui(
 				std::make_shared<mordaren::OpenGL2Renderer>(),
-				getDotsPerInch(),
-				getDotsPerPt(),
+				std::make_shared<morda::updater>(),
 				[this](std::function<void()>&& a){
 					auto& ww = getImpl(getWindowPimpl(*this));
 
@@ -835,7 +835,9 @@ application::application(std::string&& name, const window_params& wp) :
 						];
 
 					[ww.applicationObjectId postEvent:e atStart:NO];
-				}
+				},
+				getDotsPerInch(),
+				getDotsPerPt()
 			),
 		storage_dir(initializeStorageDir(this->name))
 {

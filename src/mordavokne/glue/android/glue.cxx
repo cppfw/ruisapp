@@ -160,7 +160,7 @@ struct WindowWrapper : public utki::Unique{
 	WindowWrapper(const window_params& wp){
 		this->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 		if(this->display == EGL_NO_DISPLAY){
-			throw morda::Exc("eglGetDisplay(): failed, no matching display connection found");
+			throw std::runtime_error("eglGetDisplay(): failed, no matching display connection found");
 		}
 
 		utki::ScopeExit eglDisplayScopeExit([this](){
@@ -168,13 +168,13 @@ struct WindowWrapper : public utki::Unique{
 		});
 
 		if(eglInitialize(this->display, 0, 0) == EGL_FALSE){
-			throw morda::Exc("eglInitialize() failed");
+			throw std::runtime_error("eglInitialize() failed");
 		}
 
-		//TODO: allow stencil configuration etc. via window_params
-		//Here specify the attributes of the desired configuration.
-		//Below, we select an EGLConfig with at least 8 bits per color
-		//component compatible with on-screen windows
+		// TODO: allow stencil configuration etc. via window_params
+		// Here specify the attributes of the desired configuration.
+		// Below, we select an EGLConfig with at least 8 bits per color
+		// component compatible with on-screen windows
 		const EGLint attribs[] = {
 				EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
 				EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT, //we want OpenGL ES 2.0
@@ -186,22 +186,22 @@ struct WindowWrapper : public utki::Unique{
 
 		EGLConfig config;
 
-		//Here, the application chooses the configuration it desires. In this
-		//sample, we have a very simplified selection process, where we pick
-		//the first EGLConfig that matches our criteria
+		// Here, the application chooses the configuration it desires. In this
+		// sample, we have a very simplified selection process, where we pick
+		// the first EGLConfig that matches our criteria
 		EGLint numConfigs;
 		eglChooseConfig(this->display, attribs, &config, 1, &numConfigs);
 		if(numConfigs <= 0){
-			throw morda::Exc("eglChooseConfig() failed, no matching config found");
+			throw std::runtime_error("eglChooseConfig() failed, no matching config found");
 		}
 
-		//EGL_NATIVE_VISUAL_ID is an attribute of the EGLConfig that is
-		//guaranteed to be accepted by ANativeWindow_setBuffersGeometry().
-		//As soon as we picked a EGLConfig, we can safely reconfigure the
-		//ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID.
+		// EGL_NATIVE_VISUAL_ID is an attribute of the EGLConfig that is
+		// guaranteed to be accepted by ANativeWindow_setBuffersGeometry().
+		// As soon as we picked a EGLConfig, we can safely reconfigure the
+		// ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID.
 		EGLint format;
 		if(eglGetConfigAttrib(this->display, config, EGL_NATIVE_VISUAL_ID, &format) == EGL_FALSE){
-			throw morda::Exc("eglGetConfigAttrib() failed");
+			throw std::runtime_error("eglGetConfigAttrib() failed");
 		}
 
 		ASSERT(androidWindow)
@@ -209,7 +209,7 @@ struct WindowWrapper : public utki::Unique{
 
 		this->surface = eglCreateWindowSurface(this->display, config, androidWindow, NULL);
 		if(this->surface == EGL_NO_SURFACE){
-			throw morda::Exc("eglCreateWindowSurface() failed");
+			throw std::runtime_error("eglCreateWindowSurface() failed");
 		}
 
 		utki::ScopeExit eglSurfaceScopeExit([this](){
@@ -224,7 +224,7 @@ struct WindowWrapper : public utki::Unique{
 
 		this->context = eglCreateContext(this->display, config, NULL, contextAttrs);
 		if(this->context == EGL_NO_CONTEXT){
-			throw morda::Exc("eglCreateContext() failed");
+			throw std::runtime_error("eglCreateContext() failed");
 		}
 
 		utki::ScopeExit eglContextScopeExit([this](){
@@ -232,7 +232,7 @@ struct WindowWrapper : public utki::Unique{
 		});
 
 		if(eglMakeCurrent(this->display, this->surface, this->surface, this->context) == EGL_FALSE){
-			throw morda::Exc("eglMakeCurrent() failed");
+			throw std::runtime_error("eglMakeCurrent() failed");
 		}
 
 		eglContextScopeExit.reset();
@@ -489,7 +489,7 @@ std::unique_ptr<AndroidConfiguration> curConfig;
 
 
 
-class KeyEventToUnicodeResolver : public morda::Morda::UnicodeProvider{
+class KeyEventToUnicodeResolver : public morda::gui::UnicodeProvider{
 public:
 	int32_t kc;//key code
 	int32_t ms;//meta state
@@ -571,7 +571,7 @@ public:
 				&this->timer
 			);
 		if(res != 0){
-			throw morda::Exc("timer_create() failed");
+			throw std::runtime_error("timer_create() failed");
 		}
 
 		struct sigaction sa;
@@ -911,7 +911,7 @@ morda::key getKeyFromKeyEvent(AInputEvent& event)noexcept{
 
 
 
-struct UnicodeProvider : public morda::Morda::UnicodeProvider{
+struct UnicodeProvider : public morda::gui::UnicodeProvider{
 	std::u32string chars;
 
 	std::u32string get()const override{
@@ -1010,6 +1010,10 @@ mordavokne::application::application(std::string&& name, const window_params& re
 		windowPimpl(utki::makeUnique<WindowWrapper>(requestedWindowParams)),
 		gui(
 				std::make_shared<mordaren::OpenGLES2Renderer>(),
+				std::make_shared<morda::updater>(),
+				[this](std::function<void()>&& a){
+					getImpl(getWindowPimpl(*this)).uiQueue.push_back(std::move(a));
+				},
 				[]() -> float{
 					ASSERT(javaFunctionsWrapper)
 
@@ -1019,10 +1023,7 @@ mordavokne::application::application(std::string&& name, const window_params& re
 					auto res = getImpl(this->windowPimpl).getWindowSize();
 					auto dim = (res.to<float>() / javaFunctionsWrapper->getDotsPerInch()) * 25.4f;
 					return application::get_pixels_per_dp(res, dim.to<unsigned>());
-				}(),
-				[this](std::function<void()>&& a){
-					getImpl(getWindowPimpl(*this)).uiQueue.push_back(std::move(a));
-				}
+				}()
 			),
 		storage_dir(initializeStorageDir(this->name))
 {

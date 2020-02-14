@@ -540,11 +540,12 @@ application::application(std::string&& name, const window_params& requestedWindo
 #else
 #	error "Unknown graphics API"
 #endif
-				getDotsPerInch(getImpl(windowPimpl).display),
-				::getDotsPerPt(getImpl(windowPimpl).display),
+				std::make_shared<morda::updater>(),
 				[this](std::function<void()>&& a){
 					getImpl(getWindowPimpl(*this)).ui_queue.push_back(std::move(a));
-				}
+				},
+				getDotsPerInch(getImpl(windowPimpl).display),
+				::getDotsPerPt(getImpl(windowPimpl).display)
 			),
 		storage_dir(initializeStorageDir(this->name))
 {
@@ -851,7 +852,7 @@ const std::array<morda::key, std::uint8_t(-1) + 1> keyCodeMap = {{
 
 
 
-class KeyEventUnicodeProvider : public morda::Morda::UnicodeProvider{
+class KeyEventUnicodeProvider : public morda::gui::UnicodeProvider{
 	XIC& xic;
 	XEvent& event;
 public:
@@ -869,13 +870,13 @@ public:
 
 		std::array<char, 32> staticBuf;
 		std::vector<char> arr;
-		auto buf = utki::wrapBuf(staticBuf);
+		auto buf = utki::make_span(staticBuf);
 
 		int size = Xutf8LookupString(this->xic, &this->event.xkey, buf.begin(), buf.size() - 1, NULL, &status);
 		if(status == XBufferOverflow){
 			//allocate enough memory
 			arr.resize(size + 1);
-			buf = utki::wrapBuf(arr);
+			buf = utki::make_span(arr);
 			size = Xutf8LookupString(this->xic, &this->event.xkey, buf.begin(), buf.size() - 1, NULL, &status);
 		}
 		ASSERT(size >= 0)

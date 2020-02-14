@@ -6,6 +6,14 @@ tex_lattice{
 	file {lattice.png}
 }
 
+img_button_unpressed{
+	file{empty_cell_test.svg}
+}
+
+img_button_pressed{
+	file{shot_test.svg}
+}
+
 img_lattice{
 	file{lattice.png}
 }
@@ -47,8 +55,6 @@ grd_sample{
 	vertical{true}
 
 	Stop{ pos{0.3} color{0x0} }
-
 	Stop{ pos{0.7} color{0xff00ffff} }
-
 	Stop{ pos{0.8} color{0xffffff00} }
 }
