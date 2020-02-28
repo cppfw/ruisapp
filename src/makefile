@@ -6,27 +6,22 @@ this_soname := $(shell cat $(d)/soname.txt)
 
 this_srcs += $(call prorab-src-dir, .)
 
-
 ifeq ($(os), macosx)
     this_mm_src := mordavokne/glue/macosx/glue.mm
 endif
 
 this_out_dir := build
 
-
-this_common_cxxflags += -Wall #enable all warnings
-this_common_cxxflags += -Wno-comment #no warnings on nested comments
-this_common_cxxflags += -funsigned-char #the 'char' type is unsigned
-this_common_cxxflags += -Wnon-virtual-dtor #warn if base class has non-virtual destructor
-this_common_cxxflags += -fno-operator-names #do not treat 'and', 'bitand','bitor','compl','not','or','xor' as keywords
-this_common_cxxflags += -Werror #treat warnings as errors
+this_common_cxxflags += -Wall # enable all warnings
+this_common_cxxflags += -Wno-comment # no warnings on nested comments
+this_common_cxxflags += -funsigned-char # the 'char' type is unsigned
+this_common_cxxflags += -Wnon-virtual-dtor # warn if base class has non-virtual destructor
+this_common_cxxflags += -fno-operator-names # do not treat 'and', 'bitand','bitor','compl','not','or','xor' as keywords
+this_common_cxxflags += -Werror # treat warnings as errors
 this_common_cxxflags += -Wfatal-errors # stop on first error encountered
-this_common_cxxflags += -fstrict-aliasing #strict aliasing (in order to comply with the c++ standard more strictly)
-this_common_cxxflags += -g #include debugging symbols
-this_common_cxxflags += -std=c++11
-
-
-
+this_common_cxxflags += -fstrict-aliasing # in order to comply with the c++ standard more strictly
+this_common_cxxflags += -g # include debugging symbols
+this_common_cxxflags += -std=c++14
 
 ifeq ($(debug),true)
     this_common_cxxflags += -DDEBUG
@@ -34,18 +29,18 @@ ifeq ($(debug),true)
     this_objcflags += -DDEBUG
     this_common_cxxflags += -O0
 else
-    this_common_cxxflags += -O2 #TODO: switch to -O3 when g++ bug is fixed and it won't produce segfault
+    this_common_cxxflags += -O3
 endif
 
 this_name := mordavokne-opengl2
 
 ifeq ($(os), linux)
-    this_common_cxxflags += -fPIC #generate position independent code
+    this_common_cxxflags += -fPIC # generate position independent code
     this_common_ldlibs += -lGLEW -ldl -lnitki -lopros -lX11
 else ifeq ($(os), windows)
     this_common_ldlibs += -lgdi32 -lopengl32 -lglew32
 else ifeq ($(os), macosx)
-    this_common_cxxflags += -stdlib=libc++ #this is needed to be able to use c++11 std lib
+    this_common_cxxflags += -stdlib=libc++ # this is needed to be able to use c++11 std lib
     this_common_ldlibs += -lGLEW -lc++
     this_common_ldlibs += -framework Cocoa -framework OpenGL -ldl
 
@@ -62,20 +57,16 @@ endif
 
 this_common_ldlibs += -lmorda -lpapki -lpuu -lstdc++
 
-
 this_cxxflags += $(this_common_cxxflags) -DM_RENDER_OPENGL2
 this_ldlibs += $(this_common_ldlibs) -lmorda-opengl2-ren
 
 $(eval $(prorab-build-lib))
-
 
 ifeq ($(os), macosx)
     $(prorab_this_staticlib): $(this_mm_obj)
 
     $(prorab_this_name): $(this_mm_obj)
 endif
-
-
 
 ifeq ($(os), linux)
     ogles2 := true

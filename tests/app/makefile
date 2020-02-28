@@ -8,15 +8,13 @@ this_out_dir := build
 
 this_srcs += src/main.cpp
 
-
 this_cxxflags += -Wall
-this_cxxflags += -Wno-comment #no warnings on nested comments
+this_cxxflags += -Wno-comment # no warnings on nested comments
 this_cxxflags += -Werror
 this_cxxflags += -DDEBUG
-this_cxxflags += -fstrict-aliasing #strict aliasing!!!
+this_cxxflags += -fstrict-aliasing
 this_cxxflags += -g
-this_cxxflags += -O3
-this_cxxflags += -std=c++11
+this_cxxflags += -std=c++14
 
 ifeq ($(ogles2), true)
     this_mordavoknelib := libmordavokne-opengles2
@@ -34,6 +32,8 @@ endif
 
 ifeq ($(debug), true)
     this_cxxflags += -DDEBUG
+else
+    this_cxxflags += -O3
 endif
 
 this_ldlibs += $(d)../../src/build/$(this_mordavoknelib)$(soext)

@@ -63,8 +63,8 @@ defs{
 			}
 
 
-			@Right{
-				@Margins{
+			@right{
+				@margins{
 					left{5dp}
 					right{5dp}
 					top{5dp}
@@ -80,7 +80,7 @@ defs{
 				}
 			}
 
-			@drop_down_selector{
+			@drop_down_box{
 				layout{
 					dx{max}
 				}
@@ -103,15 +103,15 @@ defs{
 				id{dropdownselector_selection}
 				text{unknown}
 			}
-			@Left{
-				@PushButton{
+			@left{
+				@push_button{
 					id{showhide_mousecursor_button}
 
 					@text{
 						text{"show/hide mouse"}
 					}
 				}
-				@PushButton{
+				@push_button{
 					id{fullscreen_button}
 
 					@text{
@@ -126,7 +126,7 @@ defs{
 				defs{
 					@RadBtn{
 						@row{
-							@Margins{
+							@margins{
 								left{5dp}
 								right{5dp}
 								top{5dp}
@@ -159,7 +159,7 @@ defs{
 		title{"HorizontalLayout"}
 
 		look{
-			background{@WindowEmptyBackground}
+			background{@window_empty_background}
 		}
 
 		@column{
@@ -203,7 +203,7 @@ defs{
 
 				}
 
-				@PushButton{
+				@push_button{
 					id {show_VK_button}
 					x{50} y{80}
 					dx{10} dy{30}
@@ -241,12 +241,12 @@ defs{
 					dy{0}
 					weight{1}
 				}
-				@horizontal_list{
+				@pan_list{
 					layout{
 						dx{fill}
 						dy{fill}
 					}
-					id{horizontal_list}
+					id{pan_list}
 
 					@text{
 						text{item1|}
@@ -314,7 +314,7 @@ defs{
 		title{"TreeView"}
 
 		look{
-			background{@WindowEmptyBackground}
+			background{@window_empty_background}
 		}
 
 
@@ -374,19 +374,19 @@ defs{
 				@text{
 					text{Insert:}
 				}
-				@PushButton{
+				@push_button{
 					id{insert_before}
 					@text{
 						text{"before"}
 					}
 				}
-				@PushButton{
+				@push_button{
 					id{insert_after}
 					@text{
 						text{"after"}
 					}
 				}
-				@PushButton{
+				@push_button{
 					id{insert_child}
 					@text{
 						text{"child"}
@@ -415,7 +415,7 @@ defs{
 //				image{img_lattice}
 				image{img_camera}
 
-				keepAspectRatio{true}
+				keep_aspect_ratio{true}
 
 				layout{
 					dx{min} dy{max}
@@ -451,7 +451,7 @@ defs{
 				dx{max} dy{max}
 			}
 			image{img_lattice}
-			repeatX{true} repeatY{true}
+			repeat_x{true} repeat_y{true}
 		}
 */
 
@@ -480,7 +480,7 @@ defs{
 		@column{
 			layout{dx{max}dy{max}}
 
-			@tabs{
+			@tab_group{
 				layout{dx{max}}
 
 				@tab{
@@ -509,7 +509,7 @@ defs{
 					@column{
 						@text{text{Hello!}}
 						@row{
-							@PushButton{@text{text{button!!!}}}
+							@push_button{@text{text{button!!!}}}
 							@image_push_button{
 								id{image_push_button}
 								layout{
@@ -538,16 +538,16 @@ defs{
 					dx{max} dy{min}
 				}
 			}
-			@PushButton{layout{dy{0}weight{1}}@text{text{button!!!}}}
-			@PushButton{layout{dy{0}weight{1}}@text{text{button!!!}}}
-			@PushButton{layout{dy{0}weight{1}}@text{text{button!!!}}}
-			@PushButton{layout{dy{0}weight{1}}@text{text{button!!!}}}
-			@PushButton{layout{dy{0}weight{1}}@text{text{button!!!}}}
-			@PushButton{layout{dy{0}weight{1}}@text{text{button!!!}}}
-			@PushButton{layout{dy{0}weight{1}}@text{text{button!!!}}}
-			@PushButton{layout{dy{0}weight{1}}@text{text{button!!!}}}
-			@PushButton{layout{dy{0}weight{1}}@text{text{button!!!}}}
-			@PushButton{layout{dy{0}weight{1}}@text{text{button!!!}}}
+			@push_button{layout{dy{0}weight{1}}@text{text{button!!!}}}
+			@push_button{layout{dy{0}weight{1}}@text{text{button!!!}}}
+			@push_button{layout{dy{0}weight{1}}@text{text{button!!!}}}
+			@push_button{layout{dy{0}weight{1}}@text{text{button!!!}}}
+			@push_button{layout{dy{0}weight{1}}@text{text{button!!!}}}
+			@push_button{layout{dy{0}weight{1}}@text{text{button!!!}}}
+			@push_button{layout{dy{0}weight{1}}@text{text{button!!!}}}
+			@push_button{layout{dy{0}weight{1}}@text{text{button!!!}}}
+			@push_button{layout{dy{0}weight{1}}@text{text{button!!!}}}
+			@push_button{layout{dy{0}weight{1}}@text{text{button!!!}}}
 
 		}
 	}
@@ -606,7 +606,7 @@ defs{
 							}
 						}
 
-						@PushButton{
+						@push_button{
 							id{push_button_in_scroll_container}
 							x{10mm} y{20mm}
 
@@ -663,7 +663,7 @@ defs{
 		@size_container{
 			layout{dx{fill}dy{fill}}
 
-			@PushButton{
+			@push_button{
 				x{10} y{20}
 				@text{text{"Hello world!"}}
 			}
@@ -693,8 +693,8 @@ defs{
 					dx{0} dy{max}
 					weight{1}
 				}
-				@vertical_list{
-					id{vertical_list}
+				@list{
+					id{list}
 					layout{
 						dx{max} dy{max}
 					}
@@ -711,7 +711,7 @@ defs{
 						text{item_2_werf}
 					}
 
-					@PushButton{
+					@push_button{
 						@text{
 							text {"item3"}
 							color{0xff0000ff}
