@@ -89,23 +89,23 @@ WindowWrapper& getImpl(const std::unique_ptr<utki::Unique>& pimpl){
 namespace{
 
 
-void mouseButton(NSEvent* e, bool isDown, morda::MouseButton_e button){
+void mouseButton(NSEvent* e, bool isDown, morda::mouse_button button){
 	NSPoint winPos = [e locationInWindow];
-	auto pos = morda::Vec2r(winPos.x, winPos.y).rounded();
+	auto pos = morda::vector2(winPos.x, winPos.y).rounded();
 	handleMouseButton(
 			mordavokne::application::inst(),
 			isDown,
-			morda::Vec2r(pos.x, mordavokne::application::inst().window_dimensions().y - pos.y),
+			morda::vector2(pos.x, mordavokne::application::inst().window_dims().y - pos.y),
 			button,
 			0
 		);
 }
 
-void macosx_HandleMouseMove(const morda::Vec2r& pos, unsigned id){
+void macosx_HandleMouseMove(const morda::vector2& pos, unsigned id){
 //	TRACE(<< "Macosx_HandleMouseMove(): pos = " << pos << std::endl)
 	handleMouseMove(
 			mordavokne::application::inst(),
-			morda::Vec2r(pos.x, mordavokne::application::inst().window_dimensions().y - pos.y),
+			morda::vector2(pos.x, mordavokne::application::inst().window_dims().y - pos.y),
 			id
 		);
 }
@@ -128,7 +128,7 @@ void macosx_HandleKeyEvent(bool isDown, morda::key keyCode){
 	handleKeyEvent(mordavokne::application::inst(), isDown, keyCode);
 }
 
-class MacosxUnicodeProvider : public morda::gui::UnicodeProvider{
+class MacosxUnicodeProvider : public morda::gui::unicode_provider{
 	const NSString* nsStr;
 public:
 	MacosxUnicodeProvider(const NSString* nsStr = nullptr) :
@@ -156,7 +156,7 @@ void macosx_HandleCharacterInput(const void* nsstring, morda::key key){
 	handleCharacterInput(mordavokne::application::inst(), MacosxUnicodeProvider(reinterpret_cast<const NSString*>(nsstring)), key);
 }
 
-void macosx_UpdateWindowRect(const morda::Rectr& r){
+void macosx_UpdateWindowRect(const morda::rectangle& r){
 	auto& ww = getImpl(getWindowPimpl(mordavokne::application::inst()));
 	[ww.openglContextId update];//after resizing window we need to update OpenGL context
 	updateWindowRect(mordavokne::application::inst(), r);
@@ -448,44 +448,44 @@ const std::array<morda::key, std::uint8_t(-1) + 1> keyCodeMap = {{
 
 -(void)mouseDown: (NSEvent*)e{
 //	TRACE(<< "left down!!!!!" << std::endl)
-	mouseButton(e, true, morda::MouseButton_e::LEFT);
+	mouseButton(e, true, morda::mouse_button::left);
 }
 
 -(void)mouseUp: (NSEvent*)e{
 //	TRACE(<< "left up!!!!!" << std::endl)
-	mouseButton(e, false, morda::MouseButton_e::LEFT);
+	mouseButton(e, false, morda::mouse_button::left);
 }
 
 -(void)rightMouseDown: (NSEvent*)e{
 //	TRACE(<< "right down!!!!!" << std::endl)
-	mouseButton(e, true, morda::MouseButton_e::RIGHT);
+	mouseButton(e, true, morda::mouse_button::right);
 }
 
 -(void)rightMouseUp: (NSEvent*)e{
 //	TRACE(<< "right up!!!!!" << std::endl)
-	mouseButton(e, false, morda::MouseButton_e::RIGHT);
+	mouseButton(e, false, morda::mouse_button::right);
 }
 
 -(void)otherMouseDown: (NSEvent*)e{
 //	TRACE(<< "middle down!!!!!" << std::endl)
-	mouseButton(e, true, morda::MouseButton_e::MIDDLE);
+	mouseButton(e, true, morda::mouse_button::middle);
 }
 
 -(void)otherMouseUp: (NSEvent*)e{
 //	TRACE(<< "middle up!!!!!" << std::endl)
-	mouseButton(e, false, morda::MouseButton_e::MIDDLE);
+	mouseButton(e, false, morda::mouse_button::middle);
 }
 
 -(void)scrollWheel: (NSEvent*)e{
 //	TRACE(<< "mouse wheel!!!!!" << std::endl)
 
 	if([e hasPreciseScrollingDeltas] == NO){
-		morda::MouseButton_e button;
+		morda::mouse_button button;
 //		TRACE(<< "dy = " << float(dy) << std::endl)
 		if([e scrollingDeltaY] < 0){
-			button = morda::MouseButton_e::WHEEL_DOWN;
+			button = morda::mouse_button::wheel_down;
 		}else{
-			button = morda::MouseButton_e::WHEEL_UP;
+			button = morda::mouse_button::wheel_up;
 		}
 //		TRACE(<< "button = " << unsigned(button) << std::endl)
 
@@ -501,7 +501,7 @@ const std::array<morda::key, std::uint8_t(-1) + 1> keyCodeMap = {{
 	NSPoint pos = [e locationInWindow];
 //	TRACE(<< "x = " << pos.x << std::endl)
 	macosx_HandleMouseMove(
-			morda::Vec2r(pos.x, pos.y).rounded(),
+			morda::vector2(pos.x, pos.y).rounded(),
 			0
 		);
 }
@@ -595,7 +595,7 @@ const std::array<morda::key, std::uint8_t(-1) + 1> keyCodeMap = {{
 	NSWindow* nsw = [n object];
 	NSRect frame = [nsw frame];
 	NSRect rect = [nsw contentRectForFrameRect:frame];
-	macosx_UpdateWindowRect(morda::Rectr(0, 0, rect.size.width, rect.size.height));
+	macosx_UpdateWindowRect(morda::rectangle(0, 0, rect.size.width, rect.size.height));
 }
 
 -(NSSize)windowWillResize:(NSWindow*)sender toSize:(NSSize)frameSize{
@@ -843,7 +843,7 @@ application::application(std::string&& name, const window_params& wp) :
 {
 	TRACE(<< "application::application(): enter" << std::endl)
 	this->updateWindowRect(
-			morda::Rectr(
+			morda::rectangle(
 					0,
 					0,
 					float(wp.dim.x),

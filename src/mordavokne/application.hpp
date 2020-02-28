@@ -58,18 +58,12 @@ struct window_params{
  * When instance of this class is created it also creates a window and
  * initializes rendering API (e.g. OpenGL or OpenGL ES).
  */
-class application :
-		public utki::intrusive_singleton<application>,
-		public utki::Unique
-{
+class application : public utki::intrusive_singleton<application>{
 	friend T_Singleton;
 	static T_Instance instance;
 
 public:
 	const std::string name;
-
-	// TODO: deprecated, remove.
-	typedef window_params WindowParams;
 
 private:
 	std::unique_ptr<utki::Unique> windowPimpl;
@@ -93,10 +87,6 @@ public:
 	 */
 	std::unique_ptr<papki::File> get_res_file(const std::string& path = std::string())const;
 
-	std::unique_ptr<papki::File> getResFile(const std::string& path = std::string())const{
-		return this->get_res_file(path);
-	}
-
 public:
 	/**
 	 * @brief Storage directory path.
@@ -107,21 +97,13 @@ public:
 	 */
 	const std::string storage_dir;
 
-	// TODO: deprecated, remove.
-	const std::string& storageDir = storage_dir;
-
 private:
-	//this is a viewport rectangle in coordinates that are as follows: x grows right, y grows up.
-	morda::Rectr curWinRect = morda::Rectr(0, 0, 0, 0);
+	// this is a viewport rectangle in coordinates that are as follows: x grows right, y grows up.
+	morda::rectangle curWinRect = morda::rectangle(0, 0, 0, 0);
 
 public:
-	const morda::Vec2r& window_dimensions()const noexcept{
+	const morda::vector2& window_dims()const noexcept{
 		return this->curWinRect.d;
-	}
-
-	// TODO: deprecated, remove.
-	const morda::Vec2r& winDim()const noexcept{
-		return this->window_dimensions();
 	}
 
 private:
@@ -129,31 +111,26 @@ private:
 
 	friend void render(application& app);
 
-	void updateWindowRect(const morda::Rectr& rect);
+	void updateWindowRect(const morda::rectangle& rect);
 
-	friend void updateWindowRect(application& app, const morda::Rectr& rect);
+	friend void updateWindowRect(application& app, const morda::rectangle& rect);
 
-	//pos is in usual window coordinates, y goes down.
-	morda::Vec2r nativeWindowToRootCoordinates(const r4::vec2f& pos)const noexcept{
-		return pos;
-	}
-
-	//pos is in usual window coordinates, y goes down.
+	// pos is in usual window coordinates, y goes down.
 	void handleMouseMove(const r4::vec2f& pos, unsigned id){
-		this->gui.onMouseMove(this->nativeWindowToRootCoordinates(pos), id);
+		this->gui.send_mouse_move(pos, id);
 	}
 
 	friend void handleMouseMove(application& app, const r4::vec2f& pos, unsigned id);
 
-	//pos is in usual window coordinates, y goes down.
-	void handleMouseButton(bool isDown, const r4::vec2f& pos, morda::MouseButton_e button, unsigned id){
-		this->gui.onMouseButton(isDown, this->nativeWindowToRootCoordinates(pos), button, id);
+	// pos is in usual window coordinates, y goes down.
+	void handleMouseButton(bool isDown, const r4::vec2f& pos, morda::mouse_button button, unsigned id){
+		this->gui.send_mouse_button(isDown, pos, button, id);
 	}
 
-	friend void handleMouseButton(application& app, bool isDown, const r4::vec2f& pos, morda::MouseButton_e button, unsigned id);
+	friend void handleMouseButton(application& app, bool isDown, const r4::vec2f& pos, morda::mouse_button button, unsigned id);
 
-	void handleMouseHover(bool isHovered, unsigned pointerID){
-		this->gui.onMouseHover(isHovered, pointerID);
+	void handleMouseHover(bool is_hovered, unsigned id){
+		this->gui.send_mouse_hover(is_hovered, id);
 	}
 
 	friend void handleMouseHover(application& app, bool isHovered, unsigned pointerID);
@@ -186,16 +163,16 @@ public:
 
 private:
 
-	//The idea with UnicodeResolver parameter is that we don't want to calculate the unicode unless it is really needed, thus postpone it
-	//as much as possible.
-	void handleCharacterInput(const morda::gui::UnicodeProvider& unicodeResolver, morda::key key){
-		this->gui.onCharacterInput(unicodeResolver, key);
+	// The idea with unicode_resolver parameter is that we don't want to calculate the unicode unless it is really needed, thus postpone it
+	// as much as possible.
+	void handleCharacterInput(const morda::gui::unicode_provider& unicode_resolver, morda::key key_code){
+		this->gui.send_character_input(unicode_resolver, key_code);
 	}
 
-	friend void handleCharacterInput(application& app, const morda::gui::UnicodeProvider& unicodeResolver, morda::key key);
+	friend void handleCharacterInput(application& app, const morda::gui::unicode_provider& unicode_resolver, morda::key key_code);
 
-	void handleKeyEvent(bool isDown, morda::key keyCode){
-		this->gui.onKeyEvent(isDown, keyCode);
+	void handleKeyEvent(bool is_down, morda::key key_code){
+		this->gui.send_key(is_down, key_code);
 	}
 
 	friend void handleKeyEvent(application& app, bool isDown, morda::key keyCode);
@@ -226,34 +203,17 @@ public:
 		return this->isFullscreen_v;
 	}
 
-	// TODO: deprecated, remove.
-	bool isFullscreen()const noexcept {
-		return this->is_fullscreen();
-	}
-
 	/**
 	 * @brief Set/unset fullscreen mode.
 	 * @param enable - whether to enable or to disable fullscreen mode.
 	 */
 	void set_fullscreen(bool enable);
 
-	// TODO: deprecated, remove.
-	void setFullscreen(bool enable){
-		this->set_fullscreen(enable);
-	}
-
-
 	/**
 	 * @brief Show/hide mouse cursor.
 	 * @param visible - whether to show (true) or hide (false) mouse cursor.
 	 */
 	void set_mouse_cursor_visible(bool visible);
-
-	// TODO: deprecated, remove.
-	void setMouseCursorVisible(bool visible){
-		this->set_mouse_cursor_visible(visible);
-	}
-
 
 	/**
 	 * @brief Get dots per density pixel (dp) for given display parameters.
@@ -264,20 +224,11 @@ public:
 	 * @return Size of one display density pixel in pixels.
 	 */
 	static morda::real get_pixels_per_dp(r4::vec2ui screen_size_pixels, r4::vec2ui screen_size_mm);
-
-	// TODO: deprecated, remove.
-	static morda::real findDotsPerDp(r4::vec2ui resolution, r4::vec2ui screenSizeMm){
-		return get_pixels_per_dp(resolution, screenSizeMm);
-	}
 };
 
 inline application& inst(){
-
 	return application::inst();
 }
-
-// TODO: deprecaed, remove.
-typedef application App;
 
 /**
  * @brief Create application instance.
@@ -291,14 +242,5 @@ __declspec(dllexport)
 #endif
 
 std::unique_ptr<application> create_application(int argc, const char** argv);
-
-
-//TODO: deprecated, remove createApp() function.
-#if M_OS == M_OS_WINDOWS
-__declspec(dllexport)
-#endif
-std::unique_ptr<application> createApp(int argc, const char** argv);
-
-
 
 }
