@@ -23,6 +23,8 @@ this_common_cxxflags += -fstrict-aliasing # in order to comply with the c++ stan
 this_common_cxxflags += -g # include debugging symbols
 this_common_cxxflags += -std=c++14
 
+this_objcflags := -std=c++14
+
 ifeq ($(debug),true)
     this_common_cxxflags += -DDEBUG
 #    this_common_cxxflags += -DM_MORDA_RENDER_WIDGET_BORDERS
@@ -49,8 +51,8 @@ else ifeq ($(os), macosx)
     define this_rules
         $(this_mm_obj): $(d)mordavokne/glue/macosx/glue.mm
 		@echo Compiling $$<...
-		$(prorab_echo)mkdir -p $$(dir $$@)
-		$(prorab_echo)$(CC) -ObjC++ -std=c++11 -g -c -o "$$@" $(this_objcflags) $$<
+		$(a)mkdir -p $$(dir $$@)
+		$(a)$(CC) -ObjC++ -std=c++11 -g -c -o "$$@" $(this_objcflags) $$<
     endef
     $(eval $(this_rules))
 endif
