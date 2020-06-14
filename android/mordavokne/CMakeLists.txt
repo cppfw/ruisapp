@@ -29,5 +29,5 @@ include_directories( build/ndkLibs/include/ )
 
 target_link_libraries(
         mordavokne
-        morda-opengles2-ren morda log GLESv2 puu papki svgren svgdom unikod utki png z jpeg freetype EGL android nitki mikroxml cairo pixman
+        morda-opengles2-ren morda log GLESv2 puu papki svgren svgdom cssdom unikod utki png z jpeg freetype EGL android nitki mikroxml cairo pixman
     )
