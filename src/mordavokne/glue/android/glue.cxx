@@ -9,6 +9,7 @@
 
 #include <unikod/utf8.hpp>
 #include <nitki/queue.hpp>
+#include <utki/destructable.hpp>
 
 #include <sys/eventfd.h>
 
@@ -33,8 +34,7 @@ mordavokne::application& getApp(ANativeActivity* activity){
 
 ANativeWindow* androidWindow = 0;
 
-
-class JavaFunctionsWrapper : public utki::Unique{
+class JavaFunctionsWrapper : public utki::destructable{
 	JNIEnv *env;
 	jclass clazz;
 	jobject obj;
@@ -55,7 +55,6 @@ public:
 		this->obj = a->clazz;
 		this->clazz = this->env->GetObjectClass(this->obj);
 		ASSERT(this->clazz)
-
 
 		this->resolveKeycodeUnicodeMeth = this->env->GetMethodID(this->clazz, "resolveKeyUnicode", "(III)I");
 		ASSERT(this->resolveKeycodeUnicodeMeth)
@@ -147,10 +146,9 @@ public:
 	}
 };
 
-
 std::unique_ptr<JavaFunctionsWrapper> javaFunctionsWrapper;
 
-struct WindowWrapper : public utki::Unique{
+struct WindowWrapper : public utki::destructable{
 	EGLDisplay display;
 	EGLSurface surface;
 	EGLContext context;
@@ -216,7 +214,6 @@ struct WindowWrapper : public utki::Unique{
 			eglDestroySurface(this->display, this->surface);
 		});
 
-
 		EGLint contextAttrs[] = {
 				EGL_CONTEXT_CLIENT_VERSION, 2, //This is needed on Android, otherwise eglCreateContext() thinks that we want OpenGL ES 1.1, but we want 2.0
 				EGL_NONE
@@ -259,11 +256,10 @@ struct WindowWrapper : public utki::Unique{
 	}
 };
 
-WindowWrapper& getImpl(const std::unique_ptr<utki::Unique>& pimpl){
+WindowWrapper& getImpl(const std::unique_ptr<utki::destructable>& pimpl){
 	ASSERT(dynamic_cast<WindowWrapper*>(pimpl.get()))
 	return static_cast<WindowWrapper&>(*pimpl);
 }
-
 
 class asset_file : public papki::file{
 	AAssetManager* manager;
@@ -278,7 +274,6 @@ public:
 	{
 		ASSERT(this->manager)
 	}
-
 
 	virtual void open_internal(mode mode)override{
 		switch(mode){
@@ -314,10 +309,9 @@ public:
 		return size_t(numBytesRead);
 	}
 
-	virtual size_t write_internal(const utki::span<std::uint8_t> buf)override{
+	virtual size_t write_internal(utki::span<const std::uint8_t> buf)override{
 		ASSERT(this->handle)
 		throw std::runtime_error("write() is not supported by Android assets");
-		return 0;
 	}
 
 	virtual size_t seek_forward_internal(size_t numBytesToSeek)const override{
@@ -349,7 +343,7 @@ public:
 		}
 
 		if(this->is_dir()){
-			//try opening the directory to check its existence
+			// try opening the directory to check its existence
 			AAssetDir* pdir = AAssetManager_openDir(this->manager, this->path().c_str());
 
 			if(!pdir){
@@ -368,7 +362,7 @@ public:
 			throw utki::invalid_state("asset_file::list_dir(): this is not a directory");
 		}
 
-		//Trim away trailing '/', as Android does not work with it.
+		// Trim away trailing '/', as Android does not work with it.
 		auto p = this->path().substr(0, this->path().size() - 1);
 
 		ASSERT(javaFunctionsWrapper)
@@ -389,9 +383,9 @@ public:
 
 		ASSERT(this->handle)
 
-		//NOTE: AAsset_seek() accepts 'off_t' as offset argument which is signed and can be
-		//      less than size_t value passed as argument to this function.
-		//      Therefore, do several seek operations with smaller offset if necessary.
+		// NOTE: AAsset_seek() accepts 'off_t' as offset argument which is signed and can be
+		//       less than size_t value passed as argument to this function.
+		//       Therefore, do several seek operations with smaller offset if necessary.
 
 		off_t assetSize = AAsset_getLength(this->handle);
 		ASSERT(assetSize >= 0)
@@ -433,30 +427,24 @@ public:
 	}
 };
 
-
-
 morda::vector2 curWinDim(0, 0);
 
 AInputQueue* curInputQueue = 0;
 
 struct AppInfo{
-	//Path to this application's internal data directory.
+	// Path to this application's internal data directory.
 	const char* internalDataPath;
 
-	//Path to this application's external (removable/mountable) data directory.
+	// Path to this application's external (removable/mountable) data directory.
 	const char* externalDataPath;
 
-	//Pointer to the Asset Manager instance for the application. The application
-	//uses this to access binary assets bundled inside its own .apk file.
+	// Pointer to the Asset Manager instance for the application. The application
+	// uses this to access binary assets bundled inside its own .apk file.
 	AAssetManager* assetManager;
 } appInfo;
 
-
-
-//array of current pointer positions, needed to detect which pointers have actually moved.
+// array of current pointer positions, needed to detect which pointers have actually moved.
 std::array<morda::vector2, 10> pointers;
-
-
 
 inline morda::vector2 AndroidWinCoordsToMordaWinRectCoords(const morda::vector2& winDim, const morda::vector2& p){
 	morda::vector2 ret(
@@ -466,8 +454,6 @@ inline morda::vector2 AndroidWinCoordsToMordaWinRectCoords(const morda::vector2&
 //	TRACE(<< "AndroidWinCoordsToMordaWinRectCoords(): ret = " << ret << std::endl)
 	return ret.rounded();
 }
-
-
 
 struct AndroidConfiguration{
 	AConfiguration* ac;
@@ -486,8 +472,6 @@ struct AndroidConfiguration{
 };
 
 std::unique_ptr<AndroidConfiguration> curConfig;
-
-
 
 class KeyEventToUnicodeResolver : public morda::gui::unicode_provider{
 public:
@@ -991,7 +975,7 @@ std::string initializeStorageDir(const std::string& appName){
 
 mordavokne::application::application(std::string&& name, const window_params& requestedWindowParams) :
 		name(name),
-		windowPimpl(utki::makeUnique<WindowWrapper>(requestedWindowParams)),
+		windowPimpl(std::make_unique<WindowWrapper>(requestedWindowParams)),
 		gui(
 				std::make_shared<mordaren::OpenGLES2Renderer>(),
 				std::make_shared<morda::updater>(),
@@ -1551,5 +1535,5 @@ void ANativeActivity_onCreate(
 	appInfo.externalDataPath = activity->externalDataPath;
 	appInfo.assetManager = activity->assetManager;
 
-	javaFunctionsWrapper = utki::makeUnique<JavaFunctionsWrapper>(activity);
+	javaFunctionsWrapper = std::make_unique<JavaFunctionsWrapper>(activity);
 }
