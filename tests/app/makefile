@@ -49,7 +49,7 @@ else ifeq ($(prorab_os),linux)
     this_ldflags += -rdynamic
 endif
 
-this_ldlibs += -lpuu -lmorda -lunikod -lpapki -lm -lstdc++
+this_ldlibs += -lpuu -lmorda -lutki -lpapki -lm -lstdc++
 
 
 $(eval $(prorab-build-app))
