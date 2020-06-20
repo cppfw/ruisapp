@@ -12,22 +12,24 @@ cmake_minimum_required(VERSION 3.4.1)
 
 file(GLOB_RECURSE srcs "../../tests/app/*.cpp")
 
-link_directories( build/ndkLibs/${ANDROID_ABI}/ ../mordavokne/build/intermediates/cmake/debug/obj/${ANDROID_ABI} )
+set(name mordavokneapp) # this has to be 'mordavokneapp' so that MordaVOkneActivity loads that named .so
 
-add_library( # Specifies the name of the library.
-             mordavokneapp # this has to be 'mordavokneapp' so that MordaVOkneActivity loads that named .so
+include (${ANDROID_GRADLE_NATIVE_BUNDLE_PLUGIN_MK})
 
-             # Sets the library as a shared library.
-             SHARED
+link_directories( ../mordavokne/build/intermediates/cmake/debug/obj/${ANDROID_ABI} )
 
-             # Provides a relative path to your source file(s).
-             ${srcs} )
+add_library(
+        # Specifies the name of the library.
+        ${name}
 
+        # Sets the library as a shared library.
+        SHARED
 
-
-include_directories( build/ndkLibs/include/ )
+        # Provides a relative path to your source file(s).
+        ${srcs}
+    )
 
 target_link_libraries(
-        mordavokneapp
-        mordavokne morda-opengles2-ren morda log GLESv2 puu papki svgren svgdom cssdom unikod utki png z jpeg freetype EGL android nitki mikroxml cairo pixman
+        ${name}
+        mordavokne android log GLESv2 EGL z ${ANDROID_GRADLE_NATIVE_MODULES}
     )

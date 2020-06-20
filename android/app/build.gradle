@@ -1,9 +1,10 @@
 apply plugin: 'com.android.application'
+apply plugin: 'com.ydq.android.gradle.native-aar.import' // must go after android gradle plugin
 
 android {
     compileSdkVersion 28
     defaultConfig {
-        applicationId "io.github.igagis.tiktaksy"
+        applicationId "io.github.igagis.mordavokne_test_app"
         minSdkVersion 21
         targetSdkVersion 28
         versionCode 1
@@ -25,11 +26,11 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+        debug {}
     }
 
     // Encapsulates your external native build configurations.
     externalNativeBuild {
-
         // Encapsulates your CMake build configurations.
         cmake {
             // Provides a relative path to your CMake build script.
@@ -47,8 +48,8 @@ dependencies {
     implementation 'io.github.igagis:utki:+'
     implementation 'io.github.igagis:r4:+'
     implementation 'io.github.igagis:papki:+'
-    implementation 'io.github.igagis:morda:+'
     implementation 'io.github.igagis:nitki:+'
+    implementation 'io.github.igagis:morda:+'
     implementation 'io.github.igagis:morda-opengles2-ren:+'
     implementation project(path: ':mordavokne', configuration: 'default')
 }
@@ -68,64 +69,3 @@ tasks.whenTaskAdded { task ->
         task.dependsOn('copyResToAssets')
     }
 }
-
-
-
-
-//===================================
-//=== Extract NDK files from AARs ===
-
-// This is needed to be able to write "configurations.implementation.each" below.
-configurations.implementation.setCanBeResolved(true)
-
-task extractNDKLibs {
-    doLast {
-        configurations.implementation.each {
-            def file = it.absoluteFile
-            copy {
-                from zipTree(file)
-                into "build/"
-                include "ndkLibs/**/*"
-            }
-        }
-    }
-}
-
-tasks.whenTaskAdded { task ->
-    logger.info('task added')
-    if (task.name.startsWith('externalNativeBuild')) {
-        task.dependsOn extractNDKLibs
-    }
-}
-
-
-
-//=================================
-//=== pack library files to aar ===
-//This stuff re-packs the release AAR file adding headers and static libs to there, but removing all shared (.so) libs, as we don't need them. The resulting AAR is put to the project root directory and can be uploaded to Maven along with POM file (you need to write one by hand).
-
-def aarName = name
-
-task copyNdkLibsToAAR(type: Zip) {
-    baseName = aarName
-    version = "\$(version)"
-    extension = 'aar.in'
-    destinationDir = file('..') //put resulting AAR file to upper level directory
-
-    from zipTree("build/outputs/aar/" + aarName + "-release.aar")
-    exclude('**/*.so') //do not include shared libraries into final AAR
-    from("../../src") {
-        include('**/*.hpp')
-        include('**/*.h')
-        into('ndkLibs/include')
-    }
-    from("build/intermediates/cmake/debug/obj"){
-        include('**/*.a')
-        into('ndkLibs')
-    }
-}
-
-// This is only needed for libraries
-//afterEvaluate {
-//    bundleReleaseAar.finalizedBy copyNdkLibsToAAR
-//}
