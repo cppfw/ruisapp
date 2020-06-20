@@ -18,10 +18,10 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\mordavokne\glue\glue.cpp">
+    <ClCompile Include="..\..\src\libmordavokne\glue\glue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\mordavokne\application.cpp">
+    <ClCompile Include="..\..\src\libmordavokne\application.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

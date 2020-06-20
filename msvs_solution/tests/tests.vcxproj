@@ -282,7 +282,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\mordavokne\mordavokne.vcxproj">
+    <ProjectReference Include="..\libmordavokne\libmordavokne.vcxproj">
       <Project>{1f656b83-1e51-406c-af65-60249f4b2cb7}</Project>
     </ProjectReference>
   </ItemGroup>

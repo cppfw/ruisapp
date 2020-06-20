@@ -37,7 +37,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1F656B83-1E51-406C-AF65-60249F4B2CB7}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>mordavokne</RootNamespace>
+    <RootNamespace>libmordavokne</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
