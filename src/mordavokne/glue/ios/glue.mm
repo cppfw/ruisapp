@@ -8,7 +8,7 @@
 #import <UIKit/UIKit.h>
 #import <GLKit/GLKit.h>
 
-#include <mordaren/OpenGLES2Renderer.hpp>
+#include <morda/render/opengles2/renderer.hpp>
 
 
 using namespace mordavokne;
@@ -19,7 +19,7 @@ using namespace mordavokne;
 
 
 @interface AppDelegate : UIResponder <UIApplicationDelegate>{
-	App* app;
+	application* app;
 }
 
 @end
@@ -306,38 +306,38 @@ void application::quit()noexcept{
 
 
 namespace{
+morda::real getDotsPerInch(){
+	float scale = [[UIScreen mainScreen] scale];
 
-	morda::real getDotsPerInch(){
-		float scale = [[UIScreen mainScreen] scale];
+	morda::real value;
 
-		morda::real value;
-
-		if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
-			value = 132 * scale;
-		} else if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) {
-			value = 163 * scale;
-		} else {
-			value = 160 * scale;
-		}
-		TRACE(<< "dpi = " << value << std::endl)
-		return value;
+	if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+		value = 132 * scale;
+	} else if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) {
+		value = 163 * scale;
+	} else {
+		value = 160 * scale;
 	}
+	TRACE(<< "dpi = " << value << std::endl)
+	return value;
+}
+}
 
-	morda::real getDotsPerDp(){
-		float scale = [[UIScreen mainScreen] scale];
+namespace{
+morda::real getDotsPerDp(){
+	float scale = [[UIScreen mainScreen] scale];
 
-		//TODO: use get_pixels_per_dp() function from morda util
+	//TODO: use get_pixels_per_dp() function from morda util
 
-		return morda::real(scale);
-	}
+	return morda::real(scale);
+}
+}
 
-}//~namespace
-
-application::App(std::string&& name, const window_params& wp) :
+application::application(std::string&& name, const window_params& wp) :
 		name(name),
 		windowPimpl(utki::makeUnique<WindowWrapper>(wp)),
 		gui(
-				std::make_shared<mordaren::OpenGLES2Renderer>(),
+				std::make_shared<morda::render_opengles2::renderer>(),
 				std::make_shared<morda::updater>(),
 				[this](std::function<void()>&& a){
 					auto p = reinterpret_cast<NSInteger>(new std::function<void()>(std::move(a)));
