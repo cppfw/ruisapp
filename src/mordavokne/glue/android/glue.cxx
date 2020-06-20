@@ -7,7 +7,7 @@
 #include <android/asset_manager.h>
 #include <android/window.h>
 
-#include <unikod/utf8.hpp>
+#include <utki/utf8.hpp>
 #include <nitki/queue.hpp>
 #include <utki/destructable.hpp>
 
@@ -15,7 +15,7 @@
 
 #include "../../application.hpp"
 
-#include <mordaren/OpenGLES2Renderer.hpp>
+#include <morda/render/opengles2/renderer.hpp>
 
 #include <EGL/egl.h>
 
@@ -926,7 +926,7 @@ JNIEXPORT void JNICALL Java_io_github_igagis_mordavokne_MordaVOkneActivity_handl
 
 	std::vector<char32_t> utf32;
 
-	for(unikod::Utf8Iterator i(utf8Chars); !i.isEnd(); ++i){
+	for(utki::utf8_iterator i(utf8Chars); !i.is_end(); ++i){
 		utf32.push_back(i.character());
 	}
 
@@ -977,7 +977,7 @@ mordavokne::application::application(std::string&& name, const window_params& re
 		name(name),
 		windowPimpl(std::make_unique<WindowWrapper>(requestedWindowParams)),
 		gui(
-				std::make_shared<mordaren::OpenGLES2Renderer>(),
+				std::make_shared<morda::render_opengles2::renderer>(),
 				std::make_shared<morda::updater>(),
 				[this](std::function<void()>&& a){
 					getImpl(getWindowPimpl(*this)).uiQueue.push_back(std::move(a));
