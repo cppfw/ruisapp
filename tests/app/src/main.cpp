@@ -9,7 +9,7 @@
 #include <morda/widgets/proxy/key_proxy.hpp>
 #include <morda/widgets/button/push_button.hpp>
 #include <morda/widgets/label/text.hpp>
-#include <morda/res/res_texture.hpp>
+#include <morda/res/texture.hpp>
 #include <morda/widgets/character_input_widget.hpp>
 #include <morda/widgets/group/scroll_area.hpp>
 #include <morda/widgets/group/row.hpp>
@@ -27,7 +27,7 @@ class SimpleWidget :
 		public morda::updateable,
 		public morda::character_input_widget
 {
-	std::shared_ptr<morda::res_texture> tex;
+	std::shared_ptr<morda::res::texture> tex;
 
 public:
 	SimpleWidget(std::shared_ptr<morda::context> c, const puu::forest& desc) :
@@ -35,7 +35,7 @@ public:
 			morda::character_input_widget(this->context)
 	{
 //		TRACE(<< "loading texture" << std::endl)
-		this->tex = this->context->loader.load<morda::res_texture>("tex_sample");
+		this->tex = this->context->loader.load<morda::res::texture>("tex_sample");
 	}
 
 	std::uint32_t timer = 0;
@@ -132,7 +132,7 @@ public:
 
 
 class CubeWidget : public morda::widget, public morda::updateable{
-	std::shared_ptr<morda::res_texture> tex;
+	std::shared_ptr<morda::res::texture> tex;
 
 	morda::quaternion rot = morda::quaternion().identity();
 public:
@@ -193,7 +193,7 @@ public:
 
 		this->cubeVAO = this->context->renderer->factory->create_vertex_array({posVBO, texVBO}, cubeIndices, morda::vertex_array::mode::triangles);
 
-		this->tex = this->context->loader.load<morda::res_texture>("tex_sample");
+		this->tex = this->context->loader.load<morda::res::texture>("tex_sample");
 		this->rot.identity();
 	}
 
@@ -460,8 +460,8 @@ public:
 				ASSERT(plusminus)
 				plusminus->set_image(
 						isCollapsed ?
-								this->context->loader.load<morda::res_image>("morda_img_treeview_plus") :
-								this->context->loader.load<morda::res_image>("morda_img_treeview_minus")
+								this->context->loader.load<morda::res::image>("morda_img_treeview_plus") :
+								this->context->loader.load<morda::res::image>("morda_img_treeview_minus")
 					);
 
 				auto plusminusMouseProxy = w->try_get_widget_as<morda::mouse_proxy>("plusminus_mouseproxy");
