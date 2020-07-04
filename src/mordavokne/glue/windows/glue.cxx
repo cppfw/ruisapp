@@ -602,7 +602,7 @@ namespace{
 std::string initializeStorageDir(const std::string& appName){
 	CHAR path[MAX_PATH];
 	if (SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, path) != S_OK) {
-		throw utki::exception("failed to get user's profile directory.");
+		throw std::runtime_error("failed to get user's profile directory.");
 	}
 
 	path[sizeof(path) - 1] = '\0'; // null-terminate the string just in case
@@ -737,18 +737,18 @@ int WINAPI WinMain(
 	return 0;
 }
 
-void application::set_fullscreen(bool enable) {
-	if (enable == this->is_fullscreen()) {
+void application::set_fullscreen(bool enable){
+	if(enable == this->is_fullscreen()){
 		return;
 	}
 
 	auto& ww = getImpl(this->windowPimpl);
 
-	if (enable) {
+	if(enable){
 		// save original window size
 		RECT rect;
-		if (GetWindowRect(ww.hwnd, &rect) == 0) {
-			throw utki::exception("Failed to get window rect");
+		if(GetWindowRect(ww.hwnd, &rect) == 0){
+			throw std::runtime_error("Failed to get window rect");
 		}
 		this->beforeFullScreenWindowRect.p.x = rect.left;
 		this->beforeFullScreenWindowRect.p.y = rect.top;
@@ -856,7 +856,7 @@ WindowWrapper::WindowWrapper(const window_params& wp){
 		}
 	}
 
-	utki::ScopeExit scopeExitWindowClass([this](){
+	utki::scope_exit scopeExitWindowClass([this](){
 		if(!UnregisterClass(this->windowClassName.c_str(), GetModuleHandle(NULL))){
 			ASSERT_INFO(false, "Failed to unregister window class")
 		}
@@ -881,7 +881,7 @@ WindowWrapper::WindowWrapper(const window_params& wp){
 		throw std::runtime_error("Failed to create a window");
 	}
 
-	utki::ScopeExit scopeExitHwnd([this](){
+	utki::scope_exit scopeExitHwnd([this](){
 		if (!DestroyWindow(this->hwnd)){
 			ASSERT_INFO(false, "Failed to destroy window")
 		}
@@ -894,7 +894,7 @@ WindowWrapper::WindowWrapper(const window_params& wp){
 		throw std::runtime_error("Failed to create a OpenGL device context");
 	}
 
-	utki::ScopeExit scopeExitHdc([this](){
+	utki::scope_exit scopeExitHdc([this](){
 		if (!ReleaseDC(this->hwnd, this->hdc)){
 			ASSERT_INFO(false, "Failed to release device context")
 		}
@@ -939,7 +939,7 @@ WindowWrapper::WindowWrapper(const window_params& wp){
 		throw std::runtime_error("Failed to create OpenGL rendering context");
 	}
 
-	utki::ScopeExit scopeExitHrc([this](){
+	utki::scope_exit scopeExitHrc([this](){
 		if (!wglMakeCurrent(NULL, NULL)) {
 			ASSERT_INFO(false, "Deactivating OpenGL rendering context failed")
 		}

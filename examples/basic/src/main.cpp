@@ -24,7 +24,7 @@ public:
 
 		auto button = c->findChildByNameAs<morda::PushButton>("hw_button");
 
-		auto textLabelWeak = utki::makeWeak(textLabel);//make a weak pointer to the TextLabel widget.
+		auto textLabelWeak = utki::make_weak(textLabel);//make a weak pointer to the TextLabel widget.
 
 		bool even = true;
 
