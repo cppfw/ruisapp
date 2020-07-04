@@ -277,15 +277,15 @@ public:
 
 	virtual void open_internal(mode mode)override{
 		switch(mode){
-			case papki::file::mode::WRITE:
-			case papki::file::mode::CREATE:
+			case papki::file::mode::write:
+			case papki::file::mode::create:
 				throw std::invalid_argument("WRITE and CREATE open modes are not supported by Android assets");
-			case papki::file::mode::READ:
+			case papki::file::mode::read:
 				break;
 			default:
 				throw std::invalid_argument("unknown mode");
 		}
-		this->handle = AAssetManager_open(this->manager, this->path().c_str(), AASSET_MODE_UNKNOWN); //don't know what this MODE means at all
+		this->handle = AAssetManager_open(this->manager, this->path().c_str(), AASSET_MODE_UNKNOWN); // don't know what this MODE means at all
 		if(!this->handle){
 			std::stringstream ss;
 			ss << "AAssetManager_open(" << this->path() << ") failed";
@@ -358,7 +358,7 @@ public:
 	}
 
 	virtual std::vector<std::string> list_dir(size_t maxEntries = 0)const override{
-		if(!this->isDir()){
+		if(!this->is_dir()){
 			throw std::logic_error("asset_file::list_dir(): this is not a directory");
 		}
 
@@ -391,10 +391,10 @@ public:
 		ASSERT(assetSize >= 0)
 
 		if(seekForward){
-			ASSERT(size_t(assetSize) >= this->curPos())
-			utki::clampTop(numBytesToSeek, size_t(assetSize) - this->curPos());
+			ASSERT(size_t(assetSize) >= this->cur_pos())
+			numBytesToSeek = std::min(numBytesToSeek, size_t(assetSize) - this->cur_pos()); // clamp top
 		}else{
-			utki::clampTop(numBytesToSeek, this->curPos());
+			numBytesToSeek = std::min(numBytesToSeek, this->cur_pos()); // clamp top
 		}
 
 		typedef off_t T_FSeekOffset;
@@ -1426,7 +1426,7 @@ int OnInputEventsReadyForReadingFromQueue(int fd, int events, void* data){
 	ASSERT(curInputQueue) // if we get events we should have input queue
 
 	// if window is not created yet, ignore events
-	if(!mordavokne::application::isCreated()){
+	if(!mordavokne::application::is_created()){
 		ASSERT(false)
 		AInputEvent* event;
 		while(AInputQueue_getEvent(curInputQueue, &event) >= 0){
