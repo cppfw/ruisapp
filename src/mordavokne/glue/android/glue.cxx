@@ -448,11 +448,11 @@ std::array<morda::vector2, 10> pointers;
 
 inline morda::vector2 AndroidWinCoordsToMordaWinRectCoords(const morda::vector2& winDim, const morda::vector2& p){
 	morda::vector2 ret(
-			p.x,
-			p.y - (curWinDim.y - winDim.y)
+			p.x(),
+			p.y() - (curWinDim.y() - winDim.y())
 		);
 //	TRACE(<< "AndroidWinCoordsToMordaWinRectCoords(): ret = " << ret << std::endl)
-	return ret.rounded();
+	return ret.rou();
 }
 
 struct AndroidConfiguration{
@@ -1262,7 +1262,8 @@ void OnConfigurationChanged(ANativeActivity* activity){
 		switch(orientation){
 			case ACONFIGURATION_ORIENTATION_LAND:
 			case ACONFIGURATION_ORIENTATION_PORT:
-				std::swap(curWinDim.x, curWinDim.y);
+				using std::swap;
+				swap(curWinDim.x(), curWinDim.y());
 				break;
 			case ACONFIGURATION_ORIENTATION_SQUARE:
 				// do nothing
@@ -1323,8 +1324,8 @@ void OnNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window){
 	// save window in a static var, so it is accessible for OpenGL initializers from morda::application class
 	androidWindow = window;
 
-	curWinDim.x = float(ANativeWindow_getWidth(window));
-	curWinDim.y = float(ANativeWindow_getHeight(window));
+	curWinDim.x() = float(ANativeWindow_getWidth(window));
+	curWinDim.y() = float(ANativeWindow_getHeight(window));
 
 	ASSERT(!activity->instance)
 	try{
@@ -1383,8 +1384,8 @@ void OnNativeWindowResized(ANativeActivity* activity, ANativeWindow* window){
 	TRACE(<< "OnNativeWindowResized(): invoked" << std::endl)
 
 	// save window dimensions
-	curWinDim.x = float(ANativeWindow_getWidth(window));
-	curWinDim.y = float(ANativeWindow_getHeight(window));
+	curWinDim.x() = float(ANativeWindow_getWidth(window));
+	curWinDim.y() = float(ANativeWindow_getHeight(window));
 
 	TRACE(<< "OnNativeWindowResized(): curWinDim = " << curWinDim << std::endl)
 }
@@ -1492,7 +1493,7 @@ void OnContentRectChanged(ANativeActivity* activity, const ARect* rect){
 			app,
 			morda::rectangle(
 					float(rect->left),
-					curWinDim.y - float(rect->bottom),
+					curWinDim.y() - float(rect->bottom),
 					float(rect->right - rect->left),
 					float(rect->bottom - rect->top)
 				)
