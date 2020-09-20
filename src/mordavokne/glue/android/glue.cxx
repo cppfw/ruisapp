@@ -237,11 +237,11 @@ struct WindowWrapper : public utki::destructable{
 		eglDisplayScopeExit.reset();
 	}
 
-	r4::vec2ui getWindowSize(){
+	r4::vector2<unsigned> getWindowSize(){
 		EGLint width, height;
 		eglQuerySurface(this->display, this->surface, EGL_WIDTH, &width);
 		eglQuerySurface(this->display, this->surface, EGL_HEIGHT, &height);
-		return r4::vec2ui(width, height);
+		return r4::vector2<unsigned>(width, height);
 	}
 
 	void swapBuffers(){
@@ -277,15 +277,15 @@ public:
 
 	virtual void open_internal(mode mode)override{
 		switch(mode){
-			case papki::file::mode::write:
-			case papki::file::mode::create:
+			case papki::file::mode::WRITE:
+			case papki::file::mode::CREATE:
 				throw std::invalid_argument("WRITE and CREATE open modes are not supported by Android assets");
-			case papki::file::mode::read:
+			case papki::file::mode::READ:
 				break;
 			default:
 				throw std::invalid_argument("unknown mode");
 		}
-		this->handle = AAssetManager_open(this->manager, this->path().c_str(), AASSET_MODE_UNKNOWN); // don't know what this MODE means at all
+		this->handle = AAssetManager_open(this->manager, this->path().c_str(), AASSET_MODE_UNKNOWN); //don't know what this MODE means at all
 		if(!this->handle){
 			std::stringstream ss;
 			ss << "AAssetManager_open(" << this->path() << ") failed";
@@ -358,7 +358,7 @@ public:
 	}
 
 	virtual std::vector<std::string> list_dir(size_t maxEntries = 0)const override{
-		if(!this->is_dir()){
+		if(!this->isDir()){
 			throw std::logic_error("asset_file::list_dir(): this is not a directory");
 		}
 
@@ -391,10 +391,10 @@ public:
 		ASSERT(assetSize >= 0)
 
 		if(seekForward){
-			ASSERT(size_t(assetSize) >= this->cur_pos())
-			numBytesToSeek = std::min(numBytesToSeek, size_t(assetSize) - this->cur_pos()); // clamp top
+			ASSERT(size_t(assetSize) >= this->curPos())
+			utki::clampTop(numBytesToSeek, size_t(assetSize) - this->curPos());
 		}else{
-			numBytesToSeek = std::min(numBytesToSeek, this->cur_pos()); // clamp top
+			utki::clampTop(numBytesToSeek, this->curPos());
 		}
 
 		typedef off_t T_FSeekOffset;
@@ -448,11 +448,11 @@ std::array<morda::vector2, 10> pointers;
 
 inline morda::vector2 AndroidWinCoordsToMordaWinRectCoords(const morda::vector2& winDim, const morda::vector2& p){
 	morda::vector2 ret(
-			p.x(),
-			p.y() - (curWinDim.y() - winDim.y())
+			p.x,
+			p.y - (curWinDim.y - winDim.y)
 		);
 //	TRACE(<< "AndroidWinCoordsToMordaWinRectCoords(): ret = " << ret << std::endl)
-	return ret.rou();
+	return ret.rounded();
 }
 
 struct AndroidConfiguration{
@@ -1262,8 +1262,7 @@ void OnConfigurationChanged(ANativeActivity* activity){
 		switch(orientation){
 			case ACONFIGURATION_ORIENTATION_LAND:
 			case ACONFIGURATION_ORIENTATION_PORT:
-				using std::swap;
-				swap(curWinDim.x(), curWinDim.y());
+				std::swap(curWinDim.x, curWinDim.y);
 				break;
 			case ACONFIGURATION_ORIENTATION_SQUARE:
 				// do nothing
@@ -1324,8 +1323,8 @@ void OnNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window){
 	// save window in a static var, so it is accessible for OpenGL initializers from morda::application class
 	androidWindow = window;
 
-	curWinDim.x() = float(ANativeWindow_getWidth(window));
-	curWinDim.y() = float(ANativeWindow_getHeight(window));
+	curWinDim.x = float(ANativeWindow_getWidth(window));
+	curWinDim.y = float(ANativeWindow_getHeight(window));
 
 	ASSERT(!activity->instance)
 	try{
@@ -1384,8 +1383,8 @@ void OnNativeWindowResized(ANativeActivity* activity, ANativeWindow* window){
 	TRACE(<< "OnNativeWindowResized(): invoked" << std::endl)
 
 	// save window dimensions
-	curWinDim.x() = float(ANativeWindow_getWidth(window));
-	curWinDim.y() = float(ANativeWindow_getHeight(window));
+	curWinDim.x = float(ANativeWindow_getWidth(window));
+	curWinDim.y = float(ANativeWindow_getHeight(window));
 
 	TRACE(<< "OnNativeWindowResized(): curWinDim = " << curWinDim << std::endl)
 }
@@ -1427,7 +1426,7 @@ int OnInputEventsReadyForReadingFromQueue(int fd, int events, void* data){
 	ASSERT(curInputQueue) // if we get events we should have input queue
 
 	// if window is not created yet, ignore events
-	if(!mordavokne::application::is_created()){
+	if(!mordavokne::application::isCreated()){
 		ASSERT(false)
 		AInputEvent* event;
 		while(AInputQueue_getEvent(curInputQueue, &event) >= 0){
@@ -1493,7 +1492,7 @@ void OnContentRectChanged(ANativeActivity* activity, const ARect* rect){
 			app,
 			morda::rectangle(
 					float(rect->left),
-					curWinDim.y() - float(rect->bottom),
+					curWinDim.y - float(rect->bottom),
 					float(rect->right - rect->left),
 					float(rect->bottom - rect->top)
 				)
