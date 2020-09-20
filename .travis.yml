@@ -85,7 +85,7 @@ before_install:
   fi
 - if [ "$TRAVIS_JOB_NAME" == "macosx" ]; then
     brew unlink python@2 &&
-    brew install prorab prorab-extra libutki libpapki glew libmorda r4 puu libnitki morda-opengl2-ren;
+    brew install `myci-list-deps-homebrew.sh`;
   fi
 - if [ "$TRAVIS_JOB_NAME" == "ios" ]; then
     sudo gem install cocoapods &&

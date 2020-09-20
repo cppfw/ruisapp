@@ -5,15 +5,15 @@ class Mordavokne < Formula
   sha256 "$(sha256)"
 
   depends_on "prorab" => :build
+  depends_on "prorab-extra" => :build
   depends_on "libutki"
   depends_on "libpapki"
   depends_on "libopros"
-  depends_on "libaika"
-  depends_on "puu"
+  depends_on "libpuu"
   depends_on "glew"
-  depends_on "r4"
+  depends_on "libr4"
   depends_on "libmorda"
-  depends_on "morda-opengl2-ren"
+  depends_on "libmorda-opengl2-ren"
 
   def install
     ENV['PATH'] += ':/usr/local/bin'
