@@ -392,10 +392,10 @@ public:
 
 		using std::min;
 		if(seekForward){
-			ASSERT(size_t(assetSize) >= this->curPos())
-			numBytesToSeek = min(numBytesToSeek, size_t(assetSize) - this->curPos()); // clamp top
+			ASSERT(size_t(assetSize) >= this->cur_pos())
+			numBytesToSeek = min(numBytesToSeek, size_t(assetSize) - this->cur_pos()); // clamp top
 		}else{
-			numBytesToSeek = min(numBytesToSeek, this->curPos()); // clamp top
+			numBytesToSeek = min(numBytesToSeek, this->cur_pos()); // clamp top
 		}
 
 		typedef off_t T_FSeekOffset;
@@ -1429,7 +1429,7 @@ int OnInputEventsReadyForReadingFromQueue(int fd, int events, void* data){
 	ASSERT(curInputQueue) // if we get events we should have input queue
 
 	// if window is not created yet, ignore events
-	if(!mordavokne::application::isCreated()){
+	if(!mordavokne::application::is_created()){
 		ASSERT(false)
 		AInputEvent* event;
 		while(AInputQueue_getEvent(curInputQueue, &event) >= 0){
@@ -1495,7 +1495,7 @@ void OnContentRectChanged(ANativeActivity* activity, const ARect* rect){
 			app,
 			morda::rectangle(
 					float(rect->left),
-					curWinDim.y - float(rect->bottom),
+					curWinDim.y() - float(rect->bottom),
 					float(rect->right - rect->left),
 					float(rect->bottom - rect->top)
 				)
