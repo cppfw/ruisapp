@@ -26,13 +26,13 @@ nuget{
 	}
 	dependencies {
 		packages : {
-			r4/0.1.0;
+			libr4/0.1.30;
 			libmorda/0.5.71;
-			libmorda-opengl2-ren/0.1.7;
+			libmorda-opengl2-ren/0.1.40;
 			glew.v140/1.12.0;
 			libpapki/1.0.15;
 			libopros/1.0.10;
-			puu/0.1.0;
+			libpuu/0.1.21;
 			libutki/1.0.22;
 		};
 	}
@@ -45,35 +45,35 @@ nuget{
 
 /*
 		[x86,v140,release] {
-			lib: ..\msvs_solution\v140_Release\mordavokne.lib;
+			lib: ..\msvs_solution\v140_Release\libmordavokne.lib;
 		}
 
 		[x86,v140,debug] {
-			lib: ..\msvs_solution\v140_Debug\mordavokne.lib;
+			lib: ..\msvs_solution\v140_Debug\libmordavokne.lib;
 		}
 
 		[x64,v140,release] {
-			lib: ..\msvs_solution\x64\v140_Release\mordavokne.lib;
+			lib: ..\msvs_solution\x64\v140_Release\libmordavokne.lib;
 		}
 
 		[x64,v140,debug] {
-			lib: ..\msvs_solution\x64\v140_Debug\mordavokne.lib;
+			lib: ..\msvs_solution\x64\v140_Debug\libmordavokne.lib;
 		}
 */
 		[x86,v141,release] {
-			lib: ..\msvs_solution\v141_Release\mordavokne.lib;
+			lib: ..\msvs_solution\v141_Release\libmordavokne.lib;
 		}
 
 		[x86,v141,debug] {
-			lib: ..\msvs_solution\v141_Debug\mordavokne.lib;
+			lib: ..\msvs_solution\v141_Debug\libmordavokne.lib;
 		}
 
 		[x64,v141,release] {
-			lib: ..\msvs_solution\x64\v141_Release\mordavokne.lib;
+			lib: ..\msvs_solution\x64\v141_Release\libmordavokne.lib;
 		}
 
 		[x64,v141,debug] {
-			lib: ..\msvs_solution\x64\v141_Debug\mordavokne.lib;
+			lib: ..\msvs_solution\x64\v141_Debug\libmordavokne.lib;
 		}
 	}
 }
