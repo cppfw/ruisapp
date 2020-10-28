@@ -3,13 +3,26 @@ include $(d)../prorab-config.mk
 
 include $(d)../raspberrypi.mk
 
-$(eval $(call prorab-config, ../config/the_lib))
+$(eval $(call prorab-config, ../config))
 
 this_soname := $(shell cat $(d)/soname.txt)
 
 this_srcs += $(call prorab-src-dir, .)
 
 this_name := mordavokne-opengl2
+
+ifeq ($(os), linux)
+    this_cxxflags += -fPIC # generate position independent code
+    this_ldlibs += -lGLEW -ldl -lnitki -lopros -lX11
+else ifeq ($(os), windows)
+    this_ldlibs += -lgdi32 -lopengl32 -lglew32
+else ifeq ($(os), macosx)
+    this_cxxflags += -stdlib=libc++ # this is needed to be able to use c++11 std lib
+    this_ldlibs += -lGLEW -lc++
+    this_ldlibs += -framework Cocoa -framework OpenGL -ldl
+endif
+
+this_ldlibs += -lmorda -lpapki -lpuu -lstdc++
 
 ifeq ($(os), macosx)
     this_mm_obj := $(d)$(this_out_dir)obj_$(this_name)/objc/mordavokne/glue/macosx/glue.mm.o
@@ -40,13 +53,27 @@ ifeq ($(os), linux)
 endif
 
 ifeq ($(ogles2), true)
-    $(eval $(call prorab-config, ../config/the_lib))
+    $(eval $(call prorab-config, ../config))
 
     this_name := mordavokne-opengles2
 
     this_soname := $(shell cat $(d)/soname.txt)
 
     this_srcs += $(call prorab-src-dir, .)
+
+ifeq ($(os), linux)
+    this_cxxflags += -fPIC # generate position independent code
+    this_ldlibs += -lGLEW -ldl -lnitki -lopros -lX11
+else ifeq ($(os), windows)
+    this_ldlibs += -lgdi32 -lopengl32 -lglew32
+else ifeq ($(os), macosx)
+    this_cxxflags += -stdlib=libc++ # this is needed to be able to use c++11 std lib
+    this_ldlibs += -lGLEW -lc++
+    this_ldlibs += -framework Cocoa -framework OpenGL -ldl
+endif
+
+this_ldlibs += -lmorda -lpapki -lpuu -lstdc++
+
 
     this_cxxflags += -DMORDAVOKNE_RENDER_OPENGLES2
     this_ldlibs += -lmorda-opengles2-ren

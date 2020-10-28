@@ -5,7 +5,7 @@ include $(d)../../raspberrypi.mk
 
 this_name := mordavokne-test
 
-$(eval $(call prorab-config, ../../config/tests))
+$(eval $(call prorab-config, ../../config))
 
 this_srcs += src/main.cpp
 
