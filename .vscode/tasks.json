@@ -26,6 +26,12 @@
             "problemMatcher": []
         },
         {
+            "label": "clean_debug",
+            "type": "shell",
+            "command": "make clean config=dbg",
+            "problemMatcher": []
+        },
+        {
             "label": "run",
             "type": "shell",
             "command": "make run",
