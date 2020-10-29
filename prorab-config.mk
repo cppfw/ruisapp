@@ -4,11 +4,14 @@ include prorab.mk
 ifneq ($(prorab_config_included),true)
     prorab_config_included := true
 
-    ifneq ($(config),)
+    ifeq ($(config),)
+        override config := $(c)
+    else
         override c := $(config)
     endif
-	ifeq ($(c),)
-        c := rel
+	ifeq ($(config),)
+        override config := rel
+        override c := $(config)
 	endif
 
     define prorab-config
