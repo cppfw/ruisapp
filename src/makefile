@@ -59,11 +59,10 @@ define mordavokne_rules
         $$(prorab_this_name): $$(this_mm_obj)
     endif
 
+    $$(eval $$(prorab-clear-this-vars))
 endef
 
 $(eval $(call mordavokne_rules,opengl2))
-
-$(eval $(prorab-clear-this-vars))
 
 ifeq ($(os), linux)
     $(eval $(call mordavokne_rules,opengles2))
