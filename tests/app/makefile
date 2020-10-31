@@ -1,5 +1,4 @@
 include prorab.mk
-include $(d)../../prorab-config.mk
 
 include $(d)../../raspberrypi.mk
 
