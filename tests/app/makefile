@@ -4,7 +4,7 @@ include $(d)../../raspberrypi.mk
 
 this_name := mordavokne-test
 
-this_out_dir := build
+$(eval $(call prorab-config, ../../config))
 
 this_srcs += src/main.cpp
 
@@ -29,22 +29,15 @@ else
 #    this_ldlibs += -lGL
 endif
 
+this_ldlibs += $(d)../../src/out/$(c)/$(this_mordavoknelib)$(dot_so)
 
-ifeq ($(debug), true)
-    this_cxxflags += -DDEBUG
-else
-    this_cxxflags += -O3
-endif
-
-this_ldlibs += $(d)../../src/build/$(this_mordavoknelib)$(soext)
-
-ifeq ($(prorab_os),windows)
+ifeq ($(os),windows)
     this_ldlibs += -lmingw32 #these should go first, otherwise linker will complain about undefined reference to WinMain
     this_ldlibs += -lglew32 -lopengl32 -lpng -ljpeg -lz -lfreetype -mwindows
-else ifeq ($(prorab_os),macosx)
+else ifeq ($(os),macosx)
     this_ldlibs += -lGLEW -framework OpenGL -framework Cocoa -lpng -ljpeg -lfreetype
     this_ldflags += -rdynamic
-else ifeq ($(prorab_os),linux)
+else ifeq ($(os),linux)
     this_ldlibs += -pthread
     this_ldflags += -rdynamic
 endif
@@ -58,26 +51,26 @@ $(eval $(prorab-build-app))
 define this_rules
 run:: $(prorab_this_name)
 	@echo running $$^...
-	@(cd $(d); LD_LIBRARY_PATH=../../src/build $$^)
+	@(cd $(d); LD_LIBRARY_PATH=../../src/out/$(c) $$^)
 endef
 $(eval $(this_rules))
 
 
 # add dependency on libmordavokne
-ifeq ($(prorab_os),windows)
-    $(d)$(this_mordavoknelib)$(soext): $(abspath $(d)../../src/build/$(this_mordavoknelib)$(soext))
+ifeq ($(os),windows)
+    $(d)$(this_mordavoknelib)$(dot_so): $(abspath $(d)../../src/out/$(c)/$(this_mordavoknelib)$(dot_so))
 	@cp $< $@
 
-    $(prorab_this_name): $(d)$(this_mordavoknelib)$(soext)
+    $(prorab_this_name): $(d)$(this_mordavoknelib)$(dot_so)
 
     define this_rules
         clean::
-		@rm -f $(d)$(this_mordavoknelib)$(soext)
+		@rm -f $(d)$(this_mordavoknelib)$(dot_so)
     endef
     $(eval $(this_rules))
 else
-    $(prorab_this_name): $(abspath $(d)../../src/build/$(this_mordavoknelib)$(soext))
+    $(prorab_this_name): $(abspath $(d)../../src/out/$(c)/$(this_mordavoknelib)$(dot_so))
 endif
 
 
-$(eval $(call prorab-try-include,$(d)../../src/makefile))
+$(eval $(call prorab-include, ../../src/makefile))
