@@ -13,9 +13,9 @@ nuget{
 		title: Intrusive C++ GUI library;
 		authors: {Ivan Gagis};
 		owners: {Ivan Gagis};
-		licenseUrl: "https://raw.githubusercontent.com/igagis/mordavokne/master/LICENSE";
-		projectUrl: "https://github.com/igagis/mordavokne";
-		iconUrl: "https://github.com/igagis/mordavokne/blob/master/logo.svg";
+		licenseUrl: "https://raw.githubusercontent.com/cppfw/mordavokne/master/LICENSE";
+		projectUrl: "https://github.com/cppfw/mordavokne";
+		iconUrl: "https://github.com/cppfw/mordavokne/blob/master/logo.svg";
 		requireLicenseAcceptance:false;
 		summary: C++ GUI library;
 

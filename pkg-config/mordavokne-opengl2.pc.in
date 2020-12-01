@@ -1,7 +1,7 @@
 Name: mordavokne-opengl2   # human-readable name
 Description: C++ OpenGL 2 GUI library
 Version: $(version)
-URL: https://github.com/igagis/mordavokne
+URL: https://github.com/cppfw/mordavokne
 Requires:
 Conflicts:
 Libs: -lmordavokne-opengl2 -rdynamic

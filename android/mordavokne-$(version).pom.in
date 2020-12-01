@@ -2,48 +2,48 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>io.github.igagis</groupId>
+  <groupId>io.github.cppfw</groupId>
   <artifactId>mordavokne</artifactId>
   <version>$(version)</version>
   <packaging>aar</packaging>
   <dependencies>
 	  <dependency>
-		  <groupId>io.github.igagis</groupId>
+		  <groupId>io.github.cppfw</groupId>
 		  <artifactId>utki</artifactId>
 		  <version>[1.1.7,)</version>
 		  <type>aar</type>
 		  <scope>compile</scope>
 	  </dependency>
 	  <dependency>
-		  <groupId>io.github.igagis</groupId>
+		  <groupId>io.github.cppfw</groupId>
 		  <artifactId>papki</artifactId>
 		  <version>[1.0.35,)</version>
 		  <type>aar</type>
 		  <scope>compile</scope>
 	  </dependency>
 	  <dependency>
-		  <groupId>io.github.igagis</groupId>
+		  <groupId>io.github.cppfw</groupId>
 		  <artifactId>r4</artifactId>
 		  <version>[0.1.0,)</version>
 		  <type>aar</type>
 		  <scope>compile</scope>
 	  </dependency>
 	  <dependency>
-		  <groupId>io.github.igagis</groupId>
+		  <groupId>io.github.cppfw</groupId>
 		  <artifactId>morda</artifactId>
 		  <version>[0.5.71,)</version>
 		  <type>aar</type>
 		  <scope>compile</scope>
 	  </dependency>
 	  <dependency>
-		  <groupId>io.github.igagis</groupId>
+		  <groupId>io.github.cppfw</groupId>
 		  <artifactId>morda-opengles2-ren</artifactId>
 		  <version>[0.1.9,)</version>
 		  <type>aar</type>
 		  <scope>compile</scope>
 	  </dependency>
 	  <dependency>
-		  <groupId>io.github.igagis</groupId>
+		  <groupId>io.github.cppfw</groupId>
 		  <artifactId>nitki</artifactId>
 		  <version>[1.0.16,)</version>
 		  <type>aar</type>

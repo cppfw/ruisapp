@@ -1,0 +1,13 @@
+:name: mordavokne
+
+= {name}
+
+|====
+| link:https://github.com/cppfw/{name}/releases[image:https://img.shields.io/github/tag/cppfw/{name}.svg[releases]] | link:https://github.com/cppfw/{name}/actions[image:https://github.com/cppfw/{name}/workflows/ci/badge.svg[ci status]]
+|====
+
+**mordavokne** is a cross-platform library for creating a native window and initializing OpenGL. It provides **morda** library already bound to all platform specific stuff.
+
+For installation instructions see link:wiki/Installation.adoc[WiKi]
+
+For basic usage example see `examples/basic` directory.

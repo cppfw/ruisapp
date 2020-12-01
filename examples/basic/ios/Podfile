@@ -1,5 +1,5 @@
 source 'https://github.com/CocoaPods/Specs.git'
-source 'https://github.com/igagis/cocoapods-repo.git'
+source 'https://github.com/cppfw/cocoapods-repo.git'
 
 project 'basic/basic.xcodeproj'
 
