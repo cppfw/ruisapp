@@ -9,15 +9,13 @@
 
 #include <papki/file.hpp>
 
-#include <r4/vector2.hpp>
+#include <r4/vector.hpp>
 
 #include <morda/gui.hpp>
 
 #include <morda/util/key.hpp>
 
 #include "config.hpp"
-
-
 
 namespace mordavokne{
 

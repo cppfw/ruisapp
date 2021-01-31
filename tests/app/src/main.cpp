@@ -4,6 +4,7 @@
 
 #include "../../../src/mordavokne/application.hpp"
 
+#include <morda/config.hpp>
 #include <morda/widgets/widget.hpp>
 #include <morda/widgets/container.hpp>
 #include <morda/widgets/proxy/key_proxy.hpp>
@@ -18,8 +19,10 @@
 #include <morda/widgets/group/list.hpp>
 #include <morda/widgets/group/tree_view.hpp>
 #include <morda/widgets/proxy/resize_proxy.hpp>
+#include <morda/widgets/proxy/click_proxy.hpp>
 #include <morda/widgets/label/color.hpp>
 #include <morda/widgets/label/image.hpp>
+#include <morda/widgets/input/text_input_line.hpp>
 #include <morda/widgets/button/drop_down_box.hpp>
 
 class SimpleWidget :
@@ -38,10 +41,10 @@ public:
 		this->tex = this->context->loader.load<morda::res::texture>("tex_sample");
 	}
 
-	std::uint32_t timer = 0;
-	std::uint32_t cnt = 0;
+	uint32_t timer = 0;
+	uint32_t cnt = 0;
 
-	void update(std::uint32_t dt) override{
+	void update(uint32_t dt) override{
 		this->timer += dt;
 		++this->cnt;
 
@@ -64,7 +67,7 @@ public:
 			this->context->updater->stop(*this);
 		}else{
 			this->context->updater->start(
-					std::dynamic_pointer_cast<morda::updateable>(this->shared_from_this()),
+					utki::make_shared_from(*this),
 					30
 				);
 		}
@@ -140,50 +143,40 @@ public:
 			morda::widget(std::move(c), desc)
 	{
 		std::array<morda::vector3, 36> cubePos = {{
-			r4::vector3<float>(-1, -1, 1), r4::vector3<float>(1, -1, 1), r4::vector3<float>(-1, 1, 1),
-			r4::vector3<float>(1, -1, 1), r4::vector3<float>(1, 1, 1), r4::vector3<float>(-1, 1, 1),
-
-			r4::vector3<float>(1, -1, 1), r4::vector3<float>(1, -1, -1), r4::vector3<float>(1, 1, 1),
-			r4::vector3<float>(1, -1, -1), r4::vector3<float>(1, 1, -1), r4::vector3<float>(1, 1, 1),
-
-			r4::vector3<float>(1, -1, -1), r4::vector3<float>(-1, -1, -1), r4::vector3<float>(1, 1, -1),
-			r4::vector3<float>(-1, -1, -1), r4::vector3<float>(-1, 1, -1), r4::vector3<float>(1, 1, -1),
-
-			r4::vector3<float>(-1, -1, -1), r4::vector3<float>(-1, -1, 1), r4::vector3<float>(-1, 1, -1),
-			r4::vector3<float>(-1, -1, 1), r4::vector3<float>(-1, 1, 1), r4::vector3<float>(-1, 1, -1),
-
-			r4::vector3<float>(-1, 1, -1), r4::vector3<float>(-1, 1, 1), r4::vector3<float>(1, 1, -1),
-			r4::vector3<float>(-1, 1, 1), r4::vector3<float>(1, 1, 1), r4::vector3<float>(1, 1, -1),
-
-			r4::vector3<float>(-1, -1, -1), r4::vector3<float>(1, -1, -1), r4::vector3<float>(-1, -1, 1),
-			r4::vector3<float>(-1, -1, 1), r4::vector3<float>(1, -1, -1), r4::vector3<float>(1, -1, 1)
+			morda::vector3(-1, -1,  1), morda::vector3( 1, -1,  1), morda::vector3(-1,  1,  1),
+ 			morda::vector3( 1, -1,  1), morda::vector3( 1,  1,  1), morda::vector3(-1,  1,  1),
+			morda::vector3( 1, -1,  1), morda::vector3( 1, -1, -1), morda::vector3( 1,  1,  1),
+			morda::vector3( 1, -1, -1), morda::vector3( 1,  1, -1), morda::vector3( 1,  1,  1),
+			morda::vector3( 1, -1, -1), morda::vector3(-1, -1, -1), morda::vector3( 1,  1, -1),
+			morda::vector3(-1, -1, -1), morda::vector3(-1,  1, -1), morda::vector3( 1,  1, -1),
+			morda::vector3(-1, -1, -1), morda::vector3(-1, -1,  1), morda::vector3(-1,  1, -1),
+			morda::vector3(-1, -1,  1), morda::vector3(-1,  1,  1), morda::vector3(-1,  1, -1),
+			morda::vector3(-1,  1, -1), morda::vector3(-1,  1,  1), morda::vector3( 1,  1, -1),
+			morda::vector3(-1,  1,  1), morda::vector3( 1,  1,  1), morda::vector3( 1,  1, -1),
+			morda::vector3(-1, -1, -1), morda::vector3( 1, -1, -1), morda::vector3(-1, -1,  1),
+			morda::vector3(-1, -1,  1), morda::vector3( 1, -1, -1), morda::vector3( 1, -1,  1)
 		}};
 
 		auto posVBO = this->context->renderer->factory->create_vertex_buffer(utki::make_span(cubePos));
 
-		std::array<r4::vector2<float>, 36> cubeTex = {{
-			r4::vector2<float>(0, 0), r4::vector2<float>(1, 0), r4::vector2<float>(0, 1),
-			r4::vector2<float>(1, 0), r4::vector2<float>(1, 1), r4::vector2<float>(0, 1),
-
-			r4::vector2<float>(0, 0), r4::vector2<float>(1, 0), r4::vector2<float>(0, 1),
-			r4::vector2<float>(1, 0), r4::vector2<float>(1, 1), r4::vector2<float>(0, 1),
-
-			r4::vector2<float>(0, 0), r4::vector2<float>(1, 0), r4::vector2<float>(0, 1),
-			r4::vector2<float>(1, 0), r4::vector2<float>(1, 1), r4::vector2<float>(0, 1),
-
-			r4::vector2<float>(0, 0), r4::vector2<float>(1, 0), r4::vector2<float>(0, 1),
-			r4::vector2<float>(1, 0), r4::vector2<float>(1, 1), r4::vector2<float>(0, 1),
-
-			r4::vector2<float>(0, 0), r4::vector2<float>(1, 0), r4::vector2<float>(0, 1),
-			r4::vector2<float>(1, 0), r4::vector2<float>(1, 1), r4::vector2<float>(0, 1),
-
-			r4::vector2<float>(0, 0), r4::vector2<float>(1, 0), r4::vector2<float>(0, 1),
-			r4::vector2<float>(1, 0), r4::vector2<float>(1, 1), r4::vector2<float>(0, 1)
+		std::array<morda::vector2, 36> cubeTex = {{
+			morda::vector2(0, 0), morda::vector2(1, 0), morda::vector2(0, 1),
+			morda::vector2(1, 0), morda::vector2(1, 1), morda::vector2(0, 1),
+			morda::vector2(0, 0), morda::vector2(1, 0), morda::vector2(0, 1),
+			morda::vector2(1, 0), morda::vector2(1, 1), morda::vector2(0, 1),
+			morda::vector2(0, 0), morda::vector2(1, 0), morda::vector2(0, 1),
+			morda::vector2(1, 0), morda::vector2(1, 1), morda::vector2(0, 1),
+			morda::vector2(0, 0), morda::vector2(1, 0), morda::vector2(0, 1),
+			morda::vector2(1, 0), morda::vector2(1, 1), morda::vector2(0, 1),
+			morda::vector2(0, 0), morda::vector2(1, 0), morda::vector2(0, 1),
+			morda::vector2(1, 0), morda::vector2(1, 1), morda::vector2(0, 1),
+			morda::vector2(0, 0), morda::vector2(1, 0), morda::vector2(0, 1),
+			morda::vector2(1, 0), morda::vector2(1, 1), morda::vector2(0, 1)
 		}};
 
 		auto texVBO = this->context->renderer->factory->create_vertex_buffer(utki::make_span(cubeTex));
 
-		std::array<std::uint16_t, 36> indices = {{
+		std::array<uint16_t, 36> indices = {{
 			0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35
 		}};
 
@@ -196,9 +189,9 @@ public:
 	}
 
 	unsigned fps = 0;
-	std::uint32_t fpsSecCounter = 0;
+	uint32_t fpsSecCounter = 0;
 
-	void update(std::uint32_t dt) override{
+	void update(uint32_t dt) override{
 		this->fpsSecCounter += dt;
 		++this->fps;
 		this->rot %= morda::quaternion().set_rotation(r4::vector3<float>(1, 2, 1).normalize(), 1.5f * (float(dt) / 1000));
@@ -207,31 +200,27 @@ public:
 			this->fpsSecCounter = 0;
 			this->fps = 0;
 		}
+		this->clear_cache();
 	}
 
 	void render(const morda::matrix4& matrix)const override{
 		this->widget::render(matrix);
-
+		
 		morda::matrix4 matr(matrix);
 		matr.scale(this->rect().d / 2);
+		matr.translate(1, 1);
 		matr.scale(1, -1);
-		matr.translate(1, -1);
 		matr.frustum(-2, 2, -1.5, 1.5, 2, 100);
-
-		morda::matrix4 m(matr);
-		m.translate(0, 0, -4);
-
-		m.rotate(this->rot);
+		matr.translate(0, 0, -4);
+		matr.rotate(this->rot);
 
 //		glEnable(GL_CULL_FACE);
 
-		this->context->renderer->shader->pos_tex->render(m, *this->cubeVAO, this->tex->tex());
+		this->context->renderer->shader->pos_tex->render(matr, *this->cubeVAO, this->tex->tex());
 
 //		glDisable(GL_CULL_FACE);
 	}
 };
-
-
 
 class TreeViewItemsProvider : public morda::tree_view::provider{
 	puu::forest root;
@@ -275,74 +264,6 @@ public:
 	~TreeViewItemsProvider(){
 
 	}
-
-	const char* DPlusMinus = R"qwertyuiop(
-			@pile{
-				@image{
-					id{plusminus}
-				}
-				@mouse_proxy{
-					layout{
-						dx{fill} dy{fill}
-					}
-					id{plusminus_mouseproxy}
-				}
-			}
-		)qwertyuiop";
-
-	const char* DLine = R"qwertyuiop(
-			@pile{
-				layout{dx{5mm} dy{fill}}
-				@color{
-					layout{dx{1pt}dy{fill}}
-					color{${morda_color_highlight}}
-				}
-			}
-		)qwertyuiop";
-
-	const char* DLineEnd = R"qwertyuiop(
-			@pile{
-				layout{dx{5mm} dy{max}}
-				@column{
-					layout{dx{max}dy{max}}
-					@color{
-						layout{dx{1pt}dy{0}weight{1}}
-						color{${morda_color_highlight}}
-					}
-					@widget{layout{dx{max}dy{0}weight{1}}}
-				}
-				@row{
-					layout{dx{max}dy{max}}
-					@widget{layout{dx{0}dy{max}weight{1}}}
-					@color{
-						layout{dx{0}dy{1pt}weight{1}}
-						color{${morda_color_highlight}}
-					}
-				}
-			}
-		)qwertyuiop";
-
-	const char* DLineMiddle = R"qwertyuiop(
-			@pile{
-				layout{dx{5mm} dy{max}}
-				@color{
-					layout{dx{1pt}dy{max}}
-					color{${morda_color_highlight}}
-				}
-				@row{
-					layout{dx{max}dy{max}}
-					@widget{layout{dx{0}dy{max}weight{1}}}
-					@color{
-						layout{dx{0}dy{1pt}weight{1}}
-						color{${morda_color_highlight}}
-					}
-				}
-			}
-		)qwertyuiop";
-
-	const char* DEmpty = R"qwertyuiop(
-			@widget{layout{dx{5mm}dy{0}}}
-		)qwertyuiop";
 
 private:
 	std::vector<size_t> selectedItem;
@@ -432,68 +353,14 @@ public:
 
 		puu::tree* n = nullptr;
 
-		for(auto i = path.begin(); i != path.end(); ++i){
-			isLastItemInParent.push_back(*i + 1 == list->size());
-			n = &(*list)[*i];
+		for(const auto& i : path){
+			isLastItemInParent.push_back(i + 1 == list->size());
+			n = &(*list)[i];
 			parent_list = list;
 			list = &n->children;
 		}
 
 		auto ret = std::make_shared<morda::row>(this->context, puu::forest());
-
-		ASSERT(isLastItemInParent.size() == path.size())
-
-		for(unsigned i = 0; i != path.size() - 1; ++i){
-			ret->push_back_inflate(isLastItemInParent[i] ? puu::read(DEmpty) : puu::read(DLine));
-		}
-
-		{
-			auto widget = this->context->inflater.inflate_as<morda::pile>(isLastItemInParent.back() ? DLineEnd : DLineMiddle);
-			ASSERT(widget)
-
-			if(!n->children.empty()){
-				auto w = this->context->inflater.inflate(DPlusMinus);
-
-				auto plusminus = w->try_get_widget_as<morda::image>("plusminus");
-				ASSERT(plusminus)
-				plusminus->set_image(
-						isCollapsed ?
-								this->context->loader.load<morda::res::image>("morda_img_treeview_plus") :
-								this->context->loader.load<morda::res::image>("morda_img_treeview_minus")
-					);
-
-				auto plusminusMouseProxy = w->try_get_widget_as<morda::mouse_proxy>("plusminus_mouseproxy");
-				ASSERT(plusminusMouseProxy)
-				plusminusMouseProxy->mouse_button_handler = [this, path, isCollapsed](
-						morda::mouse_proxy&,
-						const morda::mouse_button_event& e
-					) -> bool
-				{
-					if(e.button != morda::mouse_button::left){
-						return false;
-					}
-					if(!e.is_down){
-						return false;
-					}
-
-					if(isCollapsed){
-						this->uncollapse(path);
-					}else{
-						this->collapse(path);
-					}
-
-					TRACE_ALWAYS(<< "plusminus clicked:")
-					for(auto i = path.begin(); i != path.end(); ++i){
-						TRACE_ALWAYS(<< " " << (*i))
-					}
-					TRACE_ALWAYS(<< std::endl)
-
-					return true;
-				};
-				widget->push_back(w);
-			}
-			ret->push_back(widget);
-		}
 
 		{
 			auto v = this->context->inflater.inflate(
@@ -540,7 +407,6 @@ public:
 					}
 					TRACE(<< std::endl)
 					this->notify_item_changed();
-					//TODO:
 
 					return true;
 				};
@@ -583,8 +449,6 @@ public:
 
 };
 
-
-
 class application : public mordavokne::application{
 	static mordavokne::window_params GetWindowParams()noexcept{
 		mordavokne::window_params wp(r4::vector2<unsigned>(1024, 800));
@@ -608,9 +472,9 @@ public:
 			);
 		this->gui.set_root(c);
 
-		std::dynamic_pointer_cast<morda::key_proxy>(c)->key_handler = [this](morda::key_proxy&, bool is_down, morda::key key) -> bool{
-			if(is_down){
-				if(key == morda::key::escape){
+		std::dynamic_pointer_cast<morda::key_proxy>(c)->key_handler = [this](morda::key_proxy&, bool isDown, morda::key keyCode) -> bool {
+			if(isDown){
+				if(keyCode == morda::key::escape){
 					this->quit();
 				}
 			}
@@ -633,10 +497,27 @@ public:
 				);
 		};
 
-		this->gui.context->updater->start(
-				std::dynamic_pointer_cast<CubeWidget>(c->try_get_widget("cube_widget")),
-				0
-			);
+		// cube click_proxy
+		{
+			auto cube = c->try_get_widget_as<CubeWidget>("cube_widget");
+			ASSERT(cube)
+
+			auto& cp = c->get_widget_as<morda::click_proxy>("cube_click_proxy");
+			auto& bg = c->get_widget_as<morda::color>("cube_bg_color");
+			cp.press_change_handler = [bg{utki::make_shared_from(bg)}](morda::click_proxy& w) -> bool {
+				bg->set_color(w.is_pressed() ? 0xff808080 : 0x80808080);
+				return true;
+			};
+			cp.press_change_handler(cp); // set initial color
+			cp.click_handler = [cube](morda::click_proxy&) -> bool {
+				if(cube->is_updating()){
+					cube->context->updater->stop(*cube);
+				}else{
+					cube->context->updater->start(cube, 0);
+				}
+				return true;
+			};
+		}
 
 		// scroll_area
 		{
@@ -652,7 +533,7 @@ public:
 			auto resizeProxy = c->try_get_widget_as<morda::resize_proxy>("scroll_area_resize_proxy");
 			auto rp = utki::make_weak(resizeProxy);
 
-			resizeProxy->resize_handler = [vs, hs, sa](morda::resize_proxy& rp){
+			resizeProxy->resize_handler = [vs, hs, sa](morda::resize_proxy&){
 				auto sc = sa.lock();
 				if(!sc){
 					return;
@@ -669,7 +550,7 @@ public:
 					h->set_band_fraction(visibleArea.x());
 				}
 			};
-			resizeProxy->resize_handler(*resizeProxy);
+			resizeProxy->on_resize();
 
 			vertSlider->fraction_change_handler = [sa](morda::fraction_widget& slider){
 				if(auto s = sa.lock()){
@@ -705,7 +586,7 @@ public:
 			auto resizeProxy = c->try_get_widget_as<morda::resize_proxy>("vertical_list_resize_proxy");
 			ASSERT(resizeProxy)
 
-			resizeProxy->resize_handler = [vs, vl](morda::resize_proxy& rp){
+			resizeProxy->resize_handler = [vs, vl](morda::resize_proxy&){
 				auto l = vl.lock();
 				if(!l){
 					return;
@@ -792,7 +673,7 @@ public:
 				return false;
 			};
 
-			mouseProxy->mouse_move_handler = [hl, hs, state](morda::mouse_proxy&, const morda::mouse_move_event& e){
+			mouseProxy->mouse_move_handler = [hl, hs, state](morda::mouse_proxy& w, const morda::mouse_move_event& e) -> bool {
 				if(state->isLeftButtonPressed){
 					auto dp = state->oldPos - e.pos;
 					state->oldPos = e.pos;
@@ -806,6 +687,12 @@ public:
 				}
 				return false;
 			};
+		}
+
+		// text_input
+		{
+			auto& l = c->get_widget("text_input").get_widget<morda::text_input_line>();
+			ASSERT_ALWAYS(!l.get_text().empty())
 		}
 
 		// tree_view
@@ -839,7 +726,7 @@ public:
 			ASSERT(resizeProxy)
 			auto rp = utki::make_weak(resizeProxy);
 
-			resizeProxy->resize_handler = [vs, hs, tv](morda::resize_proxy&){
+			resizeProxy->resize_handler = [vs, hs, tv](morda::resize_proxy& w){
 				auto t = tv.lock();
 				if(!t){
 					return;
@@ -859,7 +746,6 @@ public:
 					}
 				}
 			};
-
 
 			auto insertBeforeButton = c->try_get_widget_as<morda::push_button>("insert_before");
 			auto insertAfterButton = c->try_get_widget_as<morda::push_button>("insert_after");
@@ -885,7 +771,6 @@ public:
 			};
 		}
 
-
 		// fullscreen
 		{
 			auto b = c->try_get_widget_as<morda::push_button>("fullscreen_button");
@@ -900,7 +785,6 @@ public:
 				this->set_fullscreen(true);
 			};
 		}
-
 
 		// mouse cursor
 		{
@@ -930,8 +814,6 @@ public:
 		}
 	}
 };
-
-
 
 std::unique_ptr<mordavokne::application> mordavokne::create_application(int argc, const char** argv){
 	return std::make_unique<::application>();
