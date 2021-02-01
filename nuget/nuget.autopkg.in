@@ -69,7 +69,7 @@ nuget{
 		*/
 
 		// ======== v141 ========
-
+/*
 		[x86,v141,release] {
 			lib: ..\msvs_solution\v141_Release\libmordavokne.lib;
 		}
@@ -85,10 +85,10 @@ nuget{
 		[x64,v141,debug] {
 			lib: ..\msvs_solution\x64\v141_Debug\libmordavokne.lib;
 		}
-
+*/
 		// ======== v142 ========
 
-		/*
+/*
 		[x86,v142,release,MultiThreaded] {
 			lib: ..\msvs_solution\v142_Release_MT\libmordavokne.lib;
 		}
@@ -101,7 +101,7 @@ nuget{
 		[x64,v142,debug,MultiThreadedDebug] {
 			lib: ..\msvs_solution\x64\v142_Debug_MT\libmordavokne.lib;
 		}
-		*/
+*/
 
 		[x86,v142,release,MultiThreadedDLL] {
 			lib: ..\msvs_solution\v142_Release_MD\libmordavokne.lib;
