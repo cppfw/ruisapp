@@ -443,7 +443,7 @@
     <Import Project="..\packages\libpuu.0.1.25\build\native\libpuu.targets" Condition="Exists('..\packages\libpuu.0.1.25\build\native\libpuu.targets')" />
     <Import Project="..\packages\libsvgdom.0.3.55\build\native\libsvgdom.targets" Condition="Exists('..\packages\libsvgdom.0.3.55\build\native\libsvgdom.targets')" />
     <Import Project="..\packages\libmorda-opengl2-ren.0.1.42\build\native\libmorda-opengl2-ren.targets" Condition="Exists('..\packages\libmorda-opengl2-ren.0.1.42\build\native\libmorda-opengl2-ren.targets')" />
-    <Import Project="..\packages\libmorda.0.5.152\build\native\libmorda.targets" Condition="Exists('..\packages\libmorda.0.5.152\build\native\libmorda.targets')" />
+    <Import Project="..\packages\libmorda.0.5.153\build\native\libmorda.targets" Condition="Exists('..\packages\libmorda.0.5.153\build\native\libmorda.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -466,6 +466,6 @@
     <Error Condition="!Exists('..\packages\libpuu.0.1.25\build\native\libpuu.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libpuu.0.1.25\build\native\libpuu.targets'))" />
     <Error Condition="!Exists('..\packages\libsvgdom.0.3.55\build\native\libsvgdom.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libsvgdom.0.3.55\build\native\libsvgdom.targets'))" />
     <Error Condition="!Exists('..\packages\libmorda-opengl2-ren.0.1.42\build\native\libmorda-opengl2-ren.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libmorda-opengl2-ren.0.1.42\build\native\libmorda-opengl2-ren.targets'))" />
-    <Error Condition="!Exists('..\packages\libmorda.0.5.152\build\native\libmorda.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libmorda.0.5.152\build\native\libmorda.targets'))" />
+    <Error Condition="!Exists('..\packages\libmorda.0.5.153\build\native\libmorda.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libmorda.0.5.153\build\native\libmorda.targets'))" />
   </Target>
 </Project>
