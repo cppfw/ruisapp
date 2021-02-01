@@ -1,3 +1,9 @@
+libmordavokne (0.2.59) unstable; urgency=medium
+
+  * update to latest r4
+
+ -- Ivan Gagis <igagis@gmail.com>  Mon, 01 Feb 2021 17:43:15 +0200
+
 libmordavokne (0.2.58) unstable; urgency=medium
 
   * github actions
