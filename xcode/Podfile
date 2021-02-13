@@ -5,10 +5,10 @@ project 'mordavokne/mordavokne.xcodeproj'
 platform :ios, '8.0'
 
 target "mordavokne" do
-	pod 'utki', '>= 1.0.32'
-	pod 'papki', '>= 1.0.3'
-	pod 'r4', '>= 0.1.0'
-	pod 'puu', '>= 0.1.0'
-	pod 'morda', '>= 0.5.71'
-	pod 'morda-opengles2-ren', '>= 0.1.7'
+	pod 'utki', '>= 1.1.112'
+	pod 'papki', '>= 1.0.91'
+	pod 'r4', '>= 0.1.51'
+	pod 'puu', '>= 0.1.25'
+	pod 'morda', '>= 0.5.159'
+	pod 'morda-opengles2-ren', '>= 0.1.35'
 end

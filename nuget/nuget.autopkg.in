@@ -31,14 +31,14 @@ nuget{
 	}
 	dependencies {
 		packages : {
-			libr4/0.1.30;
-			libmorda/0.5.71;
-			libmorda-opengl2-ren/0.1.40;
+			libr4/0.1.51;
+			libmorda/0.5.159;
+			libmorda-opengl2-ren/0.1.43;
 			glew.v140/1.12.0;
-			libpapki/1.0.15;
-			libopros/1.0.10;
-			libpuu/0.1.21;
-			libutki/1.0.22;
+			libpapki/1.0.91;
+			libopros/1.0.44;
+			libpuu/0.1.25;
+			libutki/1.1.112;
 		};
 	}
 	files {
