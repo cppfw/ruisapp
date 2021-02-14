@@ -44,9 +44,7 @@ endif
 
 this_ldlibs += -lpuu -lmorda -lutki -lpapki -lm -lstdc++
 
-
 $(eval $(prorab-build-app))
-
 
 define this_rules
 run:: $(prorab_this_name)
@@ -54,7 +52,6 @@ run:: $(prorab_this_name)
 	@(cd $(d); LD_LIBRARY_PATH=../../src/out/$(c) $$^)
 endef
 $(eval $(this_rules))
-
 
 # add dependency on libmordavokne
 ifeq ($(os),windows)
@@ -71,6 +68,5 @@ ifeq ($(os),windows)
 else
     $(prorab_this_name): $(abspath $(d)../../src/out/$(c)/$(this_mordavoknelib)$(dot_so))
 endif
-
 
 $(eval $(call prorab-include, ../../src/makefile))
