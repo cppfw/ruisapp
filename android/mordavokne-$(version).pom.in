@@ -31,14 +31,14 @@
 	  <dependency>
 		  <groupId>io.github.cppfw</groupId>
 		  <artifactId>morda</artifactId>
-		  <version>[0.5.159,)</version>
+		  <version>[0.5.160,)</version>
 		  <type>aar</type>
 		  <scope>compile</scope>
 	  </dependency>
 	  <dependency>
 		  <groupId>io.github.cppfw</groupId>
 		  <artifactId>morda-opengles2-ren</artifactId>
-		  <version>[0.1.35,)</version>
+		  <version>[0.1.36,)</version>
 		  <type>aar</type>
 		  <scope>compile</scope>
 	  </dependency>

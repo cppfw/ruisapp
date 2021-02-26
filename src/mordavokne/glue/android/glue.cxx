@@ -261,6 +261,10 @@ WindowWrapper& getImpl(const std::unique_ptr<utki::destructable>& pimpl){
 	return static_cast<WindowWrapper&>(*pimpl);
 }
 
+WindowWrapper& get_impl(application& app){
+	return getImpl(getWindowPimpl(app));
+}
+
 class asset_file : public papki::file{
 	AAssetManager* manager;
 
@@ -591,7 +595,7 @@ public:
 	}
 
 	//if timer is already armed, it will re-set the expiration time
-	void Arm(std::uint32_t dt){
+	void Arm(uint32_t dt){
 		itimerspec ts;
 		ts.it_value.tv_sec = dt / 1000;
 		ts.it_value.tv_nsec = (dt % 1000) * 1000000;
@@ -978,26 +982,27 @@ std::string initializeStorageDir(const std::string& appName){
 mordavokne::application::application(std::string&& name, const window_params& requestedWindowParams) :
 		name(name),
 		windowPimpl(std::make_unique<WindowWrapper>(requestedWindowParams)),
-		gui(
+		gui(std::make_shared<morda::context>(
 				std::make_shared<morda::render_opengles2::renderer>(),
 				std::make_shared<morda::updater>(),
 				[this](std::function<void()>&& a){
-					getImpl(getWindowPimpl(*this)).uiQueue.push_back(std::move(a));
+					get_impl(*this).uiQueue.push_back(std::move(a));
 				},
+				[this](morda::mouse_cursor){},
 				[]() -> float{
 					ASSERT(javaFunctionsWrapper)
 
 					return javaFunctionsWrapper->getDotsPerInch();
 				}(),
 				[this]() -> float{
-					auto res = getImpl(this->windowPimpl).getWindowSize();
+					auto res = get_impl(*this).getWindowSize();
 					auto dim = (res.to<float>() / javaFunctionsWrapper->getDotsPerInch()) * 25.4f;
 					return application::get_pixels_per_dp(res, dim.to<unsigned>());
 				}()
-			),
+			)),
 		storage_dir(initializeStorageDir(this->name))
 {
-	auto winSize = getImpl(this->windowPimpl).getWindowSize();
+	auto winSize = get_impl(*this).getWindowSize();
 	this->updateWindowRect(morda::rectangle(morda::vector2(0), winSize.to<morda::real>()));
 }
 
@@ -1006,7 +1011,7 @@ std::unique_ptr<papki::file> mordavokne::application::get_res_file(const std::st
 }
 
 void mordavokne::application::swapFrameBuffers(){
-	auto& ww = getImpl(this->windowPimpl);
+	auto& ww = get_impl(*this);
 	ww.swapBuffers();
 }
 
@@ -1294,7 +1299,7 @@ int OnUpdateTimerExpired(int fd, int events, void* data){
 
 	auto& app = application::inst();
 
-	std::uint32_t dt = app.gui.update();
+	uint32_t dt = app.gui.update();
 	if(dt == 0){
 		// do not arm the timer and do not clear the flag
 	}else{

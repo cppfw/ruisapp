@@ -24,8 +24,8 @@ Pod::Spec.new do |s|
 
   s.dependency 'utki', '>= 1.1.112'
   s.dependency 'nitki', '>= 1.0.39'
-  s.dependency 'morda', '>= 0.5.159'
+  s.dependency 'morda', '>= 0.5.160'
   s.dependency 'papki', '>= 1.0.91'
   s.dependency 'r4', '>= 0.1.51'
-  s.dependency 'morda-opengles2-ren', '>= 0.1.35'
+  s.dependency 'morda-opengles2-ren', '>= 0.1.36'
 end

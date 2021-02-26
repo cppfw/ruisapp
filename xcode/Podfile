@@ -9,6 +9,6 @@ target "mordavokne" do
 	pod 'papki', '>= 1.0.91'
 	pod 'r4', '>= 0.1.51'
 	pod 'puu', '>= 0.1.25'
-	pod 'morda', '>= 0.5.159'
-	pod 'morda-opengles2-ren', '>= 0.1.35'
+	pod 'morda', '>= 0.5.160'
+	pod 'morda-opengles2-ren', '>= 0.1.36'
 end
