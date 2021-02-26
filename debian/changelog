@@ -1,3 +1,9 @@
+libmordavokne (0.2.61) unstable; urgency=medium
+
+  * update to latest morda
+
+ -- Ivan Gagis <igagis@gmail.com>  Sat, 27 Feb 2021 01:15:29 +0200
+
 libmordavokne (0.2.60) unstable; urgency=medium
 
   * dependency versions update
