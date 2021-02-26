@@ -9,7 +9,7 @@ class Mordavokne < Formula
   depends_on "libutki"
   depends_on "libpapki"
   depends_on "libopros"
-  depends_on "libpuu"
+  depends_on "libtreeml"
   depends_on "glew"
   depends_on "libr4"
   depends_on "libmorda"
