@@ -33,7 +33,7 @@ class SimpleWidget :
 	std::shared_ptr<morda::res::texture> tex;
 
 public:
-	SimpleWidget(std::shared_ptr<morda::context> c, const puu::forest& desc) :
+	SimpleWidget(std::shared_ptr<morda::context> c, const treeml::forest& desc) :
 			morda::widget(std::move(c), desc),
 			morda::character_input_widget(this->context)
 	{
@@ -139,7 +139,7 @@ class CubeWidget : public morda::widget, public morda::updateable{
 public:
 	std::shared_ptr<morda::vertex_array> cubeVAO;
 
-	CubeWidget(std::shared_ptr<morda::context> c, const puu::forest& desc) :
+	CubeWidget(std::shared_ptr<morda::context> c, const treeml::forest& desc) :
 			morda::widget(std::move(c), desc)
 	{
 		std::array<morda::vector3, 36> cubePos = {{
@@ -223,7 +223,7 @@ public:
 };
 
 class TreeViewItemsProvider : public morda::tree_view::provider{
-	puu::forest root;
+	treeml::forest root;
 
 	std::shared_ptr<morda::context> context;
 public:
@@ -231,7 +231,7 @@ public:
 	TreeViewItemsProvider(std::shared_ptr<morda::context> c) :
 			context(c)
 	{
-		this->root = puu::read(R"qwertyuiop(
+		this->root = treeml::read(R"qwertyuiop(
 				root1{
 					subroot1{
 						subsubroot1
@@ -283,8 +283,8 @@ public:
 			return;
 		}
 
-		puu::forest* list = &this->root;
-		puu::forest* parent_list = nullptr;
+		treeml::forest* list = &this->root;
+		treeml::forest* parent_list = nullptr;
 
 		for(auto& i : this->selectedItem){
 			parent_list = list;
@@ -295,7 +295,7 @@ public:
 			return;
 		}
 
-		parent_list->insert(std::next(parent_list->begin(), this->selectedItem.back()), puu::leaf(this->generateNewItemvalue()));
+		parent_list->insert(std::next(parent_list->begin(), this->selectedItem.back()), treeml::leaf(this->generateNewItemvalue()));
 
 		this->notify_item_added(this->selectedItem);
 		++this->selectedItem.back();
@@ -306,8 +306,8 @@ public:
 			return;
 		}
 
-		puu::forest* list = &this->root;
-		puu::forest* parent_list = nullptr;
+		treeml::forest* list = &this->root;
+		treeml::forest* parent_list = nullptr;
 
 		for(auto& i : this->selectedItem){
 			parent_list = list;
@@ -318,7 +318,7 @@ public:
 			return;
 		}
 
-		parent_list->insert(std::next(parent_list->begin(), this->selectedItem.back() + 1), puu::leaf(this->generateNewItemvalue()));
+		parent_list->insert(std::next(parent_list->begin(), this->selectedItem.back() + 1), treeml::leaf(this->generateNewItemvalue()));
 
 		++this->selectedItem.back();
 		this->notify_item_added(this->selectedItem);
@@ -330,13 +330,13 @@ public:
 			return;
 		}
 
-		puu::forest* list = &this->root;
+		treeml::forest* list = &this->root;
 
 		for(auto& i : this->selectedItem){
 			list = &(*list)[i].children;
 		}
 
-		list->push_back(puu::leaf(this->generateNewItemvalue()));
+		list->push_back(treeml::leaf(this->generateNewItemvalue()));
 
 		this->selectedItem.push_back(list->size() - 1);
 		this->notify_item_added(this->selectedItem);
@@ -351,7 +351,7 @@ public:
 
 		std::vector<bool> isLastItemInParent;
 
-		puu::tree* n = nullptr;
+		treeml::tree* n = nullptr;
 
 		for(const auto& i : path){
 			isLastItemInParent.push_back(i + 1 == list->size());
@@ -360,7 +360,7 @@ public:
 			list = &n->children;
 		}
 
-		auto ret = std::make_shared<morda::row>(this->context, puu::forest());
+		auto ret = std::make_shared<morda::row>(this->context, treeml::forest());
 
 		{
 			auto v = this->context->inflater.inflate(

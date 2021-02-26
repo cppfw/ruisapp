@@ -23,7 +23,7 @@ define mordavokne_rules
         this_ldlibs += -framework Cocoa -framework OpenGL -ldl
     endif
 
-    this_ldlibs += -lmorda -lpapki -lpuu -lstdc++
+    this_ldlibs += -lmorda -lpapki -ltreeml -lstdc++
 
     ifeq ($(os), macosx)
         this_mm_obj := $$(d)$$(this_out_dir)obj_$$(this_name)/objc/mordavokne/glue/macosx/glue.mm.o

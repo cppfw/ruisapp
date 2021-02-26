@@ -26,6 +26,12 @@ defs{
 
 @key_proxy{
 
+@image_mouse_cursor{
+layout{
+	dx{fill} dy{fill}
+}
+cursor{crs_arrow}
+
 @overlay{
 	id {overlay}
 	layout{
@@ -863,15 +869,8 @@ defs{
 	}
 
 }
-}//~Overlay
+} // ~overlay
 
+} // ~image_mouse_cursor
 
-@mouse_cursor{
-	layout{
-		dx{fill} dy{fill}
-	}
-
-	cursor{crs_arrow}
-}
-
-}//~KeyProxyContainer
+} // ~key_proxy
