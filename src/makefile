@@ -43,7 +43,7 @@ $(.RECIPEPREFIX)$(a)$(this_cc) -ObjC++ -std=c++11 -g -c -o "$$$$@" $$(this_objcf
 
     ifeq ($1,opengles2)
         ifeq ($(raspberrypi), true)
-            this_cxxflags += -DM_RASPBERRYPI -I/opt/vc/include
+            this_cxxflags += -DMORDAVOKNE_RASPBERRYPI -I/opt/vc/include
             this_ldflags += -L/opt/vc/lib
             this_ldlibs += -lbrcmEGL
         else
