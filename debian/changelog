@@ -1,3 +1,9 @@
+libmordavokne (0.2.62) unstable; urgency=medium
+
+  * exit gracefully in case no application object is created
+
+ -- Ivan Gagis <igagis@gmail.com>  Sun, 28 Feb 2021 21:13:35 +0200
+
 libmordavokne (0.2.61) unstable; urgency=medium
 
   * update to latest morda
