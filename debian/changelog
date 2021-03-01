@@ -1,3 +1,9 @@
+libmordavokne (0.2.63) unstable; urgency=medium
+
+  * add all directions arrow cursor
+
+ -- Ivan Gagis <igagis@gmail.com>  Tue, 02 Mar 2021 01:31:11 +0200
+
 libmordavokne (0.2.62) unstable; urgency=medium
 
   * exit gracefully in case no application object is created
