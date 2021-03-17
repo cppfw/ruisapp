@@ -31,8 +31,8 @@
 #	error "Unknown graphics API"
 #endif
 
-#include "../friendAccessors.cxx"
-#include "../unixCommon.cxx"
+#include "../friend_accessors.cxx"
+#include "../unix_common.cxx"
 
 using namespace mordavokne;
 
@@ -57,7 +57,7 @@ const std::map<morda::mouse_cursor, unsigned> x_cursor_map = {
 }
 
 namespace{
-struct WindowWrapper : public utki::destructable{
+struct window_wrapper : public utki::destructable{
 	struct display_wrapper{
 		Display* display;
 
@@ -73,7 +73,7 @@ struct WindowWrapper : public utki::destructable{
 		}
 	} display;
 
-	Colormap colorMap;
+	Colormap color_map;
 	::Window window;
 #ifdef MORDAVOKNE_RENDER_OPENGL2
 	GLXContext glContext;
@@ -91,10 +91,10 @@ struct WindowWrapper : public utki::destructable{
 #	error "Unknown graphics API"
 #endif
 	struct cursor_wrapper{
-		WindowWrapper& owner;
+		window_wrapper& owner;
 		Cursor cursor;
 	
-		cursor_wrapper(WindowWrapper& owner, morda::mouse_cursor c) :
+		cursor_wrapper(window_wrapper& owner, morda::mouse_cursor c) :
 				owner(owner)
 		{
 			if(c == morda::mouse_cursor::none){
@@ -171,7 +171,7 @@ struct WindowWrapper : public utki::destructable{
 
 	volatile bool quitFlag = false;
 
-	WindowWrapper(const window_params& wp){
+	window_wrapper(const window_params& wp){
 #ifdef MORDAVOKNE_RENDER_OPENGL2
 		{
 			int glxVerMajor, glxVerMinor;
@@ -179,13 +179,13 @@ struct WindowWrapper : public utki::destructable{
 				throw std::runtime_error("glXQueryVersion() failed");
 			}
 
-			// FBConfigs were added in GLX version 1.3.
+			// FBConfigs were added in GLX version 1.3, we need FBConfigs
 			if(glxVerMajor < 1 || (glxVerMajor == 1  && glxVerMinor < 3 )){
 				throw std::runtime_error("GLX version 1.3 or above is required");
 			}
 		}
 
-		GLXFBConfig bestFbc;
+		GLXFBConfig best_fb_config;
 		{
 			std::vector<int> visualAttribs;
 			visualAttribs.push_back(GLX_X_RENDERABLE); visualAttribs.push_back(True);
@@ -216,7 +216,7 @@ struct WindowWrapper : public utki::destructable{
 				XFree(fbc);
 			});
 
-			int bestFbcIdx = -1, worstFbc = -1, bestNumSamp = -1, worstNumSamp = 999;
+			int best_fb_config_index = -1, worstFbc = -1, bestNumSamp = -1, worstNumSamp = 999;
 
 			for(int i = 0; i < fbcount; ++i){
 				XVisualInfo *vi = glXGetVisualFromFBConfig(this->display.display, fbc[i]);
@@ -225,8 +225,8 @@ struct WindowWrapper : public utki::destructable{
 					glXGetFBConfigAttrib(this->display.display, fbc[i], GLX_SAMPLE_BUFFERS, &samp_buf);
 					glXGetFBConfigAttrib(this->display.display, fbc[i], GLX_SAMPLES, &samples);
 
-					if ( bestFbcIdx < 0 || (samp_buf && samples > bestNumSamp )){
-						bestFbcIdx = i, bestNumSamp = samples;
+					if ( best_fb_config_index < 0 || (samp_buf && samples > bestNumSamp )){
+						best_fb_config_index = i, bestNumSamp = samples;
 					}
 					if ( worstFbc < 0 || !samp_buf || samples < worstNumSamp ){
 						worstFbc = i, worstNumSamp = samples;
@@ -234,7 +234,7 @@ struct WindowWrapper : public utki::destructable{
 				}
 				XFree( vi );
 			}
-			bestFbc = fbc[ bestFbcIdx ];
+			best_fb_config = fbc[best_fb_config_index];
 		}
 #elif defined(MORDAVOKNE_RENDER_OPENGLES2)
 		this->eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
@@ -285,10 +285,10 @@ struct WindowWrapper : public utki::destructable{
 #	error "Unknown graphics API"
 #endif
 
-		XVisualInfo *vi;
+		XVisualInfo *visual_info;
 #ifdef MORDAVOKNE_RENDER_OPENGL2
-		vi = glXGetVisualFromFBConfig(this->display.display, bestFbc);
-		if (!vi) {
+		visual_info = glXGetVisualFromFBConfig(this->display.display, best_fb_config);
+		if(!visual_info){
 			throw std::runtime_error("glXGetVisualFromFBConfig() failed");
 		}
 #elif defined(MORDAVOKNE_RENDER_OPENGLES2)
@@ -297,13 +297,13 @@ struct WindowWrapper : public utki::destructable{
 			int numVisuals;
 			XVisualInfo visTemplate;
 			visTemplate.screen = DefaultScreen(this->display.display); // LCD
-			vi = XGetVisualInfo(
+			visual_info = XGetVisualInfo(
 					this->display.display,
 					VisualScreenMask,
 					&visTemplate,
 					&numVisuals
 				);
-			if (!vi) {
+			if(!visual_info){
 				throw std::runtime_error("XGetVisualInfo() failed");
 			}
 		}
@@ -318,13 +318,13 @@ struct WindowWrapper : public utki::destructable{
 			int numVisuals;
 			XVisualInfo visTemplate;
 			visTemplate.visualid = vid;
-			vi = XGetVisualInfo(
+			visual_info = XGetVisualInfo(
 					this->display.display,
 					VisualIDMask,
 					&visTemplate,
 					&numVisuals
 				);
-			if (!vi) {
+			if(!visual_info){
 				throw std::runtime_error("XGetVisualInfo() failed");
 			}
 		}
@@ -332,24 +332,24 @@ struct WindowWrapper : public utki::destructable{
 #else
 #	error "Unknown graphics API"
 #endif
-		utki::scope_exit scopeExitVisualInfo([vi](){
-			XFree(vi);
+		utki::scope_exit scope_exit_visual_info([visual_info](){
+			XFree(visual_info);
 		});
 
-		this->colorMap = XCreateColormap(
+		this->color_map = XCreateColormap(
 				this->display.display,
-				RootWindow(this->display.display, vi->screen),
-				vi->visual,
+				RootWindow(this->display.display, visual_info->screen),
+				visual_info->visual,
 				AllocNone
 			);
 		//TODO: check for error?
 		utki::scope_exit scopeExitColorMap([this](){
-			XFreeColormap(this->display.display, this->colorMap);
+			XFreeColormap(this->display.display, this->color_map);
 		});
 
 		{
 			XSetWindowAttributes attr;
-			attr.colormap = colorMap;
+			attr.colormap = this->color_map;
 			attr.border_pixel = 0;
 			attr.background_pixmap = None;
 			attr.event_mask =
@@ -368,15 +368,15 @@ struct WindowWrapper : public utki::destructable{
 
 			this->window = XCreateWindow(
 					this->display.display,
-					RootWindow(this->display.display, vi->screen),
+					RootWindow(this->display.display, visual_info->screen),
 					0,
 					0,
 					wp.dim.x(),
 					wp.dim.y(),
 					0,
-					vi->depth,
+					visual_info->depth,
 					InputOutput,
-					vi->visual,
+					visual_info->visual,
 					fields,
 					&attr
 				);
@@ -388,7 +388,7 @@ struct WindowWrapper : public utki::destructable{
 			XDestroyWindow(this->display.display, this->window);
 		});
 
-		{//We want to handle WM_DELETE_WINDOW event to know when window is closed.
+		{ // we want to handle WM_DELETE_WINDOW event to know when window is closed
 			Atom a = XInternAtom(this->display.display, "WM_DELETE_WINDOW", True);
 			XSetWMProtocols(this->display.display, this->window, &a, 1);
 		}
@@ -398,7 +398,7 @@ struct WindowWrapper : public utki::destructable{
 		XFlush(this->display.display);
 
 #ifdef MORDAVOKNE_RENDER_OPENGL2
-		this->glContext = glXCreateContext(this->display.display, vi, 0, GL_TRUE);
+		this->glContext = glXCreateContext(this->display.display, visual_info, 0, GL_TRUE);
 		if(this->glContext == NULL){
 			throw std::runtime_error("glXCreateContext() failed");
 		}
@@ -544,7 +544,7 @@ struct WindowWrapper : public utki::destructable{
 #	error "Unknown graphics API"
 #endif
 	}
-	~WindowWrapper()noexcept{
+	~window_wrapper()noexcept{
 		XUnsetICFocus(this->inputContext);
 		XDestroyIC(this->inputContext);
 
@@ -562,7 +562,7 @@ struct WindowWrapper : public utki::destructable{
 #endif
 
 		XDestroyWindow(this->display.display, this->window);
-		XFreeColormap(this->display.display, this->colorMap);
+		XFreeColormap(this->display.display, this->color_map);
 
 #ifdef MORDAVOKNE_RENDER_OPENGLES2
 		eglTerminate(this->eglDisplay);
@@ -570,12 +570,12 @@ struct WindowWrapper : public utki::destructable{
 	}
 };
 
-WindowWrapper& getImpl(const std::unique_ptr<utki::destructable>& pimpl){
-	ASSERT(dynamic_cast<WindowWrapper*>(pimpl.get()))
-	return static_cast<WindowWrapper&>(*pimpl);
+window_wrapper& getImpl(const std::unique_ptr<utki::destructable>& pimpl){
+	ASSERT(dynamic_cast<window_wrapper*>(pimpl.get()))
+	return static_cast<window_wrapper&>(*pimpl);
 }
 
-WindowWrapper& get_impl(application& app){
+window_wrapper& get_impl(application& app){
 	return getImpl(getWindowPimpl(app));
 }
 
@@ -601,7 +601,7 @@ morda::real getDotsPerPt(Display* display){
 
 application::application(std::string&& name, const window_params& requestedWindowParams) :
 		name(name),
-		windowPimpl(std::make_unique<WindowWrapper>(requestedWindowParams)),
+		windowPimpl(std::make_unique<window_wrapper>(requestedWindowParams)),
 		gui(std::make_shared<morda::context>(
 #ifdef MORDAVOKNE_RENDER_OPENGL2
 				std::make_shared<morda::render_opengl2::renderer>(),
@@ -1020,6 +1020,8 @@ int main(int argc, const char** argv){
 			ASSERT(!ww.ui_queue.flags().get(opros::ready::read))
 		}
 
+		morda::vector2 new_win_dims(-1, -1);
+
 		// NOTE: do not check 'read' flag for X event, for some reason when waiting with 0 timeout it will never be set.
 		//       Maybe some bug in XWindows, maybe something else.
 		bool x_event_arrived = false;
@@ -1038,7 +1040,10 @@ int main(int argc, const char** argv){
 					break;
 				case ConfigureNotify:
 //						TRACE(<< "ConfigureNotify X event got" << std::endl)
-					updateWindowRect(*app, morda::rectangle(0, 0, float(event.xconfigure.width), float(event.xconfigure.height)));
+					// squash all window resize events into one, for that store the new window dimensions and update the
+					// viewport later only once
+					new_win_dims.x() = morda::real(event.xconfigure.width);
+					new_win_dims.y() = morda::real(event.xconfigure.height);
 					break;
 				case KeyPress:
 //						TRACE(<< "KeyPress X event got" << std::endl)
@@ -1131,6 +1136,10 @@ int main(int argc, const char** argv){
 		//             meaningful actuall happened and call render() only if it did
 		if(num_waitables_triggered != 0 && !x_event_arrived && !ui_queue_ready_to_read){
 			continue;
+		}
+
+		if(new_win_dims.is_positive_or_zero()){
+			updateWindowRect(*app, morda::rectangle(0, new_win_dims));
 		}
 
 		render(*app);
