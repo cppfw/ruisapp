@@ -401,11 +401,13 @@ public:
 					}
 
 					this->selectedItem = path;
+#ifdef DEBUG
 					TRACE(<< " selected item = ")
 					for(auto& k : this->selectedItem){
 						TRACE(<< k << ", ")
 					}
 					TRACE(<< std::endl)
+#endif
 					this->notify_item_changed();
 
 					return true;
@@ -530,27 +532,18 @@ public:
 			auto horiSlider = c->try_get_widget_as<morda::scroll_bar>("scroll_area_horizontal_slider");
 			auto hs = utki::make_weak(horiSlider);
 
-			auto resizeProxy = c->try_get_widget_as<morda::resize_proxy>("scroll_area_resize_proxy");
-			auto rp = utki::make_weak(resizeProxy);
-
-			resizeProxy->resize_handler = [vs, hs, sa](morda::resize_proxy&){
-				auto sc = sa.lock();
-				if(!sc){
-					return;
-				}
-
-				auto visibleArea = sc->get_visible_area_fraction();
-
-				if(auto v = vs.lock()){
-					v->set_fraction(sc->get_scroll_factor().y());
-					v->set_band_fraction(visibleArea.y());
-				}
+			scrollArea->scroll_change_handler = [hs = hs, vs = vs](morda::scroll_area& sa){
+				auto f = sa.get_scroll_factor();
+				auto b = sa.get_visible_area_fraction();
 				if(auto h = hs.lock()){
-					h->set_fraction(sc->get_scroll_factor().x());
-					h->set_band_fraction(visibleArea.x());
+					h->set_fraction(f.x());
+					h->set_band_fraction(b.x());
+				}
+				if(auto v = vs.lock()){
+					v->set_fraction(f.y());
+					v->set_band_fraction(b.y());
 				}
 			};
-			resizeProxy->on_resize();
 
 			vertSlider->fraction_change_handler = [sa](morda::fraction_widget& slider){
 				if(auto s = sa.lock()){
@@ -569,7 +562,7 @@ public:
 			};
 		}
 
-		// VerticalList
+		// vertical_list
 		{
 			auto verticalList = c->try_get_widget_as<morda::list>("list");
 			auto vl = utki::make_weak(verticalList);
@@ -583,16 +576,10 @@ public:
 				}
 			};
 
-			auto resizeProxy = c->try_get_widget_as<morda::resize_proxy>("vertical_list_resize_proxy");
-			ASSERT(resizeProxy)
-
-			resizeProxy->resize_handler = [vs, vl](morda::resize_proxy&){
-				auto l = vl.lock();
-				if(!l){
-					return;
-				}
+			verticalList->scroll_change_handler = [vs](morda::list_widget& l){
 				if(auto s = vs.lock()){
-					s->set_fraction(l->get_scroll_factor());
+					s->set_fraction(l.get_scroll_factor(), false);
+                    s->set_band_fraction(l.get_scroll_band());
 				}
 			};
 
@@ -618,9 +605,6 @@ public:
 					state->oldPos = e.pos;
 					if(auto l = vl.lock()){
 						l->scroll_by(dp.y());
-						if(auto s = vs.lock()){
-							s->set_fraction(l->get_scroll_factor());
-						}
 					}
 					return true;
 				}
@@ -628,32 +612,26 @@ public:
 			};
 		}
 
-		// HorizontalList
+		// pan_list
 		{
-			auto horizontalList = c->try_get_widget_as<morda::list_widget>("pan_list");
-			auto hl = utki::make_weak(horizontalList);
+			auto pan_list = c->try_get_widget_as<morda::list_widget>("pan_list");
+			auto hl = utki::make_weak(pan_list);
 
-			auto horizontalSlider = c->try_get_widget_as<morda::fraction_widget>("horizontal_list_slider");
+			auto horizontalSlider = c->try_get_widget_as<morda::scroll_bar>("horizontal_list_slider");
 			ASSERT(horizontalSlider)
 			auto hs = utki::make_weak(horizontalSlider);
+
+			pan_list->scroll_change_handler = [hs](morda::list_widget& l){
+				if(auto h = hs.lock()){
+					h->set_fraction(l.get_scroll_factor(), false);
+					h->set_band_fraction(l.get_scroll_band());
+				}
+			};
 
 			horizontalSlider->fraction_change_handler = [hl](morda::fraction_widget& slider){
 //				TRACE(<< "horizontal slider factor = " << slider.factor() << std::endl)
 				if(auto l = hl.lock()){
 					l->set_scroll_factor(slider.fraction());
-				}
-			};
-
-			auto resizeProxy = c->try_get_widget_as<morda::resize_proxy>("horizontal_list_resize_proxy");
-			ASSERT(resizeProxy)
-
-			resizeProxy->resize_handler = [hs, hl](morda::resize_proxy&){
-				auto l = hl.lock();
-				if(!l){
-					return;
-				}
-				if(auto s = hs.lock()){
-					s->set_fraction(l->get_scroll_factor());
 				}
 			};
 
@@ -679,9 +657,6 @@ public:
 					state->oldPos = e.pos;
 					if(auto l = hl.lock()){
 						l->scroll_by(dp.x());
-						if(auto s = hs.lock()){
-							s->set_fraction(l->get_scroll_factor());
-						}
 					}
 					return true;
 				}
@@ -722,28 +697,20 @@ public:
 				}
 			};
 
-			auto resizeProxy = c->try_get_widget_as<morda::resize_proxy>("treeview_resize_proxy");
-			ASSERT(resizeProxy)
-			auto rp = utki::make_weak(resizeProxy);
-
-			resizeProxy->resize_handler = [vs, hs, tv](morda::resize_proxy& w){
-				auto t = tv.lock();
-				if(!t){
-					return;
-				}
+			treeview->scroll_change_handler = [
+					hs = utki::make_weak(horizontalSlider),
+					vs = utki::make_weak(verticalSlider)
+				](morda::tree_view& tw)
+			{
+				auto f = tw.get_scroll_factor();
+                auto b = tw.get_scroll_band();
 				if(auto h = hs.lock()){
-					h->set_fraction(t->get_scroll_factor().x());
+                    h->set_band_fraction(b.x());
+					h->set_fraction(f.x(), false);
 				}
 				if(auto v = vs.lock()){
-					v->set_fraction(t->get_scroll_factor().y());
-				}
-			};
-
-			treeview->view_change_handler = [rp](morda::tree_view&){
-				if(auto r = rp.lock()){
-					if(r->resize_handler){
-						r->resize_handler(*r);
-					}
+                    v->set_band_fraction(b.y());
+					v->set_fraction(f.y(), false);
 				}
 			};
 
