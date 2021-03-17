@@ -1,3 +1,9 @@
+libmordavokne (0.2.64) unstable; urgency=medium
+
+  * msvs: disable whole program optimization
+
+ -- Ivan Gagis <igagis@gmail.com>  Wed, 17 Mar 2021 23:21:10 +0200
+
 libmordavokne (0.2.63) unstable; urgency=medium
 
   * add all directions arrow cursor
