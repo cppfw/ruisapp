@@ -151,7 +151,7 @@ std::unique_ptr<java_functions_wrapper> java_functions;
 struct window_wrapper : public utki::destructable{
 	EGLDisplay display;
 	EGLSurface surface = EGL_NO_SURFACE;
-	EGLContext context;
+	EGLContext context = EGL_NO_CONTEXT;
 
 	EGLint format;
 	EGLConfig config;
@@ -203,12 +203,6 @@ struct window_wrapper : public utki::destructable{
 			throw std::runtime_error("eglGetConfigAttrib() failed");
 		}
 
-		this->create_surface();
-
-		utki::scope_exit egl_surface_scope_exit([this](){
-			this->destroy_surface();
-		});
-
 		EGLint context_attrs[] = {
 				EGL_CONTEXT_CLIENT_VERSION, 2, // this is needed on Android, otherwise eglCreateContext() thinks that we want OpenGL ES 1.1, but we want 2.0
 				EGL_NONE
@@ -223,12 +217,9 @@ struct window_wrapper : public utki::destructable{
 			eglDestroyContext(this->display, this->context);
 		});
 
-		if(eglMakeCurrent(this->display, this->surface, this->surface, this->context) == EGL_FALSE){
-			throw std::runtime_error("eglMakeCurrent() failed");
-		}
+		this->create_surface();
 
 		eglContextScopeExit.reset();
-		egl_surface_scope_exit.reset();
 		eglDisplayScopeExit.reset();
 	}
 
@@ -251,6 +242,19 @@ struct window_wrapper : public utki::destructable{
 		if(this->surface == EGL_NO_SURFACE){
 			throw std::runtime_error("eglCreateWindowSurface() failed");
 		}
+
+		utki::scope_exit surface_scope_exit([this](){
+			this->destroy_surface();
+		});
+
+		// bind EGL context to the new surface
+		ASSERT(this->context != EGL_NO_CONTEXT)
+		eglMakeCurrent(this->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT); // unbind EGL context
+		if(eglMakeCurrent(this->display, this->surface, this->surface, this->context) == EGL_FALSE){
+			throw std::runtime_error("eglMakeCurrent() failed");
+		}
+
+		surface_scope_exit.reset();
 	}
 
 	r4::vector2<unsigned> get_window_size(){
@@ -281,7 +285,7 @@ struct window_wrapper : public utki::destructable{
 	}
 
 	~window_wrapper()noexcept{
-		eglMakeCurrent(this->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+		eglMakeCurrent(this->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT); // unbind EGL context
 		eglDestroyContext(this->display, this->context);
 		this->destroy_surface();
 		eglTerminate(this->display);
