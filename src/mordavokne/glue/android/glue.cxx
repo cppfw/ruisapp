@@ -153,6 +153,9 @@ struct window_wrapper : public utki::destructable{
 	EGLSurface surface = EGL_NO_SURFACE;
 	EGLContext context;
 
+	EGLint format;
+	EGLConfig config;
+
 	nitki::queue ui_queue;
 
 	window_wrapper(const window_params& wp){
@@ -183,13 +186,11 @@ struct window_wrapper : public utki::destructable{
 				EGL_NONE
 		};
 
-		EGLConfig config;
-
 		// Here, the application chooses the configuration it desires. In this
 		// sample, we have a very simplified selection process, where we pick
 		// the first EGLConfig that matches our criteria
 		EGLint numConfigs;
-		eglChooseConfig(this->display, attribs, &config, 1, &numConfigs);
+		eglChooseConfig(this->display, attribs, &this->config, 1, &numConfigs);
 		if(numConfigs <= 0){
 			throw std::runtime_error("eglChooseConfig() failed, no matching config found");
 		}
@@ -198,29 +199,22 @@ struct window_wrapper : public utki::destructable{
 		// guaranteed to be accepted by ANativeWindow_setBuffersGeometry().
 		// As soon as we picked a EGLConfig, we can safely reconfigure the
 		// ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID.
-		EGLint format;
-		if(eglGetConfigAttrib(this->display, config, EGL_NATIVE_VISUAL_ID, &format) == EGL_FALSE){
+		if(eglGetConfigAttrib(this->display, this->config, EGL_NATIVE_VISUAL_ID, &this->format) == EGL_FALSE){
 			throw std::runtime_error("eglGetConfigAttrib() failed");
 		}
 
-		ASSERT(android_window)
-		ANativeWindow_setBuffersGeometry(android_window, 0, 0, format);
+		this->create_surface();
 
-		this->surface = eglCreateWindowSurface(this->display, config, android_window, NULL);
-		if(this->surface == EGL_NO_SURFACE){
-			throw std::runtime_error("eglCreateWindowSurface() failed");
-		}
-
-		utki::scope_exit eglSurfaceScopeExit([this](){
-			eglDestroySurface(this->display, this->surface);
+		utki::scope_exit egl_surface_scope_exit([this](){
+			this->destroy_surface();
 		});
 
-		EGLint contextAttrs[] = {
+		EGLint context_attrs[] = {
 				EGL_CONTEXT_CLIENT_VERSION, 2, // this is needed on Android, otherwise eglCreateContext() thinks that we want OpenGL ES 1.1, but we want 2.0
 				EGL_NONE
 		};
 
-		this->context = eglCreateContext(this->display, config, NULL, contextAttrs);
+		this->context = eglCreateContext(this->display, this->config, NULL, context_attrs);
 		if(this->context == EGL_NO_CONTEXT){
 			throw std::runtime_error("eglCreateContext() failed");
 		}
@@ -234,8 +228,29 @@ struct window_wrapper : public utki::destructable{
 		}
 
 		eglContextScopeExit.reset();
-		eglSurfaceScopeExit.reset();
+		egl_surface_scope_exit.reset();
 		eglDisplayScopeExit.reset();
+	}
+
+	void destroy_surface()noexcept{
+		// according to https://www.khronos.org/registry/EGL/sdk/docs/man/html/eglMakeCurrent.xhtml
+		// it is ok to destroy surface while EGL context is current, so here we do not unbind the EGL context
+		if(this->surface != EGL_NO_SURFACE){
+			eglDestroySurface(this->display, this->surface);
+			this->surface = EGL_NO_SURFACE;
+		}
+	}
+
+	void create_surface(){
+		ASSERT(this->surface == EGL_NO_SURFACE)
+
+		ASSERT(android_window)
+		ANativeWindow_setBuffersGeometry(android_window, 0, 0, this->format);
+
+		this->surface = eglCreateWindowSurface(this->display, this->config, android_window, NULL);
+		if(this->surface == EGL_NO_SURFACE){
+			throw std::runtime_error("eglCreateWindowSurface() failed");
+		}
 	}
 
 	r4::vector2<unsigned> get_window_size(){
@@ -268,9 +283,7 @@ struct window_wrapper : public utki::destructable{
 	~window_wrapper()noexcept{
 		eglMakeCurrent(this->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 		eglDestroyContext(this->display, this->context);
-		if(this->surface != EGL_NO_SURFACE){
-			eglDestroySurface(this->display, this->surface);
-		}
+		this->destroy_surface();
 		eglTerminate(this->display);
 	}
 };
