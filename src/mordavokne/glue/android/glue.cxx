@@ -257,8 +257,8 @@ struct window_wrapper : public utki::destructable{
 		eglSwapBuffers(this->display, this->surface);
 	}
 
-	bool is_window_visible()const noexcept{
-		return this->surface != EGL_NO_SURFACE;
+	void render(mordavokne::application& app){
+		mordavokne::render(app);
 	}
 
 	~window_wrapper()noexcept{
@@ -1319,7 +1319,7 @@ int on_update_timer_expired(int fd, int events, void* data){
 }
 
 int on_queue_has_messages(int fd, int events, void* data){
-	auto& ww = get_impl(get_window_pimpl(application::inst()));
+	auto& ww = get_impl(application::inst());
 
 	while(auto m = ww.ui_queue.pop_front()){
 		m();
@@ -1370,7 +1370,7 @@ void on_native_window_created(ANativeActivity* activity, ANativeWindow* window){
 		// add UI message queue descriptor to looper
 		if(ALooper_addFd(
 				looper,
-				get_impl(get_window_pimpl(*app)).ui_queue.get_handle(),
+				get_impl(*app).ui_queue.get_handle(),
 				ALOOPER_POLL_CALLBACK,
 				ALOOPER_EVENT_INPUT,
 				&on_queue_has_messages,
@@ -1417,7 +1417,7 @@ void on_native_window_destroyed(ANativeActivity* activity, ANativeWindow* window
 	// remove UI message queue descriptor from looper
 	ALooper_removeFd(
 			looper,
-			get_impl(get_window_pimpl(application::inst())).ui_queue.get_handle()
+			get_impl(application::inst()).ui_queue.get_handle()
 		);
 
 	// remove fd_flag from looper
