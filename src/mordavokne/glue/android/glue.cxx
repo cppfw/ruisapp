@@ -150,7 +150,7 @@ std::unique_ptr<java_functions_wrapper> java_functions;
 
 struct window_wrapper : public utki::destructable{
 	EGLDisplay display;
-	EGLSurface surface;
+	EGLSurface surface = EGL_NO_SURFACE;
 	EGLContext context;
 
 	nitki::queue ui_queue;
@@ -239,6 +239,10 @@ struct window_wrapper : public utki::destructable{
 	}
 
 	r4::vector2<unsigned> get_window_size(){
+		if(this->surface == EGL_NO_SURFACE){
+			return {0, 0};
+		}
+
 		EGLint width, height;
 		eglQuerySurface(this->display, this->surface, EGL_WIDTH, &width);
 		eglQuerySurface(this->display, this->surface, EGL_HEIGHT, &height);
@@ -246,13 +250,23 @@ struct window_wrapper : public utki::destructable{
 	}
 
 	void swap_buffers(){
+		if(this->surface == EGL_NO_SURFACE){
+			return;
+		}
+
 		eglSwapBuffers(this->display, this->surface);
+	}
+
+	bool is_window_visible()const noexcept{
+		return this->surface != EGL_NO_SURFACE;
 	}
 
 	~window_wrapper()noexcept{
 		eglMakeCurrent(this->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 		eglDestroyContext(this->display, this->context);
-		eglDestroySurface(this->display, this->surface);
+		if(this->surface != EGL_NO_SURFACE){
+			eglDestroySurface(this->display, this->surface);
+		}
 		eglTerminate(this->display);
 	}
 };
