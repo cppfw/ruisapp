@@ -1,3 +1,9 @@
+libmordavokne (0.2.65) unstable; urgency=medium
+
+  * android: preserve EGL context when window is hidden
+
+ -- Ivan Gagis <igagis@gmail.com>  Thu, 18 Mar 2021 19:18:11 +0200
+
 libmordavokne (0.2.64) unstable; urgency=medium
 
   * msvs: disable whole program optimization
