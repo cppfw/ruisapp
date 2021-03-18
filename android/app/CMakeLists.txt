@@ -16,6 +16,8 @@ set(name mordavokneapp) # this has to be 'mordavokneapp' so that MordaVOkneActiv
 
 include (${ANDROID_GRADLE_NATIVE_BUNDLE_PLUGIN_MK})
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+
 link_directories( ../mordavokne/build/intermediates/cmake/debug/obj/${ANDROID_ABI} )
 
 add_library(
