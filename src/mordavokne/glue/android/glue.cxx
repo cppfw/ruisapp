@@ -1237,6 +1237,22 @@ namespace{
 void on_destroy(ANativeActivity* activity){
 	LOG("on_destroy(): invoked" << std::endl)
 
+	// TODO: move looper related stuff to window_wrapper?
+	ALooper* looper = ALooper_prepare(0);
+	ASSERT(looper)
+
+	// remove UI message queue descriptor from looper
+	ALooper_removeFd(
+			looper,
+			get_impl(application::inst()).ui_queue.get_handle()
+		);
+
+	// remove fd_flag from looper
+	ALooper_removeFd(looper, fd_flag.get_fd());
+
+	delete static_cast<mordavokne::application*>(activity->instance);
+	activity->instance = nullptr;
+
 	java_functions.reset();
 }
 
@@ -1348,56 +1364,59 @@ void on_native_window_created(ANativeActivity* activity, ANativeWindow* window){
 	cur_window_dims.x() = float(ANativeWindow_getWidth(window));
 	cur_window_dims.y() = float(ANativeWindow_getHeight(window));
 
-	ASSERT(!activity->instance)
-	try{
-		// use local auto-pointer for now because an exception can be thrown and need to delete object then.
-		auto cfg = std::make_unique<android_configuration_wrapper>();
-		// retrieve current configuration
-		AConfiguration_fromAssetManager(cfg->android_configuration, native_activity->assetManager);
+	if(!activity->instance){
+		try{
+			// use local auto-pointer for now because an exception can be thrown and need to delete object then.
+			auto cfg = std::make_unique<android_configuration_wrapper>();
+			// retrieve current configuration
+			AConfiguration_fromAssetManager(cfg->android_configuration, native_activity->assetManager);
 
-		application* app = mordavokne::create_application(0, nullptr).release();
+			application* app = mordavokne::create_application(0, nullptr).release();
 
-		activity->instance = app;
+			activity->instance = app;
 
-		// save current configuration in global variable
-		cur_config = std::move(cfg);
+			// save current configuration in global variable
+			cur_config = std::move(cfg);
 
-		ALooper* looper = ALooper_prepare(0);
-		ASSERT(looper)
+			ALooper* looper = ALooper_prepare(0);
+			ASSERT(looper)
 
-		// add timer descriptor to looper, this is needed for updatable to work
-		if(ALooper_addFd(
-				looper,
-				fd_flag.get_fd(),
-				ALOOPER_POLL_CALLBACK,
-				ALOOPER_EVENT_INPUT,
-				&on_update_timer_expired,
-				0
-			) == -1)
-		{
-			throw std::runtime_error("failed to add timer descriptor to looper");
+			// add timer descriptor to looper, this is needed for updatable to work
+			if(ALooper_addFd(
+					looper,
+					fd_flag.get_fd(),
+					ALOOPER_POLL_CALLBACK,
+					ALOOPER_EVENT_INPUT,
+					&on_update_timer_expired,
+					0
+				) == -1)
+			{
+				throw std::runtime_error("failed to add timer descriptor to looper");
+			}
+
+			// add UI message queue descriptor to looper
+			if(ALooper_addFd(
+					looper,
+					get_impl(*app).ui_queue.get_handle(),
+					ALOOPER_POLL_CALLBACK,
+					ALOOPER_EVENT_INPUT,
+					&on_queue_has_messages,
+					0
+				) == -1)
+			{
+				throw std::runtime_error("failed to add UI message queue descriptor to looper");
+			}
+
+			fd_flag.set(); // this is to call the update() for the first time if there were any updateables started during creating application object
+		}catch(std::exception& e){
+			LOG("std::exception uncaught while creating application instance: " << e.what() << std::endl)
+			throw;
+		}catch(...){
+			LOG("unknown exception uncaught while creating application instance!" << std::endl)
+			throw;
 		}
-
-		// add UI message queue descriptor to looper
-		if(ALooper_addFd(
-				looper,
-				get_impl(*app).ui_queue.get_handle(),
-				ALOOPER_POLL_CALLBACK,
-				ALOOPER_EVENT_INPUT,
-				&on_queue_has_messages,
-				0
-			) == -1)
-		{
-			throw std::runtime_error("failed to add UI message queue descriptor to looper");
-		}
-
-		fd_flag.set(); // this is to call the update() for the first time if there were any updateables started during creating application object
-	}catch(std::exception& e){
-		LOG("std::exception uncaught while creating application instance: " << e.what() << std::endl)
-		throw;
-	}catch(...){
-		LOG("unknown exception uncaught while creating application instance!" << std::endl)
-		throw;
+	}else{
+		get_impl(get_app(activity)).create_surface();
 	}
 }
 
@@ -1424,24 +1443,14 @@ void on_native_window_redraw_needed(ANativeActivity* activity, ANativeWindow* wi
 void on_native_window_destroyed(ANativeActivity* activity, ANativeWindow* window){
 	LOG("on_native_window_destroyed(): invoked" << std::endl)
 
-	ALooper* looper = ALooper_prepare(0);
-	ASSERT(looper)
-
-	// remove UI message queue descriptor from looper
-	ALooper_removeFd(
-			looper,
-			get_impl(application::inst()).ui_queue.get_handle()
-		);
-
-	// remove fd_flag from looper
-	ALooper_removeFd(looper, fd_flag.get_fd());
-
-	// Need to destroy app right before window is destroyed, i.e. before OGL is de-initialized
-	delete static_cast<mordavokne::application*>(activity->instance);
-	activity->instance = nullptr;
+	// destroy EGL drawing surface associated with the window.
+	// the EGL context remains existing and should preserve all resources like textures, vertex buffers, etc.
+	get_impl(get_app(activity)).destroy_surface();
 
 	// delete configuration object
 	cur_config.reset();
+
+	android_window = nullptr;
 }
 
 int on_input_events_ready_for_reading_from_queue(int fd, int events, void* data){
@@ -1470,6 +1479,7 @@ int on_input_events_ready_for_reading_from_queue(int fd, int events, void* data)
 	return 1; // we don't want to remove input queue descriptor from looper
 }
 
+// NOTE: this callback is called before on_native_window_created()
 void on_input_queue_created(ANativeActivity* activity, AInputQueue* queue){
 	LOG("on_input_queue_created(): invoked" << std::endl)
 	ASSERT(queue);
@@ -1482,7 +1492,7 @@ void on_input_queue_created(ANativeActivity* activity, AInputQueue* queue){
 			ALooper_prepare(0), // get looper for current thread (main thread)
 			0, // 'ident' is ignored since we are using callback
 			&on_input_events_ready_for_reading_from_queue,
-			activity->instance
+			nullptr
 		);
 }
 
