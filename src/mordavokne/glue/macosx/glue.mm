@@ -88,7 +88,7 @@ void mouseButton(NSEvent* e, bool isDown, morda::mouse_button button){
 	NSPoint winPos = [e locationInWindow];
 	using std::round;
 	auto pos = round(morda::vector2(winPos.x, winPos.y));
-	handleMouseButton(
+	handle_mouse_button(
 			mordavokne::application::inst(),
 			isDown,
 			morda::vector2(pos.x(), mordavokne::application::inst().window_dims().y() - pos.y()),
@@ -99,7 +99,7 @@ void mouseButton(NSEvent* e, bool isDown, morda::mouse_button button){
 
 void macosx_HandleMouseMove(const morda::vector2& pos, unsigned id){
 //	TRACE(<< "Macosx_HandleMouseMove(): pos = " << pos << std::endl)
-	handleMouseMove(
+	handle_mouse_move(
 			mordavokne::application::inst(),
 			morda::vector2(pos.x(), mordavokne::application::inst().window_dims().y() - pos.y()),
 			id
@@ -107,7 +107,7 @@ void macosx_HandleMouseMove(const morda::vector2& pos, unsigned id){
 }
 
 void macosx_HandleMouseHover(bool isHovered){
-	auto& ww = getImpl(getWindowPimpl(mordavokne::application::inst()));
+	auto& ww = getImpl(get_window_pimpl(mordavokne::application::inst()));
 	if(!ww.mouseCursorIsCurrentlyVisible){
 		if(isHovered){
 			[NSCursor hide];
@@ -120,8 +120,8 @@ void macosx_HandleMouseHover(bool isHovered){
 }
 
 void macosx_HandleKeyEvent(bool isDown, morda::key keyCode){
-	auto& ww = getImpl(getWindowPimpl(mordavokne::application::inst()));
-	handleKeyEvent(mordavokne::application::inst(), isDown, keyCode);
+	auto& ww = getImpl(get_window_pimpl(mordavokne::application::inst()));
+	handle_key_event(mordavokne::application::inst(), isDown, keyCode);
 }
 
 class MacosxUnicodeProvider : public morda::gui::unicode_provider{
@@ -148,14 +148,14 @@ public:
 };
 
 void macosx_HandleCharacterInput(const void* nsstring, morda::key key){
-	auto& ww = getImpl(getWindowPimpl(mordavokne::application::inst()));
-	handleCharacterInput(mordavokne::application::inst(), MacosxUnicodeProvider(reinterpret_cast<const NSString*>(nsstring)), key);
+	auto& ww = getImpl(get_window_pimpl(mordavokne::application::inst()));
+	handle_character_input(mordavokne::application::inst(), MacosxUnicodeProvider(reinterpret_cast<const NSString*>(nsstring)), key);
 }
 
 void macosx_UpdateWindowRect(const morda::rectangle& r){
-	auto& ww = getImpl(getWindowPimpl(mordavokne::application::inst()));
+	auto& ww = getImpl(get_window_pimpl(mordavokne::application::inst()));
 	[ww.openglContextId update];//after resizing window we need to update OpenGL context
-	updateWindowRect(mordavokne::application::inst(), r);
+	update_window_rect(mordavokne::application::inst(), r);
 }
 
 const std::array<morda::key, std::uint8_t(-1) + 1> keyCodeMap = {{
@@ -694,7 +694,7 @@ WindowWrapper::~WindowWrapper()noexcept{
 }
 
 void application::quit()noexcept{
-	auto& ww = getImpl(this->windowPimpl);
+	auto& ww = getImpl(this->window_pimpl);
 	ww.quitFlag = true;
 }
 
@@ -707,7 +707,7 @@ int main (int argc, const char** argv){
 
 	TRACE(<< "main(): app created" << std::endl)
 
-	auto& ww = getImpl(getWindowPimpl(*app));
+	auto& ww = getImpl(get_window_pimpl(*app));
 
 	[ww.applicationObjectId activateIgnoringOtherApps:YES];
 
@@ -801,12 +801,12 @@ morda::real getDotsPerPt(){
 
 application::application(std::string&& name, const window_params& wp) :
 		name(name),
-		windowPimpl(std::make_unique<WindowWrapper>(wp)),
+		window_pimpl(std::make_unique<WindowWrapper>(wp)),
 		gui(std::make_shared<morda::context>(
 				std::make_shared<morda::render_opengl2::renderer>(),
 				std::make_shared<morda::updater>(),
 				[this](std::function<void()>&& a){
-					auto& ww = getImpl(getWindowPimpl(*this));
+					auto& ww = getImpl(get_window_pimpl(*this));
 
 					NSEvent* e = [NSEvent
 							otherEventWithType: NSEventTypeApplicationDefined
@@ -831,7 +831,7 @@ application::application(std::string&& name, const window_params& wp) :
 		storage_dir(initializeStorageDir(this->name))
 {
 	TRACE(<< "application::application(): enter" << std::endl)
-	this->updateWindowRect(
+	this->update_window_rect(
 			morda::rectangle(
 					0,
 					0,
@@ -841,8 +841,8 @@ application::application(std::string&& name, const window_params& wp) :
 		);
 }
 
-void application::swapFrameBuffers(){
-	auto& ww = getImpl(this->windowPimpl);
+void application::swap_frame_buffers(){
+	auto& ww = getImpl(this->window_pimpl);
 	[ww.openglContextId flushBuffer];
 }
 
@@ -851,7 +851,7 @@ void application::set_fullscreen(bool enable){
 		return;
 	}
 
-	auto& ww = getImpl(this->windowPimpl);
+	auto& ww = getImpl(this->window_pimpl);
 
 	if(enable){
 		// save old window size
@@ -884,7 +884,7 @@ void application::set_fullscreen(bool enable){
 }
 
 void application::set_mouse_cursor_visible(bool visible){
-	auto& ww = getImpl(this->windowPimpl);
+	auto& ww = getImpl(this->window_pimpl);
 	if(visible){
 		if(!ww.mouseCursorIsCurrentlyVisible){
 			[NSCursor unhide];
