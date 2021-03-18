@@ -261,7 +261,7 @@ struct window_wrapper : public utki::destructable{
 		if(this->surface == EGL_NO_SURFACE){
 			return;
 		}
-		
+
 		mordavokne::render(app);
 	}
 
@@ -453,18 +453,6 @@ public:
 morda::vector2 cur_window_dims(0, 0);
 
 AInputQueue* input_queue = nullptr;
-
-struct{
-	// path to this application's internal data directory
-	const char* internal_data_path;
-
-	// path to this application's external (removable/mountable) data directory
-	const char* external_data_path;
-
-	// Pointer to the Asset Manager instance for the application. The application
-	// uses this to access binary assets bundled inside its own .apk file.
-	AAssetManager* asset_manager;
-} app_info;
 
 // array of current pointer positions, needed to detect which pointers have actually moved.
 std::array<morda::vector2, 10> pointers;
@@ -1016,7 +1004,7 @@ mordavokne::application::application(std::string&& name, const window_params& re
 }
 
 std::unique_ptr<papki::file> mordavokne::application::get_res_file(const std::string& path)const{
-	return utki::make_unique<asset_file>(app_info.asset_manager, path);
+	return utki::make_unique<asset_file>(native_activity->assetManager, path);
 }
 
 void mordavokne::application::swap_frame_buffers(){
@@ -1262,13 +1250,15 @@ void on_stop(ANativeActivity* activity){
 void on_configuration_changed(ANativeActivity* activity){
 	LOG("on_configuration_changed(): invoked" << std::endl)
 
+	// find out what exactly has changed in the configuration
 	int32_t diff;
 	{
 		auto config = std::make_unique<android_configuration_wrapper>();
-		AConfiguration_fromAssetManager(config->android_configuration, app_info.asset_manager);
+		AConfiguration_fromAssetManager(config->android_configuration, native_activity->assetManager);
 
 		diff = AConfiguration_diff(cur_config->android_configuration, config->android_configuration);
 
+		// store new configuration
 		cur_config = std::move(config);
 	}
 
@@ -1346,7 +1336,7 @@ void on_native_window_created(ANativeActivity* activity, ANativeWindow* window){
 		// use local auto-pointer for now because an exception can be thrown and need to delete object then.
 		auto cfg = std::make_unique<android_configuration_wrapper>();
 		// retrieve current configuration
-		AConfiguration_fromAssetManager(cfg->android_configuration, app_info.asset_manager);
+		AConfiguration_fromAssetManager(cfg->android_configuration, native_activity->assetManager);
 
 		application* app = mordavokne::create_application(0, nullptr).release();
 
@@ -1547,10 +1537,6 @@ void ANativeActivity_onCreate(
 	activity->instance = 0;
 
 	native_activity = activity;
-
-	app_info.internal_data_path = activity->internalDataPath;
-	app_info.external_data_path = activity->externalDataPath;
-	app_info.asset_manager = activity->assetManager;
 
 	java_functions = std::make_unique<java_functions_wrapper>(activity);
 }
