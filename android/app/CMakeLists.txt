@@ -14,7 +14,7 @@ file(GLOB_RECURSE srcs "../../tests/app/*.cpp")
 
 set(name mordavokneapp) # this has to be 'mordavokneapp' so that MordaVOkneActivity loads that named .so
 
-include (${ANDROID_GRADLE_NATIVE_BUNDLE_PLUGIN_MK})
+include(${ANDROID_GRADLE_NATIVE_BUNDLE_PLUGIN_MK})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 

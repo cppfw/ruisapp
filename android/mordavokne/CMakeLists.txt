@@ -14,9 +14,12 @@ file(GLOB_RECURSE srcs "../../src/*.cpp")
 
 set(name mordavokne)
 
-include (${ANDROID_GRADLE_NATIVE_BUNDLE_PLUGIN_MK})
+include(${ANDROID_GRADLE_NATIVE_BUNDLE_PLUGIN_MK})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+
+# TODO: comment
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D DEBUG")
 
 add_library(
         # Specifies the name of the library.

@@ -476,14 +476,14 @@ inline morda::vector2 android_win_coords_to_morda_win_rect_coords(const morda::v
 }
 
 struct android_configuration_wrapper{
-	AConfiguration* ac;
+	AConfiguration* android_configuration;
 
 	android_configuration_wrapper(){
-		this->ac = AConfiguration_new();
+		this->android_configuration = AConfiguration_new();
 	}
 
 	~android_configuration_wrapper()noexcept{
-		AConfiguration_delete(this->ac);
+		AConfiguration_delete(this->android_configuration);
 	}
 };
 
@@ -1024,9 +1024,9 @@ void mordavokne::application::set_mouse_cursor_visible(bool visible){
 	// do nothing
 }
 
-void mordavokne::application::set_fullscreen(bool enable) {
+void mordavokne::application::set_fullscreen(bool enable){
 	ASSERT(native_activity)
-	if(enable) {
+	if(enable){
 		ANativeActivity_setWindowFlags(native_activity, AWINDOW_FLAG_FULLSCREEN, 0);
 	}else{
 		ANativeActivity_setWindowFlags(native_activity, 0, AWINDOW_FLAG_FULLSCREEN);
@@ -1261,16 +1261,16 @@ void on_configuration_changed(ANativeActivity* activity){
 	int32_t diff;
 	{
 		auto config = std::make_unique<android_configuration_wrapper>();
-		AConfiguration_fromAssetManager(config->ac, app_info.asset_manager);
+		AConfiguration_fromAssetManager(config->android_configuration, app_info.asset_manager);
 
-		diff = AConfiguration_diff(cur_config->ac, config->ac);
+		diff = AConfiguration_diff(cur_config->android_configuration, config->android_configuration);
 
 		cur_config = std::move(config);
 	}
 
 	// if orientation has changed
 	if(diff & ACONFIGURATION_ORIENTATION){
-		int32_t orientation = AConfiguration_getOrientation(cur_config->ac);
+		int32_t orientation = AConfiguration_getOrientation(cur_config->android_configuration);
 		switch(orientation){
 			case ACONFIGURATION_ORIENTATION_LAND:
 			case ACONFIGURATION_ORIENTATION_PORT:
@@ -1291,8 +1291,6 @@ void on_configuration_changed(ANativeActivity* activity){
 
 void on_low_memory(ANativeActivity* activity){
 	LOG("on_low_memory(): invoked" << std::endl)
-	//TODO:
-//    static_cast<morda::application*>(activity->instance)->on_low_memory();
 }
 
 void on_window_focus_changed(ANativeActivity* activity, int hasFocus){
@@ -1344,7 +1342,7 @@ void on_native_window_created(ANativeActivity* activity, ANativeWindow* window){
 		// use local auto-pointer for now because an exception can be thrown and need to delete object then.
 		auto cfg = std::make_unique<android_configuration_wrapper>();
 		// retrieve current configuration
-		AConfiguration_fromAssetManager(cfg->ac, app_info.asset_manager);
+		AConfiguration_fromAssetManager(cfg->android_configuration, app_info.asset_manager);
 
 		application* app = mordavokne::create_application(0, nullptr).release();
 
