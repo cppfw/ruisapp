@@ -258,6 +258,10 @@ struct window_wrapper : public utki::destructable{
 	}
 
 	void render(mordavokne::application& app){
+		if(this->surface == EGL_NO_SURFACE){
+			return;
+		}
+		
 		mordavokne::render(app);
 	}
 
@@ -1218,7 +1222,7 @@ void handle_input_events(){
 		);
 	}
 
-	render(app);
+	get_impl(app).render(app);
 
 	fd_flag.set();
 }
@@ -1311,7 +1315,7 @@ int on_update_timer_expired(int fd, int events, void* data){
 	}
 
 	// after updating need to re-render everything
-	render(app);
+	get_impl(app).render(app);
 
 //	LOG("on_update_timer_expired(): armed timer for " << dt << std::endl)
 
@@ -1403,7 +1407,9 @@ void on_native_window_resized(ANativeActivity* activity, ANativeWindow* window){
 void on_native_window_redraw_needed(ANativeActivity* activity, ANativeWindow* window){
 	LOG("on_native_window_redraw_needed(): invoked" << std::endl)
 
-	render(get_app(activity));
+	auto& app = get_app(activity);
+
+	get_impl(app).render(app);
 }
 
 // This function is called right before destroying Window object, according to documentation:
@@ -1510,7 +1516,7 @@ void on_content_rect_changed(ANativeActivity* activity, const ARect* rect){
 		);
 
 	// redraw, since WindowRedrawNeeded not always comes
-	render(app);
+	get_impl(app).render(app);
 }
 }
 
