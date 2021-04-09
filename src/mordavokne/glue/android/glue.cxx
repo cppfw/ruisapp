@@ -938,7 +938,7 @@ JNIEXPORT void JNICALL Java_io_github_cppfw_mordavokne_MordaVOkneActivity_handle
 		return;
 	}
 
-	LOG([](auto&o){o << "handleCharacterStringInput(): utf8Chars = " << utf8Chars << std::endl;})
+	LOG([&](auto&o){o << "handleCharacterStringInput(): utf8Chars = " << utf8Chars << std::endl;})
 
 	std::vector<char32_t> utf32;
 
