@@ -8,7 +8,7 @@ Pod::Spec.new do |s|
   s.platform     = :ios
   s.ios.deployment_target = '8.0'
 
-  s.source = { :http => "https://dl.bintray.com/cppfw/cocoapods/#{s.name}/#{s.version}/#{s.name}-#{s.version}.zip" }
+  s.source = { :http => "https://cppfw.jfrog.io/artifactory/cocoapods/#{s.name}-#{s.version}.zip" }
 
   s.source_files  = "include/**/*.{hpp,h}"
   s.header_mappings_dir = "include"
@@ -22,10 +22,10 @@ Pod::Spec.new do |s|
   #TODO: is this needed?
   #s.frameworks = 'GLKit'
 
-  s.dependency 'utki', '>= 1.1.112'
-  s.dependency 'nitki', '>= 1.0.39'
-  s.dependency 'morda', '>= 0.5.160'
-  s.dependency 'papki', '>= 1.0.91'
-  s.dependency 'r4', '>= 0.1.51'
-  s.dependency 'morda-opengles2-ren', '>= 0.1.36'
+  s.dependency 'utki', '>= 1.1.124'
+  s.dependency 'nitki', '>= 1.0.41'
+  s.dependency 'morda', '>= 0.5.163'
+  s.dependency 'papki', '>= 1.0.93'
+  s.dependency 'r4', '>= 0.1.53'
+  s.dependency 'morda-opengles2-ren', '>= 0.1.37'
 end

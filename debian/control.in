@@ -3,14 +3,14 @@ Section: libs
 Priority: extra
 Maintainer: Ivan Gagis <igagis@gmail.com>
 Build-Depends: debhelper (>= 9), prorab, prorab-extra, myci,
-		libutki-dev (>= 1.1.112),
-		libpapki-dev (>= 1.0.91),
-		libmorda-dev (>= 0.5.160),
-		libr4-dev (>= 0.1.51),
+		libutki-dev (>= 1.1.124),
+		libpapki-dev (>= 1.0.93),
+		libmorda-dev (>= 0.5.163),
+		libr4-dev (>= 0.1.53),
 		libglew-dev,
-		libnitki-dev (>= 1.0.39),
-		libmorda-opengl2-ren-dev (>= 0.1.44),
-		libmorda-opengles2-ren-dev (>= 0.1.36),
+		libnitki-dev (>= 1.0.41),
+		libmorda-opengl2-ren-dev (>= 0.1.46),
+		libmorda-opengles2-ren-dev (>= 0.1.37),
 		libegl1-mesa-dev
 Build-Depends-Indep: doxygen
 Standards-Version: 3.9.5
