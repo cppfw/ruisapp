@@ -1,3 +1,9 @@
+libmordavokne (0.2.67) unstable; urgency=medium
+
+  * application factory
+
+ -- Ivan Gagis <igagis@gmail.com>  Sat, 15 May 2021 01:21:19 +0300
+
 libmordavokne (0.2.66) unstable; urgency=medium
 
   * deploy to jfrog
