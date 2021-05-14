@@ -8,6 +8,8 @@
 
 #include <morda/render/opengl2/renderer.hpp>
 
+#include <windowsx.h> // needed for GET_X_LPARAM macro and other similar macros
+
 #include "../../application.hpp"
 
 #include "../friend_accessors.cxx"
