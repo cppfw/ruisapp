@@ -297,7 +297,7 @@ public:
 
 		parent_list->insert(std::next(parent_list->begin(), this->selectedItem.back()), treeml::leaf(this->generateNewItemvalue()));
 
-		this->notify_item_added(this->selectedItem);
+		this->notify_item_added(utki::make_span(this->selectedItem));
 		++this->selectedItem.back();
 	}
 
@@ -321,7 +321,7 @@ public:
 		parent_list->insert(std::next(parent_list->begin(), this->selectedItem.back() + 1), treeml::leaf(this->generateNewItemvalue()));
 
 		++this->selectedItem.back();
-		this->notify_item_added(this->selectedItem);
+		this->notify_item_added(utki::make_span(this->selectedItem));
 		--this->selectedItem.back();
 	}
 
@@ -339,11 +339,11 @@ public:
 		list->push_back(treeml::leaf(this->generateNewItemvalue()));
 
 		this->selectedItem.push_back(list->size() - 1);
-		this->notify_item_added(this->selectedItem);
+		this->notify_item_added(utki::make_span(this->selectedItem));
 		this->selectedItem.pop_back();
 	}
 
-	std::shared_ptr<morda::widget> get_widget(const std::vector<size_t>& path, bool isCollapsed)override{
+	std::shared_ptr<morda::widget> get_widget(utki::span<const size_t> path, bool isCollapsed)override{
 		ASSERT(path.size() >= 1)
 
 		auto list = &this->root;
@@ -391,7 +391,7 @@ public:
 			{
 				auto colorLabel = v->try_get_widget_as<morda::color>("selection");
 
-				colorLabel->set_visible(this->selectedItem == path);
+				colorLabel->set_visible(utki::make_span(this->selectedItem) == path);
 
 				auto mp = v->try_get_widget_as<morda::mouse_proxy>("mouse_proxy");
 				ASSERT(mp)
@@ -400,7 +400,7 @@ public:
 						return false;
 					}
 
-					this->selectedItem = path;
+					this->selectedItem = utki::make_vector(path);
 #ifdef DEBUG
 					TRACE(<< " selected item = ")
 					for(auto& k : this->selectedItem){
@@ -439,7 +439,7 @@ public:
 		return ret;
 	}
 
-	size_t count(const std::vector<size_t>& path) const noexcept override{
+	size_t count(utki::span<const size_t> path) const noexcept override{
 		auto children = &this->root;
 
 		for(auto& i : path){
