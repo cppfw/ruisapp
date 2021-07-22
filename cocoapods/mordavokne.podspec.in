@@ -27,5 +27,5 @@ Pod::Spec.new do |s|
   s.dependency 'morda', '>= 0.5.163'
   s.dependency 'papki', '>= 1.0.93'
   s.dependency 'r4', '>= 0.1.53'
-  s.dependency 'morda-opengles2-ren', '>= 0.1.37'
+  s.dependency 'morda-render-opengles', '>= 0.1.37'
 end

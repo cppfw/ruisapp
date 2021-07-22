@@ -9,8 +9,8 @@ Build-Depends: debhelper (>= 9), prorab, prorab-extra, myci,
 		libr4-dev (>= 0.1.53),
 		libglew-dev,
 		libnitki-dev (>= 1.0.41),
-		libmorda-opengl2-ren-dev (>= 0.1.46),
-		libmorda-opengles2-ren-dev (>= 0.1.37),
+		libmorda-render-opengl-dev (>= 0.1.46),
+		libmorda-render-opengles-dev (>= 0.1.37),
 		libegl1-mesa-dev
 Build-Depends-Indep: doxygen
 Standards-Version: 3.9.5

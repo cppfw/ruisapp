@@ -50,7 +50,7 @@ dependencies {
     implementation 'io.github.cppfw:papki:+'
     implementation 'io.github.cppfw:nitki:+'
     implementation 'io.github.cppfw:morda:+'
-    implementation 'io.github.cppfw:morda-opengles2-ren:+'
+    implementation 'io.github.cppfw:morda-render-opengles:+'
     implementation project(path: ':mordavokne', configuration: 'default')
 }
 
