@@ -1,3 +1,9 @@
+libmordavokne (0.2.70) unstable; urgency=medium
+
+  * deploy to own repo
+
+ -- Ivan Gagis <igagis@gmail.com>  Thu, 22 Jul 2021 15:03:06 +0300
+
 libmordavokne (0.2.69) unstable; urgency=medium
 
   * relink to latest libs
