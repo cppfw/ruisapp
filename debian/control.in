@@ -22,31 +22,31 @@ Depends: ${shlibs:Depends}, ${misc:Depends}, libmordavokne$(soname)
 Description: cross-platform C++ GUI library tests.
  GUI library tests.
 
-Package: libmordavokne-opengl2-bin$(soname)
+Package: libmordavokne-opengl$(soname)
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: cross-platform C++ GUI library.
  GUI library using OpenGL 2 rendering backend.
 
-Package: libmordavokne-opengl2-bin$(soname)-dbg
+Package: libmordavokne-opengl$(soname)-dbg
 Architecture: any
 Section: debug
-Depends: libmordavokne-opengl2-bin$(soname) (= ${binary:Version}), ${misc:Depends}
+Depends: libmordavokne-opengl$(soname) (= ${binary:Version}), ${misc:Depends}
 Description: libmordavokne-opengl2 debugging symbols
  Debug symbols for libmordavokne-opengl2 library.
 
-Package: libmordavokne-opengles2-bin$(soname)
+Package: libmordavokne-opengles$(soname)
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: cross-platform C++ GUI library.
  GUI library using OpenGL 2 rendering backend.
 
-Package: libmordavokne-opengles2-bin$(soname)-dbg
+Package: libmordavokne-opengles$(soname)-dbg
 Architecture: any
 Section: debug
-Depends: libmordavokne-opengles2-bin$(soname) (= ${binary:Version}), ${misc:Depends}
+Depends: libmordavokne-opengles$(soname) (= ${binary:Version}), ${misc:Depends}
 Description: libmordavokne-opengl2 debugging symbols
  Debug symbols for libmordavokne-opengl2 library.
 
@@ -54,10 +54,10 @@ Package: libmordavokne-dev
 Section: libdevel
 Architecture: any
 Depends:
-		libmordavokne-opengl2-bin$(soname) (= ${binary:Version}),
-		libmordavokne-opengl2-bin$(soname)-dbg (= ${binary:Version}),
-		libmordavokne-opengles2-bin$(soname) (= ${binary:Version}),
-		libmordavokne-opengles2-bin$(soname)-dbg (= ${binary:Version}),
+		libmordavokne-opengl$(soname) (= ${binary:Version}),
+		libmordavokne-opengl$(soname)-dbg (= ${binary:Version}),
+		libmordavokne-opengles$(soname) (= ${binary:Version}),
+		libmordavokne-opengles$(soname)-dbg (= ${binary:Version}),
 		${misc:Depends},
 		libutki-dev,
 		libmorda-dev,
