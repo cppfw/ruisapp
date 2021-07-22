@@ -6,7 +6,7 @@
 
 #include <papki/fs_file.hpp>
 
-#include <morda/render/opengl2/renderer.hpp>
+#include <morda/render/opengl/renderer.hpp>
 
 #include <Shlobj.h> // needed for SHGetFolderPathA()
 #include <windowsx.h> // needed for GET_X_LPARAM macro and other similar macros

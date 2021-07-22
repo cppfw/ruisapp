@@ -7,7 +7,7 @@
 #include <morda/util/util.hpp>
 #include <morda/gui.hpp>
 
-#include <morda/render/opengl2/renderer.hpp>
+#include <morda/render/opengl/renderer.hpp>
 
 #import <Cocoa/Cocoa.h>
 

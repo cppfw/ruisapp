@@ -8,7 +8,7 @@
 #import <UIKit/UIKit.h>
 #import <GLKit/GLKit.h>
 
-#include <morda/render/opengles2/renderer.hpp>
+#include <morda/render/opengles/renderer.hpp>
 
 using namespace mordavokne;
 

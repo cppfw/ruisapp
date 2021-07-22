@@ -36,17 +36,17 @@
             "group": "build"
         },
         {
-            "label": "run",
+            "label": "run_app",
             "type": "shell",
-            "command": "make run",
+            "command": "make run_app",
             "problemMatcher": [],
             "dependsOn": "build",
             "group": "build"
         },
         {
-            "label": "run_dbg",
+            "label": "run_app_dbg",
             "type": "shell",
-            "command": "make run config=dbg",
+            "command": "make run_app config=dbg",
             "problemMatcher": [],
             "dependsOn": "build_dbg",
             "group": "build"
