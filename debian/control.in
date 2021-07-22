@@ -53,10 +53,15 @@ Description: libmordavokne-opengl2 debugging symbols
 Package: libmordavokne-dev
 Section: libdevel
 Architecture: any
-Depends: libmordavokne-opengl2-bin$(soname) (= ${binary:Version}), libmordavokne-opengl2-bin$(soname)-dbg (= ${binary:Version}),
-		libmordavokne-opengles2-bin$(soname) (= ${binary:Version}), libmordavokne-opengles2-bin$(soname)-dbg (= ${binary:Version}),
+Depends:
+		libmordavokne-opengl2-bin$(soname) (= ${binary:Version}),
+		libmordavokne-opengl2-bin$(soname)-dbg (= ${binary:Version}),
+		libmordavokne-opengles2-bin$(soname) (= ${binary:Version}),
+		libmordavokne-opengles2-bin$(soname)-dbg (= ${binary:Version}),
 		${misc:Depends},
-		libutki-dev, libmorda-dev, libpapki-dev
+		libutki-dev,
+		libmorda-dev,
+		libpapki-dev
 Suggests: libmordavokne-doc
 Description: cross-platform C++ GUI library.
  GUI library development files.
