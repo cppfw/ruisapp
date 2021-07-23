@@ -177,8 +177,8 @@ struct window_wrapper : public utki::destructable{
 	window_wrapper(const window_params& wp){
 #ifdef MORDAVOKNE_RENDER_OPENGL
 		{
-			int glxVerMajor, glxVerMinor;
-			if(!glXQueryVersion(this->display.display, &glxVerMajor, &glxVerMinor)){
+			int glx_ver_major, glx_ver_minor;
+			if(!glXQueryVersion(this->display.display, &glx_ver_major, &glx_ver_minor)){
 				throw std::runtime_error("glXQueryVersion() failed");
 			}
 
@@ -186,7 +186,7 @@ struct window_wrapper : public utki::destructable{
 			// - glXQueryExtensionsString(), availabale starting from GLX version 1.1
 			// - FBConfigs, availabale starting from GLX version 1.3
 			// minimum GLX version needed is 1.3
-			if(glxVerMajor < 1 || (glxVerMajor == 1  && glxVerMinor < 3 )){
+			if(glx_ver_major < 1 || (glx_ver_major == 1  && glx_ver_minor < 3 )){
 				throw std::runtime_error("GLX version 1.3 or above is required");
 			}
 		}
@@ -655,9 +655,9 @@ application::application(std::string&& name, const window_params& requestedWindo
 		window_pimpl(std::make_unique<window_wrapper>(requestedWindowParams)),
 		gui(std::make_shared<morda::context>(
 #ifdef MORDAVOKNE_RENDER_OPENGL
-				std::make_shared<morda::render_opengl2::renderer>(),
+				std::make_shared<morda::render_opengl::renderer>(),
 #elif defined(MORDAVOKNE_RENDER_OPENGLES)
-				std::make_shared<morda::render_opengles2::renderer>(),
+				std::make_shared<morda::render_opengles::renderer>(),
 #else
 #	error "Unknown graphics API"
 #endif

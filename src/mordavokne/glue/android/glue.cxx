@@ -997,7 +997,7 @@ mordavokne::application::application(std::string&& name, const window_params& re
 		name(name),
 		window_pimpl(std::make_unique<window_wrapper>(requestedWindowParams)),
 		gui(std::make_shared<morda::context>(
-				std::make_shared<morda::render_opengles2::renderer>(),
+				std::make_shared<morda::render_opengles::renderer>(),
 				std::make_shared<morda::updater>(),
 				[this](std::function<void()>&& a){
 					get_impl(*this).ui_queue.push_back(std::move(a));

@@ -635,7 +635,7 @@ application::application(std::string&& name, const window_params& wp) :
 		name(name),
 		window_pimpl(std::make_unique<WindowWrapper>(wp)),
 		gui(std::make_shared<morda::context>(
-				std::make_shared<morda::render_opengl2::renderer>(),
+				std::make_shared<morda::render_opengl::renderer>(),
 				std::make_shared<morda::updater>(),
 				[this](std::function<void()>&& a){
 					auto& ww = getImpl(get_window_pimpl(mordavokne::inst()));
