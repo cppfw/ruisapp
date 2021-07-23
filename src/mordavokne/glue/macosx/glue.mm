@@ -120,7 +120,6 @@ void macosx_HandleMouseHover(bool isHovered){
 }
 
 void macosx_HandleKeyEvent(bool isDown, morda::key keyCode){
-	auto& ww = getImpl(get_window_pimpl(mordavokne::application::inst()));
 	handle_key_event(mordavokne::application::inst(), isDown, keyCode);
 }
 
