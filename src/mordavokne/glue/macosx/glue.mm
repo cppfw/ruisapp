@@ -820,7 +820,7 @@ application::application(std::string&& name, const window_params& wp) :
 
 					[ww.applicationObjectId postEvent:e atStart:NO];
 				},
-				[this](morda::mouse_cursor c){
+				[](morda::mouse_cursor c){
 					// TODO:
 				},
 				getDotsPerInch(),
