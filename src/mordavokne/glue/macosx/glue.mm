@@ -147,7 +147,6 @@ public:
 };
 
 void macosx_HandleCharacterInput(const void* nsstring, morda::key key){
-	auto& ww = getImpl(get_window_pimpl(mordavokne::application::inst()));
 	handle_character_input(mordavokne::application::inst(), MacosxUnicodeProvider(reinterpret_cast<const NSString*>(nsstring)), key);
 }
 
