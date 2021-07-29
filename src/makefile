@@ -1,4 +1,5 @@
 include prorab.mk
+include prorab-license.mk
 
 include $(d)../raspberrypi.mk
 
@@ -67,3 +68,7 @@ endif
 
 # clear variable
 mordavokne_rules :=
+
+this_license_file := ../LICENSE
+this_src_dir := .
+$(eval $(prorab-license))
