@@ -1,7 +1,6 @@
 include prorab.mk
 include prorab-license.mk
-
-include $(d)../raspberrypi.mk
+include prorab-linux.mk
 
 define mordavokne_rules
 
@@ -41,7 +40,7 @@ $(.RECIPEPREFIX)$(a)$(this_cc) -ObjC++ -c -o "$$$$@" $$(this_cxxflags) $$(CXXFLA
     this_ldlibs += -lmorda-render-$1
 
     ifeq ($1,opengles)
-        ifeq ($(raspberrypi), true)
+        ifeq ($(prorab_linux),raspbian)
             this_cxxflags += -DMORDAVOKNE_RASPBERRYPI -I/opt/vc/include
             this_ldflags += -L/opt/vc/lib
             this_ldlibs += -lbrcmEGL

@@ -1,8 +1,6 @@
 include prorab.mk
 include prorab-test.mk
 
-include $(d)../../raspberrypi.mk
-
 this_name := mordavokne-test
 
 $(eval $(call prorab-config, ../../config))
