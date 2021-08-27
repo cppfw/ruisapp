@@ -1,3 +1,9 @@
+libmordavokne (0.2.73) unstable; urgency=medium
+
+  * relink to latest utki
+
+ -- Ivan Gagis <igagis@gmail.com>  Fri, 27 Aug 2021 18:33:12 +0300
+
 libmordavokne (0.2.72) unstable; urgency=medium
 
   * use latest make in homebrew formulae
