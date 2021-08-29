@@ -1,3 +1,9 @@
+libmordavokne (0.2.74) unstable; urgency=medium
+
+  * build for debian bullseye
+
+ -- Ivan Gagis <igagis@gmail.com>  Mon, 30 Aug 2021 02:23:20 +0300
+
 libmordavokne (0.2.73) unstable; urgency=medium
 
   * relink to latest utki
