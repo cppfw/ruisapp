@@ -41,6 +41,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #elif defined(MORDAVOKNE_RENDER_OPENGLES)
 #	include <EGL/egl.h>
+#	include <GLES2/gl2.h>
 #	ifdef MORDAVOKNE_RASPBERRYPI
 #		include <bcm_host.h>
 #	endif
@@ -433,7 +434,8 @@ struct window_wrapper : public utki::destructable{
 		// SOURCE: https://dri.freedesktop.org/wiki/glXGetProcAddressNeverReturnsNULL/
 
 		auto glx_extensions_string = std::string_view(glXQueryExtensionsString(this->display.display, visual_info->screen));
-//		LOG([&](auto&o){o << "glx_extensions_string = " << glx_extensions_string << std::endl;})
+		LOG([&](auto&o){o << "glx_extensions_string = " << glx_extensions_string << std::endl;})
+
 		auto glx_extensions = utki::split(glx_extensions_string);
 
 		if(std::find(glx_extensions.begin(), glx_extensions.end(), "GLX_ARB_create_context") == glx_extensions.end()){
@@ -499,6 +501,20 @@ struct window_wrapper : public utki::destructable{
 
 			// enable v-sync
 			glXSwapIntervalEXT(this->display.display, this->window, 1);
+		}else if(std::find(glx_extensions.begin(), glx_extensions.end(), "GLX_SGI_swap_control") != glx_extensions.end()){
+			LOG([](auto&o){o << "GLX_SGI_swap_control is supported\n";})
+
+			typedef int (*glXSwapIntervalSGIProc)(int interval);
+
+			auto glXSwapIntervalSGI =
+					(glXSwapIntervalSGIProc)glXGetProcAddressARB((const GLubyte*)"glXSwapIntervalSGI");
+			
+			ASSERT(glXSwapIntervalSGI)
+
+			// enable v-sync
+			if(glXSwapIntervalSGI(1) != 0){
+				throw std::runtime_error("glXSwapIntervalSGI() failed");
+			}
 		}else if(std::find(glx_extensions.begin(), glx_extensions.end(), "GLX_MESA_swap_control") != glx_extensions.end()){
 			LOG([](auto&o){o << "GLX_MESA_swap_control is supported\n";})
 
@@ -514,7 +530,7 @@ struct window_wrapper : public utki::destructable{
 				throw std::runtime_error("glXSwapIntervalMESA() failed");
 			}
 		}else{
-			std::cout << "none of GLX_MESA_swap_control, GLX_EXT_swap_control GLX extensions are supported";
+			std::cout << "none of GLX_EXT_swap_control, GLX_SGI_swap_control, GLX_MESA_swap_control GLX extensions are supported";
 		}
 
 		// sync to ensure any errors generated are processed
@@ -1326,4 +1342,10 @@ void application::swap_frame_buffers(){
 #else
 #	error "Unknown graphics API"
 #endif
+
+	// Though swapping buffers is supposed to complete all queued commands, for some reason there is a several frames
+	// lag between CPU and GPU. This was very much visible when drawing custom mouse cursor via OepnGL. The custom mouse
+	// cursor was lagging behind system cursor pretty badly. For some reason, placing glFlush() right after swapping buffers
+	// drastically lowers that lag. So, let's just have it here.
+	glFinish();
 }
