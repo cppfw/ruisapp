@@ -444,15 +444,13 @@ struct window_wrapper : public utki::destructable{
 		}else{
 			// GLX_ARB_create_context is supported
 
-			typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
-
 			// NOTE: glXGetProcAddressARB() is guaranteed to be present in all GLX versions.
 			//       glXGetProcAddress() is not guaranteed.
 			// SOURCE: https://dri.freedesktop.org/wiki/glXGetProcAddressNeverReturnsNULL/
 
-			glXCreateContextAttribsARBProc glXCreateContextAttribsARB =
-					(glXCreateContextAttribsARBProc)glXGetProcAddressARB((const GLubyte*)"glXCreateContextAttribsARB");
-			
+			auto glXCreateContextAttribsARB =
+					(PFNGLXCREATECONTEXTATTRIBSARBPROC)glXGetProcAddressARB((const GLubyte*)"glXCreateContextAttribsARB");
+
 			if(!glXCreateContextAttribsARB){
 				// this should not happen since we checked extension presence, and anyway,
 				// glXGetProcAddressARB() never returns NULL according to
@@ -492,10 +490,8 @@ struct window_wrapper : public utki::destructable{
 		if(std::find(glx_extensions.begin(), glx_extensions.end(), "GLX_EXT_swap_control") != glx_extensions.end()){
 			LOG([](auto&o){o << "GLX_EXT_swap_control is supported\n";})
 
-			typedef void (*glXSwapIntervalEXTProc)(Display *dpy, GLXDrawable drawable, int interval);
-
-			glXSwapIntervalEXTProc glXSwapIntervalEXT =
-					(glXSwapIntervalEXTProc)glXGetProcAddressARB((const GLubyte*)"glXSwapIntervalEXT");
+			auto glXSwapIntervalEXT =
+					(PFNGLXSWAPINTERVALEXTPROC)glXGetProcAddressARB((const GLubyte*)"glXSwapIntervalEXT");
 			
 			ASSERT(glXSwapIntervalEXT)
 
@@ -504,10 +500,8 @@ struct window_wrapper : public utki::destructable{
 		}else if(std::find(glx_extensions.begin(), glx_extensions.end(), "GLX_MESA_swap_control") != glx_extensions.end()){
 			LOG([](auto&o){o << "GLX_MESA_swap_control is supported\n";})
 
-			typedef int (*glXSwapIntervalMESAProc)(unsigned int interval);
-
 			auto glXSwapIntervalMESA =
-					(glXSwapIntervalMESAProc)glXGetProcAddressARB((const GLubyte*)"glXSwapIntervalMESA");
+					(PFNGLXSWAPINTERVALMESAPROC)glXGetProcAddressARB((const GLubyte*)"glXSwapIntervalMESA");
 			
 			ASSERT(glXSwapIntervalMESA)
 
