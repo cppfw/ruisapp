@@ -424,52 +424,55 @@ struct window_wrapper : public utki::destructable{
 
 		XFlush(this->display.display);
 
+		//====================
+		// create GLX context
+
 #ifdef MORDAVOKNE_RENDER_OPENGL
 		// glXGetProcAddressARB() will retutn non-null pointer even if extension is not supported, so we
 		// need to explicitly check for supported extensions.
 		// SOURCE: https://dri.freedesktop.org/wiki/glXGetProcAddressNeverReturnsNULL/
 
-		{
-			auto glx_extensions = utki::split(std::string_view(glXQueryExtensionsString(this->display.display, visual_info->screen)));
-			if(std::find(glx_extensions.begin(), glx_extensions.end(), "GLX_ARB_create_context") == glx_extensions.end()){
-				// GLX_ARB_create_context is not supported
-				this->glContext = glXCreateContext(this->display.display, visual_info, NULL, GL_TRUE);
-			}else{
-				// GLX_ARB_create_context is supported
+		auto glx_extensions_string = std::string_view(glXQueryExtensionsString(this->display.display, visual_info->screen));
+//		LOG([&](auto&o){o << "glx_extensions_string = " << glx_extensions_string << std::endl;})
+		auto glx_extensions = utki::split(glx_extensions_string);
 
-				typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
+		if(std::find(glx_extensions.begin(), glx_extensions.end(), "GLX_ARB_create_context") == glx_extensions.end()){
+			// GLX_ARB_create_context is not supported
+			this->glContext = glXCreateContext(this->display.display, visual_info, NULL, GL_TRUE);
+		}else{
+			// GLX_ARB_create_context is supported
 
-				// NOTE: glXGetProcAddressARB() is guaranteed to be present in all GLX versions.
-				//       glXGetProcAddress() is not guaranteed.
-				// SOURCE: https://dri.freedesktop.org/wiki/glXGetProcAddressNeverReturnsNULL/
+			typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
 
-				glXCreateContextAttribsARBProc glXCreateContextAttribsARB = nullptr;
-				glXCreateContextAttribsARB =
-						(glXCreateContextAttribsARBProc)glXGetProcAddressARB((const GLubyte*)"glXCreateContextAttribsARB");
-				
-				if(!glXCreateContextAttribsARB){
-					// this should not happen since we checked extension presence, and anyway,
-					// glXGetProcAddressARB() never returns NULL according to
-					// https://dri.freedesktop.org/wiki/glXGetProcAddressNeverReturnsNULL/
-					// so, this check for null is just in case future version of GLX may return null
-					throw std::runtime_error("glXCreateContextAttribsARB() not found");
-				}
+			// NOTE: glXGetProcAddressARB() is guaranteed to be present in all GLX versions.
+			//       glXGetProcAddress() is not guaranteed.
+			// SOURCE: https://dri.freedesktop.org/wiki/glXGetProcAddressNeverReturnsNULL/
 
-				auto ver = get_opengl_version_duplet(wp.graphics_api_request);
-
-				static int context_attribs[] = {
-					GLX_CONTEXT_MAJOR_VERSION_ARB, ver.major,
-					GLX_CONTEXT_MINOR_VERSION_ARB, ver.minor,
-					GLX_CONTEXT_PROFILE_MASK_ARB, GLX_CONTEXT_CORE_PROFILE_BIT_ARB, // we don't need compatibility context
-					None
-				};
-
-				this->glContext = glXCreateContextAttribsARB(this->display.display, best_fb_config, NULL, GL_TRUE, context_attribs);
+			glXCreateContextAttribsARBProc glXCreateContextAttribsARB =
+					(glXCreateContextAttribsARBProc)glXGetProcAddressARB((const GLubyte*)"glXCreateContextAttribsARB");
+			
+			if(!glXCreateContextAttribsARB){
+				// this should not happen since we checked extension presence, and anyway,
+				// glXGetProcAddressARB() never returns NULL according to
+				// https://dri.freedesktop.org/wiki/glXGetProcAddressNeverReturnsNULL/
+				// so, this check for null is just in case future version of GLX may return null
+				throw std::runtime_error("glXCreateContextAttribsARB() not found");
 			}
 
-			// sync to ensure any errors generated are processed
-			XSync(this->display.display, False);
+			auto ver = get_opengl_version_duplet(wp.graphics_api_request);
+
+			static int context_attribs[] = {
+				GLX_CONTEXT_MAJOR_VERSION_ARB, ver.major,
+				GLX_CONTEXT_MINOR_VERSION_ARB, ver.minor,
+				GLX_CONTEXT_PROFILE_MASK_ARB, GLX_CONTEXT_CORE_PROFILE_BIT_ARB, // we don't need compatibility context
+				None
+			};
+
+			this->glContext = glXCreateContextAttribsARB(this->display.display, best_fb_config, NULL, GL_TRUE, context_attribs);
 		}
+
+		// sync to ensure any errors generated are processed
+		XSync(this->display.display, False);
 		
 		if(this->glContext == NULL){
 			throw std::runtime_error("glXCreateContext() failed");
@@ -480,6 +483,45 @@ struct window_wrapper : public utki::destructable{
 		});
 
 		glXMakeCurrent(this->display.display, this->window, this->glContext);
+
+		//==========================================
+		// enable v-sync via swap control extension
+
+		if(std::find(glx_extensions.begin(), glx_extensions.end(), "GLX_EXT_swap_control") != glx_extensions.end()){
+			LOG([](auto&o){o << "GLX_EXT_swap_control is supported\n";})
+
+			typedef void (*glXSwapIntervalEXTProc)(Display *dpy, GLXDrawable drawable, int interval);
+
+			glXSwapIntervalEXTProc glXSwapIntervalEXT =
+					(glXSwapIntervalEXTProc)glXGetProcAddressARB((const GLubyte*)"glXSwapIntervalEXT");
+			
+			ASSERT(glXSwapIntervalEXT)
+
+			// enable v-sync
+			glXSwapIntervalEXT(this->display.display, this->window, 1);
+		}else if(std::find(glx_extensions.begin(), glx_extensions.end(), "GLX_MESA_swap_control") != glx_extensions.end()){
+			LOG([](auto&o){o << "GLX_MESA_swap_control is supported\n";})
+
+			typedef int (*glXSwapIntervalMESAProc)(unsigned int interval);
+
+			auto glXSwapIntervalMESA =
+					(glXSwapIntervalMESAProc)glXGetProcAddressARB((const GLubyte*)"glXSwapIntervalMESA");
+			
+			ASSERT(glXSwapIntervalMESA)
+
+			// enable v-sync
+			if(glXSwapIntervalMESA(1) != 0){
+				throw std::runtime_error("glXSwapIntervalMESA() failed");
+			}
+		}else{
+			std::cout << "none of GLX_MESA_swap_control, GLX_EXT_swap_control GLX extensions are supported";
+		}
+
+		// sync to ensure any errors generated are processed
+		XSync(this->display.display, False);
+
+		//=============
+		// init OpenGL
 
 		TRACE(<< "OpenGL version: " << glGetString(GL_VERSION) << std::endl)
 
@@ -579,6 +621,10 @@ struct window_wrapper : public utki::destructable{
 #else
 #	error "Unknown graphics API"
 #endif
+
+		//=========================
+		// initialize input method
+
 		this->inputMethod = XOpenIM(this->display.display, NULL, NULL, NULL);
 		if(this->inputMethod == NULL){
 			throw std::runtime_error("XOpenIM() failed");
@@ -616,6 +662,7 @@ struct window_wrapper : public utki::destructable{
 #	error "Unknown graphics API"
 #endif
 	}
+
 	~window_wrapper()noexcept{
 		XUnsetICFocus(this->inputContext);
 		XDestroyIC(this->inputContext);
