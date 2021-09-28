@@ -10,5 +10,5 @@ target "mordavokne" do
 	pod 'r4', '>= 0.1.53'
 	pod 'treeml', '>= 0.1.28'
 	pod 'morda', '>= 0.5.163'
-	pod 'morda-opengles2-ren', '>= 0.1.37'
+	pod 'morda-opengles-ren', '>= 0.1.37'
 end
