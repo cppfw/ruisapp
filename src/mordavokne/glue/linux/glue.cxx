@@ -486,8 +486,8 @@ struct window_wrapper : public utki::destructable{
 
 		glXMakeCurrent(this->display.display, this->window, this->glContext);
 
-		//==========================================
-		// enable v-sync via swap control extension
+		//===========================================
+		// disable v-sync via swap control extension
 
 		if(std::find(glx_extensions.begin(), glx_extensions.end(), "GLX_EXT_swap_control") != glx_extensions.end()){
 			LOG([](auto&o){o << "GLX_EXT_swap_control is supported\n";})
@@ -499,22 +499,8 @@ struct window_wrapper : public utki::destructable{
 			
 			ASSERT(glXSwapIntervalEXT)
 
-			// enable v-sync
-			glXSwapIntervalEXT(this->display.display, this->window, 1);
-		}else if(std::find(glx_extensions.begin(), glx_extensions.end(), "GLX_SGI_swap_control") != glx_extensions.end()){
-			LOG([](auto&o){o << "GLX_SGI_swap_control is supported\n";})
-
-			typedef int (*glXSwapIntervalSGIProc)(int interval);
-
-			auto glXSwapIntervalSGI =
-					(glXSwapIntervalSGIProc)glXGetProcAddressARB((const GLubyte*)"glXSwapIntervalSGI");
-			
-			ASSERT(glXSwapIntervalSGI)
-
-			// enable v-sync
-			if(glXSwapIntervalSGI(1) != 0){
-				throw std::runtime_error("glXSwapIntervalSGI() failed");
-			}
+			// disable v-sync
+			glXSwapIntervalEXT(this->display.display, this->window, 0);
 		}else if(std::find(glx_extensions.begin(), glx_extensions.end(), "GLX_MESA_swap_control") != glx_extensions.end()){
 			LOG([](auto&o){o << "GLX_MESA_swap_control is supported\n";})
 
@@ -525,12 +511,12 @@ struct window_wrapper : public utki::destructable{
 			
 			ASSERT(glXSwapIntervalMESA)
 
-			// enable v-sync
-			if(glXSwapIntervalMESA(1) != 0){
+			// disable v-sync
+			if(glXSwapIntervalMESA(0) != 0){
 				throw std::runtime_error("glXSwapIntervalMESA() failed");
 			}
 		}else{
-			std::cout << "none of GLX_EXT_swap_control, GLX_SGI_swap_control, GLX_MESA_swap_control GLX extensions are supported";
+			std::cout << "none of GLX_EXT_swap_control, GLX_MESA_swap_control GLX extensions are supported";
 		}
 
 		// sync to ensure any errors generated are processed
@@ -635,8 +621,8 @@ struct window_wrapper : public utki::destructable{
 			eglDestroyContext(this->eglDisplay, this->eglContext);
 		});
 
-		// enable v-sync
-		if(eglSwapInterval(this->eglDisplay, 1) != EGL_TRUE){
+		// disable v-sync
+		if(eglSwapInterval(this->eglDisplay, 0) != EGL_TRUE){
 			throw std::runtime_error("eglSwapInterval() failed");
 		}
 #else
