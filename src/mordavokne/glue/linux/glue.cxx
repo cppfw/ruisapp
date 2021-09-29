@@ -1322,12 +1322,6 @@ void application::swap_frame_buffers(){
 
 #ifdef MORDAVOKNE_RENDER_OPENGL
 	glXSwapBuffers(ww.display.display, ww.window);
-
-	// Though swapping buffers is supposed to complete all queued commands, for some reason there is a several frames
-	// lag between CPU and GPU. This was very much visible when drawing custom mouse cursor via OepnGL. The custom mouse
-	// cursor was lagging behind system cursor pretty badly. For some reason, placing glFlush() right after swapping buffers
-	// drastically lowers that lag, though does not eliminate completely. So, let's just have it here.
-	glFinish();
 #elif defined(MORDAVOKNE_RENDER_OPENGLES)
 	eglSwapBuffers(ww.eglDisplay, ww.eglSurface);
 #else
