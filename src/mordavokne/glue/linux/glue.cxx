@@ -1253,7 +1253,7 @@ int main(int argc, const char** argv){
 
 		// WORKAROUND: XEvent file descriptor becomes ready to read many times per second, even if
 		//             there are no events to handle returned by XPending(), so here we check if something
-		//             meaningful actuall happened and call render() only if it did
+		//             meaningful actually happened and call render() only if it did
 		if(num_waitables_triggered != 0 && !x_event_arrived && !ui_queue_ready_to_read){
 			continue;
 		}
