@@ -878,8 +878,8 @@ WindowWrapper::WindowWrapper(const window_params& wp){
 			WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
 			0, // x
 			0, // y
-			wp.dim.x() + 2 * GetSystemMetrics(SM_CXSIZEFRAME),
-			wp.dim.y() + GetSystemMetrics(SM_CYCAPTION) + 2 * GetSystemMetrics(SM_CYSIZEFRAME),
+			wp.dims.x() + 2 * GetSystemMetrics(SM_CXSIZEFRAME),
+			wp.dims.y() + GetSystemMetrics(SM_CYCAPTION) + 2 * GetSystemMetrics(SM_CYSIZEFRAME),
 			NULL, // no parent window
 			NULL, // no menu
 			GetModuleHandle(NULL),
