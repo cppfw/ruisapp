@@ -1,3 +1,9 @@
+libmordavokne (0.2.77) unstable; urgency=medium
+
+  * linux: handle mouse wheel left/right events
+
+ -- Ivan Gagis <igagis@gmail.com>  Thu, 30 Sep 2021 11:51:20 +0300
+
 libmordavokne (0.2.76) unstable; urgency=medium
 
   * linux: set initial viewport to requested window size
