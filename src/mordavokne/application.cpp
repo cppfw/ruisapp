@@ -32,7 +32,7 @@ using namespace mordavokne;
 application::T_Instance application::instance;
 
 void application::render(){
-	//TODO: render only if needed?
+	// TODO: render only if needed?
 	this->gui.context->renderer->clear_framebuffer();
 
 	this->gui.render(this->gui.context->renderer->initial_matrix);

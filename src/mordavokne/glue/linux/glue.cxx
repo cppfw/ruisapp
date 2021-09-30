@@ -399,8 +399,8 @@ struct window_wrapper : public utki::destructable{
 					RootWindow(this->display.display, visual_info->screen),
 					0,
 					0,
-					wp.dim.x(),
-					wp.dim.y(),
+					wp.dims.x(),
+					wp.dims.y(),
 					0,
 					visual_info->depth,
 					InputOutput,
@@ -719,9 +719,9 @@ morda::real getDotsPerPt(Display* display){
 }
 }
 
-application::application(std::string&& name, const window_params& requestedWindowParams) :
+application::application(std::string&& name, const window_params& wp) :
 		name(name),
-		window_pimpl(std::make_unique<window_wrapper>(requestedWindowParams)),
+		window_pimpl(std::make_unique<window_wrapper>(wp)),
 		gui(std::make_shared<morda::context>(
 #ifdef MORDAVOKNE_RENDER_OPENGL
 				std::make_shared<morda::render_opengl::renderer>(),
@@ -745,6 +745,15 @@ application::application(std::string&& name, const window_params& requestedWindo
 {
 #ifdef MORDAVOKNE_RASPBERRYPI
 	this->set_fullscreen(true);
+#else
+	this->update_window_rect(
+			morda::rectangle(
+					0,
+					0,
+					morda::real(wp.dims.x()),
+					morda::real(wp.dims.y())
+				)
+		);
 #endif
 }
 

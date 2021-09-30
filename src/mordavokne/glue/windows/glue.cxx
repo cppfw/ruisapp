@@ -677,8 +677,8 @@ application::application(std::string&& name, const window_params& wp) :
 			morda::rectangle(
 					0,
 					0,
-					float(wp.dim.x()),
-					float(wp.dim.y())
+					morda::real(wp.dims.x()),
+					morda::real(wp.dims.y())
 				)
 		);
 }

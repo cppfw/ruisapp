@@ -47,7 +47,7 @@ struct window_params{
 	/**
 	 * @brief Desired dimensions of the window
 	 */
-	r4::vector2<unsigned> dim;
+	r4::vector2<unsigned> dims;
 
 	// TODO: add window title string
 
@@ -91,11 +91,10 @@ struct window_params{
 #endif
 	;
 
-	window_params(r4::vector2<unsigned> dim) :
-			dim(dim)
+	window_params(r4::vector2<unsigned> dims) :
+			dims(dims)
 	{}
 };
-
 
 /**
  * @brief Base singleton class of application.

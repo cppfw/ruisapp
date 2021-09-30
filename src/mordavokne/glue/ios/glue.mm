@@ -241,20 +241,22 @@ void application::set_fullscreen(bool enable){
 
 	float scale = [[UIScreen mainScreen] scale];
 
+	using std::round;
+
 	if(enable){
 		if( [[[UIDevice currentDevice] systemVersion] floatValue] >= 7.0f ) {
 			CGRect rect = w.frame;
 			w.rootViewController.view.frame = rect;
 		}
 		update_window_rect(
-						 morda::Rectr(
-									  morda::Vec2r(0),
-									  morda::Vec2r(
-												   std::round(w.frame.size.width * scale),
-												   std::round(w.frame.size.height * scale)
-												   )
-									  )
-						 );
+				morda::rectangle(
+						morda::vector2(0),
+						morda::vector2(
+								round(w.frame.size.width * scale),
+								round(w.frame.size.height * scale)
+							)
+					)
+			);
 		w.windowLevel = UIWindowLevelStatusBar;
 	}else{
 		CGSize statusBarSize = [[UIApplication sharedApplication] statusBarFrame].size;
@@ -267,14 +269,14 @@ void application::set_fullscreen(bool enable){
 		}
 
 		update_window_rect(
-						 morda::Rectr(
-									  morda::Vec2r(0),
-									  morda::Vec2r(
-												   std::round(w.frame.size.width * scale),
-												   std::round((w.frame.size.height - statusBarSize.height) * scale)
-												   )
-									  )
-						 );
+				morda::rectangle(
+						morda::vector2(0),
+						morda::vector2(
+								round(w.frame.size.width * scale),
+								round((w.frame.size.height - statusBarSize.height) * scale)
+							)
+					)
+			);
 		w.windowLevel = UIWindowLevelNormal;
 	}
 }

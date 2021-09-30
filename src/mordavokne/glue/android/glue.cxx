@@ -1014,9 +1014,9 @@ namespace{
 const float mm_per_inch = 25.4f;
 }
 
-mordavokne::application::application(std::string&& name, const window_params& requestedWindowParams) :
+mordavokne::application::application(std::string&& name, const window_params& wp) :
 		name(name),
-		window_pimpl(std::make_unique<window_wrapper>(requestedWindowParams)),
+		window_pimpl(std::make_unique<window_wrapper>(wp)),
 		gui(std::make_shared<morda::context>(
 				std::make_shared<morda::render_opengles::renderer>(),
 				std::make_shared<morda::updater>(),
