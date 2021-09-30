@@ -621,7 +621,7 @@ WindowWrapper::WindowWrapper(const window_params& wp){
 	});
 
 	this->windowObjectId = [[CocoaWindow alloc]
-		initWithContentRect:NSMakeRect(0, 0, wp.dim.x(), wp.dim.y())
+		initWithContentRect:NSMakeRect(0, 0, wp.dims.x(), wp.dims.y())
 		styleMask:(NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskClosable | NSWindowStyleMaskTitled)
 		backing:NSBackingStoreBuffered
 		defer:NO
