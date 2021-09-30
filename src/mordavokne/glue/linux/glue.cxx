@@ -789,6 +789,10 @@ morda::mouse_button buttonNumberToEnum(int number){
 			return morda::mouse_button::wheel_up;
 		case 5:
 			return morda::mouse_button::wheel_down;
+		case 6:
+			return morda::mouse_button::wheel_left;
+		case 7:
+			return morda::mouse_button::wheel_right;
 	}
 }
 
@@ -1209,8 +1213,8 @@ int main(int argc, const char** argv){
 					}
 					break;
 				case ButtonPress:
-//						TRACE(<< "ButtonPress X event got, button mask = " << event.xbutton.button << std::endl)
-//						TRACE(<< "ButtonPress X event got, x, y = " << event.xbutton.x << ", " << event.xbutton.y << std::endl)
+					// LOG([&](auto&o){o << "ButtonPress X event got, button mask = " << event.xbutton.button << std::endl;})
+					// LOG([&](auto&o){o << "ButtonPress X event got, x, y = " << event.xbutton.x << ", " << event.xbutton.y << std::endl;})
 					handle_mouse_button(
 							*app,
 							true,
@@ -1220,7 +1224,7 @@ int main(int argc, const char** argv){
 						);
 					break;
 				case ButtonRelease:
-//						TRACE(<< "ButtonRelease X event got, button mask = " << event.xbutton.button << std::endl)
+					// LOG([&](auto&o){o << "ButtonRelease X event got, button mask = " << event.xbutton.button << std::endl;})
 					handle_mouse_button(
 							*app,
 							false,
