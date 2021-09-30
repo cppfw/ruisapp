@@ -476,8 +476,14 @@ const std::array<morda::key, std::uint8_t(-1) + 1> keyCodeMap = {{
 //		TRACE(<< "dy = " << float(dy) << std::endl)
 		if([e scrollingDeltaY] < 0){
 			button = morda::mouse_button::wheel_down;
-		}else{
+		}else if([e scrollingDeltaY] > 0){
 			button = morda::mouse_button::wheel_up;
+		}else if([e scrollingDeltaX] < 0){
+			button = morda::mouse_button::wheel_left;
+		}else if([e scrollingDeltaX] > 0){
+			button = morda::mouse_button::wheel_right;
+		}else{
+			return;
 		}
 //		TRACE(<< "button = " << unsigned(button) << std::endl)
 
@@ -696,7 +702,7 @@ void application::quit()noexcept{
 	ww.quitFlag = true;
 }
 
-int main (int argc, const char** argv){
+int main(int argc, const char** argv){
 	TRACE(<< "main(): enter" << std::endl)
 	auto app = createAppUnix(argc, argv);
 	if(!app){
