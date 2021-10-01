@@ -343,7 +343,7 @@ public:
 
 namespace{
 LRESULT	CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
-	switch (msg){
+	switch(msg){
 		case WM_ACTIVATE:
 			if (!HIWORD(wParam)){ // Check Minimization State
 				// window active
@@ -512,15 +512,16 @@ LRESULT	CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 			return 0;
 		}
 		case WM_MOUSEWHEEL:
+		case WM_MOUSEHWHEEL:
 			{
 				unsigned short int times = HIWORD(wParam);
-				times /= 120;
+				times /= WHEEL_DELTA;
 				morda::mouse_button button;
 				if(times >= 0){
-					button = morda::mouse_button::wheel_up;
+					button = msg == WM_MOUSEWHEEL ? morda::mouse_button::wheel_up : morda::mouse_button::wheel_right;
 				}else{
 					times = -times;
-					button = morda::mouse_button::wheel_down;
+					button = msg == WM_MOUSEWHEEL ? morda::mouse_button::wheel_down : morda::mouse_button::wheel_left;
 				}
 
 				POINT pos;
