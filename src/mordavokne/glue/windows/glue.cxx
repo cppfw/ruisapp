@@ -512,6 +512,7 @@ LRESULT	CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 			return 0;
 		}
 		case WM_MOUSEWHEEL:
+			[[fallthrough]];
 		case WM_MOUSEHWHEEL:
 			{
 				unsigned short int times = HIWORD(wParam);
