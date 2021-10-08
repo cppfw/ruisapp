@@ -30,7 +30,7 @@ define mordavokne_rules
             $$(this_mm_obj): $$(d)mordavokne/glue/macosx/glue.mm
 $(.RECIPEPREFIX)@echo compile $$$$<...
 $(.RECIPEPREFIX)$(a)mkdir -p $$$$(dir $$$$@)
-$(.RECIPEPREFIX)$(a)$(this_cc) -ObjC++ -c -o "$$$$@" $$(this_cxxflags) $$(CXXFLAGS) $$ $$$$<
+$(.RECIPEPREFIX)$(a)$(this_cc) -ObjC++ -c -o "$$$$@" $$(this_cxxflags) $$(OBJCXXFLAGS) $$ $$$$<
         endef
         $$(eval $$(this_subrules))
 
