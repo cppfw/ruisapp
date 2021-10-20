@@ -969,10 +969,10 @@ WindowWrapper::WindowWrapper(const window_params& wp){
 		throw std::runtime_error("GLEW initialization failed");
 	}
 
-	scopeExitHrc.reset();
-	scopeExitHdc.reset();
-	scopeExitHwnd.reset();
-	scopeExitWindowClass.reset();
+	scopeExitHrc.release();
+	scopeExitHdc.release();
+	scopeExitHwnd.release();
+	scopeExitWindowClass.release();
 }
 
 WindowWrapper::~WindowWrapper()noexcept{
