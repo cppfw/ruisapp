@@ -519,8 +519,6 @@ struct window_wrapper : public utki::destructable{
 		//=============
 		// init OpenGL
 
-		TRACE(<< "OpenGL version: " << glGetString(GL_VERSION) << std::endl)
-
 		if(glewInit() != GLEW_OK){
 			throw std::runtime_error("GLEW initialization failed");
 		}
