@@ -1,3 +1,9 @@
+libmordavokne (0.2.78) unstable; urgency=medium
+
+  * xcode: static framework
+
+ -- Ivan Gagis <igagis@gmail.com>  Tue, 09 Nov 2021 15:16:30 +0200
+
 libmordavokne (0.2.77) unstable; urgency=medium
 
   * linux: handle mouse wheel left/right events
