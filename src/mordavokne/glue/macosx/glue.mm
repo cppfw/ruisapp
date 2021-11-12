@@ -212,7 +212,7 @@ const std::array<morda::key, std::uint8_t(-1) + 1> keyCodeMap = {{
 	morda::key::unknown, //0x34
 	morda::key::escape, //0x35
 	morda::key::unknown, //0x36
-	morda::key::command, //Command, 0x37, 55
+	morda::key::left_command, //Command, 0x37, 55
 	morda::key::left_shift, //0x38
 	morda::key::capslock, //0x39
 	morda::key::unknown, //Option, 0x3A

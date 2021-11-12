@@ -157,8 +157,8 @@ const std::array<morda::key, std::uint8_t(-1) + 1> keyCodeMap = {
 	morda::key::x, // X key
 	morda::key::y, // Y key
 	morda::key::z, // Z key, 90
-	morda::key::command, // VK_LWIN = left windows key
-	morda::key::command, // VK_RWIN = right windows key
+	morda::key::left_command, // VK_LWIN = left windows key
+	morda::key::right_command, // VK_RWIN = right windows key
 	morda::key::unknown, // VK_APPS = applications key
 	morda::key::unknown, // Reserved
 	morda::key::unknown, // VK_SLEEP = computer sleep key, 95

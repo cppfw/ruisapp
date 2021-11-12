@@ -928,7 +928,7 @@ const std::array<morda::key, std::uint8_t(-1) + 1> keyCodeMap = {{
 	morda::key::unknown,
 	morda::key::unknown,
 	morda::key::unknown,
-	morda::key::command, // 133
+	morda::key::left_command, // 133
 	morda::key::unknown,
 	morda::key::menu, // 135
 	morda::key::unknown,
