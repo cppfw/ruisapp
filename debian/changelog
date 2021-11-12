@@ -1,3 +1,9 @@
+libmordavokne (0.2.79) unstable; urgency=medium
+
+  * update to latest morda
+
+ -- Ivan Gagis <igagis@gmail.com>  Fri, 12 Nov 2021 19:09:31 +0200
+
 libmordavokne (0.2.78) unstable; urgency=medium
 
   * xcode: static framework
