@@ -100,6 +100,10 @@ morda::real application::get_pixels_per_dp(r4::vector2<unsigned> resolution, r4:
 #endif
 }
 
+void application::handle_key_event(bool is_down, morda::key key_code){
+	this->gui.send_key(is_down, key_code);
+}
+
 application_factory::factory_type& application_factory::get_factory_internal(){
 	static application_factory::factory_type f;
 	return f;

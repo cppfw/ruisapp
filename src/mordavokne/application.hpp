@@ -216,9 +216,7 @@ private:
 
 	friend void handle_character_input(application& app, const morda::gui::unicode_provider& unicode_resolver, morda::key key_code);
 
-	void handle_key_event(bool is_down, morda::key key_code){
-		this->gui.send_key(is_down, key_code);
-	}
+	void handle_key_event(bool is_down, morda::key key_code);
 
 	friend void handle_key_event(application& app, bool isDown, morda::key keyCode);
 
