@@ -683,10 +683,10 @@ const std::array<morda::key, std::uint8_t(-1) + 1> key_code_map = {
 	morda::key::nine, // AKEYCODE_9
 	morda::key::unknown, // AKEYCODE_STAR
 	morda::key::unknown, // AKEYCODE_POUND
-	morda::key::up, // AKEYCODE_DPAD_UP
-	morda::key::down, // AKEYCODE_DPAD_DOWN
-	morda::key::left, // AKEYCODE_DPAD_LEFT
-	morda::key::right, // AKEYCODE_DPAD_RIGHT
+	morda::key::arrow_up, // AKEYCODE_DPAD_UP
+	morda::key::arrow_down, // AKEYCODE_DPAD_DOWN
+	morda::key::arrow_left, // AKEYCODE_DPAD_LEFT
+	morda::key::arrow_right, // AKEYCODE_DPAD_RIGHT
 	morda::key::enter, // AKEYCODE_DPAD_CENTER
 	morda::key::page_up, // AKEYCODE_VOLUME_UP
 	morda::key::page_down, // AKEYCODE_VOLUME_DOWN

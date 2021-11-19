@@ -103,10 +103,10 @@ const std::array<morda::key, std::uint8_t(-1) + 1> keyCodeMap = {
 	morda::key::page_down,// VK_NEXT = page down key
 	morda::key::end, // VK_END, 35
 	morda::key::home,// VK_HOME
-	morda::key::left,// VK_LEFT
-	morda::key::up, // VK_UP
-	morda::key::right, // VK_RIGHT
-	morda::key::down, // VK_DOWN, 40
+	morda::key::arrow_left,// VK_LEFT
+	morda::key::arrow_up, // VK_UP
+	morda::key::arrow_right, // VK_RIGHT
+	morda::key::arrow_down, // VK_DOWN, 40
 	morda::key::unknown, // VK_SELECT
 	morda::key::unknown, // VK_PRINT
 	morda::key::unknown, // VK_EXECUTE

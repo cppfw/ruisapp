@@ -280,10 +280,10 @@ const std::array<morda::key, std::uint8_t(-1) + 1> keyCodeMap = {{
 	morda::key::f2, //0x78
 	morda::key::page_down, //0x79
 	morda::key::f1, //0x7A
-	morda::key::left, //0x7B
-	morda::key::right, //0x7C
-	morda::key::down, //0x7D
-	morda::key::up, //0x7E
+	morda::key::arrow_left, //0x7B
+	morda::key::arrow_right, //0x7C
+	morda::key::arrow_down, //0x7D
+	morda::key::arrow_up, //0x7E
 	morda::key::unknown, //0x7F
 	morda::key::unknown, //0x80
 	morda::key::unknown,

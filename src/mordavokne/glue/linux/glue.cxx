@@ -906,12 +906,12 @@ const std::array<morda::key, std::uint8_t(-1) + 1> keyCodeMap = {{
 	morda::key::right_alt, // 108
 	morda::key::unknown,
 	morda::key::home, // 110
-	morda::key::up, // 111
+	morda::key::arrow_up, // 111
 	morda::key::page_up, // 112
-	morda::key::left, // 113
-	morda::key::right, // 114
+	morda::key::arrow_left, // 113
+	morda::key::arrow_right, // 114
 	morda::key::end, // 115
-	morda::key::down, // 116
+	morda::key::arrow_down, // 116
 	morda::key::page_down, // 117
 	morda::key::insert, // 118
 	morda::key::deletion, // 119
