@@ -665,8 +665,8 @@ public:
 // TODO: this mapping is not final
 const std::array<morda::key, std::uint8_t(-1) + 1> key_code_map = {
 	morda::key::unknown, // AKEYCODE_UNKNOWN
-	morda::key::left, // AKEYCODE_SOFT_LEFT
-	morda::key::right, // AKEYCODE_SOFT_RIGHT
+	morda::key::arrow_left, // AKEYCODE_SOFT_LEFT
+	morda::key::arrow_right, // AKEYCODE_SOFT_RIGHT
 	morda::key::home, // AKEYCODE_HOME
 	morda::key::escape, // AKEYCODE_BACK
 	morda::key::f11, // AKEYCODE_CALL
