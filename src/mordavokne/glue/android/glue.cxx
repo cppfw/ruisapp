@@ -240,8 +240,8 @@ struct window_wrapper : public utki::destructable{
 
 		this->create_surface();
 
-		eglContextScopeExit.reset();
-		eglDisplayScopeExit.reset();
+		eglContextScopeExit.release();
+		eglDisplayScopeExit.release();
 	}
 
 	void destroy_surface()noexcept{
@@ -275,7 +275,7 @@ struct window_wrapper : public utki::destructable{
 			throw std::runtime_error("eglMakeCurrent() failed");
 		}
 
-		surface_scope_exit.reset();
+		surface_scope_exit.release();
 	}
 
 	r4::vector2<unsigned> get_window_size(){
