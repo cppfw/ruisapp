@@ -1,3 +1,9 @@
+libmordavokne (0.2.80) unstable; urgency=medium
+
+  * update to latest morda
+
+ -- Ivan Gagis <igagis@gmail.com>  Fri, 19 Nov 2021 03:27:31 +0200
+
 libmordavokne (0.2.79) unstable; urgency=medium
 
   * update to latest morda
