@@ -44,7 +44,7 @@ public:
 
 
 
-std::unique_ptr<mordavokne::application> mordavokne::create_application(int argc, const char** argv, const utki::Buf<std::uint8_t> savedState){
+std::unique_ptr<mordavokne::application> mordavokne::create_application(int argc, const char** argv, const utki::Buf<uint8_t> savedState){
 	return utki::makeUnique<Application>();
 }
 
