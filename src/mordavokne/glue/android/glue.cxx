@@ -519,7 +519,7 @@ struct android_configuration_wrapper{
 
 std::unique_ptr<android_configuration_wrapper> cur_config;
 
-class key_event_to_unicode_resolver : public morda::gui::unicode_provider{
+class key_event_to_input_string_resolver : public morda::gui::input_string_provider{
 public:
 	int32_t kc; // key code
 	int32_t ms; // meta state
@@ -538,7 +538,7 @@ public:
 
 		return std::u32string(&res, 1);
 	}
-} keyUnicodeResolver;
+} key_input_string_resolver;
 
 //================
 // for updatable
@@ -928,7 +928,7 @@ morda::key get_key_from_key_event(AInputEvent& event)noexcept{
 	return key_code_map[kc];
 }
 
-struct unicode_provider : public morda::gui::unicode_provider{
+struct input_string_provider : public morda::gui::input_string_provider{
 	std::u32string chars;
 
 	std::u32string get()const override{
@@ -967,12 +967,12 @@ JNIEXPORT void JNICALL Java_io_github_cppfw_mordavokne_MordaVOkneActivity_handle
 		utf32.push_back(i.character());
 	}
 
-	unicode_provider resolver;
-	resolver.chars = std::u32string(&*utf32.begin(), utf32.size());
+	input_string_provider provider;
+	provider.chars = std::u32string(&*utf32.begin(), utf32.size());
 
-//    LOG([&](auto&o){o << "handleCharacterStringInput(): resolver.chars = " << resolver.chars << std::endl;})
+//    LOG([&](auto&o){o << "handleCharacterStringInput(): provider.chars = " << provider.chars << std::endl;})
 
-	mordavokne::handle_character_input(mordavokne::inst(), resolver, morda::key::unknown);
+	mordavokne::handle_character_input(mordavokne::inst(), provider, morda::key::unknown);
 }
 
 }
@@ -1203,11 +1203,11 @@ void handle_input_events(){
 					ASSERT(event)
 					morda::key key = get_key_from_key_event(*event);
 
-					keyUnicodeResolver.kc = AKeyEvent_getKeyCode(event);
-					keyUnicodeResolver.ms = AKeyEvent_getMetaState(event);
-					keyUnicodeResolver.di = AInputEvent_getDeviceId(event);
+					key_input_string_resolver.kc = AKeyEvent_getKeyCode(event);
+					key_input_string_resolver.ms = AKeyEvent_getMetaState(event);
+					key_input_string_resolver.di = AInputEvent_getDeviceId(event);
 
-//    				LOG([&](auto&o){o << "AINPUT_EVENT_TYPE_KEY: keyUnicodeResolver.kc = " << keyUnicodeResolver.kc << std::endl;})
+//    				LOG([&](auto&o){o << "AINPUT_EVENT_TYPE_KEY: key_input_string_resolver.kc = " << key_input_string_resolver.kc << std::endl;})
 
 					switch(eventAction){
 						case AKEY_EVENT_ACTION_DOWN:
@@ -1216,7 +1216,7 @@ void handle_input_events(){
 							if(AKeyEvent_getRepeatCount(event) == 0){
 								handle_key_event(app, true, key);
 							}
-							handle_character_input(app, keyUnicodeResolver, key);
+							handle_character_input(app, key_input_string_resolver, key);
 							break;
 						case AKEY_EVENT_ACTION_UP:
 //    						LOG([&](auto&o){o << "AKEY_EVENT_ACTION_UP" << std::endl;})

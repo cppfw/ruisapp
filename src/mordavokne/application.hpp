@@ -210,15 +210,15 @@ private:
 
 	// The idea with unicode_resolver parameter is that we don't want to calculate the unicode unless it is really needed, thus postpone it
 	// as much as possible.
-	void handle_character_input(const morda::gui::unicode_provider& unicode_resolver, morda::key key_code){
-		this->gui.send_character_input(unicode_resolver, key_code);
+	void handle_character_input(const morda::gui::input_string_provider& string_provider, morda::key key_code){
+		this->gui.send_character_input(string_provider, key_code);
 	}
 
-	friend void handle_character_input(application& app, const morda::gui::unicode_provider& unicode_resolver, morda::key key_code);
+	friend void handle_character_input(application& app, const morda::gui::input_string_provider& string_provider, morda::key key_code);
 
 	void handle_key_event(bool is_down, morda::key key_code);
 
-	friend void handle_key_event(application& app, bool isDown, morda::key keyCode);
+	friend void handle_key_event(application& app, bool is_down, morda::key key_code);
 
 public:
 

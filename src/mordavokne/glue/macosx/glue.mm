@@ -123,10 +123,10 @@ void macosx_HandleKeyEvent(bool isDown, morda::key keyCode){
 	handle_key_event(mordavokne::application::inst(), isDown, keyCode);
 }
 
-class MacosxUnicodeProvider : public morda::gui::unicode_provider{
+class macosx_input_string_provider : public morda::gui::input_string_provider{
 	const NSString* nsStr;
 public:
-	MacosxUnicodeProvider(const NSString* nsStr = nullptr) :
+	macosx_input_string_provider(const NSString* nsStr = nullptr) :
 			nsStr(nsStr)
 	{}
 
@@ -147,7 +147,7 @@ public:
 };
 
 void macosx_HandleCharacterInput(const void* nsstring, morda::key key){
-	handle_character_input(mordavokne::application::inst(), MacosxUnicodeProvider(reinterpret_cast<const NSString*>(nsstring)), key);
+	handle_character_input(mordavokne::application::inst(), macosx_input_string_provider(reinterpret_cast<const NSString*>(nsstring)), key);
 }
 
 void macosx_UpdateWindowRect(const morda::rectangle& r){

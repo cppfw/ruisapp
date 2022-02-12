@@ -45,12 +45,12 @@ void handleMouseHover(application& app, bool isHovered, unsigned pointerID){
 	app.handleMouseHover(isHovered, pointerID);
 }
 
-void handle_character_input(application& app, const morda::gui::unicode_provider& unicode_resolver, morda::key key_code){
-	app.handle_character_input(unicode_resolver, key_code);
+void handle_character_input(application& app, const morda::gui::input_string_provider& string_provider, morda::key key_code){
+	app.handle_character_input(string_provider, key_code);
 }
 
-void handle_key_event(application& app, bool isDown, morda::key keyCode){
-	app.handle_key_event(isDown, keyCode);
+void handle_key_event(application& app, bool is_down, morda::key key_code){
+	app.handle_key_event(is_down, key_code);
 }
 
 }

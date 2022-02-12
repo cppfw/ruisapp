@@ -324,10 +324,10 @@ const std::array<morda::key, std::uint8_t(-1) + 1> keyCodeMap = {
 	morda::key::unknown
 };
 
-class KeyEventUnicodeProvider : public morda::gui::unicode_provider{
+class windows_input_string_provider : public morda::gui::input_string_provider{
 	char32_t c;
 public:
-	KeyEventUnicodeProvider(char32_t unicodeChar = 0) :
+	windows_input_string_provider(char32_t unicodeChar = 0) :
 		c(unicodeChar)
 	{}
 
@@ -560,7 +560,7 @@ LRESULT	CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 			if ((lParam & 0x40000000) == 0){ // ignore auto-repeated keypress event
 				handle_key_event(mordavokne::inst(), true, key);
 			}
-			handle_character_input(mordavokne::inst(), KeyEventUnicodeProvider(), key);
+			handle_character_input(mordavokne::inst(), windows_input_string_provider(), key);
 			return 0;
 		}
 		case WM_KEYUP:
@@ -574,7 +574,7 @@ LRESULT	CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 				case U'\U0000000d': // Carriage return
 					break;
 				default:
-					handle_character_input(mordavokne::inst(), KeyEventUnicodeProvider(char32_t(wParam)), morda::key::unknown);
+					handle_character_input(mordavokne::inst(), windows_input_string_provider(char32_t(wParam)), morda::key::unknown);
 					break;
 			}
 			return 0;

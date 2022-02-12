@@ -1053,7 +1053,7 @@ const std::array<morda::key, std::uint8_t(-1) + 1> keyCodeMap = {{
 	morda::key::unknown
 }};
 
-class KeyEventUnicodeProvider : public morda::gui::unicode_provider{
+class KeyEventUnicodeProvider : public morda::gui::input_string_provider{
 	XIC& xic;
 	XEvent& event;
 public:
