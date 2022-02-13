@@ -9,6 +9,6 @@ target "mordavokne" do
 	pod 'papki', '>= 1.0.93'
 	pod 'r4', '>= 0.1.53'
 	pod 'treeml', '>= 0.1.28'
-	pod 'morda', '>= 0.5.163'
+	pod 'morda', '>= 0.5.195'
 	pod 'morda-render-opengles', '>= 0.1.37'
 end
