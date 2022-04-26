@@ -660,13 +660,13 @@ application::application(std::string&& name, const window_params& wp) :
 		gui(std::make_shared<morda::context>(
 				std::make_shared<morda::render_opengl::renderer>(),
 				std::make_shared<morda::updater>(),
-				[this](std::function<void()>&& a){
+				[](std::function<void()>&& a){
 					auto& ww = getImpl(get_window_pimpl(mordavokne::inst()));
 					if (PostMessage(ww.hwnd, WM_USER, 0, reinterpret_cast<LPARAM>(new std::remove_reference<decltype(a)>::type(std::move(a)))) == 0){
 						throw std::runtime_error("PostMessage(): failed");
 					}
 				},
-				[this](morda::mouse_cursor c){
+				[](morda::mouse_cursor c){
 					// TODO:
 				},
 				getDotsPerInch(getImpl(this->window_pimpl).hdc),
