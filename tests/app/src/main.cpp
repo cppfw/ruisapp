@@ -386,7 +386,9 @@ public:
 			{
 				auto value = v->try_get_widget_as<morda::text>("value");
 				ASSERT(value)
-				value->set_text(n->value.to_string());
+				value->set_text(
+						n->value.to_string() // NOLINT(clang-analyzer-core.CallAndMessage)
+					);
 			}
 			{
 				auto colorLabel = v->try_get_widget_as<morda::color>("selection");
