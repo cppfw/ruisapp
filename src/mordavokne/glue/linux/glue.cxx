@@ -1075,7 +1075,7 @@ public:
 
 		int size = Xutf8LookupString(this->xic, &this->event.xkey, buf.begin(), buf.size() - 1, NULL, &status);
 		if(status == XBufferOverflow){
-			//allocate enough memory
+			// allocate enough memory
 			arr.resize(size + 1);
 			buf = utki::make_span(arr);
 			size = Xutf8LookupString(this->xic, &this->event.xkey, buf.begin(), buf.size() - 1, NULL, &status);
@@ -1086,7 +1086,7 @@ public:
 
 //		TRACE(<< "KeyEventUnicodeResolver::Resolve(): size = " << size << std::endl)
 
-		buf[size] = 0;//null-terminate
+		buf[size] = 0; // null-terminate
 
 		switch(status){
 			case XLookupChars:
