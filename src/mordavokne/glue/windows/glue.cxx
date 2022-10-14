@@ -386,7 +386,7 @@ LRESULT	CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 							ShowCursor(FALSE);
 						}
 					}else{
-						TRACE(<< "GetCursorInfo(): failed!!!" << std::endl)
+						LOG([&](auto&o){o << "GetCursorInfo(): failed!!!" << std::endl;})
 					}
 				}
 

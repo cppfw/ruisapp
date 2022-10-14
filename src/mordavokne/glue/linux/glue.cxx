@@ -1145,7 +1145,7 @@ int main(int argc, const char** argv){
 		bool ui_queue_ready_to_read = ww.ui_queue.flags().get(opros::ready::read);
 		if(ui_queue_ready_to_read){
 			while(auto m = ww.ui_queue.pop_front()){
-				TRACE(<< "loop message" << std::endl)
+				LOG([&](auto&o){o << "loop message" << std::endl;})
 				m();
 			}
 			ASSERT(!ww.ui_queue.flags().get(opros::ready::read))

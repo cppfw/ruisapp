@@ -298,7 +298,7 @@ morda::real getDotsPerInch(){
 	} else {
 		value = 160 * scale;
 	}
-	TRACE(<< "dpi = " << value << std::endl)
+	LOG([&](auto&o){o << "dpi = " << value << std::endl;})
 	return value;
 }
 }

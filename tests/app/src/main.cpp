@@ -51,14 +51,14 @@ public:
 		if(this->timer > 1000){
 			this->timer -= 1000;
 
-			TRACE(<< "Update(): UPS = " << this->cnt << std::endl)
+			LOG([&](auto&o){o << "Update(): UPS = " << this->cnt << std::endl;})
 
 			this->cnt = 0;
 		}
 	}
 
 	bool on_mouse_button(const morda::mouse_button_event& e)override{
-		TRACE(<< "OnMouseButton(): isDown = " << e.is_down << ", pos = " << e.pos << ", button = " << unsigned(e.button) << ", pointer_id = " << e.pointer_id << std::endl)
+		LOG([&](auto&o){o << "OnMouseButton(): isDown = " << e.is_down << ", pos = " << e.pos << ", button = " << unsigned(e.button) << ", pointer_id = " << e.pointer_id << std::endl;})
 		if(!e.is_down){
 			return false;
 		}
@@ -77,25 +77,25 @@ public:
 
 	bool on_key(const morda::key_event& e)override{
 		if(e.is_down){
-			TRACE(<< "SimpleWidget::OnKey(): down, keyCode = " << unsigned(e.combo.key) << std::endl)
+			LOG([&](auto&o){o << "SimpleWidget::OnKey(): down, keyCode = " << unsigned(e.combo.key) << std::endl;})
 			switch(e.combo.key){
 				case morda::key::arrow_left:
-					TRACE(<< "SimpleWidget::OnKeyDown(): LEFT key caught" << std::endl)
+					LOG([&](auto&o){o << "SimpleWidget::OnKeyDown(): LEFT key caught" << std::endl;})
 					return true;
 				case morda::key::a:
-					TRACE(<< "SimpleWidget::OnKeyUp(): A key caught" << std::endl)
+					LOG([&](auto&o){o << "SimpleWidget::OnKeyUp(): A key caught" << std::endl;})
 					return true;
 				default:
 					break;
 			}
 		}else{
-			TRACE(<< "SimpleWidget::OnKey(): up, keyCode = " << unsigned(e.combo.key) << std::endl)
+			LOG([&](auto&o){o << "SimpleWidget::OnKey(): up, keyCode = " << unsigned(e.combo.key) << std::endl;})
 			switch(e.combo.key){
 				case morda::key::arrow_left:
-					TRACE(<< "SimpleWidget::OnKeyUp(): LEFT key caught" << std::endl)
+					LOG([&](auto&o){o << "SimpleWidget::OnKeyUp(): LEFT key caught" << std::endl;})
 					return true;
 				case morda::key::a:
-					TRACE(<< "SimpleWidget::OnKeyUp(): A key caught" << std::endl)
+					LOG([&](auto&o){o << "SimpleWidget::OnKeyUp(): A key caught" << std::endl;})
 					return true;
 				default:
 					break;
@@ -109,7 +109,7 @@ public:
 			return;
 		}
 
-		TRACE(<< "SimpleWidget::OnCharacterInput(): unicode = " << e.string[0] << std::endl)
+		LOG([&](auto&o){o << "SimpleWidget::OnCharacterInput(): unicode = " << e.string[0] << std::endl;})
 	}
 
 	void render(const morda::matrix4& matrix)const override{
@@ -404,11 +404,11 @@ public:
 
 					this->selectedItem = utki::make_vector(path);
 #ifdef DEBUG
-					TRACE(<< " selected item = ")
+					LOG([&](auto&o){o << " selected item = ";})
 					for(auto& k : this->selectedItem){
-						TRACE(<< k << ", ")
+						LOG([&](auto&o){o << k << ", ";})
 					}
-					TRACE(<< std::endl)
+					LOG([&](auto&o){o << std::endl;})
 #endif
 					this->notify_item_changed();
 

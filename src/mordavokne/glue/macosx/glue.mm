@@ -490,7 +490,7 @@ const std::array<morda::key, std::uint8_t(-1) + 1> keyCodeMap = {{
 		mouseButton(e, true, button);
 		mouseButton(e, false, button);
 	}else{
-		TRACE(<< "mouse wheel: precise scrolling deltas, UNIMPLEMENTED!!!!!" << std::endl)
+		LOG([&](auto&o){o << "mouse wheel: precise scrolling deltas, UNIMPLEMENTED!!!!!" << std::endl;})
 	}
 }
 
@@ -588,7 +588,7 @@ const std::array<morda::key, std::uint8_t(-1) + 1> keyCodeMap = {{
 }
 
 -(void)windowDidResize:(NSNotification*)n{
-	TRACE(<< "window resize!!!!" << std::endl)
+	LOG([&](auto&o){o << "window resize!!!!" << std::endl;})
 	NSWindow* nsw = [n object];
 	NSRect frame = [nsw frame];
 	NSRect rect = [nsw contentRectForFrameRect:frame];
@@ -600,7 +600,7 @@ const std::array<morda::key, std::uint8_t(-1) + 1> keyCodeMap = {{
 }
 
 -(BOOL)windowShouldClose:(id)sender{
-	TRACE(<< "window wants to close!!!!" << std::endl)
+	LOG([&](auto&o){o << "window wants to close!!!!" << std::endl;})
 	application::inst().quit();
 	return NO;
 }
@@ -615,7 +615,7 @@ const std::array<morda::key, std::uint8_t(-1) + 1> keyCodeMap = {{
 
 namespace{
 WindowWrapper::WindowWrapper(const window_params& wp){
-	TRACE(<< "WindowWrapper::WindowWrapper(): enter" << std::endl)
+	LOG([&](auto&o){o << "WindowWrapper::WindowWrapper(): enter" << std::endl;})
 	this->applicationObjectId = [NSApplication sharedApplication];
 
 	if(!this->applicationObjectId){
@@ -685,7 +685,7 @@ WindowWrapper::WindowWrapper(const window_params& wp){
 	scopeExitWindow.reset();
 	scopeExitApplication.reset();
 
-	TRACE(<< "WindowWrapper::WindowWrapper(): exit" << std::endl)
+	LOG([&](auto&o){o << "WindowWrapper::WindowWrapper(): exit" << std::endl;})
 }
 }
 
@@ -703,13 +703,13 @@ void application::quit()noexcept{
 }
 
 int main(int argc, const char** argv){
-	TRACE(<< "main(): enter" << std::endl)
+	LOG([&](auto&o){o << "main(): enter" << std::endl;})
 	auto app = createAppUnix(argc, argv);
 	if(!app){
 		return 0;
 	}
 
-	TRACE(<< "main(): app created" << std::endl)
+	LOG([&](auto&o){o << "main(): app created" << std::endl;})
 
 	auto& ww = getImpl(get_window_pimpl(*app));
 
@@ -834,7 +834,7 @@ application::application(std::string&& name, const window_params& wp) :
 			)),
 		storage_dir(initialize_storage_dir(this->name))
 {
-	TRACE(<< "application::application(): enter" << std::endl)
+	LOG([&](auto&o){o << "application::application(): enter" << std::endl;})
 	this->update_window_rect(
 			morda::rectangle(
 					0,
