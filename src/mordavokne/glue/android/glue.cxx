@@ -617,13 +617,13 @@ public:
 		int res =
 #endif
 		sigaction(SIGALRM, &sa, 0);
-		ASSERT_INFO(res == 0, " res = " << res << " errno = " << errno)
+		ASSERT(res == 0, [&](auto&o){o << " res = " << res << " errno = " << errno;})
 
 #ifdef DEBUG
 		res =
 #endif
 		timer_delete(this->timer);
-		ASSERT_INFO(res == 0, " res = " << res << " errno = " << errno)
+		ASSERT(res == 0, [&](auto&o){o << " res = " << res << " errno = " << errno;})
 	}
 
 	// if timer is already armed, it will re-set the expiration time
@@ -638,7 +638,7 @@ public:
 		int res =
 #endif
 		timer_settime(this->timer, 0, &ts, 0);
-		ASSERT_INFO(res == 0, " res = " << res << " errno = " << errno)
+		ASSERT(res == 0, [&](auto&o){o << " res = " << res << " errno = " << errno;})
 	}
 
 	// returns true if timer was disarmed
@@ -652,7 +652,7 @@ public:
 
 		int res = timer_settime(this->timer, 0, &newts, &oldts);
 		if(res != 0){
-			ASSERT_INFO(false, "errno = " << errno << " res = " << res)
+			ASSERT(false, [&](auto&o){o << "errno = " << errno << " res = " << res;})
 		}
 
 		if(oldts.it_value.tv_nsec != 0 || oldts.it_value.tv_sec != 0){

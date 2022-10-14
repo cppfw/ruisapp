@@ -869,7 +869,7 @@ WindowWrapper::WindowWrapper(const window_params& wp){
 
 	utki::scope_exit scopeExitWindowClass([this](){
 		if(!UnregisterClass(this->windowClassName.c_str(), GetModuleHandle(NULL))){
-			ASSERT_INFO(false, "Failed to unregister window class")
+			ASSERT(false, [&](auto&o){o << "Failed to unregister window class";})
 		}
 	});
 
@@ -894,7 +894,7 @@ WindowWrapper::WindowWrapper(const window_params& wp){
 
 	utki::scope_exit scopeExitHwnd([this](){
 		if (!DestroyWindow(this->hwnd)){
-			ASSERT_INFO(false, "Failed to destroy window")
+			ASSERT(false, [&](auto&o){o << "Failed to destroy window";})
 		}
 	});
 
@@ -907,7 +907,7 @@ WindowWrapper::WindowWrapper(const window_params& wp){
 
 	utki::scope_exit scopeExitHdc([this](){
 		if (!ReleaseDC(this->hwnd, this->hdc)){
-			ASSERT_INFO(false, "Failed to release device context")
+			ASSERT(false, [&](auto&o){o << "Failed to release device context";})
 		}
 	});
 
@@ -952,10 +952,10 @@ WindowWrapper::WindowWrapper(const window_params& wp){
 
 	utki::scope_exit scopeExitHrc([this](){
 		if (!wglMakeCurrent(NULL, NULL)) {
-			ASSERT_INFO(false, "Deactivating OpenGL rendering context failed")
+			ASSERT(false, [&](auto&o){o << "Deactivating OpenGL rendering context failed";})
 		}
 		if (!wglDeleteContext(this->hrc)) {
-			ASSERT_INFO(false, "Releasing OpenGL rendering context failed")
+			ASSERT(false, [&](auto&o){o << "Releasing OpenGL rendering context failed";})
 		}
 	});
 
@@ -977,20 +977,20 @@ WindowWrapper::WindowWrapper(const window_params& wp){
 
 WindowWrapper::~WindowWrapper()noexcept{
 	if (!wglMakeCurrent(NULL, NULL)) {
-		ASSERT_INFO(false, "Deactivating OpenGL rendering context failed")
+		ASSERT(false, [&](auto&o){o << "Deactivating OpenGL rendering context failed";})
 	}
 
 	if (!wglDeleteContext(this->hrc)) {
-		ASSERT_INFO(false, "Releasing OpenGL rendering context failed")
+		ASSERT(false, [&](auto&o){o << "Releasing OpenGL rendering context failed";})
 	}
 	if (!ReleaseDC(this->hwnd, this->hdc)){
-		ASSERT_INFO(false, "Failed to release device context")
+		ASSERT(false, [&](auto&o){o << "Failed to release device context";})
 	}
 	if (!DestroyWindow(this->hwnd)){
-		ASSERT_INFO(false, "Failed to destroy window")
+		ASSERT(false, [&](auto&o){o << "Failed to destroy window";})
 	}
 	if(!UnregisterClass(this->windowClassName.c_str(), GetModuleHandle(NULL))){
-		ASSERT_INFO(false, "Failed to unregister window class")
+		ASSERT(false, [&](auto&o){o << "Failed to unregister window class";})
 	}
 }
 }
