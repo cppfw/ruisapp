@@ -196,7 +196,7 @@ public:
 		++this->fps;
 		this->rot %= morda::quaternion().set_rotation(r4::vector3<float>(1, 2, 1).normalize(), 1.5f * (float(dt) / 1000));
 		if(this->fpsSecCounter >= 1000){
-			TRACE_ALWAYS(<< "fps = " << std::dec << fps << std::endl)
+			utki::log([&](auto&o){o << "fps = " << std::dec << fps << std::endl;});
 			this->fpsSecCounter = 0;
 			this->fps = 0;
 		}
@@ -496,7 +496,7 @@ public:
 		std::dynamic_pointer_cast<morda::push_button>(c->try_get_widget("push_button_in_scroll_container"))->click_handler = [this](morda::push_button&){
 			this->gui.context->run_from_ui_thread(
 					[](){
-						TRACE_ALWAYS(<< "Print from UI thread!!!!!!!!" << std::endl)
+						utki::log([&](auto&o){o << "Print from UI thread!!!!!!!!" << std::endl;});
 					}
 				);
 		};
