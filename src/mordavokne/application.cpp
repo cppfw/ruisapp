@@ -29,7 +29,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 using namespace mordavokne;
 
-application::T_Instance application::instance;
+application::instance_type application::instance;
 
 void application::render(){
 	// TODO: render only if needed?

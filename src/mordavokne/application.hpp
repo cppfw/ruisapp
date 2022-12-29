@@ -104,8 +104,8 @@ struct window_params{
  * initializes rendering API (e.g. OpenGL or OpenGL ES).
  */
 class application : public utki::intrusive_singleton<application>{
-	friend T_Singleton;
-	static T_Instance instance;
+	friend singleton_type;
+	static instance_type instance;
 
 public:
 	const std::string name;
