@@ -806,32 +806,33 @@ morda::real getDotsPerPt(){
 application::application(std::string&& name, const window_params& wp) :
 		name(name),
 		window_pimpl(std::make_unique<WindowWrapper>(wp)),
-		gui(std::make_shared<morda::context>(
-				utki::make_shared_ref<morda::render_opengl::renderer>(),
-				utki::make_shared_ref<morda::updater>(),
-				[this](std::function<void()>&& a){
-					auto& ww = getImpl(get_window_pimpl(*this));
+		gui(
+			utki::make_shared_ref<morda::context>(
+			utki::make_shared_ref<morda::render_opengl::renderer>(),
+			utki::make_shared_ref<morda::updater>(),
+			[this](std::function<void()>&& a){
+				auto& ww = getImpl(get_window_pimpl(*this));
 
-					NSEvent* e = [NSEvent
-							otherEventWithType: NSEventTypeApplicationDefined
-							location: NSMakePoint(0, 0)
-							modifierFlags:0
-							timestamp:0
-							windowNumber:0
-							context: nil
-							subtype: 0
-							data1: reinterpret_cast<NSInteger>(new std::function<void()>(std::move(a)))
-							data2: 0
-						];
+				NSEvent* e = [NSEvent
+						otherEventWithType: NSEventTypeApplicationDefined
+						location: NSMakePoint(0, 0)
+						modifierFlags:0
+						timestamp:0
+						windowNumber:0
+						context: nil
+						subtype: 0
+						data1: reinterpret_cast<NSInteger>(new std::function<void()>(std::move(a)))
+						data2: 0
+					];
 
-					[ww.applicationObjectId postEvent:e atStart:NO];
-				},
-				[](morda::mouse_cursor c){
-					// TODO:
-				},
-				getDotsPerInch(),
-				getDotsPerPt()
-			)),
+				[ww.applicationObjectId postEvent:e atStart:NO];
+			},
+			[](morda::mouse_cursor c){
+				// TODO:
+			},
+			getDotsPerInch(),
+			getDotsPerPt()
+		)),
 		storage_dir(initialize_storage_dir(this->name))
 {
 	LOG([&](auto&o){o << "application::application(): enter" << std::endl;})
