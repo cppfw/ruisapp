@@ -758,9 +758,8 @@ application::application(std::string&& name, const window_params& wp) :
 namespace{
 
 class XEvent_waitable : public opros::waitable{
-public:
 	int fd;
-
+public:
 	int get_handle() override{
 		return this->fd;
 	}
