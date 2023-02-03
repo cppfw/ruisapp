@@ -549,7 +549,7 @@ public:
 	event_fd_wrapper(){
 		this->event_fd = eventfd(0, EFD_NONBLOCK);
 		if(this->event_fd < 0){
-			throw std::system_error(errno, std::generic_category(), "could not create eventFD (*nix) for implementing Waitable");
+			throw std::system_error(errno, std::generic_category(), "could not create eventFD (*nix)");
 		}
 	}
 
