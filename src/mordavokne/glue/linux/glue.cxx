@@ -758,19 +758,10 @@ application::application(std::string&& name, const window_params& wp) :
 namespace{
 
 class XEvent_waitable : public opros::waitable{
-	int fd;
 public:
-	int get_handle() override{
-		return this->fd;
-	}
-
-	XEvent_waitable(Display* d){
-		this->fd = XConnectionNumber(d);
-	}
-
-	void clear_read_flag(){
-		this->readiness_flags.clear(opros::ready::read);
-	}
+	XEvent_waitable(Display* d) :
+		opros::waitable(XConnectionNumber(d))
+	{}
 };
 
 morda::mouse_button buttonNumberToEnum(int number){
@@ -1135,13 +1126,20 @@ int main(int argc, const char** argv){
 	// So, render everything for the first time.
 	render(*app);
 
-	while(!ww.quitFlag){
-		xew.clear_read_flag(); // clear read flag because we have no 'read' function in XEvent_waitable which would do that for us
+	std::array<opros::event_info, 2> triggered_events;
 
-		auto num_waitables_triggered = wait_set.wait(app->gui.update());
+	while(!ww.quitFlag){
+		auto num_waitables_triggered = wait_set.wait(app->gui.update(), triggered_events);
 		// TRACE(<< "num_waitables_triggered = " << num_waitables_triggered << std::endl)
 
-		bool ui_queue_ready_to_read = ww.ui_queue.flags().get(opros::ready::read);
+		bool ui_queue_ready_to_read = false;
+		
+		for(auto& ei : utki::make_span(triggered_events.data(), num_waitables_triggered)){
+			if(ei.object == &ww.ui_queue){
+				ui_queue_ready_to_read = true;
+			}
+		}
+		
 		if(ui_queue_ready_to_read){
 			while(auto m = ww.ui_queue.pop_front()){
 				LOG([](auto&o){o << "loop message" << std::endl;})
