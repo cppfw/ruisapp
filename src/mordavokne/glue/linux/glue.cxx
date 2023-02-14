@@ -1145,7 +1145,6 @@ int main(int argc, const char** argv){
 				LOG([](auto&o){o << "loop message" << std::endl;})
 				m();
 			}
-			ASSERT(!ww.ui_queue.flags().get(opros::ready::read))
 		}
 
 		morda::vector2 new_win_dims(-1, -1);
