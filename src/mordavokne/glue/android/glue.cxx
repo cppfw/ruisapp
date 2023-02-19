@@ -1265,7 +1265,7 @@ void on_destroy(ANativeActivity* activity){
 	// remove UI message queue descriptor from looper
 	ALooper_removeFd(
 			looper,
-			get_impl(application::inst()).ui_queue.handle
+			get_impl(application::inst()).ui_queue.get_handle()
 		);
 
 	// remove fd_flag from looper
@@ -1418,7 +1418,7 @@ void on_native_window_created(ANativeActivity* activity, ANativeWindow* window){
 			// add UI message queue descriptor to looper
 			if(ALooper_addFd(
 					looper,
-					get_impl(*app).ui_queue.handle,
+					get_impl(*app).ui_queue.get_handle(),
 					ALOOPER_POLL_CALLBACK,
 					ALOOPER_EVENT_INPUT,
 					&on_queue_has_messages,
