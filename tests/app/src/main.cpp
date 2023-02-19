@@ -25,6 +25,10 @@
 #include <morda/widgets/input/text_input_line.hpp>
 #include <morda/widgets/button/drop_down_box.hpp>
 
+#ifdef assert
+#	undef assert
+#endif
+
 class SimpleWidget :
 		virtual public morda::widget,
 		public morda::updateable,
