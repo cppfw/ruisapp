@@ -316,9 +316,9 @@ morda::real getDotsPerDp(){
 application::application(std::string&& name, const window_params& wp) :
 		name(name),
 		window_pimpl(utki::makeUnique<WindowWrapper>(wp)),
-		gui(std::make_shared<morda::context>(
-				std::make_shared<morda::render_opengles::renderer>(),
-				std::make_shared<morda::updater>(),
+		gui(utki::make_shared_ref<morda::context>(
+				utki::make_shared_ref<morda::render_opengles::renderer>(),
+				utki::make_shared_ref<morda::updater>(),
 				[this](std::function<void()>&& a){
 					auto p = reinterpret_cast<NSInteger>(new std::function<void()>(std::move(a)));
 
