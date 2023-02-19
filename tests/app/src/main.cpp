@@ -30,16 +30,14 @@ class SimpleWidget :
 		public morda::updateable,
 		public morda::character_input_widget
 {
-	std::shared_ptr<morda::res::texture> tex;
+	utki::shared_ref<morda::res::texture> tex;
 
 public:
 	SimpleWidget(std::shared_ptr<morda::context> c, const treeml::forest& desc) :
 			morda::widget(std::move(c), desc),
-			morda::character_input_widget(this->context)
-	{
-//		TRACE(<< "loading texture" << std::endl)
-		this->tex = this->context->loader.load<morda::res::texture>("tex_sample");
-	}
+			morda::character_input_widget(this->context),
+			tex(this->context->loader.load<morda::res::texture>("tex_sample"))
+	{}
 
 	uint32_t timer = 0;
 	uint32_t cnt = 0;
@@ -182,9 +180,9 @@ public:
 
 		auto cubeIndices = this->context->renderer->factory->create_index_buffer(utki::make_span(indices));
 
-		this->cubeVAO = this->context->renderer->factory->create_vertex_array({posVBO, texVBO}, cubeIndices, morda::vertex_array::mode::triangles);
+		this->cubeVAO = this->context->renderer->factory->create_vertex_array({posVBO, texVBO}, cubeIndices, morda::vertex_array::mode::triangles).to_shared_ptr();
 
-		this->tex = this->context->loader.load<morda::res::texture>("tex_sample");
+		this->tex = this->context->loader.load<morda::res::texture>("tex_sample").to_shared_ptr();
 		this->rot.set_identity();
 	}
 
