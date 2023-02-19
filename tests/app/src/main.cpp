@@ -194,7 +194,7 @@ public:
 	void update(uint32_t dt) override{
 		this->fpsSecCounter += dt;
 		++this->fps;
-		this->rot %= morda::quaternion().set_rotation(r4::vector3<float>(1, 2, 1).normalize(), 1.5f * (float(dt) / 1000));
+		this->rot *= morda::quaternion().set_rotation(r4::vector3<float>(1, 2, 1).normalize(), 1.5f * (float(dt) / 1000));
 		if(this->fpsSecCounter >= 1000){
 			utki::log([&](auto&o){o << "fps = " << std::dec << fps << std::endl;});
 			this->fpsSecCounter = 0;
@@ -343,7 +343,7 @@ public:
 		this->selectedItem.pop_back();
 	}
 
-	std::shared_ptr<morda::widget> get_widget(utki::span<const size_t> path, bool isCollapsed)override{
+	utki::shared_ref<morda::widget> get_widget(utki::span<const size_t> path, bool isCollapsed)override{
 		ASSERT(path.size() >= 1)
 
 		auto list = &this->root;
@@ -360,7 +360,7 @@ public:
 			list = &n->children;
 		}
 
-		auto ret = std::make_shared<morda::row>(this->context, treeml::forest());
+		auto ret = utki::make_shared_ref<morda::row>(this->context, treeml::forest());
 
 		{
 			auto v = this->context->inflater.inflate(
