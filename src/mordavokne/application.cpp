@@ -33,9 +33,9 @@ application::instance_type application::instance;
 
 void application::render(){
 	// TODO: render only if needed?
-	this->gui.context->renderer->clear_framebuffer();
+	this->gui.context.get().renderer.get().clear_framebuffer();
 
-	this->gui.render(this->gui.context->renderer->initial_matrix);
+	this->gui.render(this->gui.context.get().renderer.get().initial_matrix);
 
 	this->swap_frame_buffers();
 }
@@ -48,7 +48,7 @@ void application::update_window_rect(const morda::rectangle& rect){
 	this->curWinRect = rect;
 
 	LOG([&](auto&o){o << "application::update_window_rect(): this->curWinRect = " << this->curWinRect << std::endl;})
-	this->gui.context->renderer->set_viewport(r4::rectangle<int>(
+	this->gui.context.get().renderer.get().set_viewport(r4::rectangle<int>(
 			int(this->curWinRect.p.x()),
 			int(this->curWinRect.p.y()),
 			int(this->curWinRect.d.x()),
