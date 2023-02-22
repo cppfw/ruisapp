@@ -186,7 +186,7 @@ public:
 
 		this->cubeVAO = this->context.get().renderer.get().factory->create_vertex_array({posVBO, texVBO}, cubeIndices, morda::vertex_array::mode::triangles).to_shared_ptr();
 
-		this->tex = this->context.get().loader.load<morda::res::texture>("tex_sample");
+		this->tex = this->context.get().loader.load<morda::res::texture>("tex_sample").to_shared_ptr();
 		this->rot.set_identity();
 	}
 
