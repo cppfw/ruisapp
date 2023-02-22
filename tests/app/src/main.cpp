@@ -227,10 +227,10 @@ public:
 class TreeViewItemsProvider : public morda::tree_view::provider{
 	treeml::forest root;
 
-	std::shared_ptr<morda::context> context;
+	utki::shared_ref<morda::context> context;
 public:
 
-	TreeViewItemsProvider(std::shared_ptr<morda::context> c) :
+	TreeViewItemsProvider(const utki::shared_ref<morda::context>& c) :
 			context(c)
 	{
 		this->root = treeml::read(R"qwertyuiop(
