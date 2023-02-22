@@ -1,3 +1,9 @@
+libmordavokne (0.2.83) unstable; urgency=medium
+
+  * relink
+
+ -- Ivan Gagis <igagis@gmail.com>  Wed, 22 Feb 2023 22:07:54 +0200
+
 libmordavokne (0.2.82) unstable; urgency=medium
 
   * shared_ref
