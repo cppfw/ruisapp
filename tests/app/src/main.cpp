@@ -184,7 +184,7 @@ public:
 
 		auto cubeIndices = this->context.get().renderer.get().factory->create_index_buffer(utki::make_span(indices));
 
-		this->cubeVAO = this->context.get().renderer.get().factory->create_vertex_array({posVBO, texVBO}, cubeIndices, morda::vertex_array::mode::triangles);
+		this->cubeVAO = this->context.get().renderer.get().factory->create_vertex_array({posVBO, texVBO}, cubeIndices, morda::vertex_array::mode::triangles).to_shared_ptr();
 
 		this->tex = this->context.get().loader.load<morda::res::texture>("tex_sample");
 		this->rot.set_identity();
