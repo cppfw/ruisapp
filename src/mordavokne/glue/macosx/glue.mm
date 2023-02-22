@@ -807,9 +807,9 @@ application::application(std::string&& name, const window_params& wp) :
 		name(name),
 		window_pimpl(std::make_unique<WindowWrapper>(wp)),
 		gui(
-			utki::make_shared_ref<morda::context>(
-			utki::make_shared_ref<morda::render_opengl::renderer>(),
-			utki::make_shared_ref<morda::updater>(),
+			utki::make_shared<morda::context>(
+			utki::make_shared<morda::render_opengl::renderer>(),
+			utki::make_shared<morda::updater>(),
 			[this](std::function<void()>&& a){
 				auto& ww = getImpl(get_window_pimpl(*this));
 

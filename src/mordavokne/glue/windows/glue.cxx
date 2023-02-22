@@ -657,9 +657,9 @@ std::string initialize_storage_dir(const std::string& appName){
 application::application(std::string&& name, const window_params& wp) :
 		name(name),
 		window_pimpl(std::make_unique<WindowWrapper>(wp)),
-		gui(utki::make_shared_ref<morda::context>(
-				utki::make_shared_ref<morda::render_opengl::renderer>(),
-				utki::make_shared_ref<morda::updater>(),
+		gui(utki::make_shared<morda::context>(
+				utki::make_shared<morda::render_opengl::renderer>(),
+				utki::make_shared<morda::updater>(),
 				[](std::function<void()>&& a){
 					auto& ww = getImpl(get_window_pimpl(mordavokne::inst()));
 					if (PostMessage(ww.hwnd, WM_USER, 0, reinterpret_cast<LPARAM>(new std::remove_reference<decltype(a)>::type(std::move(a)))) == 0){
