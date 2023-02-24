@@ -1119,23 +1119,22 @@ int main(int argc, const char** argv){
 
 	opros::wait_set wait_set(2);
 
-	wait_set.add(xew, {opros::ready::read});
-	wait_set.add(ww.ui_queue, {opros::ready::read});
+	wait_set.add(xew, {opros::ready::read}, &xew);
+	wait_set.add(ww.ui_queue, {opros::ready::read}, &ww.ui_queue);
 
 	// Sometimes the first Expose event does not come for some reason. It happens constantly in some systems and never happens on all the others.
 	// So, render everything for the first time.
 	render(*app);
 
-	std::array<opros::event_info, 2> triggered_events;
-
 	while(!ww.quitFlag){
-		auto num_waitables_triggered = wait_set.wait(app->gui.update(), triggered_events);
-		// TRACE(<< "num_waitables_triggered = " << num_waitables_triggered << std::endl)
+		wait_set.wait(app->gui.update());
+		
+		auto triggered_events = wait_set.get_triggered();
 
 		bool ui_queue_ready_to_read = false;
 		
-		for(auto& ei : utki::make_span(triggered_events.data(), num_waitables_triggered)){
-			if(ei.object == &ww.ui_queue){
+		for(auto& ei : triggered_events){
+			if(ei.user_data == &ww.ui_queue){
 				ui_queue_ready_to_read = true;
 			}
 		}
@@ -1261,7 +1260,7 @@ int main(int argc, const char** argv){
 		// WORKAROUND: XEvent file descriptor becomes ready to read many times per second, even if
 		//             there are no events to handle returned by XPending(), so here we check if something
 		//             meaningful actually happened and call render() only if it did
-		if(num_waitables_triggered != 0 && !x_event_arrived && !ui_queue_ready_to_read){
+		if(triggered_events.size() != 0 && !x_event_arrived && !ui_queue_ready_to_read){
 			continue;
 		}
 
