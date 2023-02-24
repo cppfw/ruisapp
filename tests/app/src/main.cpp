@@ -184,9 +184,9 @@ public:
 
 		auto cubeIndices = this->context.get().renderer.get().factory->create_index_buffer(utki::make_span(indices));
 
-		this->cubeVAO = this->context.get().renderer.get().factory->create_vertex_array({posVBO, texVBO}, cubeIndices, morda::vertex_array::mode::triangles);
+		this->cubeVAO = this->context.get().renderer.get().factory->create_vertex_array({posVBO, texVBO}, cubeIndices, morda::vertex_array::mode::triangles).to_shared_ptr();
 
-		this->tex = this->context.get().loader.load<morda::res::texture>("tex_sample");
+		this->tex = this->context.get().loader.load<morda::res::texture>("tex_sample").to_shared_ptr();
 		this->rot.set_identity();
 	}
 
@@ -227,10 +227,10 @@ public:
 class TreeViewItemsProvider : public morda::tree_view::provider{
 	treeml::forest root;
 
-	std::shared_ptr<morda::context> context;
+	utki::shared_ref<morda::context> context;
 public:
 
-	TreeViewItemsProvider(std::shared_ptr<morda::context> c) :
+	TreeViewItemsProvider(const utki::shared_ref<morda::context>& c) :
 			context(c)
 	{
 		this->root = treeml::read(R"qwertyuiop(
