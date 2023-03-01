@@ -467,18 +467,18 @@ public:
 	{
 		this->gui.initStandardWidgets(*this->get_res_file("../../res/morda_res/"));
 
-		this->gui.context->loader.mount_res_pack(*this->get_res_file("res/"));
+		this->gui.context.get().loader.mount_res_pack(*this->get_res_file("res/"));
 //		this->ResMan().MountResPack(morda::ZipFile::New(papki::FSFile::New("res.zip")));
 
-		this->gui.context->inflater.register_widget<SimpleWidget>("U_SimpleWidget");
-		this->gui.context->inflater.register_widget<CubeWidget>("CubeWidget");
+		this->gui.context.get().inflater.register_widget<SimpleWidget>("U_SimpleWidget");
+		this->gui.context.get().inflater.register_widget<CubeWidget>("CubeWidget");
 
-		std::shared_ptr<morda::widget> c = this->gui.context->inflater.inflate(
+		auto c = this->gui.context.get().inflater.inflate(
 				*this->get_res_file("res/test.gui")
 			);
 		this->gui.set_root(c);
 
-		std::dynamic_pointer_cast<morda::key_proxy>(c)->key_handler = [this](morda::key_proxy&, const morda::key_event& e) -> bool {
+		utki::dynamic_reference_cast<morda::key_proxy>(c).get().key_handler = [this](morda::key_proxy&, const morda::key_event& e) -> bool {
 			if(e.is_down){
 				if(e.combo.key == morda::key::escape){
 					this->quit();
