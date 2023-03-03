@@ -12,7 +12,7 @@ Pile{
 			text{Information}
 		}
 		TextField{
-			layout{
+			lp{
 				dx{200}
 			}
 			text{"enter text here"}

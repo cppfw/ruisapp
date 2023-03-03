@@ -370,7 +370,7 @@ public:
 							@pile{
 								@color{
 									id{selection}
-									layout{dx{max}dy{max}}
+									lp{dx{max}dy{max}}
 									color{${morda_color_highlight}}
 									visible{false}
 								}
@@ -379,7 +379,7 @@ public:
 								}
 								@mouse_proxy{
 									id{mouse_proxy}
-									layout{dx{max}dy{max}}
+									lp{dx{max}dy{max}}
 								}
 							}
 						)qwertyuiop"
@@ -427,7 +427,7 @@ public:
 							@push_button{
 								@color{
 									color{0xff0000ff}
-									layout{dx{2mm}dy{0.5mm}}
+									lp{dx{2mm}dy{0.5mm}}
 								}
 							}
 						)qwertyuiop"
