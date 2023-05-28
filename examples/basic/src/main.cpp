@@ -9,7 +9,7 @@ public:
 	Application() :
 			mordavokne::App(mordavokne::window_params(r4::vector2<unsigned>(800, 600)))
 	{
-		morda::Morda::inst().initStandardWidgets(*this->get_res_file());
+		morda::Morda::inst().init_standard_widgets(*this->get_res_file());
 
 		//Inflate widgets hierarchy from GUI description script
 		auto c = morda::Morda::inst().inflater.inflate(

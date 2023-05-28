@@ -29,7 +29,7 @@
 #	undef assert
 #endif
 
-class SimpleWidget :
+class simple_widget :
 		virtual public morda::widget,
 		public morda::updateable,
 		public morda::character_input_widget
@@ -37,7 +37,7 @@ class SimpleWidget :
 	utki::shared_ref<morda::res::texture> tex;
 
 public:
-	SimpleWidget(const utki::shared_ref<morda::context>& c, const treeml::forest& desc) :
+	simple_widget(const utki::shared_ref<morda::context>& c, const treeml::forest& desc) :
 			morda::widget(c, desc),
 			morda::character_input_widget(this->context),
 			tex(this->context.get().loader.load<morda::res::texture>("tex_sample"))
@@ -79,25 +79,25 @@ public:
 
 	bool on_key(const morda::key_event& e)override{
 		if(e.is_down){
-			LOG([&](auto&o){o << "SimpleWidget::OnKey(): down, keyCode = " << unsigned(e.combo.key) << std::endl;})
+			LOG([&](auto&o){o << "simple_widget::OnKey(): down, keyCode = " << unsigned(e.combo.key) << std::endl;})
 			switch(e.combo.key){
 				case morda::key::arrow_left:
-					LOG([&](auto&o){o << "SimpleWidget::OnKeyDown(): LEFT key caught" << std::endl;})
+					LOG([&](auto&o){o << "simple_widget::OnKeyDown(): LEFT key caught" << std::endl;})
 					return true;
 				case morda::key::a:
-					LOG([&](auto&o){o << "SimpleWidget::OnKeyUp(): A key caught" << std::endl;})
+					LOG([&](auto&o){o << "simple_widget::OnKeyUp(): A key caught" << std::endl;})
 					return true;
 				default:
 					break;
 			}
 		}else{
-			LOG([&](auto&o){o << "SimpleWidget::OnKey(): up, keyCode = " << unsigned(e.combo.key) << std::endl;})
+			LOG([&](auto&o){o << "simple_widget::OnKey(): up, keyCode = " << unsigned(e.combo.key) << std::endl;})
 			switch(e.combo.key){
 				case morda::key::arrow_left:
-					LOG([&](auto&o){o << "SimpleWidget::OnKeyUp(): LEFT key caught" << std::endl;})
+					LOG([&](auto&o){o << "simple_widget::OnKeyUp(): LEFT key caught" << std::endl;})
 					return true;
 				case morda::key::a:
-					LOG([&](auto&o){o << "SimpleWidget::OnKeyUp(): A key caught" << std::endl;})
+					LOG([&](auto&o){o << "simple_widget::OnKeyUp(): A key caught" << std::endl;})
 					return true;
 				default:
 					break;
@@ -111,7 +111,7 @@ public:
 			return;
 		}
 
-		LOG([&](auto&o){o << "SimpleWidget::OnCharacterInput(): unicode = " << e.string[0] << std::endl;})
+		LOG([&](auto&o){o << "simple_widget::OnCharacterInput(): unicode = " << e.string[0] << std::endl;})
 	}
 
 	void render(const morda::matrix4& matrix)const override{
@@ -134,14 +134,14 @@ public:
 	}
 };
 
-class CubeWidget : public morda::widget, public morda::updateable{
+class cube_widget : public morda::widget, public morda::updateable{
 	std::shared_ptr<morda::res::texture> tex;
 
 	morda::quaternion rot = morda::quaternion().set_identity();
 public:
 	std::shared_ptr<morda::vertex_array> cubeVAO;
 
-	CubeWidget(const utki::shared_ref<morda::context>& c, const treeml::forest& desc) :
+	cube_widget(const utki::shared_ref<morda::context>& c, const treeml::forest& desc) :
 			morda::widget(c, desc)
 	{
 		std::array<morda::vector3, 36> cubePos = {{
@@ -464,13 +464,13 @@ public:
 	application() :
 			mordavokne::application("morda-tests", GetWindowParams())
 	{
-		this->gui.initStandardWidgets(*this->get_res_file("../../res/morda_res/"));
+		this->gui.init_standard_widgets(*this->get_res_file("../../res/morda_res/"));
 
 		this->gui.context.get().loader.mount_res_pack(*this->get_res_file("res/"));
 //		this->ResMan().MountResPack(morda::ZipFile::New(papki::FSFile::New("res.zip")));
 
-		this->gui.context.get().inflater.register_widget<SimpleWidget>("U_SimpleWidget");
-		this->gui.context.get().inflater.register_widget<CubeWidget>("CubeWidget");
+		this->gui.context.get().inflater.register_widget<simple_widget>("U_SimpleWidget");
+		this->gui.context.get().inflater.register_widget<cube_widget>("cube_widget");
 
 		auto c = this->gui.context.get().inflater.inflate(
 				*this->get_res_file("res/test.gui")
@@ -504,7 +504,7 @@ public:
 
 		// cube click_proxy
 		{
-			auto cube = c.get().try_get_widget_as<CubeWidget>("cube_widget");
+			auto cube = c.get().try_get_widget_as<cube_widget>("cube_widget");
 			ASSERT(cube)
 
 			auto& cp = c.get().get_widget_as<morda::click_proxy>("cube_click_proxy");

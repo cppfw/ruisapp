@@ -190,7 +190,7 @@ protected:
 
 public:
 
-	virtual ~application()noexcept{}
+	~application() override = default;
 
 	/**
 	 * @brief Bring up the virtual keyboard.
@@ -280,7 +280,7 @@ inline application& inst(){
  */
 class application_factory{
 public:
-	typedef std::function<std::unique_ptr<application>(utki::span<const char*>)> factory_type;
+	using factory_type = std::function<std::unique_ptr<application>(utki::span<const char*>)>;
 
 	/**
 	 * @brief Constructor.
