@@ -1014,13 +1014,13 @@ namespace{
 const float mm_per_inch = 25.4f;
 }
 
-mordavokne::application::application(std::string&& name, const window_params& wp) :
+mordavokne::application::application(std::string name, const window_params& wp) :
 		name(name),
 		window_pimpl(std::make_unique<window_wrapper>(wp)),
 		gui(utki::make_shared<morda::context>(
 				utki::make_shared<morda::render_opengles::renderer>(),
 				utki::make_shared<morda::updater>(),
-				[this](std::function<void()>&& a){
+				[this](std::function<void()> a){
 					get_impl(*this).ui_queue.push_back(std::move(a));
 				},
 				[this](morda::mouse_cursor){},

@@ -41,8 +41,8 @@ void handle_mouse_button(application& app, bool isDown, const r4::vector2<float>
 	app.handle_mouse_button(isDown, pos, button, id);
 }
 
-void handleMouseHover(application& app, bool isHovered, unsigned pointerID){
-	app.handleMouseHover(isHovered, pointerID);
+void handle_mouse_hover(application& app, bool isHovered, unsigned pointerID){
+	app.handle_mouse_hover(isHovered, pointerID);
 }
 
 void handle_character_input(application& app, const morda::gui::input_string_provider& string_provider, morda::key key_code){

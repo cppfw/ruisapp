@@ -717,7 +717,7 @@ morda::real getDotsPerPt(Display* display){
 }
 }
 
-application::application(std::string&& name, const window_params& wp) :
+application::application(std::string name, const window_params& wp) :
 		name(name),
 		window_pimpl(std::make_unique<window_wrapper>(wp)),
 		gui(utki::make_shared<morda::context>(
@@ -729,7 +729,7 @@ application::application(std::string&& name, const window_params& wp) :
 #	error "Unknown graphics API"
 #endif
 				utki::make_shared<morda::updater>(),
-				[this](std::function<void()>&& a){
+				[this](std::function<void()> a){
 					getImpl(get_window_pimpl(*this)).ui_queue.push_back(std::move(a));
 				},
 				[this](morda::mouse_cursor c){

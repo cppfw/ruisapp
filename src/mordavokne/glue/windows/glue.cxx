@@ -390,7 +390,7 @@ LRESULT	CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 					}
 				}
 
-				handleMouseHover(mordavokne::inst(), true, 0);
+				handle_mouse_hover(mordavokne::inst(), true, 0);
 			}
 			handle_mouse_move(
 					mordavokne::inst(),
@@ -410,7 +410,7 @@ LRESULT	CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 			}
 
 			ww.isHovered = false;
-			handleMouseHover(mordavokne::inst(), false, 0);
+			handle_mouse_hover(mordavokne::inst(), false, 0);
 
 			// Report mouse button up events for all pressed mouse buttons
 			for(
@@ -654,13 +654,13 @@ std::string initialize_storage_dir(const std::string& appName){
 }
 }
 
-application::application(std::string&& name, const window_params& wp) :
+application::application(std::string name, const window_params& wp) :
 		name(name),
 		window_pimpl(std::make_unique<WindowWrapper>(wp)),
 		gui(utki::make_shared<morda::context>(
 				utki::make_shared<morda::render_opengl::renderer>(),
 				utki::make_shared<morda::updater>(),
-				[](std::function<void()>&& a){
+				[](std::function<void()> a){
 					auto& ww = getImpl(get_window_pimpl(mordavokne::inst()));
 					if (PostMessage(ww.hwnd, WM_USER, 0, reinterpret_cast<LPARAM>(new std::remove_reference<decltype(a)>::type(std::move(a)))) == 0){
 						throw std::runtime_error("PostMessage(): failed");

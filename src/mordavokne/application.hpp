@@ -168,25 +168,25 @@ private:
 	friend void handle_mouse_move(application& app, const r4::vector2<float>& pos, unsigned id);
 
 	// pos is in usual window coordinates, y goes down.
-	void handle_mouse_button(bool isDown, const r4::vector2<float>& pos, morda::mouse_button button, unsigned id){
-		this->gui.send_mouse_button(isDown, pos, button, id);
+	void handle_mouse_button(bool is_down, const r4::vector2<float>& pos, morda::mouse_button button, unsigned id){
+		this->gui.send_mouse_button(is_down, pos, button, id);
 	}
 
-	friend void handle_mouse_button(application& app, bool isDown, const r4::vector2<float>& pos, morda::mouse_button button, unsigned id);
+	friend void handle_mouse_button(application& app, bool is_down, const r4::vector2<float>& pos, morda::mouse_button button, unsigned id);
 
-	void handleMouseHover(bool is_hovered, unsigned id){
+	void handle_mouse_hover(bool is_hovered, unsigned id){
 		this->gui.send_mouse_hover(is_hovered, id);
 	}
 
-	friend void handleMouseHover(application& app, bool isHovered, unsigned pointerID);
+	friend void handle_mouse_hover(application& app, bool is_hovered, unsigned pointer_id);
 
 protected:
 	/**
 	 * @brief Application constructor.
 	 * @param name - name of the application.
-	 * @param requestedWindowParams - requested window parameters.
+	 * @param requested_window_params - requested window parameters.
 	 */
-	application(std::string&& name, const window_params& requestedWindowParams);
+	application(std::string name, const window_params& requested_window_params);
 
 public:
 
