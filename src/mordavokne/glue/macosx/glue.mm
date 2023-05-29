@@ -116,7 +116,7 @@ void macosx_HandleMouseHover(bool isHovered){
 		}
 	}
 
-	handleMouseHover(mordavokne::application::inst(), isHovered, 0);
+	handle_mouse_hover(mordavokne::application::inst(), isHovered, 0);
 }
 
 void macosx_HandleKeyEvent(bool isDown, morda::key keyCode){

@@ -1235,10 +1235,10 @@ int main(int argc, const char** argv){
 						);
 					break;
 				case EnterNotify:
-					handleMouseHover(*app, true, 0);
+					handle_mouse_hover(*app, true, 0);
 					break;
 				case LeaveNotify:
-					handleMouseHover(*app, false, 0);
+					handle_mouse_hover(*app, false, 0);
 					break;
 				case ClientMessage:
 //						TRACE(<< "ClientMessage X event got" << std::endl)
