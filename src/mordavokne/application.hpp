@@ -105,6 +105,7 @@ struct window_params{
  */
 class application : public utki::intrusive_singleton<application>{
 	friend singleton_type;
+	// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 	static instance_type instance;
 
 public:
@@ -189,6 +190,12 @@ protected:
 	application(std::string name, const window_params& requested_window_params);
 
 public:
+
+	application(const application&) = delete;
+	application& operator=(const application&) = delete;
+
+	application(application&&) = delete;
+	application& operator=(application&&) = delete;
 
 	~application() override = default;
 
