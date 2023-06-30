@@ -19,9 +19,9 @@ this_ldlibs += $(this_mordavoknelib)
 
 ifeq ($(os),windows)
     this_ldlibs += -lmingw32 # these should go first, otherwise linker will complain about undefined reference to WinMain
-    this_ldlibs += -lglew32 -lopengl32 -lpng -ljpeg -lz -lfreetype -mwindows
+    this_ldlibs += -lglew32 -lopengl32 -lz -lfreetype -mwindows
 else ifeq ($(os),macosx)
-    this_ldlibs += -lGLEW -framework OpenGL -framework Cocoa -lpng -ljpeg -lfreetype
+    this_ldlibs += -lGLEW -framework OpenGL -framework Cocoa -lfreetype
     this_ldflags += -rdynamic
 else ifeq ($(os),linux)
     this_ldlibs += -pthread
