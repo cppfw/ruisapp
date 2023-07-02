@@ -1,3 +1,9 @@
+libmordavokne (0.2.86) unstable; urgency=medium
+
+  * relink
+
+ -- Ivan Gagis <igagis@gmail.com>  Sun, 02 Jul 2023 18:06:08 +0300
+
 libmordavokne (0.2.85) unstable; urgency=medium
 
   * update to latest libmorda
