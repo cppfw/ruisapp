@@ -445,7 +445,7 @@ struct window_wrapper : public utki::destructable {
 
 		if (std::find(glx_extensions.begin(), glx_extensions.end(), "GLX_ARB_create_context") == glx_extensions.end()) {
 			// GLX_ARB_create_context is not supported
-			this->glContext = glXCreateContext(this->display.display, visual_info, NULL, GL_TRUE);
+			this->glContext = glXCreateContext(this->display.display, visual_info, nullptr, GL_TRUE);
 		} else {
 			// GLX_ARB_create_context is supported
 
@@ -458,7 +458,7 @@ struct window_wrapper : public utki::destructable {
 
 			if (!glXCreateContextAttribsARB) {
 				// this should not happen since we checked extension presence, and anyway,
-				// glXGetProcAddressARB() never returns NULL according to
+				// glXGetProcAddressARB() never returns nullptr according to
 				// https://dri.freedesktop.org/wiki/glXGetProcAddressNeverReturnsNULL/
 				// so, this check for null is just in case future version of GLX may return null
 				throw std::runtime_error("glXCreateContextAttribsARB() not found");
@@ -477,17 +477,17 @@ struct window_wrapper : public utki::destructable {
 			};
 
 			this->glContext =
-				glXCreateContextAttribsARB(this->display.display, best_fb_config, NULL, GL_TRUE, context_attribs);
+				glXCreateContextAttribsARB(this->display.display, best_fb_config, nullptr, GL_TRUE, context_attribs);
 		}
 
 		// sync to ensure any errors generated are processed
 		XSync(this->display.display, False);
 
-		if (this->glContext == NULL) {
+		if (this->glContext == nullptr) {
 			throw std::runtime_error("glXCreateContext() failed");
 		}
 		utki::scope_exit scopeExitGLContext([this]() {
-			glXMakeCurrent(this->display.display, None, NULL);
+			glXMakeCurrent(this->display.display, None, nullptr);
 			glXDestroyContext(this->display.display, this->glContext);
 		});
 
@@ -641,8 +641,8 @@ struct window_wrapper : public utki::destructable {
 		//=========================
 		// initialize input method
 
-		this->inputMethod = XOpenIM(this->display.display, NULL, NULL, NULL);
-		if (this->inputMethod == NULL) {
+		this->inputMethod = XOpenIM(this->display.display, nullptr, nullptr, nullptr);
+		if (this->inputMethod == nullptr) {
 			throw std::runtime_error("XOpenIM() failed");
 		}
 		utki::scope_exit scopeExitInputMethod([this]() {
@@ -657,9 +657,9 @@ struct window_wrapper : public utki::destructable {
 			this->window,
 			XNInputStyle,
 			XIMPreeditNothing | XIMStatusNothing,
-			NULL
+			nullptr
 		);
-		if (this->inputContext == NULL) {
+		if (this->inputContext == nullptr) {
 			throw std::runtime_error("XCreateIC() failed");
 		}
 		utki::scope_exit scopeExitInputContext([this]() {
@@ -690,7 +690,7 @@ struct window_wrapper : public utki::destructable {
 		XCloseIM(this->inputMethod);
 
 #ifdef MORDAVOKNE_RENDER_OPENGL
-		glXMakeCurrent(this->display.display, None, NULL);
+		glXMakeCurrent(this->display.display, None, nullptr);
 		glXDestroyContext(this->display.display, this->glContext);
 #elif defined(MORDAVOKNE_RENDER_OPENGLES)
 		eglMakeCurrent(this->eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
@@ -712,6 +712,7 @@ struct window_wrapper : public utki::destructable {
 window_wrapper& getImpl(const std::unique_ptr<utki::destructable>& pimpl)
 {
 	ASSERT(dynamic_cast<window_wrapper*>(pimpl.get()))
+	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast)
 	return static_cast<window_wrapper&>(*pimpl);
 }
 
@@ -723,24 +724,29 @@ window_wrapper& get_impl(application& app)
 } // namespace
 
 namespace {
-morda::real getDotsPerInch(Display* display)
+morda::real get_dots_per_inch(Display* display)
 {
-	int scrNum = 0;
-	morda::real value =
-		((morda::real(DisplayWidth(display, scrNum)) / (morda::real(DisplayWidthMM(display, scrNum)) / 10.0))
-		 + (morda::real(DisplayHeight(display, scrNum)) / (morda::real(DisplayHeightMM(display, scrNum)) / 10.0)))
+	int src_num = 0;
+
+	constexpr auto mm_per_cm = 10;
+
+	morda::real value = ((morda::real(DisplayWidth(display, src_num))
+						  / (morda::real(DisplayWidthMM(display, src_num)) / morda::real(mm_per_cm)))
+						 + (morda::real(DisplayHeight(display, src_num))
+							/ (morda::real(DisplayHeightMM(display, src_num)) / morda::real(mm_per_cm))))
 		/ 2;
-	value *= 2.54f;
+	constexpr auto cm_per_inch = 2.54;
+	value *= morda::real(cm_per_inch);
 	return value;
 }
 
-morda::real getDotsPerPt(Display* display)
+morda::real get_dots_per_dp(Display* display)
 {
-	int scrNum = 0;
-	r4::vector2<unsigned> resolution(DisplayWidth(display, scrNum), DisplayHeight(display, scrNum));
-	r4::vector2<unsigned> screenSizeMm(DisplayWidthMM(display, scrNum), DisplayHeightMM(display, scrNum));
+	int src_num = 0;
+	r4::vector2<unsigned> resolution(DisplayWidth(display, src_num), DisplayHeight(display, src_num));
+	r4::vector2<unsigned> screen_size_mm(DisplayWidthMM(display, src_num), DisplayHeightMM(display, src_num));
 
-	return application::get_pixels_per_dp(resolution, screenSizeMm);
+	return application::get_pixels_per_dp(resolution, screen_size_mm);
 }
 } // namespace
 
@@ -763,8 +769,8 @@ application::application(std::string name, const window_params& wp) :
 			auto& ww = get_impl(*this);
 			ww.set_cursor(c);
 		},
-		getDotsPerInch(getImpl(window_pimpl).display.display),
-		::getDotsPerPt(getImpl(window_pimpl).display.display)
+		get_dots_per_inch(getImpl(window_pimpl).display.display),
+		::get_dots_per_dp(getImpl(window_pimpl).display.display)
 	)),
 	storage_dir(initialize_storage_dir(this->name))
 {
