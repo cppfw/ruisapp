@@ -1315,21 +1315,29 @@ void application::set_fullscreen(bool enable)
 
 	auto& ww = getImpl(this->window_pimpl);
 
+	Atom state_atom = XInternAtom(ww.display.display, "_NET_WM_STATE", False);
+	Atom atom = XInternAtom(ww.display.display, "_NET_WM_STATE_FULLSCREEN", False);
+
 	XEvent event;
-	Atom stateAtom;
-	Atom atom;
-
-	stateAtom = XInternAtom(ww.display.display, "_NET_WM_STATE", False);
-	atom = XInternAtom(ww.display.display, "_NET_WM_STATE_FULLSCREEN", False);
-
 	event.xclient.type = ClientMessage;
 	event.xclient.serial = 0;
 	event.xclient.send_event = True;
 	event.xclient.window = ww.window;
-	event.xclient.message_type = stateAtom;
-	event.xclient.format = 32;
+	event.xclient.message_type = state_atom;
+
+	// data should be viewed as list of longs
+	event.xclient.format = utki::byte_bits * sizeof(long);
+
+	// use union from third-party code
+	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
 	event.xclient.data.l[0] = enable ? 1 : 0;
-	event.xclient.data.l[1] = atom;
+
+	// use union from third-party code
+	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
+	event.xclient.data.l[1] = long(atom);
+
+	// use union from third-party code
+	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
 	event.xclient.data.l[2] = 0;
 
 	XSendEvent(
