@@ -188,7 +188,7 @@ struct window_wrapper : public utki::destructable {
 	}
 
 	XIM inputMethod;
-	XIC inputContext;
+	XIC input_context;
 
 	nitki::queue ui_queue;
 
@@ -255,28 +255,53 @@ struct window_wrapper : public utki::destructable {
 			if (!fbc) {
 				throw std::runtime_error("glXChooseFBConfig() returned empty list");
 			}
-			utki::scope_exit scopeExitFbc([&fbc]() {
+			utki::scope_exit scope_exit_fbc([&fbc]() {
 				XFree(fbc);
 			});
 
-			int best_fb_config_index = -1, worstFbc = -1, bestNumSamp = -1, worstNumSamp = 999;
+			int best_fb_config_index = -1;
+			int worst_fbc = -1;
+			int best_num_samp = -1;
+			// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
+			int worst_num_samp = 999;
 
 			for (int i = 0; i < fbcount; ++i) {
-				XVisualInfo* vi = glXGetVisualFromFBConfig(this->display.display, fbc[i]);
+				XVisualInfo* vi = glXGetVisualFromFBConfig(
+					this->display.display,
+					// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+					fbc[i]
+				);
 				if (vi) {
+					// NOLINTNEXTLINE(cppcoreguidelines-init-variables)
 					int samp_buf, samples;
-					glXGetFBConfigAttrib(this->display.display, fbc[i], GLX_SAMPLE_BUFFERS, &samp_buf);
-					glXGetFBConfigAttrib(this->display.display, fbc[i], GLX_SAMPLES, &samples);
+					glXGetFBConfigAttrib(
+						this->display.display,
+						// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+						fbc[i],
+						GLX_SAMPLE_BUFFERS,
+						&samp_buf
+					);
+					glXGetFBConfigAttrib(
+						this->display.display,
+						// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+						fbc[i],
+						GLX_SAMPLES,
+						&samples
+					);
 
-					if (best_fb_config_index < 0 || (samp_buf && samples > bestNumSamp)) {
-						best_fb_config_index = i, bestNumSamp = samples;
+					if (best_fb_config_index < 0 || (samp_buf && samples > best_num_samp)) {
+						best_fb_config_index = i;
+						best_num_samp = samples;
 					}
-					if (worstFbc < 0 || !samp_buf || samples < worstNumSamp) {
-						worstFbc = i, worstNumSamp = samples;
+					if (worst_fbc < 0 || !samp_buf || samples < worst_num_samp) {
+						worst_fbc = i;
+						worst_num_samp = samples;
 					}
 				}
 				XFree(vi);
 			}
+
+			// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 			best_fb_config = fbc[best_fb_config_index];
 		}
 #elif defined(MORDAVOKNE_RENDER_OPENGLES)
@@ -285,7 +310,7 @@ struct window_wrapper : public utki::destructable {
 			throw std::runtime_error("eglGetDisplay(): failed, no matching display connection found");
 		}
 
-		utki::scope_exit scopeExitEGLDisplay([this]() {
+		utki::scope_exit scope_exit_egl_display([this]() {
 			eglTerminate(this->eglDisplay);
 		});
 
@@ -335,7 +360,7 @@ struct window_wrapper : public utki::destructable {
 #	error "Unknown graphics API"
 #endif
 
-		XVisualInfo* visual_info;
+		XVisualInfo* visual_info = nullptr;
 #ifdef MORDAVOKNE_RENDER_OPENGL
 		visual_info = glXGetVisualFromFBConfig(this->display.display, best_fb_config);
 		if (!visual_info) {
@@ -383,7 +408,7 @@ struct window_wrapper : public utki::destructable {
 			AllocNone
 		);
 		// TODO: check for error?
-		utki::scope_exit scopeExitColorMap([this]() {
+		utki::scope_exit scope_exit_color_map([this]() {
 			XFreeColormap(this->display.display, this->color_map);
 		});
 
@@ -414,7 +439,7 @@ struct window_wrapper : public utki::destructable {
 		if (!this->window) {
 			throw std::runtime_error("Failed to create window");
 		}
-		utki::scope_exit scopeExitWindow([this]() {
+		utki::scope_exit scope_exit_window([this]() {
 			XDestroyWindow(this->display.display, this->window);
 		});
 
@@ -453,8 +478,10 @@ struct window_wrapper : public utki::destructable {
 			//       glXGetProcAddress() is not guaranteed.
 			// SOURCE: https://dri.freedesktop.org/wiki/glXGetProcAddressNeverReturnsNULL/
 
-			auto glXCreateContextAttribsARB =
-				(PFNGLXCREATECONTEXTATTRIBSARBPROC)glXGetProcAddressARB((const GLubyte*)"glXCreateContextAttribsARB");
+			// NOLINTNEXTLINE(readability-identifier-naming)
+			auto glXCreateContextAttribsARB = PFNGLXCREATECONTEXTATTRIBSARBPROC(glXGetProcAddressARB(
+				static_cast<const GLubyte*>(static_cast<const void*>("glXCreateContextAttribsARB"))
+			));
 
 			if (!glXCreateContextAttribsARB) {
 				// this should not happen since we checked extension presence, and anyway,
@@ -466,7 +493,7 @@ struct window_wrapper : public utki::destructable {
 
 			auto ver = get_opengl_version_duplet(wp.graphics_api_request);
 
-			static int context_attribs[] = {
+			static const std::array<int, 7> context_attribs = {
 				GLX_CONTEXT_MAJOR_VERSION_ARB,
 				ver.major,
 				GLX_CONTEXT_MINOR_VERSION_ARB,
@@ -476,8 +503,13 @@ struct window_wrapper : public utki::destructable {
 				None
 			};
 
-			this->glContext =
-				glXCreateContextAttribsARB(this->display.display, best_fb_config, nullptr, GL_TRUE, context_attribs);
+			this->glContext = glXCreateContextAttribsARB(
+				this->display.display,
+				best_fb_config,
+				nullptr,
+				GL_TRUE,
+				context_attribs.data()
+			);
 		}
 
 		// sync to ensure any errors generated are processed
@@ -486,14 +518,13 @@ struct window_wrapper : public utki::destructable {
 		if (this->glContext == nullptr) {
 			throw std::runtime_error("glXCreateContext() failed");
 		}
-		utki::scope_exit scopeExitGLContext([this]() {
+		utki::scope_exit scope_exit_gl_context([this]() {
 			glXMakeCurrent(this->display.display, None, nullptr);
 			glXDestroyContext(this->display.display, this->glContext);
 		});
 
 		glXMakeCurrent(this->display.display, this->window, this->glContext);
 
-		//===========================================
 		// disable v-sync via swap control extension
 
 		if (std::find(glx_extensions.begin(), glx_extensions.end(), "GLX_EXT_swap_control") != glx_extensions.end()) {
@@ -501,8 +532,10 @@ struct window_wrapper : public utki::destructable {
 				o << "GLX_EXT_swap_control is supported\n";
 			})
 
-			auto glXSwapIntervalEXT =
-				(PFNGLXSWAPINTERVALEXTPROC)glXGetProcAddressARB((const GLubyte*)"glXSwapIntervalEXT");
+			// NOLINTNEXTLINE(readability-identifier-naming)
+			auto glXSwapIntervalEXT = PFNGLXSWAPINTERVALEXTPROC(
+				glXGetProcAddressARB(static_cast<const GLubyte*>(static_cast<const void*>("glXSwapIntervalEXT")))
+			);
 
 			ASSERT(glXSwapIntervalEXT)
 
@@ -514,8 +547,10 @@ struct window_wrapper : public utki::destructable {
 				o << "GLX_MESA_swap_control is supported\n";
 			})
 
-			auto glXSwapIntervalMESA =
-				(PFNGLXSWAPINTERVALMESAPROC)glXGetProcAddressARB((const GLubyte*)"glXSwapIntervalMESA");
+			// NOLINTNEXTLINE(readability-identifier-naming)
+			auto glXSwapIntervalMESA = PFNGLXSWAPINTERVALMESAPROC(
+				glXGetProcAddressARB(static_cast<const GLubyte*>(static_cast<const void*>("glXSwapIntervalMESA")))
+			);
 
 			ASSERT(glXSwapIntervalMESA)
 
@@ -603,7 +638,7 @@ struct window_wrapper : public utki::destructable {
 		if (this->eglSurface == EGL_NO_SURFACE) {
 			throw std::runtime_error("eglCreateWindowSurface() failed");
 		}
-		utki::scope_exit scopeExitEGLSurface([this]() {
+		utki::scope_exit scope_exit_egl_surface([this]() {
 			eglDestroySurface(this->eglDisplay, this->eglSurface);
 		});
 
@@ -638,18 +673,18 @@ struct window_wrapper : public utki::destructable {
 #	error "Unknown graphics API"
 #endif
 
-		//=========================
 		// initialize input method
 
 		this->inputMethod = XOpenIM(this->display.display, nullptr, nullptr, nullptr);
 		if (this->inputMethod == nullptr) {
 			throw std::runtime_error("XOpenIM() failed");
 		}
-		utki::scope_exit scopeExitInputMethod([this]() {
+		utki::scope_exit scope_exit_input_method([this]() {
 			XCloseIM(this->inputMethod);
 		});
 
-		this->inputContext = XCreateIC(
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
+		this->input_context = XCreateIC(
 			this->inputMethod,
 			XNClientWindow,
 			this->window,
@@ -659,33 +694,33 @@ struct window_wrapper : public utki::destructable {
 			XIMPreeditNothing | XIMStatusNothing,
 			nullptr
 		);
-		if (this->inputContext == nullptr) {
+		if (this->input_context == nullptr) {
 			throw std::runtime_error("XCreateIC() failed");
 		}
-		utki::scope_exit scopeExitInputContext([this]() {
-			XUnsetICFocus(this->inputContext);
-			XDestroyIC(this->inputContext);
+		utki::scope_exit scope_exit_input_context([this]() {
+			XUnsetICFocus(this->input_context);
+			XDestroyIC(this->input_context);
 		});
 
-		scopeExitInputContext.reset();
-		scopeExitInputMethod.reset();
-		scopeExitWindow.reset();
-		scopeExitColorMap.reset();
+		scope_exit_input_context.reset();
+		scope_exit_input_method.reset();
+		scope_exit_window.reset();
+		scope_exit_color_map.reset();
 #ifdef MORDAVOKNE_RENDER_OPENGL
-		scopeExitGLContext.reset();
+		scope_exit_gl_context.reset();
 #elif defined(MORDAVOKNE_RENDER_OPENGLES)
-		scopeExitEGLDisplay.reset();
-		scopeExitEGLSurface.reset();
+		scope_exit_egl_display.reset();
+		scope_exit_egl_surface.reset();
 		scopeExitEGLContext.reset();
 #else
 #	error "Unknown graphics API"
 #endif
 	}
 
-	~window_wrapper() noexcept
+	~window_wrapper() override
 	{
-		XUnsetICFocus(this->inputContext);
-		XDestroyIC(this->inputContext);
+		XUnsetICFocus(this->input_context);
+		XDestroyIC(this->input_context);
 
 		XCloseIM(this->inputMethod);
 
@@ -709,7 +744,7 @@ struct window_wrapper : public utki::destructable {
 	}
 };
 
-window_wrapper& getImpl(const std::unique_ptr<utki::destructable>& pimpl)
+window_wrapper& get_impl(const std::unique_ptr<utki::destructable>& pimpl)
 {
 	ASSERT(dynamic_cast<window_wrapper*>(pimpl.get()))
 	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast)
@@ -718,7 +753,7 @@ window_wrapper& getImpl(const std::unique_ptr<utki::destructable>& pimpl)
 
 window_wrapper& get_impl(application& app)
 {
-	return getImpl(get_window_pimpl(app));
+	return get_impl(get_window_pimpl(app));
 }
 
 } // namespace
@@ -763,14 +798,14 @@ application::application(std::string name, const window_params& wp) :
 #endif
 		utki::make_shared<morda::updater>(),
 		[this](std::function<void()> a) {
-			getImpl(get_window_pimpl(*this)).ui_queue.push_back(std::move(a));
+			get_impl(get_window_pimpl(*this)).ui_queue.push_back(std::move(a));
 		},
 		[this](morda::mouse_cursor c) {
 			auto& ww = get_impl(*this);
 			ww.set_cursor(c);
 		},
-		get_dots_per_inch(getImpl(window_pimpl).display.display),
-		::get_dots_per_dp(getImpl(window_pimpl).display.display)
+		get_dots_per_inch(get_impl(window_pimpl).display.display),
+		::get_dots_per_dp(get_impl(window_pimpl).display.display)
 	)),
 	storage_dir(initialize_storage_dir(this->name))
 {
@@ -1138,7 +1173,7 @@ public:
 
 void application::quit() noexcept
 {
-	auto& ww = getImpl(this->window_pimpl);
+	auto& ww = get_impl(this->window_pimpl);
 
 	ww.quitFlag = true;
 }
@@ -1152,7 +1187,7 @@ int main(int argc, const char** argv)
 
 	ASSERT(app)
 
-	auto& ww = getImpl(get_window_pimpl(*app));
+	auto& ww = get_impl(get_window_pimpl(*app));
 
 	xevent_waitable xew(ww.display.display);
 
@@ -1218,7 +1253,7 @@ int main(int argc, const char** argv)
 						// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
 						morda::key key = key_code_map[std::uint8_t(event.xkey.keycode)];
 						handle_key_event(*app, true, key);
-						handle_character_input(*app, key_event_unicode_provider(ww.inputContext, event), key);
+						handle_character_input(*app, key_event_unicode_provider(ww.input_context, event), key);
 					}
 					break;
 				case KeyRelease:
@@ -1236,7 +1271,7 @@ int main(int argc, const char** argv)
 								&& nev.xkey.keycode == event.xkey.keycode)
 							{
 								// key wasn't actually released
-								handle_character_input(*app, key_event_unicode_provider(ww.inputContext, nev), key);
+								handle_character_input(*app, key_event_unicode_provider(ww.input_context, nev), key);
 
 								XNextEvent(ww.display.display, &nev); // remove the key down event from queue
 								break;
@@ -1327,7 +1362,7 @@ void application::set_fullscreen(bool enable)
 		return;
 	}
 
-	auto& ww = getImpl(this->window_pimpl);
+	auto& ww = get_impl(this->window_pimpl);
 
 	Atom state_atom = XInternAtom(ww.display.display, "_NET_WM_STATE", False);
 	Atom atom = XInternAtom(ww.display.display, "_NET_WM_STATE_FULLSCREEN", False);
@@ -1374,7 +1409,7 @@ void application::set_mouse_cursor_visible(bool visible)
 
 void application::swap_frame_buffers()
 {
-	auto& ww = getImpl(this->window_pimpl);
+	auto& ww = get_impl(this->window_pimpl);
 
 #ifdef MORDAVOKNE_RENDER_OPENGL
 	glXSwapBuffers(ww.display.display, ww.window);

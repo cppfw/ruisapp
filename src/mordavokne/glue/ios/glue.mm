@@ -110,7 +110,7 @@ namespace{
 		}
 	};
 
-	WindowWrapper& getImpl(const std::unique_ptr<utki::Unique>& pimpl){
+	WindowWrapper& get_impl(const std::unique_ptr<utki::Unique>& pimpl){
 		ASSERT(pimpl)
 		ASSERT(dynamic_cast<WindowWrapper*>(pimpl.get()))
 		return static_cast<WindowWrapper&>(*pimpl);
@@ -236,7 +236,7 @@ namespace{
 @end
 
 void application::set_fullscreen(bool enable){
-	auto& ww = getImpl(this->window_pimpl);
+	auto& ww = get_impl(this->window_pimpl);
 	UIWindow* w = ww.window;
 
 	float scale = [[UIScreen mainScreen] scale];

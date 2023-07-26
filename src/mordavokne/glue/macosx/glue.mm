@@ -77,7 +77,7 @@ struct WindowWrapper : public utki::destructable{
 	~WindowWrapper()noexcept;
 };
 
-WindowWrapper& getImpl(const std::unique_ptr<utki::destructable>& pimpl){
+WindowWrapper& get_impl(const std::unique_ptr<utki::destructable>& pimpl){
 	ASSERT(dynamic_cast<WindowWrapper*>(pimpl.get()))
 	return static_cast<WindowWrapper&>(*pimpl);
 }
@@ -107,7 +107,7 @@ void macosx_HandleMouseMove(const morda::vector2& pos, unsigned id){
 }
 
 void macosx_HandleMouseHover(bool isHovered){
-	auto& ww = getImpl(get_window_pimpl(mordavokne::application::inst()));
+	auto& ww = get_impl(get_window_pimpl(mordavokne::application::inst()));
 	if(!ww.mouseCursorIsCurrentlyVisible){
 		if(isHovered){
 			[NSCursor hide];
@@ -151,7 +151,7 @@ void macosx_HandleCharacterInput(const void* nsstring, morda::key key){
 }
 
 void macosx_UpdateWindowRect(const morda::rectangle& r){
-	auto& ww = getImpl(get_window_pimpl(mordavokne::application::inst()));
+	auto& ww = get_impl(get_window_pimpl(mordavokne::application::inst()));
 	[ww.openglContextId update];//after resizing window we need to update OpenGL context
 	update_window_rect(mordavokne::application::inst(), r);
 }
@@ -698,7 +698,7 @@ WindowWrapper::~WindowWrapper()noexcept{
 }
 
 void application::quit()noexcept{
-	auto& ww = getImpl(this->window_pimpl);
+	auto& ww = get_impl(this->window_pimpl);
 	ww.quitFlag = true;
 }
 
@@ -711,7 +711,7 @@ int main(int argc, const char** argv){
 
 	LOG([&](auto&o){o << "main(): app created" << std::endl;})
 
-	auto& ww = getImpl(get_window_pimpl(*app));
+	auto& ww = get_impl(get_window_pimpl(*app));
 
 	[ww.applicationObjectId activateIgnoringOtherApps:YES];
 
@@ -811,7 +811,7 @@ application::application(std::string name, const window_params& wp) :
 			utki::make_shared<morda::render_opengl::renderer>(),
 			utki::make_shared<morda::updater>(),
 			[this](std::function<void()> a){
-				auto& ww = getImpl(get_window_pimpl(*this));
+				auto& ww = get_impl(get_window_pimpl(*this));
 
 				NSEvent* e = [NSEvent
 						otherEventWithType: NSEventTypeApplicationDefined
@@ -847,7 +847,7 @@ application::application(std::string name, const window_params& wp) :
 }
 
 void application::swap_frame_buffers(){
-	auto& ww = getImpl(this->window_pimpl);
+	auto& ww = get_impl(this->window_pimpl);
 	[ww.openglContextId flushBuffer];
 }
 
@@ -856,7 +856,7 @@ void application::set_fullscreen(bool enable){
 		return;
 	}
 
-	auto& ww = getImpl(this->window_pimpl);
+	auto& ww = get_impl(this->window_pimpl);
 
 	if(enable){
 		// save old window size
@@ -889,7 +889,7 @@ void application::set_fullscreen(bool enable){
 }
 
 void application::set_mouse_cursor_visible(bool visible){
-	auto& ww = getImpl(this->window_pimpl);
+	auto& ww = get_impl(this->window_pimpl);
 	if(visible){
 		if(!ww.mouseCursorIsCurrentlyVisible){
 			[NSCursor unhide];
