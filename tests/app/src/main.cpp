@@ -785,6 +785,6 @@ public:
 	}
 };
 
-mordavokne::application_factory app_factory([](auto args){
+const mordavokne::application_factory app_factory([](auto args){
 	return std::make_unique<::application>();
 });
