@@ -745,7 +745,7 @@ morda::real getDotsPerPt(Display* display)
 } // namespace
 
 application::application(std::string name, const window_params& wp) :
-	name(name),
+	name(std::move(name)),
 	window_pimpl(std::make_unique<window_wrapper>(wp)),
 	gui(utki::make_shared<morda::context>(
 #ifdef MORDAVOKNE_RENDER_OPENGL
@@ -777,10 +777,10 @@ application::application(std::string name, const window_params& wp) :
 
 namespace {
 
-class XEvent_waitable : public opros::waitable
+class xevent_waitable : public opros::waitable
 {
 public:
-	XEvent_waitable(Display* d) :
+	xevent_waitable(Display* d) :
 		opros::waitable(XConnectionNumber(d))
 	{}
 };
@@ -788,25 +788,25 @@ public:
 morda::mouse_button button_number_to_enum(unsigned number)
 {
 	switch (number) {
-		case 1:
+		case 1: // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 			return morda::mouse_button::left;
 		default:
-		case 2:
+		case 2: // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 			return morda::mouse_button::middle;
-		case 3:
+		case 3: // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 			return morda::mouse_button::right;
-		case 4:
+		case 4: // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 			return morda::mouse_button::wheel_up;
-		case 5:
+		case 5: // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 			return morda::mouse_button::wheel_down;
-		case 6:
+		case 6: // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 			return morda::mouse_button::wheel_left;
-		case 7:
+		case 7: // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 			return morda::mouse_button::wheel_right;
 	}
 }
 
-const std::array<morda::key, std::uint8_t(-1) + 1> keyCodeMap = {
+const std::array<morda::key, size_t(std::numeric_limits<uint8_t>::max()) + 1> key_code_map = {
 	{morda::key::unknown,
 	 morda::key::unknown,
 	 morda::key::unknown,
@@ -1065,13 +1065,13 @@ const std::array<morda::key, std::uint8_t(-1) + 1> keyCodeMap = {
 	 morda::key::unknown}
 };
 
-class KeyEventUnicodeProvider : public morda::gui::input_string_provider
+class key_event_unicode_provider : public morda::gui::input_string_provider
 {
 	XIC& xic;
 	XEvent& event;
 
 public:
-	KeyEventUnicodeProvider(XIC& xic, XEvent& event) :
+	key_event_unicode_provider(XIC& xic, XEvent& event) :
 		xic(xic),
 		event(event)
 	{}
@@ -1081,19 +1081,25 @@ public:
 #ifndef X_HAVE_UTF8_STRING
 #	error "no Xutf8stringlookup()"
 #endif
+		constexpr auto static_buf_size = 32;
 
+		// the array is used to get data, so no need to initialize it
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
+		std::array<char, static_buf_size> static_buf;
+
+		std::vector<char> arr;
+		auto buf = utki::make_span(static_buf);
+
+		// the variable is initialized via output argument, so no need to initialize it here
+		// NOLINTNEXTLINE(cppcoreguidelines-init-variables)
 		Status status;
 
-		std::array<char, 32> staticBuf;
-		std::vector<char> arr;
-		auto buf = utki::make_span(staticBuf);
-
-		int size = Xutf8LookupString(this->xic, &this->event.xkey, buf.begin(), buf.size() - 1, NULL, &status);
+		int size = Xutf8LookupString(this->xic, &this->event.xkey, buf.begin(), int(buf.size() - 1), nullptr, &status);
 		if (status == XBufferOverflow) {
 			// allocate enough memory
 			arr.resize(size + 1);
 			buf = utki::make_span(arr);
-			size = Xutf8LookupString(this->xic, &this->event.xkey, buf.begin(), buf.size() - 1, NULL, &status);
+			size = Xutf8LookupString(this->xic, &this->event.xkey, buf.begin(), int(buf.size() - 1), nullptr, &status);
 		}
 		ASSERT(size >= 0)
 		ASSERT(buf.size() != 0)
@@ -1107,9 +1113,9 @@ public:
 			case XLookupChars:
 			case XLookupBoth:
 				if (size == 0) {
-					return std::u32string();
+					return {};
 				}
-				return utki::to_utf32(&*buf.begin());
+				return utki::to_utf32(buf.data());
 			default:
 			case XBufferOverflow:
 				ASSERT(false)
@@ -1118,7 +1124,7 @@ public:
 				break;
 		}
 
-		return std::u32string();
+		return {};
 	}
 };
 
@@ -1142,7 +1148,7 @@ int main(int argc, const char** argv)
 
 	auto& ww = getImpl(get_window_pimpl(*app));
 
-	XEvent_waitable xew(ww.display.display);
+	xevent_waitable xew(ww.display.display);
 
 	opros::wait_set wait_set(2);
 
@@ -1203,15 +1209,17 @@ int main(int argc, const char** argv)
 				case KeyPress:
 					//						TRACE(<< "KeyPress X event got" << std::endl)
 					{
-						morda::key key = keyCodeMap[std::uint8_t(event.xkey.keycode)];
+						// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
+						morda::key key = key_code_map[std::uint8_t(event.xkey.keycode)];
 						handle_key_event(*app, true, key);
-						handle_character_input(*app, KeyEventUnicodeProvider(ww.inputContext, event), key);
+						handle_character_input(*app, key_event_unicode_provider(ww.inputContext, event), key);
 					}
 					break;
 				case KeyRelease:
 					//						TRACE(<< "KeyRelease X event got" << std::endl)
 					{
-						morda::key key = keyCodeMap[std::uint8_t(event.xkey.keycode)];
+						// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
+						morda::key key = key_code_map[std::uint8_t(event.xkey.keycode)];
 
 						// detect auto-repeated key events
 						if (XEventsQueued(ww.display.display, QueuedAfterReading)) { // if there are other events queued
@@ -1222,7 +1230,7 @@ int main(int argc, const char** argv)
 								&& nev.xkey.keycode == event.xkey.keycode)
 							{
 								// key wasn't actually released
-								handle_character_input(*app, KeyEventUnicodeProvider(ww.inputContext, nev), key);
+								handle_character_input(*app, key_event_unicode_provider(ww.inputContext, nev), key);
 
 								XNextEvent(ww.display.display, &nev); // remove the key down event from queue
 								break;
@@ -1326,7 +1334,7 @@ void application::set_fullscreen(bool enable)
 	event.xclient.message_type = state_atom;
 
 	// data should be viewed as list of longs
-	event.xclient.format = utki::byte_bits * sizeof(long);
+	event.xclient.format = utki::byte_bits * 4;
 
 	// use union from third-party code
 	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
@@ -1350,7 +1358,7 @@ void application::set_fullscreen(bool enable)
 
 	XFlush(ww.display.display);
 
-	this->isFullscreen_v = enable;
+	this->is_fullscreen_v = enable;
 }
 
 void application::set_mouse_cursor_visible(bool visible)

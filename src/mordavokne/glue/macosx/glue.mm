@@ -861,10 +861,10 @@ void application::set_fullscreen(bool enable){
 	if(enable){
 		// save old window size
 		NSRect rect = [ww.windowObjectId frame];
-		this->beforeFullScreenWindowRect.p.x() = rect.origin.x;
-		this->beforeFullScreenWindowRect.p.y() = rect.origin.y;
-		this->beforeFullScreenWindowRect.d.x() = rect.size.width;
-		this->beforeFullScreenWindowRect.d.y() = rect.size.height;
+		this->before_fullscreen_window_rect.p.x() = rect.origin.x;
+		this->before_fullscreen_window_rect.p.y() = rect.origin.y;
+		this->before_fullscreen_window_rect.d.x() = rect.size.width;
+		this->before_fullscreen_window_rect.d.y() = rect.size.height;
 
 		[ww.windowObjectId setStyleMask:([ww.windowObjectId styleMask] & (~(NSWindowStyleMaskTitled | NSWindowStyleMaskResizable)))];
 
@@ -874,10 +874,10 @@ void application::set_fullscreen(bool enable){
 		[ww.windowObjectId setStyleMask:([ww.windowObjectId styleMask] | NSWindowStyleMaskTitled | NSWindowStyleMaskResizable)];
 
 		NSRect oldFrame;
-		oldFrame.origin.x = this->beforeFullScreenWindowRect.p.x();
-		oldFrame.origin.y = this->beforeFullScreenWindowRect.p.y();
-		oldFrame.size.width = this->beforeFullScreenWindowRect.d.x();
-		oldFrame.size.height = this->beforeFullScreenWindowRect.d.y();
+		oldFrame.origin.x = this->before_fullscreen_window_rect.p.x();
+		oldFrame.origin.y = this->before_fullscreen_window_rect.p.y();
+		oldFrame.size.width = this->before_fullscreen_window_rect.d.x();
+		oldFrame.size.height = this->before_fullscreen_window_rect.d.y();
 
 		[ww.windowObjectId setFrame:oldFrame display:YES animate:NO];
 		[ww.windowObjectId setLevel:NSNormalWindowLevel];
@@ -885,7 +885,7 @@ void application::set_fullscreen(bool enable){
 
 	[ww.windowObjectId initStuff];
 
-	this->isFullscreen_v = enable;
+	this->is_fullscreen_v = enable;
 }
 
 void application::set_mouse_cursor_visible(bool visible){

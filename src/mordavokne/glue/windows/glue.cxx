@@ -767,10 +767,10 @@ void application::set_fullscreen(bool enable)
 		if (GetWindowRect(ww.hwnd, &rect) == 0) {
 			throw std::runtime_error("Failed to get window rect");
 		}
-		this->beforeFullScreenWindowRect.p.x() = rect.left;
-		this->beforeFullScreenWindowRect.p.y() = rect.top;
-		this->beforeFullScreenWindowRect.d.x() = rect.right - rect.left;
-		this->beforeFullScreenWindowRect.d.y() = rect.bottom - rect.top;
+		this->before_fullscreen_window_rect.p.x() = rect.left;
+		this->before_fullscreen_window_rect.p.y() = rect.top;
+		this->before_fullscreen_window_rect.d.x() = rect.right - rect.left;
+		this->before_fullscreen_window_rect.d.y() = rect.bottom - rect.top;
 
 		// Set new window style
 		SetWindowLong(ww.hwnd, GWL_STYLE, GetWindowLong(ww.hwnd, GWL_STYLE) & ~(WS_CAPTION | WS_THICKFRAME));
@@ -807,15 +807,15 @@ void application::set_fullscreen(bool enable)
 		SetWindowPos(
 			ww.hwnd,
 			NULL,
-			this->beforeFullScreenWindowRect.p.x(),
-			this->beforeFullScreenWindowRect.p.y(),
-			this->beforeFullScreenWindowRect.d.x(),
-			this->beforeFullScreenWindowRect.d.y(),
+			this->before_fullscreen_window_rect.p.x(),
+			this->before_fullscreen_window_rect.p.y(),
+			this->before_fullscreen_window_rect.d.x(),
+			this->before_fullscreen_window_rect.d.y(),
 			SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED
 		);
 	}
 
-	this->isFullscreen_v = enable;
+	this->is_fullscreen_v = enable;
 }
 
 void application::set_mouse_cursor_visible(bool visible)

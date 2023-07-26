@@ -249,9 +249,9 @@ public:
 	void quit() noexcept;
 
 private:
-	bool isFullscreen_v = false;
+	bool is_fullscreen_v = false;
 
-	r4::rectangle<unsigned> beforeFullScreenWindowRect;
+	r4::rectangle<unsigned> before_fullscreen_window_rect{0, 0, 0, 0};
 
 public:
 	/**
@@ -261,7 +261,7 @@ public:
 	 */
 	bool is_fullscreen() const noexcept
 	{
-		return this->isFullscreen_v;
+		return this->is_fullscreen_v;
 	}
 
 	/**
