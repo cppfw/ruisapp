@@ -50,6 +50,29 @@
             "problemMatcher": [],
             "dependsOn": "build_dbg",
             "group": "build"
+        },
+        {
+            "label": "test_",
+            "type": "shell",
+            "command": "make test",
+            "problemMatcher": [],
+            "dependsOn": "build",
+            "group": "build"
+        },
+        {
+            "label": "test-dbg",
+            "type": "shell",
+            "command": "make test config=dbg",
+            "problemMatcher": [],
+            "dependsOn": "build_dbg",
+            "group": "build"
+        },
+        {
+            "label": "format",
+            "type": "shell",
+            "command": "make format",
+            "problemMatcher": [],
+            "group": "build"
         }
     ]
 }

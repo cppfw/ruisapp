@@ -23,13 +23,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "../application.hpp"
 
-namespace mordavokne{
+namespace mordavokne {
 
-struct version_duplet{
-    int major;
-    int minor;
+struct version_duplet {
+	int major;
+	int minor;
 };
 
 version_duplet get_opengl_version_duplet(window_params::graphics_api api);
 
-}
+} // namespace mordavokne

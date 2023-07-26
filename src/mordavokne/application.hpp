@@ -23,27 +23,23 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include <memory>
 
-#include <utki/config.hpp>
-#include <utki/singleton.hpp>
-#include <utki/flags.hpp>
-#include <utki/destructable.hpp>
-
-#include <papki/file.hpp>
-
-#include <r4/vector.hpp>
-
 #include <morda/gui.hpp>
-
 #include <morda/util/key.hpp>
+#include <papki/file.hpp>
+#include <r4/vector.hpp>
+#include <utki/config.hpp>
+#include <utki/destructable.hpp>
+#include <utki/flags.hpp>
+#include <utki/singleton.hpp>
 
 #include "config.hpp"
 
-namespace mordavokne{
+namespace mordavokne {
 
 /**
  * @brief Desired window parameters.
  */
-struct window_params{
+struct window_params {
 	/**
 	 * @brief Desired dimensions of the window
 	 */
@@ -51,7 +47,7 @@ struct window_params{
 
 	// TODO: add window title string
 
-	enum class buffer_type{
+	enum class buffer_type {
 		depth,
 		stencil,
 
@@ -63,7 +59,7 @@ struct window_params{
 	 */
 	utki::flags<buffer_type> buffers = false;
 
-	enum class graphics_api{
+	enum class graphics_api {
 		gl_2_0,
 		gl_2_1,
 		gl_3_0,
@@ -89,10 +85,10 @@ struct window_params{
 #else
 #	error "unknown OS"
 #endif
-	;
+		;
 
 	window_params(r4::vector2<unsigned> dims) :
-			dims(dims)
+		dims(dims)
 	{}
 };
 
@@ -103,7 +99,8 @@ struct window_params{
  * When instance of this class is created it also creates a window and
  * initializes rendering API (e.g. OpenGL or OpenGL ES).
  */
-class application : public utki::intrusive_singleton<application>{
+class application : public utki::intrusive_singleton<application>
+{
 	friend singleton_type;
 	// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 	static instance_type instance;
@@ -123,7 +120,6 @@ public:
 	morda::gui gui;
 
 public:
-
 	/**
 	 * @brief Create file interface into resources storage.
 	 * This function creates a morda's standard file interface to read application's
@@ -131,7 +127,7 @@ public:
 	 * @param path - file path to initialize the file interface with.
 	 * @return Instance of the file interface into the resources storage.
 	 */
-	std::unique_ptr<papki::file> get_res_file(const std::string& path = std::string())const;
+	std::unique_ptr<papki::file> get_res_file(const std::string& path = std::string()) const;
 
 public:
 	/**
@@ -148,7 +144,8 @@ private:
 	morda::rectangle curWinRect = morda::rectangle(0, 0, 0, 0);
 
 public:
-	const morda::vector2& window_dims()const noexcept{
+	const morda::vector2& window_dims() const noexcept
+	{
 		return this->curWinRect.d;
 	}
 
@@ -162,20 +159,29 @@ private:
 	friend void update_window_rect(application& app, const morda::rectangle& rect);
 
 	// pos is in usual window coordinates, y goes down.
-	void handle_mouse_move(const r4::vector2<float>& pos, unsigned id){
+	void handle_mouse_move(const r4::vector2<float>& pos, unsigned id)
+	{
 		this->gui.send_mouse_move(pos, id);
 	}
 
 	friend void handle_mouse_move(application& app, const r4::vector2<float>& pos, unsigned id);
 
 	// pos is in usual window coordinates, y goes down.
-	void handle_mouse_button(bool is_down, const r4::vector2<float>& pos, morda::mouse_button button, unsigned id){
+	void handle_mouse_button(bool is_down, const r4::vector2<float>& pos, morda::mouse_button button, unsigned id)
+	{
 		this->gui.send_mouse_button(is_down, pos, button, id);
 	}
 
-	friend void handle_mouse_button(application& app, bool is_down, const r4::vector2<float>& pos, morda::mouse_button button, unsigned id);
+	friend void handle_mouse_button(
+		application& app,
+		bool is_down,
+		const r4::vector2<float>& pos,
+		morda::mouse_button button,
+		unsigned id
+	);
 
-	void handle_mouse_hover(bool is_hovered, unsigned id){
+	void handle_mouse_hover(bool is_hovered, unsigned id)
+	{
 		this->gui.send_mouse_hover(is_hovered, id);
 	}
 
@@ -190,7 +196,6 @@ protected:
 	application(std::string name, const window_params& requested_window_params);
 
 public:
-
 	application(const application&) = delete;
 	application& operator=(const application&) = delete;
 
@@ -204,31 +209,34 @@ public:
 	 * On mobile platforms this function will summon the on-screen keyboard.
 	 * On desktop platforms this function does nothing.
 	 */
-	void show_virtual_keyboard()noexcept;
+	void show_virtual_keyboard() noexcept;
 
 	/**
 	 * @brief Hide virtual keyboard.
 	 * On mobile platforms this function hides the on-screen keyboard.
 	 * On desktop platforms this function does nothing.
 	 */
-	void hide_virtual_keyboard()noexcept;
+	void hide_virtual_keyboard() noexcept;
 
 private:
-
-	// The idea with unicode_resolver parameter is that we don't want to calculate the unicode unless it is really needed, thus postpone it
-	// as much as possible.
-	void handle_character_input(const morda::gui::input_string_provider& string_provider, morda::key key_code){
+	// The idea with unicode_resolver parameter is that we don't want to calculate the unicode unless it is really
+	// needed, thus postpone it as much as possible.
+	void handle_character_input(const morda::gui::input_string_provider& string_provider, morda::key key_code)
+	{
 		this->gui.send_character_input(string_provider, key_code);
 	}
 
-	friend void handle_character_input(application& app, const morda::gui::input_string_provider& string_provider, morda::key key_code);
+	friend void handle_character_input(
+		application& app,
+		const morda::gui::input_string_provider& string_provider,
+		morda::key key_code
+	);
 
 	void handle_key_event(bool is_down, morda::key key_code);
 
 	friend void handle_key_event(application& app, bool is_down, morda::key key_code);
 
 public:
-
 	/**
 	 * @brief Requests application to exit.
 	 * This function posts an exit message to the applications message queue.
@@ -236,7 +244,7 @@ public:
 	 * the main loop will be terminated and application will exit. The Application
 	 * object will be destroyed and all resources freed.
 	 */
-	void quit()noexcept;
+	void quit() noexcept;
 
 private:
 	bool isFullscreen_v = false;
@@ -249,7 +257,8 @@ public:
 	 * @return true if application is in fullscreen mode.
 	 * @return false if application is in windowed mode.
 	 */
-	bool is_fullscreen()const noexcept {
+	bool is_fullscreen() const noexcept
+	{
 		return this->isFullscreen_v;
 	}
 
@@ -273,10 +282,14 @@ public:
 	 * @param screen_size_mm - size of the display in millimeters.
 	 * @return Size of one display density pixel in pixels.
 	 */
-	static morda::real get_pixels_per_dp(r4::vector2<unsigned> screen_size_pixels, r4::vector2<unsigned> screen_size_mm);
+	static morda::real get_pixels_per_dp(
+		r4::vector2<unsigned> screen_size_pixels,
+		r4::vector2<unsigned> screen_size_mm
+	);
 };
 
-inline application& inst(){
+inline application& inst()
+{
 	return application::inst();
 }
 
@@ -285,7 +298,8 @@ inline application& inst(){
  * The object of this class registers the application factory function.
  * The application object will be constructed using the provided factory function at program start.
  */
-class application_factory{
+class application_factory
+{
 public:
 	using factory_type = std::function<std::unique_ptr<application>(utki::span<const char*>)>;
 
@@ -299,8 +313,9 @@ public:
 	application_factory(factory_type&& factory);
 
 	static const factory_type& get_factory();
+
 private:
 	static factory_type& get_factory_internal();
 };
 
-}
+} // namespace mordavokne

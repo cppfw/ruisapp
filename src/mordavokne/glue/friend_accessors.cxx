@@ -19,38 +19,56 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 /* ================ LICENSE END ================ */
 
-namespace mordavokne{
+namespace mordavokne {
 
-const decltype(application::window_pimpl)& get_window_pimpl(application& app){
+const decltype(application::window_pimpl)& get_window_pimpl(application& app)
+{
 	return app.window_pimpl;
 }
 
-void render(application& app){
+void render(application& app)
+{
 	app.render();
 }
 
-void update_window_rect(application& app, const morda::rectangle& rect){
+void update_window_rect(application& app, const morda::rectangle& rect)
+{
 	app.update_window_rect(rect);
 }
 
-void handle_mouse_move(application& app, const r4::vector2<float>& pos, unsigned id){
+void handle_mouse_move(application& app, const r4::vector2<float>& pos, unsigned id)
+{
 	app.handle_mouse_move(pos, id);
 }
 
-void handle_mouse_button(application& app, bool isDown, const r4::vector2<float>& pos, morda::mouse_button button, unsigned id){
+void handle_mouse_button(
+	application& app,
+	bool isDown,
+	const r4::vector2<float>& pos,
+	morda::mouse_button button,
+	unsigned id
+)
+{
 	app.handle_mouse_button(isDown, pos, button, id);
 }
 
-void handle_mouse_hover(application& app, bool isHovered, unsigned pointerID){
+void handle_mouse_hover(application& app, bool isHovered, unsigned pointerID)
+{
 	app.handle_mouse_hover(isHovered, pointerID);
 }
 
-void handle_character_input(application& app, const morda::gui::input_string_provider& string_provider, morda::key key_code){
+void handle_character_input(
+	application& app,
+	const morda::gui::input_string_provider& string_provider,
+	morda::key key_code
+)
+{
 	app.handle_character_input(string_provider, key_code);
 }
 
-void handle_key_event(application& app, bool is_down, morda::key key_code){
+void handle_key_event(application& app, bool is_down, morda::key key_code)
+{
 	app.handle_key_event(is_down, key_code);
 }
 
-}
+} // namespace mordavokne
