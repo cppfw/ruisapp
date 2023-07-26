@@ -74,7 +74,9 @@ struct window_params {
 		gl_4_5,
 		gl_4_6,
 		gles_2_0,
-		gles_3_0
+		gles_3_0,
+
+		enum_size
 	};
 
 	graphics_api graphics_api_request =
