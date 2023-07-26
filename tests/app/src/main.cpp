@@ -1,19 +1,24 @@
+#include <ratio>
+
 #include <r4/quaternion.hpp>
 #include <utki/debug.hpp>
 #include <papki/fs_file.hpp>
 
-#include "../../../src/mordavokne/application.hpp"
+#include <mordavokne/application.hpp>
 
 #include <morda/config.hpp>
+
 #include <morda/widget.hpp>
 #include <morda/container.hpp>
 #include <morda/widgets/proxy/key_proxy.hpp>
+
 #include <morda/widgets/button/push_button.hpp>
 #include <morda/widgets/label/text.hpp>
+
 #include <morda/res/texture.hpp>
+
 #include <morda/widgets/character_input_widget.hpp>
 #include <morda/widgets/group/scroll_area.hpp>
-#include <morda/widgets/group/row.hpp>
 #include <morda/widgets/proxy/mouse_proxy.hpp>
 #include <morda/widgets/slider/scroll_bar.hpp>
 #include <morda/widgets/group/list.hpp>
@@ -23,7 +28,10 @@
 #include <morda/widgets/label/color.hpp>
 #include <morda/widgets/label/image.hpp>
 #include <morda/widgets/input/text_input_line.hpp>
+
 #include <morda/widgets/button/drop_down_box.hpp>
+
+#include <morda/layouts/linear_layout.hpp>
 
 #ifdef assert
 #	undef assert
@@ -34,7 +42,7 @@ class simple_widget :
 		public morda::updateable,
 		public morda::character_input_widget
 {
-	utki::shared_ref<morda::res::texture> tex;
+	utki::shared_ref<const morda::res::texture> tex;
 
 public:
 	simple_widget(const utki::shared_ref<morda::context>& c, const treeml::forest& desc) :
@@ -50,10 +58,10 @@ public:
 		this->timer += dt;
 		++this->cnt;
 
-		if(this->timer > 1000){
-			this->timer -= 1000;
+		if(this->timer > std::milli::den){
+			this->timer -= std::milli::den;
 
-			LOG([&](auto&o){o << "Update(): UPS = " << this->cnt << std::endl;})
+			LOG([this](auto&o){o << "Update(): UPS = " << this->cnt << std::endl;})
 
 			this->cnt = 0;
 		}
@@ -70,7 +78,7 @@ public:
 		}else{
 			this->context.get().updater.get().start(
 					utki::make_shared_from(*this).to_shared_ptr(),
-					30
+					0
 				);
 		}
 		this->focus();
@@ -82,10 +90,10 @@ public:
 			LOG([&](auto&o){o << "simple_widget::OnKey(): down, keyCode = " << unsigned(e.combo.key) << std::endl;})
 			switch(e.combo.key){
 				case morda::key::arrow_left:
-					LOG([&](auto&o){o << "simple_widget::OnKeyDown(): LEFT key caught" << std::endl;})
+					utki::log([](auto&o){o << "simple_widget::OnKeyDown(): LEFT key caught" << std::endl;});
 					return true;
 				case morda::key::a:
-					LOG([&](auto&o){o << "simple_widget::OnKeyUp(): A key caught" << std::endl;})
+					utki::log([](auto&o){o << "simple_widget::OnKeyUp(): A key caught" << std::endl;});
 					return true;
 				default:
 					break;
@@ -94,10 +102,10 @@ public:
 			LOG([&](auto&o){o << "simple_widget::OnKey(): up, keyCode = " << unsigned(e.combo.key) << std::endl;})
 			switch(e.combo.key){
 				case morda::key::arrow_left:
-					LOG([&](auto&o){o << "simple_widget::OnKeyUp(): LEFT key caught" << std::endl;})
+					utki::log([](auto&o){o << "simple_widget::OnKeyUp(): LEFT key caught" << std::endl;});
 					return true;
 				case morda::key::a:
-					LOG([&](auto&o){o << "simple_widget::OnKeyUp(): A key caught" << std::endl;})
+					utki::log([](auto&o){o << "simple_widget::OnKeyUp(): A key caught" << std::endl;});
 					return true;
 				default:
 					break;
@@ -107,11 +115,11 @@ public:
 	}
 
 	void on_character_input(const morda::character_input_event& e)override{
-		if(e.string.size() == 0){
+		if(e.string.empty()){
 			return;
 		}
 
-		LOG([&](auto&o){o << "simple_widget::OnCharacterInput(): unicode = " << e.string[0] << std::endl;})
+		LOG([&](auto&o){o << "simple_widget::on_character_input(): string = " << uint32_t(e.string[0]) << std::endl;})
 	}
 
 	void render(const morda::matrix4& matrix)const override{
@@ -144,7 +152,8 @@ public:
 	cube_widget(const utki::shared_ref<morda::context>& c, const treeml::forest& desc) :
 			morda::widget(c, desc)
 	{
-		std::array<morda::vector3, 36> cubePos = {{
+		// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
+		std::array<morda::vector3, 36> cube_pos = {{
 			morda::vector3(-1, -1,  1), morda::vector3( 1, -1,  1), morda::vector3(-1,  1,  1),
  			morda::vector3( 1, -1,  1), morda::vector3( 1,  1,  1), morda::vector3(-1,  1,  1),
 			morda::vector3( 1, -1,  1), morda::vector3( 1, -1, -1), morda::vector3( 1,  1,  1),
@@ -159,9 +168,10 @@ public:
 			morda::vector3(-1, -1,  1), morda::vector3( 1, -1, -1), morda::vector3( 1, -1,  1)
 		}};
 
-		auto posVBO = this->context.get().renderer.get().factory->create_vertex_buffer(utki::make_span(cubePos));
+		auto pos_vbo = this->context.get().renderer.get().factory->create_vertex_buffer(utki::make_span(cube_pos));
 
-		std::array<morda::vector2, 36> cubeTex = {{
+		// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
+		std::array<morda::vector2, 36> cube_tex = {{
 			morda::vector2(0, 0), morda::vector2(1, 0), morda::vector2(0, 1),
 			morda::vector2(1, 0), morda::vector2(1, 1), morda::vector2(0, 1),
 			morda::vector2(0, 0), morda::vector2(1, 0), morda::vector2(0, 1),
@@ -176,15 +186,21 @@ public:
 			morda::vector2(1, 0), morda::vector2(1, 1), morda::vector2(0, 1)
 		}};
 
-		auto texVBO = this->context.get().renderer.get().factory->create_vertex_buffer(utki::make_span(cubeTex));
+		auto tex_vbo = this->context.get().renderer.get().factory->create_vertex_buffer(utki::make_span(cube_tex));
 
+		// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
 		std::array<uint16_t, 36> indices = {{
+			// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
 			0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35
 		}};
 
-		auto cubeIndices = this->context.get().renderer.get().factory->create_index_buffer(utki::make_span(indices));
+		auto cube_indices = this->context.get().renderer.get().factory->create_index_buffer(utki::make_span(indices));
 
-		this->cubeVAO = this->context.get().renderer.get().factory->create_vertex_array({posVBO, texVBO}, cubeIndices, morda::vertex_array::mode::triangles).to_shared_ptr();
+		this->cubeVAO = this->context.get().renderer.get().factory->create_vertex_array(
+			{pos_vbo, tex_vbo},
+			cube_indices,
+			morda::vertex_array::mode::triangles
+		).to_shared_ptr();
 
 		this->tex = this->context.get().loader.load<morda::res::texture>("tex_sample").to_shared_ptr();
 		this->rot.set_identity();
@@ -196,9 +212,10 @@ public:
 	void update(uint32_t dt) override{
 		this->fpsSecCounter += dt;
 		++this->fps;
-		this->rot *= morda::quaternion().set_rotation(r4::vector3<float>(1, 2, 1).normalize(), 1.5f * (float(dt) / 1000));
-		if(this->fpsSecCounter >= 1000){
-			utki::log([&](auto&o){o << "fps = " << std::dec << fps << std::endl;});
+		// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
+		this->rot *= morda::quaternion().set_rotation(r4::vector3<float>(1, 2, 1).normalize(), 1.5f * (float(dt) / std::milli::den));
+		if(this->fpsSecCounter >= std::milli::den){
+			std::cout << "fps = " << std::dec << fps << std::endl;
 			this->fpsSecCounter = 0;
 			this->fps = 0;
 		}
@@ -212,6 +229,7 @@ public:
 		matr.scale(this->rect().d / 2);
 		matr.translate(1, 1);
 		matr.scale(1, -1);
+		// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
 		matr.frustum(-2, 2, -1.5, 1.5, 2, 100);
 		matr.translate(0, 0, -4);
 		matr.rotate(this->rot);
@@ -224,13 +242,14 @@ public:
 	}
 };
 
-class TreeViewItemsProvider : public morda::tree_view::provider{
+class tree_view_items_provider : public morda::tree_view::provider{
 	treeml::forest root;
 
 	utki::shared_ref<morda::context> context;
 public:
 
-	TreeViewItemsProvider(const utki::shared_ref<morda::context>& c) :
+	// NOLINTNEXTLINE(modernize-pass-by-value)
+	tree_view_items_provider(const utki::shared_ref<morda::context>& c) :
 			context(c)
 	{
 		this->root = treeml::read(R"qwertyuiop(
@@ -251,28 +270,32 @@ public:
 						subsubroot2
 					}
 				}
-				root2{
+				root22{
 					subsubroot1
 					subsubroot2{
 						trololo
 						"hello world!"
 					}
 				}
-				root3
-				root4
+				root333
+				root4444
 			)qwertyuiop");
 	}
 
-	~TreeViewItemsProvider(){
+	tree_view_items_provider(const tree_view_items_provider&) = delete;
+	tree_view_items_provider& operator=(const tree_view_items_provider&) = delete;
 
-	}
+	tree_view_items_provider(tree_view_items_provider&&) = delete;
+	tree_view_items_provider& operator=(tree_view_items_provider&&) = delete;
+
+	~tree_view_items_provider()override = default;
 
 private:
-	std::vector<size_t> selectedItem;
+	std::vector<size_t> selected_item;
 
 	unsigned newItemNumber = 0;
 
-	std::string generateNewItemvalue(){
+	std::string generate_new_item_value(){
 		std::stringstream ss;
 		ss << "newItem" << newItemNumber;
 		++newItemNumber;
@@ -280,15 +303,15 @@ private:
 	}
 
 public:
-	void insertBefore(){
-		if(this->selectedItem.size() == 0){
+	void insert_before(){
+		if(this->selected_item.size() == 0){
 			return;
 		}
 
 		treeml::forest* list = &this->root;
 		treeml::forest* parent_list = nullptr;
 
-		for(auto& i : this->selectedItem){
+		for(auto& i : this->selected_item){
 			parent_list = list;
 			list = &(*list)[i].children;
 		}
@@ -297,21 +320,21 @@ public:
 			return;
 		}
 
-		parent_list->insert(std::next(parent_list->begin(), this->selectedItem.back()), treeml::leaf(this->generateNewItemvalue()));
+		parent_list->insert(utki::next(parent_list->begin(), this->selected_item.back()), treeml::leaf(this->generate_new_item_value()));
 
-		this->notify_item_added(utki::make_span(this->selectedItem));
-		++this->selectedItem.back();
+		this->notify_item_added(utki::make_span(this->selected_item));
+		++this->selected_item.back();
 	}
 
-	void insertAfter(){
-		if(this->selectedItem.size() == 0){
+	void insert_after(){
+		if(this->selected_item.size() == 0){
 			return;
 		}
 
 		treeml::forest* list = &this->root;
 		treeml::forest* parent_list = nullptr;
 
-		for(auto& i : this->selectedItem){
+		for(auto& i : this->selected_item){
 			parent_list = list;
 			list = &(*list)[i].children;
 		}
@@ -320,49 +343,46 @@ public:
 			return;
 		}
 
-		parent_list->insert(std::next(parent_list->begin(), this->selectedItem.back() + 1), treeml::leaf(this->generateNewItemvalue()));
+		parent_list->insert(utki::next(parent_list->begin(), this->selected_item.back() + 1), treeml::leaf(this->generate_new_item_value()));
 
-		++this->selectedItem.back();
-		this->notify_item_added(utki::make_span(this->selectedItem));
-		--this->selectedItem.back();
+		++this->selected_item.back();
+		this->notify_item_added(utki::make_span(this->selected_item));
+		--this->selected_item.back();
 	}
 
-	void insertChild(){
-		if(this->selectedItem.size() == 0){
+	void insert_child(){
+		if(this->selected_item.size() == 0){
 			return;
 		}
 
 		treeml::forest* list = &this->root;
 
-		for(auto& i : this->selectedItem){
+		for(auto& i : this->selected_item){
 			list = &(*list)[i].children;
 		}
 
-		list->push_back(treeml::leaf(this->generateNewItemvalue()));
+		list->emplace_back(this->generate_new_item_value());
 
-		this->selectedItem.push_back(list->size() - 1);
-		this->notify_item_added(utki::make_span(this->selectedItem));
-		this->selectedItem.pop_back();
+		this->selected_item.push_back(list->size() - 1);
+		this->notify_item_added(utki::make_span(this->selected_item));
+		this->selected_item.pop_back();
 	}
 
-	utki::shared_ref<morda::widget> get_widget(utki::span<const size_t> path, bool isCollapsed)override{
-		ASSERT(path.size() >= 1)
+	utki::shared_ref<morda::widget> get_widget(utki::span<const size_t> path, bool is_collapsed)override{
+		ASSERT(!path.empty())
 
 		auto list = &this->root;
 		decltype(list) parent_list = nullptr;
 
-		std::vector<bool> isLastItemInParent;
-
 		treeml::tree* n = nullptr;
 
 		for(const auto& i : path){
-			isLastItemInParent.push_back(i + 1 == list->size());
 			n = &(*list)[i];
 			parent_list = list;
 			list = &n->children;
 		}
 
-		auto ret = utki::make_shared<morda::row>(this->context, treeml::forest());
+		auto ret = utki::make_shared<morda::container>(this->context, treeml::forest(), morda::row_layout::instance);
 
 		{
 			auto v = this->context.get().inflater.inflate(
@@ -370,7 +390,7 @@ public:
 							@pile{
 								@color{
 									id{selection}
-									lp{dx{max}dy{max}}
+									lp{dx{fill}dy{fill}}
 									color{${morda_color_highlight}}
 									visible{false}
 								}
@@ -379,7 +399,7 @@ public:
 								}
 								@mouse_proxy{
 									id{mouse_proxy}
-									lp{dx{max}dy{max}}
+									lp{dx{fill}dy{fill}}
 								}
 							}
 						)qwertyuiop"
@@ -387,29 +407,30 @@ public:
 
 			{
 				auto value = v.get().try_get_widget_as<morda::text>("value");
+				ASSERT(value)
 				value->set_text(
-						n->value.to_string() // NOLINT(clang-analyzer-core.CallAndMessage)
+						n->value.to_string() // NOLINT(clang-analyzer-core.CallAndMessage): due to ASSERT(!path.empty()) in the beginning of the function 'n' is not nullptr
 					);
 			}
 			{
-				auto colorLabel = v.get().try_get_widget_as<morda::color>("selection");
+				auto color_label = v.get().try_get_widget_as<morda::color>("selection");
 
-				colorLabel->set_visible(utki::make_span(this->selectedItem) == path);
+				color_label->set_visible(path == utki::make_span(this->selected_item));
 
 				auto mp = v.get().try_get_widget_as<morda::mouse_proxy>("mouse_proxy");
 				ASSERT(mp)
-				mp->mouse_button_handler = [this, path](morda::mouse_proxy&, const morda::mouse_button_event& e) -> bool{
+				mp->mouse_button_handler = [this, path = utki::make_vector(path)](morda::mouse_proxy&, const morda::mouse_button_event& e) -> bool{
 					if(!e.is_down || e.button != morda::mouse_button::left){
 						return false;
 					}
 
-					this->selectedItem = utki::make_vector(path);
+					this->selected_item = path;
 #ifdef DEBUG
-					LOG([&](auto&o){o << " selected item = ";})
-					for(auto& k : this->selectedItem){
+					LOG([](auto&o){o << " selected item = ";})
+					for(const auto& k : this->selected_item){
 						LOG([&](auto&o){o << k << ", ";})
 					}
-					LOG([&](auto&o){o << std::endl;})
+					LOG([](auto&o){o << std::endl;})
 #endif
 					this->notify_item_changed();
 
@@ -431,10 +452,10 @@ public:
 							}
 						)qwertyuiop"
 				);
-			b.get().click_handler = [this, path, parent_list](morda::push_button& button){
+			b.get().click_handler = [this, path = utki::make_vector(path), parent_list](morda::push_button& button){
 				ASSERT(parent_list)
-				parent_list->erase(std::next(parent_list->begin(), path.back()));
-				this->notify_item_removed(path);
+				parent_list->erase(utki::next(parent_list->begin(), path.back()));
+				this->notify_item_removed(utki::make_span(path));
 			};
 			ret.get().push_back(b);
 		}
@@ -455,14 +476,15 @@ public:
 };
 
 class application : public mordavokne::application{
-	static mordavokne::window_params GetWindowParams()noexcept{
-		mordavokne::window_params wp(r4::vector2<unsigned>(1024, 800));
-
-		return wp;
-	}
 public:
 	application() :
-			mordavokne::application("morda-tests", GetWindowParams())
+			mordavokne::application("morda-tests", [](){
+				// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
+				mordavokne::window_params wp(r4::vector2<unsigned>(1024, 800));
+		// wp.graphics_api_request = mordavokne::window_params::graphics_api::gl_4_5;
+
+		return wp;
+			}())
 	{
 		this->gui.init_standard_widgets(*this->get_res_file("../../res/morda_res/"));
 
@@ -497,7 +519,7 @@ public:
 		std::dynamic_pointer_cast<morda::push_button>(c.get().try_get_widget("push_button_in_scroll_container"))->click_handler = [this](morda::push_button&){
 			this->gui.context.get().run_from_ui_thread(
 					[](){
-						utki::log([&](auto&o){o << "Print from UI thread!!!!!!!!" << std::endl;});
+						std::cout << "Print from UI thread!!!!!!!!" << std::endl;
 					}
 				);
 		};
@@ -510,6 +532,7 @@ public:
 			auto& cp = c.get().get_widget_as<morda::click_proxy>("cube_click_proxy");
 			auto& bg = c.get().get_widget_as<morda::color>("cube_bg_color");
 			cp.press_change_handler = [bg{utki::make_shared_from(bg)}](morda::click_proxy& w) -> bool {
+				// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
 				bg.get().set_color(w.is_pressed() ? 0xff808080 : 0x80808080);
 				return true;
 			};
@@ -526,16 +549,16 @@ public:
 
 		// scroll_area
 		{
-			auto scrollArea = c.get().try_get_widget_as<morda::scroll_area>("scroll_area");
-			auto sa = utki::make_weak(scrollArea);
+			auto scroll_area = c.get().try_get_widget_as<morda::scroll_area>("scroll_area");
+			auto sa = utki::make_weak(scroll_area);
 
-			auto vertSlider = c.get().try_get_widget_as<morda::scroll_bar>("scroll_area_vertical_slider");
-			auto vs = utki::make_weak(vertSlider);
+			auto vert_slider = c.get().try_get_widget_as<morda::scroll_bar>("scroll_area_vertical_slider");
+			auto vs = utki::make_weak(vert_slider);
 
-			auto horiSlider = c.get().try_get_widget_as<morda::scroll_bar>("scroll_area_horizontal_slider");
-			auto hs = utki::make_weak(horiSlider);
+			auto hori_slider = c.get().try_get_widget_as<morda::scroll_bar>("scroll_area_horizontal_slider");
+			auto hs = utki::make_weak(hori_slider);
 
-			scrollArea->scroll_change_handler = [hs = hs, vs = vs](morda::scroll_area& sa){
+			scroll_area->scroll_change_handler = [hs = hs, vs = vs](morda::scroll_area& sa){
 				auto f = sa.get_scroll_factor();
 				auto b = sa.get_visible_area_fraction();
 				if(auto h = hs.lock()){
@@ -548,7 +571,7 @@ public:
 				}
 			};
 
-			vertSlider->fraction_change_handler = [sa](morda::fraction_widget& slider){
+			vert_slider->fraction_change_handler = [sa](morda::fraction_widget& slider){
 				if(auto s = sa.lock()){
 					auto sf = s->get_scroll_factor();
 					sf.y() = slider.fraction();
@@ -556,7 +579,7 @@ public:
 				}
 			};
 
-			horiSlider->fraction_change_handler = [sa](morda::fraction_widget& slider){
+			hori_slider->fraction_change_handler = [sa](morda::fraction_widget& slider){
 				if(auto s = sa.lock()){
 					auto sf = s->get_scroll_factor();
 					sf.x() = slider.fraction();
@@ -567,45 +590,60 @@ public:
 
 		// vertical_list
 		{
-			auto verticalList = c.get().try_get_widget_as<morda::list>("list");
-			auto vl = utki::make_weak(verticalList);
+			auto vertical_list = c.get().try_get_widget_as<morda::list>("list");
+			auto vl = utki::make_weak(vertical_list);
 
-			auto verticalSlider = c.get().try_get_widget_as<morda::vertical_scroll_bar>("vertical_list_slider");
-			auto vs = utki::make_weak(verticalSlider);
+			auto vertical_slider = c.get().try_get_widget_as<morda::vertical_scroll_bar>("vertical_list_slider");
+			auto vs = utki::make_weak(vertical_slider);
 
-			verticalSlider->fraction_change_handler = [vl](morda::fraction_widget& slider){
+			vertical_slider->fraction_change_handler = [vl](morda::fraction_widget& slider){
 				if(auto l = vl.lock()){
 					l->set_scroll_factor(slider.fraction());
 				}
 			};
 
-			verticalList->scroll_change_handler = [vs](morda::list_widget& l){
+			vertical_list->scroll_change_handler = [vs](morda::list_widget& l){
 				if(auto s = vs.lock()){
 					s->set_fraction(l.get_scroll_factor(), false);
                     s->set_band_fraction(l.get_scroll_band());
 				}
 			};
 
-			auto mouseProxy = c.get().try_get_widget_as<morda::mouse_proxy>("list_mouseproxy");
-			struct State : public utki::shared{
-				morda::vector2 oldPos = 0;
-				bool isLeftButtonPressed;
+			auto mouse_proxy = c.get().try_get_widget_as<morda::mouse_proxy>("list_mouseproxy");
+			struct button_state : public utki::shared{
+				morda::vector2 old_pos = 0;
+				bool is_left_button_pressed = false;
 			};
-			auto state = std::make_shared<State>();
+			auto state = std::make_shared<button_state>();
 
-			mouseProxy->mouse_button_handler = [state](morda::mouse_proxy&, const morda::mouse_button_event& e){
-				if(e.button == morda::mouse_button::left){
-					state->isLeftButtonPressed = e.is_down;
-					state->oldPos = e.pos;
-					return true;
+			static const morda::real wheel_delta = 10;
+
+			mouse_proxy->mouse_button_handler = [state, vl](morda::mouse_proxy&, const morda::mouse_button_event& e){
+				switch(e.button){
+					case morda::mouse_button::left:
+						state->is_left_button_pressed = e.is_down;
+						state->old_pos = e.pos;
+						return true;
+					case morda::mouse_button::wheel_down:
+						if(auto l = vl.lock()){
+							l->scroll_by(wheel_delta);
+						}
+						break;
+					case morda::mouse_button::wheel_up:
+						if(auto l = vl.lock()){
+							l->scroll_by(-wheel_delta);
+						}
+						break;
+					default:
+						break;
 				}
 				return false;
 			};
 
-			mouseProxy->mouse_move_handler = [vs, vl, state](morda::mouse_proxy&, const morda::mouse_move_event& e){
-				if(state->isLeftButtonPressed){
-					auto dp = state->oldPos - e.pos;
-					state->oldPos = e.pos;
+			mouse_proxy->mouse_move_handler = [vs, vl, state](morda::mouse_proxy&, const morda::mouse_move_event& e){
+				if(state->is_left_button_pressed){
+					auto dp = state->old_pos - e.pos;
+					state->old_pos = e.pos;
 					if(auto l = vl.lock()){
 						l->scroll_by(dp.y());
 					}
@@ -620,9 +658,9 @@ public:
 			auto pan_list = c.get().try_get_widget_as<morda::list_widget>("pan_list");
 			auto hl = utki::make_weak(pan_list);
 
-			auto horizontalSlider = c.get().try_get_widget_as<morda::scroll_bar>("horizontal_list_slider");
-			ASSERT(horizontalSlider)
-			auto hs = utki::make_weak(horizontalSlider);
+			auto horizontal_slider = c.get().try_get_widget_as<morda::scroll_bar>("horizontal_list_slider");
+			ASSERT(horizontal_slider)
+			auto hs = utki::make_weak(horizontal_slider);
 
 			pan_list->scroll_change_handler = [hs](morda::list_widget& l){
 				if(auto h = hs.lock()){
@@ -631,33 +669,55 @@ public:
 				}
 			};
 
-			horizontalSlider->fraction_change_handler = [hl](morda::fraction_widget& slider){
+			horizontal_slider->fraction_change_handler = [hl](morda::fraction_widget& slider){
 //				TRACE(<< "horizontal slider factor = " << slider.factor() << std::endl)
 				if(auto l = hl.lock()){
 					l->set_scroll_factor(slider.fraction());
 				}
 			};
 
-			auto mouseProxy = c.get().try_get_widget_as<morda::mouse_proxy>("horizontal_list_mouseproxy");
-			struct State : public utki::shared{
-				morda::vector2 oldPos = 0;
-				bool isLeftButtonPressed;
+			auto mouse_proxy = c.get().try_get_widget_as<morda::mouse_proxy>("horizontal_list_mouseproxy");
+			struct button_state : public utki::shared{
+				morda::vector2 old_pos = 0;
+				bool is_left_button_pressed = false;
 			};
-			auto state = std::make_shared<State>();
+			auto state = std::make_shared<button_state>();
 
-			mouseProxy->mouse_button_handler = [state](morda::mouse_proxy&, const morda::mouse_button_event& e){
-				if(e.button == morda::mouse_button::left){
-					state->isLeftButtonPressed = e.is_down;
-					state->oldPos = e.pos;
-					return true;
+			static const morda::real wheel_delta = 10;
+
+			mouse_proxy->mouse_button_handler = [state, hl](morda::mouse_proxy&, const morda::mouse_button_event& e){
+				std::cout << "button = " << unsigned(e.button) << std::endl;
+				switch(e.button){
+					case morda::mouse_button::left:
+						state->is_left_button_pressed = e.is_down;
+						state->old_pos = e.pos;
+						return true;
+					case morda::mouse_button::wheel_left:
+						std::cout << "wheel_left" << std::endl;
+						if(e.is_down){
+							if(auto l = hl.lock()){
+								l->scroll_by(-wheel_delta);
+							}
+						}
+						break;
+					case morda::mouse_button::wheel_right:
+						std::cout << "wheel_right" << std::endl;
+						if(e.is_down){
+							if(auto l = hl.lock()){
+								l->scroll_by(wheel_delta);
+							}
+						}
+						break;
+					default:
+						break;
 				}
 				return false;
 			};
 
-			mouseProxy->mouse_move_handler = [hl, hs, state](morda::mouse_proxy& w, const morda::mouse_move_event& e) -> bool {
-				if(state->isLeftButtonPressed){
-					auto dp = state->oldPos - e.pos;
-					state->oldPos = e.pos;
+			mouse_proxy->mouse_move_handler = [hl, hs, state](morda::mouse_proxy& w, const morda::mouse_move_event& e) -> bool {
+				if(state->is_left_button_pressed){
+					auto dp = state->old_pos - e.pos;
+					state->old_pos = e.pos;
 					if(auto l = hl.lock()){
 						l->scroll_by(dp.x());
 					}
@@ -677,32 +737,32 @@ public:
 		{
 			auto treeview = c.get().try_get_widget_as<morda::tree_view>("treeview_widget");
 			ASSERT(treeview)
-			auto provider = std::make_shared<TreeViewItemsProvider>(c.get().context);
+			auto provider = std::make_shared<tree_view_items_provider>(c.get().context);
 			treeview->set_provider(provider);
 			auto tv = utki::make_weak(treeview);
 
-			auto verticalSlider = c.get().try_get_widget_as<morda::vertical_scroll_bar>("treeview_vertical_slider");
-			auto vs = utki::make_weak(verticalSlider);
+			auto vertical_slider = c.get().try_get_widget_as<morda::vertical_scroll_bar>("treeview_vertical_slider");
+			auto vs = utki::make_weak(vertical_slider);
 
-			verticalSlider->fraction_change_handler = [tv](morda::fraction_widget& slider){
+			vertical_slider->fraction_change_handler = [tv](morda::fraction_widget& slider){
 				if(auto t = tv.lock()){
 					t->set_vertical_scroll_factor(slider.fraction());
 				}
 			};
 
-			auto horizontalSlider = c.get().try_get_widget_as<morda::horizontal_scroll_bar>("treeview_horizontal_slider");
-			ASSERT(horizontalSlider)
-			auto hs = utki::make_weak(horizontalSlider);
+			auto horizontal_slider = c.get().try_get_widget_as<morda::horizontal_scroll_bar>("treeview_horizontal_slider");
+			ASSERT(horizontal_slider)
+			auto hs = utki::make_weak(horizontal_slider);
 
-			horizontalSlider->fraction_change_handler = [tv](morda::fraction_widget& slider){
+			horizontal_slider->fraction_change_handler = [tv](morda::fraction_widget& slider){
 				if(auto t = tv.lock()){
 					t->set_horizontal_scroll_factor(slider.fraction());
 				}
 			};
 
 			treeview->scroll_change_handler = [
-					hs = utki::make_weak(horizontalSlider),
-					vs = utki::make_weak(verticalSlider)
+					hs = utki::make_weak(horizontal_slider),
+					vs = utki::make_weak(vertical_slider)
 				](morda::tree_view& tw)
 			{
 				auto f = tw.get_scroll_factor();
@@ -717,26 +777,26 @@ public:
 				}
 			};
 
-			auto insertBeforeButton = c.get().try_get_widget_as<morda::push_button>("insert_before");
-			auto insertAfterButton = c.get().try_get_widget_as<morda::push_button>("insert_after");
-			auto insertChild = c.get().try_get_widget_as<morda::push_button>("insert_child");
+			auto insert_before_button = c.get().try_get_widget_as<morda::push_button>("insert_before");
+			auto insert_after_button = c.get().try_get_widget_as<morda::push_button>("insert_after");
+			auto insert_child = c.get().try_get_widget_as<morda::push_button>("insert_child");
 
 			auto prvdr = utki::make_weak(provider);
-			insertBeforeButton->click_handler = [prvdr](morda::push_button& b){
+			insert_before_button->click_handler = [prvdr](morda::push_button& b){
 				if(auto p = prvdr.lock()){
-					p->insertBefore();
+					p->insert_before();
 				}
 			};
 
-			insertAfterButton->click_handler = [prvdr](morda::push_button& b){
+			insert_after_button->click_handler = [prvdr](morda::push_button& b){
 				if(auto p = prvdr.lock()){
-					p->insertAfter();
+					p->insert_after();
 				}
 			};
 
-			insertChild->click_handler = [prvdr](morda::push_button& b){
+			insert_child->click_handler = [prvdr](morda::push_button& b){
 				if(auto p = prvdr.lock()){
-					p->insertChild();
+					p->insert_child();
 				}
 			};
 		}
@@ -744,6 +804,7 @@ public:
 		// fullscreen
 		{
 			auto b = c.get().try_get_widget_as<morda::push_button>("fullscreen_button");
+			ASSERT(b)
 			b->click_handler = [this](morda::push_button&) {
 				this->set_fullscreen(!this->is_fullscreen());
 			};
@@ -785,6 +846,6 @@ public:
 	}
 };
 
-const mordavokne::application_factory app_factory([](auto args){
+const mordavokne::application_factory app_fac([](auto args){
 	return std::make_unique<::application>();
 });

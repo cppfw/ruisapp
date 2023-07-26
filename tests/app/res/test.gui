@@ -292,12 +292,6 @@ cursor{crs_arrow}
 						text{item12|}
 					}
 				}
-				@resize_proxy{
-					lp{
-						dx{fill} dy{fill}
-					}
-					id{horizontal_list_resize_proxy}
-				}
 			}
 
 			@horizontal_scroll_bar{
@@ -346,12 +340,6 @@ cursor{crs_arrow}
 						lp{
 							dx{fill} dy{fill}
 						}
-					}
-					@resize_proxy{
-						lp{
-							dx{fill} dy{fill}
-						}
-						id{treeview_resize_proxy}
 					}
 				}
 
@@ -451,22 +439,16 @@ cursor{crs_arrow}
 
 		title{"Spinning cube"}
 
-/*
-		@image{
-			lp{
-				dx{max} dy{max}
-			}
-			image{img_lattice}
-			repeat_x{true} repeat_y{true}
-		}
-*/
-
 		@color{
 			id {cube_bg_color}
 			lp{
 				dx {fill}
 				dy {fill}
 			}
+		}
+
+		@image{
+			image{img_lattice}
 		}
 
 		@click_proxy{
@@ -586,11 +568,15 @@ cursor{crs_arrow}
 				dx{max} dy{max}
 			}
 
+			id{scroll_area_root_container}
+
 			@row{
 				lp{
 					dx{max} dy{0}
 					weight{1}
 				}
+
+				id{scroll_area_subcontainer}
 
 				@pile{
 					lp{
@@ -639,12 +625,6 @@ cursor{crs_arrow}
 							}
 						}
 					}
-					@resize_proxy{
-						lp{
-							dx{max} dy{max}
-						}
-						id{scroll_area_resize_proxy}
-					}
 				}
 
 				@vertical_scroll_bar{
@@ -657,11 +637,27 @@ cursor{crs_arrow}
 				}
 			}
 
-			@horizontal_scroll_bar{
-				id{scroll_area_horizontal_slider}
-
+			@row{
 				lp{
 					dx{max}
+				}
+
+				@horizontal_scroll_bar{
+					id{scroll_area_horizontal_slider}
+
+					lp{
+						dx{0}
+						weight{1}
+					}
+				}
+
+				@min_proxy{
+					lp{
+						dy{fill}
+					}
+
+					root{scroll_area_root_container}
+					target{scroll_area_subcontainer scroll_area_vertical_slider}
 				}
 			}
 		}
@@ -852,12 +848,6 @@ cursor{crs_arrow}
 						text{item_8}
 					}
 
-				}
-				@resize_proxy{
-					lp{
-						dx{max} dy{max}
-					}
-					id{vertical_list_resize_proxy}
 				}
 			}
 
