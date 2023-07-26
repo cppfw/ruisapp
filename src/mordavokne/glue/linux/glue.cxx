@@ -785,7 +785,7 @@ public:
 	{}
 };
 
-morda::mouse_button buttonNumberToEnum(int number)
+morda::mouse_button button_number_to_enum(unsigned number)
 {
 	switch (number) {
 		case 1:
@@ -1240,7 +1240,7 @@ int main(int argc, const char** argv)
 						*app,
 						true,
 						morda::vector2(event.xbutton.x, event.xbutton.y),
-						buttonNumberToEnum(event.xbutton.button),
+						button_number_to_enum(event.xbutton.button),
 						0
 					);
 					break;
@@ -1251,7 +1251,7 @@ int main(int argc, const char** argv)
 						*app,
 						false,
 						morda::vector2(event.xbutton.x, event.xbutton.y),
-						buttonNumberToEnum(event.xbutton.button),
+						button_number_to_enum(event.xbutton.button),
 						0
 					);
 					break;
