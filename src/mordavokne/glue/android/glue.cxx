@@ -390,7 +390,7 @@ public:
 	virtual size_t read_internal(utki::span<std::uint8_t> buf) const override
 	{
 		ASSERT(this->handle)
-		int numBytesRead = AAsset_read(this->handle, &*buf.begin(), buf.size());
+		int numBytesRead = AAsset_read(this->handle, buf.data(), buf.size());
 		if (numBytesRead < 0) { // something happened
 			throw std::runtime_error("AAsset_read() error");
 		}
@@ -1034,7 +1034,7 @@ Java_io_github_cppfw_mordavokne_MordaVOkneActivity_handleCharacterStringInput(JN
 	}
 
 	input_string_provider provider;
-	provider.chars = std::u32string(&*utf32.begin(), utf32.size());
+	provider.chars = std::u32string(utf32.data(), utf32.size());
 
 	//    LOG([&](auto&o){o << "handleCharacterStringInput(): provider.chars = " << provider.chars << std::endl;})
 

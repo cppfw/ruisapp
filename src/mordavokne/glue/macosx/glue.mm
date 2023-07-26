@@ -657,7 +657,7 @@ WindowWrapper::WindowWrapper(const window_params& wp){
 		attributes.push_back(NSOpenGLPFASupersample);
 		attributes.push_back(0);
 
-		NSOpenGLPixelFormat *pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:&*attributes.begin()];
+		NSOpenGLPixelFormat *pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attributes.data()];
 		if(pixelFormat == nil){
 			throw std::runtime_error("morda::application::OpenGLContext::OpenGLContext(): failed to create pixel format");
 		}
@@ -704,7 +704,7 @@ void application::quit()noexcept{
 
 int main(int argc, const char** argv){
 	LOG([&](auto&o){o << "main(): enter" << std::endl;})
-	auto app = createAppUnix(argc, argv);
+	auto app = create_app_unix(argc, argv);
 	if(!app){
 		return 0;
 	}

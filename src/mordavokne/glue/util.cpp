@@ -28,31 +28,31 @@ version_duplet mordavokne::get_opengl_version_duplet(window_params::graphics_api
 	using ga = window_params::graphics_api;
 	switch (api) {
 		case ga::gl_2_0:
-			return {2, 0};
+			return {2, 0}; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 		case ga::gl_2_1:
-			return {2, 1};
+			return {2, 1}; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 		case ga::gl_3_0:
-			return {3, 0};
+			return {3, 0}; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 		case ga::gl_3_1:
-			return {3, 1};
+			return {3, 1}; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 		case ga::gl_3_2:
-			return {3, 2};
+			return {3, 2}; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 		case ga::gl_3_3:
-			return {3, 3};
+			return {3, 3}; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 		case ga::gl_4_0:
-			return {4, 0};
+			return {4, 0}; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 		case ga::gl_4_1:
-			return {4, 1};
+			return {4, 1}; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 		case ga::gl_4_2:
-			return {4, 2};
+			return {4, 2}; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 		case ga::gl_4_3:
-			return {4, 3};
+			return {4, 3}; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 		case ga::gl_4_4:
-			return {4, 4};
+			return {4, 4}; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 		case ga::gl_4_5:
-			return {4, 5};
+			return {4, 5}; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 		case ga::gl_4_6:
-			return {4, 6};
+			return {4, 6}; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 		default:
 			break;
 	}

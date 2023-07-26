@@ -25,7 +25,7 @@ using namespace mordavokne;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-	self->app = createAppUnix(0, nullptr).release();
+	self->app = create_app_unix(0, nullptr).release();
 
 	return YES;
 }

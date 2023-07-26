@@ -43,18 +43,18 @@ void handle_mouse_move(application& app, const r4::vector2<float>& pos, unsigned
 
 void handle_mouse_button(
 	application& app,
-	bool isDown,
+	bool is_down,
 	const r4::vector2<float>& pos,
 	morda::mouse_button button,
 	unsigned id
 )
 {
-	app.handle_mouse_button(isDown, pos, button, id);
+	app.handle_mouse_button(is_down, pos, button, id);
 }
 
-void handle_mouse_hover(application& app, bool isHovered, unsigned pointerID)
+void handle_mouse_hover(application& app, bool is_hovered, unsigned pointer_id)
 {
-	app.handle_mouse_hover(isHovered, pointerID);
+	app.handle_mouse_hover(is_hovered, pointer_id);
 }
 
 void handle_character_input(

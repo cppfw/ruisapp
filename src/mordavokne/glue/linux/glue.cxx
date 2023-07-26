@@ -51,8 +51,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #include "../../application.hpp"
-#include "../friend_accessors.cxx"
-#include "../unix_common.cxx"
+#include "../friend_accessors.cxx" // NOLINT(bugprone-suspicious-include)
+#include "../unix_common.cxx" // NOLINT(bugprone-suspicious-include)
 #include "../util.hxx"
 
 using namespace mordavokne;
@@ -82,13 +82,21 @@ struct window_wrapper : public utki::destructable {
 	struct display_wrapper {
 		Display* display;
 
-		display_wrapper()
-		{
-			this->display = XOpenDisplay(0);
-			if (!this->display) {
-				throw std::runtime_error("XOpenDisplay() failed");
-			}
-		}
+		display_wrapper() :
+			display([]() {
+				auto display = XOpenDisplay(nullptr);
+				if (!display) {
+					throw std::runtime_error("XOpenDisplay() failed");
+				}
+				return display;
+			}())
+		{}
+
+		display_wrapper(const display_wrapper&) = delete;
+		display_wrapper& operator=(const display_wrapper&) = delete;
+
+		display_wrapper(display_wrapper&&) = delete;
+		display_wrapper& operator=(display_wrapper&&) = delete;
 
 		~display_wrapper()
 		{
@@ -121,24 +129,31 @@ struct window_wrapper : public utki::destructable {
 			owner(owner)
 		{
 			if (c == morda::mouse_cursor::none) {
-				Pixmap blank;
-				XColor dummy;
-				char data[1] = {0};
+				std::array<char, 1> data = {0};
 
-				blank = XCreateBitmapFromData(this->owner.display.display, this->owner.window, data, 1, 1);
+				Pixmap blank =
+					XCreateBitmapFromData(this->owner.display.display, this->owner.window, data.data(), 1, 1);
 				if (blank == None) {
 					throw std::runtime_error(
 						"application::XEmptyMouseCursor::XEmptyMouseCursor(): could not create bitmap"
 					);
 				}
-				utki::scope_exit scopeExit([this, &blank]() {
+				utki::scope_exit scope_exit([this, &blank]() {
 					XFreePixmap(this->owner.display.display, blank);
 				});
+
+				XColor dummy;
 				this->cursor = XCreatePixmapCursor(this->owner.display.display, blank, blank, &dummy, &dummy, 0, 0);
 			} else {
 				this->cursor = XCreateFontCursor(this->owner.display.display, x_cursor_map.at(c));
 			}
 		}
+
+		cursor_wrapper(const cursor_wrapper&) = delete;
+		cursor_wrapper& operator=(const cursor_wrapper&) = delete;
+
+		cursor_wrapper(cursor_wrapper&&) = delete;
+		cursor_wrapper& operator=(cursor_wrapper&&) = delete;
 
 		~cursor_wrapper()
 		{
@@ -198,7 +213,8 @@ struct window_wrapper : public utki::destructable {
 	{
 #ifdef MORDAVOKNE_RENDER_OPENGL
 		{
-			int glx_ver_major, glx_ver_minor;
+			int glx_ver_major = 0;
+			int glx_ver_minor = 0;
 			if (!glXQueryVersion(this->display.display, &glx_ver_major, &glx_ver_minor)) {
 				throw std::runtime_error("glXQueryVersion() failed");
 			}
@@ -212,44 +228,44 @@ struct window_wrapper : public utki::destructable {
 			}
 		}
 
-		GLXFBConfig best_fb_config;
+		GLXFBConfig best_fb_config = nullptr;
 		{
-			std::vector<int> visualAttribs;
-			visualAttribs.push_back(GLX_X_RENDERABLE);
-			visualAttribs.push_back(True);
-			visualAttribs.push_back(GLX_X_VISUAL_TYPE);
-			visualAttribs.push_back(GLX_TRUE_COLOR);
-			visualAttribs.push_back(GLX_DRAWABLE_TYPE);
-			visualAttribs.push_back(GLX_WINDOW_BIT);
-			visualAttribs.push_back(GLX_RENDER_TYPE);
-			visualAttribs.push_back(GLX_RGBA_BIT);
-			visualAttribs.push_back(GLX_DOUBLEBUFFER);
-			visualAttribs.push_back(True);
-			visualAttribs.push_back(GLX_RED_SIZE);
-			visualAttribs.push_back(8);
-			visualAttribs.push_back(GLX_GREEN_SIZE);
-			visualAttribs.push_back(8);
-			visualAttribs.push_back(GLX_BLUE_SIZE);
-			visualAttribs.push_back(8);
-			visualAttribs.push_back(GLX_ALPHA_SIZE);
-			visualAttribs.push_back(8);
+			std::vector<int> visual_attribs;
+			visual_attribs.push_back(GLX_X_RENDERABLE);
+			visual_attribs.push_back(True);
+			visual_attribs.push_back(GLX_X_VISUAL_TYPE);
+			visual_attribs.push_back(GLX_TRUE_COLOR);
+			visual_attribs.push_back(GLX_DRAWABLE_TYPE);
+			visual_attribs.push_back(GLX_WINDOW_BIT);
+			visual_attribs.push_back(GLX_RENDER_TYPE);
+			visual_attribs.push_back(GLX_RGBA_BIT);
+			visual_attribs.push_back(GLX_DOUBLEBUFFER);
+			visual_attribs.push_back(True);
+			visual_attribs.push_back(GLX_RED_SIZE);
+			visual_attribs.push_back(utki::byte_bits);
+			visual_attribs.push_back(GLX_GREEN_SIZE);
+			visual_attribs.push_back(utki::byte_bits);
+			visual_attribs.push_back(GLX_BLUE_SIZE);
+			visual_attribs.push_back(utki::byte_bits);
+			visual_attribs.push_back(GLX_ALPHA_SIZE);
+			visual_attribs.push_back(utki::byte_bits);
 
 			if (wp.buffers.get(window_params::buffer_type::depth)) {
-				visualAttribs.push_back(GLX_DEPTH_SIZE);
-				visualAttribs.push_back(24);
+				visual_attribs.push_back(GLX_DEPTH_SIZE);
+				visual_attribs.push_back(utki::byte_bits * 3); // 24 bits per pixel for depth buffer
 			}
 			if (wp.buffers.get(window_params::buffer_type::stencil)) {
-				visualAttribs.push_back(GLX_STENCIL_SIZE);
-				visualAttribs.push_back(8);
+				visual_attribs.push_back(GLX_STENCIL_SIZE);
+				visual_attribs.push_back(utki::byte_bits);
 			}
 
-			visualAttribs.push_back(None);
+			visual_attribs.push_back(None);
 
-			int fbcount;
+			int fbcount = 0;
 			GLXFBConfig* fbc = glXChooseFBConfig(
 				this->display.display,
 				DefaultScreen(this->display.display),
-				&*visualAttribs.begin(),
+				visual_attribs.data(),
 				&fbcount
 			);
 			if (!fbc) {
@@ -305,6 +321,7 @@ struct window_wrapper : public utki::destructable {
 			best_fb_config = fbc[best_fb_config_index];
 		}
 #elif defined(MORDAVOKNE_RENDER_OPENGLES)
+		// NOLINTNEXTLINE(cppcoreguidelines-prefer-member-initializer)
 		this->eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 		if (this->eglDisplay == EGL_NO_DISPLAY) {
 			throw std::runtime_error("eglGetDisplay(): failed, no matching display connection found");
@@ -319,13 +336,13 @@ struct window_wrapper : public utki::destructable {
 			throw std::runtime_error("eglInitialize() failed");
 		}
 
-		EGLConfig eglConfig;
+		EGLConfig egl_config = nullptr;
 		{
 			// TODO: allow stencil and depth configuration etc. via window_params
 			// Here specify the attributes of the desired configuration.
 			// Below, we select an EGLConfig with at least 8 bits per color
 			// component compatible with on-screen windows.
-			const EGLint attribs[] = {
+			const std::array<EGLint, 15> attribs = {
 				EGL_SURFACE_TYPE,
 				EGL_WINDOW_BIT,
 				EGL_RENDERABLE_TYPE,
@@ -346,9 +363,9 @@ struct window_wrapper : public utki::destructable {
 			// Here, the application chooses the configuration it desires. In this
 			// sample, we have a very simplified selection process, where we pick
 			// the first EGLConfig that matches our criteria.
-			EGLint numConfigs;
-			eglChooseConfig(this->eglDisplay, attribs, &eglConfig, 1, &numConfigs);
-			if (numConfigs <= 0) {
+			EGLint num_configs = 0;
+			eglChooseConfig(this->eglDisplay, attribs.data(), &egl_config, 1, &num_configs);
+			if (num_configs <= 0) {
 				throw std::runtime_error("eglChooseConfig() failed, no matching config found");
 			}
 		}
@@ -369,26 +386,26 @@ struct window_wrapper : public utki::destructable {
 #elif defined(MORDAVOKNE_RENDER_OPENGLES)
 #	ifdef MORDAVOKNE_RASPBERRYPI
 		{
-			int numVisuals;
-			XVisualInfo visTemplate;
-			visTemplate.screen = DefaultScreen(this->display.display); // LCD
-			visual_info = XGetVisualInfo(this->display.display, VisualScreenMask, &visTemplate, &numVisuals);
+			int num_visuals;
+			XVisualInfo vis_template;
+			vis_template.screen = DefaultScreen(this->display.display); // LCD
+			visual_info = XGetVisualInfo(this->display.display, VisualScreenMask, &vis_template, &num_visuals);
 			if (!visual_info) {
 				throw std::runtime_error("XGetVisualInfo() failed");
 			}
 		}
 #	else
 		{
-			EGLint vid;
+			EGLint vid = 0;
 
-			if (!eglGetConfigAttrib(this->eglDisplay, eglConfig, EGL_NATIVE_VISUAL_ID, &vid)) {
+			if (!eglGetConfigAttrib(this->eglDisplay, egl_config, EGL_NATIVE_VISUAL_ID, &vid)) {
 				throw std::runtime_error("eglGetConfigAttrib() failed");
 			}
 
-			int numVisuals;
-			XVisualInfo visTemplate;
-			visTemplate.visualid = vid;
-			visual_info = XGetVisualInfo(this->display.display, VisualIDMask, &visTemplate, &numVisuals);
+			int num_visuals = 0;
+			XVisualInfo vis_template;
+			vis_template.visualid = vid;
+			visual_info = XGetVisualInfo(this->display.display, VisualIDMask, &vis_template, &num_visuals);
 			if (!visual_info) {
 				throw std::runtime_error("XGetVisualInfo() failed");
 			}
@@ -627,7 +644,7 @@ struct window_wrapper : public utki::destructable {
 
 		this->eglSurface = eglCreateWindowSurface(
 			this->eglDisplay,
-			eglConfig,
+			egl_config,
 #	ifdef MORDAVOKNE_RASPBERRYPI
 			reinterpret_cast<EGLNativeWindowType>(&this->rpiNativeWindow),
 #	else
@@ -643,14 +660,14 @@ struct window_wrapper : public utki::destructable {
 		});
 
 		{
-			EGLint contextAttrs[] = {
+			std::array<EGLint, 3> context_attrs = {
 				EGL_CONTEXT_CLIENT_VERSION,
 				2, // this is needed at least on Android, otherwise eglCreateContext() thinks that we want OpenGL
 				   // ES 1.1, but we want 2.0
 				EGL_NONE
 			};
 
-			this->eglContext = eglCreateContext(this->eglDisplay, eglConfig, EGL_NO_CONTEXT, contextAttrs);
+			this->eglContext = eglCreateContext(this->eglDisplay, egl_config, EGL_NO_CONTEXT, context_attrs.data());
 			if (this->eglContext == EGL_NO_CONTEXT) {
 				throw std::runtime_error("eglCreateContext() failed");
 			}
@@ -660,7 +677,7 @@ struct window_wrapper : public utki::destructable {
 			eglDestroyContext(this->eglDisplay, this->eglContext);
 			throw std::runtime_error("eglMakeCurrent() failed");
 		}
-		utki::scope_exit scopeExitEGLContext([this]() {
+		utki::scope_exit scope_exit_egl_context([this]() {
 			eglMakeCurrent(this->eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 			eglDestroyContext(this->eglDisplay, this->eglContext);
 		});
@@ -711,11 +728,17 @@ struct window_wrapper : public utki::destructable {
 #elif defined(MORDAVOKNE_RENDER_OPENGLES)
 		scope_exit_egl_display.reset();
 		scope_exit_egl_surface.reset();
-		scopeExitEGLContext.reset();
+		scope_exit_egl_context.reset();
 #else
 #	error "Unknown graphics API"
 #endif
 	}
+
+	window_wrapper(const window_wrapper&) = delete;
+	window_wrapper& operator=(const window_wrapper&) = delete;
+
+	window_wrapper(window_wrapper&&) = delete;
+	window_wrapper& operator=(window_wrapper&&) = delete;
 
 	~window_wrapper() override
 	{
@@ -1180,7 +1203,7 @@ void application::quit() noexcept
 
 int main(int argc, const char** argv)
 {
-	std::unique_ptr<mordavokne::application> app = createAppUnix(argc, argv);
+	std::unique_ptr<mordavokne::application> app = create_app_unix(argc, argv);
 	if (!app) {
 		return 0;
 	}

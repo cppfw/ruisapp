@@ -28,6 +28,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 using namespace mordavokne;
 
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 application::instance_type application::instance;
 
 void application::render()
@@ -83,26 +84,27 @@ void application::hide_virtual_keyboard() noexcept {
 }
 #endif
 
-morda::real application::get_pixels_per_dp(r4::vector2<unsigned> resolution, r4::vector2<unsigned> screenSizeMm)
+morda::real application::get_pixels_per_dp(r4::vector2<unsigned> resolution, r4::vector2<unsigned> screen_size_mm)
 {
-	// NOTE: for ordinary desktop displays the PT size should be equal to 1 pixel.
-	// For high density displays it should be more than one pixel, depending on display ppi.
-	// For hand held devices the size of PT should be determined from physical screen size and pixel resolution.
+	// NOTE: for ordinary desktop displays the DP size should be equal to 1 pixel.
+	// For high density displays it should be more than one pixel, depending on display dpi.
+	// For hand held devices the size of DP should be determined from physical screen size and pixel resolution.
 
 #if M_OS_NAME == M_OS_NAME_IOS
 	return morda::real(1); // TODO:
 #else
-	unsigned xIndex;
-	if (resolution.x() > resolution.y()) {
-		xIndex = 0;
-	} else {
-		xIndex = 1;
-	}
+	unsigned x_index = [&resolution]() {
+		if (resolution.x() > resolution.y()) {
+			return 0;
+		} else {
+			return 1;
+		}
+	}();
 
-	if (screenSizeMm[xIndex] < 300) {
-		return resolution[xIndex] / morda::real(700);
-	} else if (screenSizeMm[xIndex] < 150) {
-		return resolution[xIndex] / morda::real(200);
+	if (screen_size_mm[x_index] < 300) { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+		return morda::real(resolution[x_index]) / morda::real(700); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+	} else if (screen_size_mm[x_index] < 150) { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+		return morda::real(resolution[x_index]) / morda::real(200); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 	}
 
 	return morda::real(1);
