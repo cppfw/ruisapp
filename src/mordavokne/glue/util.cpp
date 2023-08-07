@@ -58,7 +58,8 @@ version_duplet mordavokne::get_opengl_version_duplet(window_params::graphics_api
 	}
 
 	std::stringstream ss;
-	ss << "non-opengl api requested from opengl-based implementation of mordavokne: window_params::graphics_api = ";
+	ss << "non-opengl api requested from opengl-based implementation of "
+		  "mordavokne: window_params::graphics_api = ";
 	ss << unsigned(api);
 
 	throw std::logic_error(ss.str());

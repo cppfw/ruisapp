@@ -34,7 +34,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #ifdef MORDAVOKNE_RENDER_OPENGL
 #	include <GL/glew.h>
 #	include <GL/glx.h>
-
 #	include <morda/render/opengl/renderer.hpp>
 
 #elif defined(MORDAVOKNE_RENDER_OPENGLES)
@@ -135,7 +134,8 @@ struct window_wrapper : public utki::destructable {
 					XCreateBitmapFromData(this->owner.display.display, this->owner.window, data.data(), 1, 1);
 				if (blank == None) {
 					throw std::runtime_error(
-						"application::XEmptyMouseCursor::XEmptyMouseCursor(): could not create bitmap"
+						"application::XEmptyMouseCursor::XEmptyMouseCursor(): could not "
+						"create bitmap"
 					);
 				}
 				utki::scope_exit scope_exit([this, &blank]() {
@@ -272,6 +272,7 @@ struct window_wrapper : public utki::destructable {
 				throw std::runtime_error("glXChooseFBConfig() returned empty list");
 			}
 			utki::scope_exit scope_exit_fbc([&fbc]() {
+				// NOLINTNEXTLINE(bugprone-multi-level-implicit-pointer-conversion)
 				XFree(fbc);
 			});
 
@@ -473,9 +474,10 @@ struct window_wrapper : public utki::destructable {
 		// create GLX context
 
 #ifdef MORDAVOKNE_RENDER_OPENGL
-		// glXGetProcAddressARB() will retutn non-null pointer even if extension is not supported, so we
-		// need to explicitly check for supported extensions.
-		// SOURCE: https://dri.freedesktop.org/wiki/glXGetProcAddressNeverReturnsNULL/
+		// glXGetProcAddressARB() will retutn non-null pointer even if extension is
+		// not supported, so we need to explicitly check for supported extensions.
+		// SOURCE:
+		// https://dri.freedesktop.org/wiki/glXGetProcAddressNeverReturnsNULL/
 
 		auto glx_extensions_string =
 			std::string_view(glXQueryExtensionsString(this->display.display, visual_info->screen));
@@ -491,9 +493,11 @@ struct window_wrapper : public utki::destructable {
 		} else {
 			// GLX_ARB_create_context is supported
 
-			// NOTE: glXGetProcAddressARB() is guaranteed to be present in all GLX versions.
+			// NOTE: glXGetProcAddressARB() is guaranteed to be present in all GLX
+			// versions.
 			//       glXGetProcAddress() is not guaranteed.
-			// SOURCE: https://dri.freedesktop.org/wiki/glXGetProcAddressNeverReturnsNULL/
+			// SOURCE:
+			// https://dri.freedesktop.org/wiki/glXGetProcAddressNeverReturnsNULL/
 
 			// NOLINTNEXTLINE(readability-identifier-naming)
 			auto glXCreateContextAttribsARB = PFNGLXCREATECONTEXTATTRIBSARBPROC(glXGetProcAddressARB(
@@ -501,10 +505,11 @@ struct window_wrapper : public utki::destructable {
 			));
 
 			if (!glXCreateContextAttribsARB) {
-				// this should not happen since we checked extension presence, and anyway,
-				// glXGetProcAddressARB() never returns nullptr according to
+				// this should not happen since we checked extension presence, and
+				// anyway, glXGetProcAddressARB() never returns nullptr according to
 				// https://dri.freedesktop.org/wiki/glXGetProcAddressNeverReturnsNULL/
-				// so, this check for null is just in case future version of GLX may return null
+				// so, this check for null is just in case future version of GLX may
+				// return null
 				throw std::runtime_error("glXCreateContextAttribsARB() not found");
 			}
 
@@ -516,7 +521,8 @@ struct window_wrapper : public utki::destructable {
 				GLX_CONTEXT_MINOR_VERSION_ARB,
 				ver.minor,
 				GLX_CONTEXT_PROFILE_MASK_ARB,
-				GLX_CONTEXT_CORE_PROFILE_BIT_ARB, // we don't need compatibility context
+				GLX_CONTEXT_CORE_PROFILE_BIT_ARB, // we don't need compatibility
+												  // context
 				None
 			};
 
@@ -576,7 +582,8 @@ struct window_wrapper : public utki::destructable {
 				throw std::runtime_error("glXSwapIntervalMESA() failed");
 			}
 		} else {
-			std::cout << "none of GLX_EXT_swap_control, GLX_MESA_swap_control GLX extensions are supported";
+			std::cout << "none of GLX_EXT_swap_control, GLX_MESA_swap_control GLX "
+						 "extensions are supported";
 		}
 
 		// sync to ensure any errors generated are processed
@@ -662,8 +669,8 @@ struct window_wrapper : public utki::destructable {
 		{
 			std::array<EGLint, 3> context_attrs = {
 				EGL_CONTEXT_CLIENT_VERSION,
-				2, // this is needed at least on Android, otherwise eglCreateContext() thinks that we want OpenGL
-				   // ES 1.1, but we want 2.0
+				2, // this is needed at least on Android, otherwise eglCreateContext()
+				   // thinks that we want OpenGL ES 1.1, but we want 2.0
 				EGL_NONE
 			};
 
@@ -1154,8 +1161,8 @@ public:
 		std::vector<char> arr;
 		auto buf = utki::make_span(static_buf);
 
-		// the variable is initialized via output argument, so no need to initialize it here
-		// NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+		// the variable is initialized via output argument, so no need to initialize
+		// it here NOLINTNEXTLINE(cppcoreguidelines-init-variables)
 		Status status;
 
 		int size = Xutf8LookupString(this->xic, &this->event.xkey, buf.begin(), int(buf.size() - 1), nullptr, &status);
@@ -1169,7 +1176,8 @@ public:
 		ASSERT(buf.size() != 0)
 		ASSERT(buf.size() > unsigned(size))
 
-		//		TRACE(<< "KeyEventUnicodeResolver::Resolve(): size = " << size << std::endl)
+		//		TRACE(<< "KeyEventUnicodeResolver::Resolve(): size = " << size
+		//<< std::endl)
 
 		buf[size] = 0; // null-terminate
 
@@ -1219,8 +1227,9 @@ int main(int argc, const char** argv)
 	wait_set.add(xew, {opros::ready::read}, &xew);
 	wait_set.add(ww.ui_queue, {opros::ready::read}, &ww.ui_queue);
 
-	// Sometimes the first Expose event does not come for some reason. It happens constantly in some systems and never
-	// happens on all the others. So, render everything for the first time.
+	// Sometimes the first Expose event does not come for some reason. It happens
+	// constantly in some systems and never happens on all the others. So, render
+	// everything for the first time.
 	render(*app);
 
 	while (!ww.quitFlag) {
@@ -1247,7 +1256,8 @@ int main(int argc, const char** argv)
 
 		morda::vector2 new_win_dims(-1, -1);
 
-		// NOTE: do not check 'read' flag for X event, for some reason when waiting with 0 timeout it will never be set.
+		// NOTE: do not check 'read' flag for X event, for some reason when waiting
+		// with 0 timeout it will never be set.
 		//       Maybe some bug in XWindows, maybe something else.
 		bool x_event_arrived = false;
 		while (XPending(ww.display.display) > 0) {
@@ -1257,21 +1267,24 @@ int main(int argc, const char** argv)
 			// TRACE(<< "X event got, type = " << (event.type) << std::endl)
 			switch (event.type) {
 				case Expose:
-					//						TRACE(<< "Expose X event got" << std::endl)
+					//						TRACE(<< "Expose X event
+					// got" << std::endl)
 					if (event.xexpose.count != 0) {
 						break;
 					}
 					render(*app);
 					break;
 				case ConfigureNotify:
-					//						TRACE(<< "ConfigureNotify X event got" << std::endl)
-					// squash all window resize events into one, for that store the new window dimensions and update the
-					// viewport later only once
+					//						TRACE(<<
+					//"ConfigureNotify X event got" << std::endl)
+					// squash all window resize events into one, for that store the new
+					// window dimensions and update the viewport later only once
 					new_win_dims.x() = morda::real(event.xconfigure.width);
 					new_win_dims.y() = morda::real(event.xconfigure.height);
 					break;
 				case KeyPress:
-					//						TRACE(<< "KeyPress X event got" << std::endl)
+					//						TRACE(<< "KeyPress X
+					// event got" << std::endl)
 					{
 						// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
 						morda::key key = key_code_map[std::uint8_t(event.xkey.keycode)];
@@ -1280,7 +1293,8 @@ int main(int argc, const char** argv)
 					}
 					break;
 				case KeyRelease:
-					//						TRACE(<< "KeyRelease X event got" << std::endl)
+					//						TRACE(<< "KeyRelease X
+					// event got" << std::endl)
 					{
 						// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
 						morda::key key = key_code_map[std::uint8_t(event.xkey.keycode)];
@@ -1296,7 +1310,8 @@ int main(int argc, const char** argv)
 								// key wasn't actually released
 								handle_character_input(*app, key_event_unicode_provider(ww.input_context, nev), key);
 
-								XNextEvent(ww.display.display, &nev); // remove the key down event from queue
+								XNextEvent(ww.display.display,
+										   &nev); // remove the key down event from queue
 								break;
 							}
 						}
@@ -1305,8 +1320,9 @@ int main(int argc, const char** argv)
 					}
 					break;
 				case ButtonPress:
-					// LOG([&](auto&o){o << "ButtonPress X event got, button mask = " << event.xbutton.button <<
-					// std::endl;}) LOG([&](auto&o){o << "ButtonPress X event got, x, y = " << event.xbutton.x << ", "
+					// LOG([&](auto&o){o << "ButtonPress X event got, button mask = " <<
+					// event.xbutton.button << std::endl;}) LOG([&](auto&o){o <<
+					// "ButtonPress X event got, x, y = " << event.xbutton.x << ", "
 					// << event.xbutton.y << std::endl;})
 					handle_mouse_button(
 						*app,
@@ -1317,8 +1333,8 @@ int main(int argc, const char** argv)
 					);
 					break;
 				case ButtonRelease:
-					// LOG([&](auto&o){o << "ButtonRelease X event got, button mask = " << event.xbutton.button <<
-					// std::endl;})
+					// LOG([&](auto&o){o << "ButtonRelease X event got, button mask = " <<
+					// event.xbutton.button << std::endl;})
 					handle_mouse_button(
 						*app,
 						false,
@@ -1328,7 +1344,8 @@ int main(int argc, const char** argv)
 					);
 					break;
 				case MotionNotify:
-					//						TRACE(<< "MotionNotify X event got" << std::endl)
+					//						TRACE(<< "MotionNotify X
+					// event got" << std::endl)
 					handle_mouse_move(*app, morda::vector2(event.xmotion.x, event.xmotion.y), 0);
 					break;
 				case EnterNotify:
@@ -1338,7 +1355,8 @@ int main(int argc, const char** argv)
 					handle_mouse_hover(*app, false, 0);
 					break;
 				case ClientMessage:
-					//						TRACE(<< "ClientMessage X event got" << std::endl)
+					//						TRACE(<< "ClientMessage
+					// X event got" << std::endl)
 					// probably a WM_DELETE_WINDOW event
 					{
 						char* name = XGetAtomName(ww.display.display, event.xclient.message_type);
@@ -1354,9 +1372,11 @@ int main(int argc, const char** argv)
 			}
 		}
 
-		// WORKAROUND: XEvent file descriptor becomes ready to read many times per second, even if
-		//             there are no events to handle returned by XPending(), so here we check if something
-		//             meaningful actually happened and call render() only if it did
+		// WORKAROUND: XEvent file descriptor becomes ready to read many times per
+		// second, even if
+		//             there are no events to handle returned by XPending(), so here
+		//             we check if something meaningful actually happened and call
+		//             render() only if it did
 		if (triggered_events.size() != 0 && !x_event_arrived && !ui_queue_ready_to_read) {
 			continue;
 		}

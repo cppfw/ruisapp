@@ -237,8 +237,8 @@ struct window_wrapper : public utki::destructable {
 
 		EGLint context_attrs[] = {
 			EGL_CONTEXT_CLIENT_VERSION,
-			2, // this is needed on Android, otherwise eglCreateContext() thinks that we want OpenGL ES 1.1, but we
-			   // want 2.0
+			2, // this is needed on Android, otherwise eglCreateContext() thinks
+			   // that we want OpenGL ES 1.1, but we want 2.0
 			EGL_NONE
 		};
 
@@ -259,8 +259,10 @@ struct window_wrapper : public utki::destructable {
 
 	void destroy_surface() noexcept
 	{
-		// according to https://www.khronos.org/registry/EGL/sdk/docs/man/html/eglMakeCurrent.xhtml
-		// it is ok to destroy surface while EGL context is current, so here we do not unbind the EGL context
+		// according to
+		// https://www.khronos.org/registry/EGL/sdk/docs/man/html/eglMakeCurrent.xhtml
+		// it is ok to destroy surface while EGL context is current, so here we do
+		// not unbind the EGL context
 		if (this->surface != EGL_NO_SURFACE) {
 			eglDestroySurface(this->display, this->surface);
 			this->surface = EGL_NO_SURFACE;
@@ -285,7 +287,8 @@ struct window_wrapper : public utki::destructable {
 
 		// bind EGL context to the new surface
 		ASSERT(this->context != EGL_NO_CONTEXT)
-		eglMakeCurrent(this->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT); // unbind EGL context
+		eglMakeCurrent(this->display, EGL_NO_SURFACE, EGL_NO_SURFACE,
+					   EGL_NO_CONTEXT); // unbind EGL context
 		if (eglMakeCurrent(this->display, this->surface, this->surface, this->context) == EGL_FALSE) {
 			throw std::runtime_error("eglMakeCurrent() failed");
 		}
@@ -325,7 +328,8 @@ struct window_wrapper : public utki::destructable {
 
 	~window_wrapper() noexcept
 	{
-		eglMakeCurrent(this->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT); // unbind EGL context
+		eglMakeCurrent(this->display, EGL_NO_SURFACE, EGL_NO_SURFACE,
+					   EGL_NO_CONTEXT); // unbind EGL context
 		eglDestroyContext(this->display, this->context);
 		this->destroy_surface();
 		eglTerminate(this->display);
@@ -362,7 +366,10 @@ public:
 		switch (mode) {
 			case papki::file::mode::write:
 			case papki::file::mode::create:
-				throw std::invalid_argument("'write' and 'create' open modes are not supported by Android assets");
+				throw std::invalid_argument(
+					"'write' and 'create' open modes are not "
+					"supported by Android assets"
+				);
 			case papki::file::mode::read:
 				break;
 			default:
@@ -479,9 +486,11 @@ public:
 
 		ASSERT(this->handle)
 
-		// NOTE: AAsset_seek() accepts 'off_t' as offset argument which is signed and can be
+		// NOTE: AAsset_seek() accepts 'off_t' as offset argument which is signed
+		// and can be
 		//       less than size_t value passed as argument to this function.
-		//       Therefore, do several seek operations with smaller offset if necessary.
+		//       Therefore, do several seek operations with smaller offset if
+		//       necessary.
 
 		off_t assetSize = AAsset_getLength(this->handle);
 		ASSERT(assetSize >= 0)
@@ -528,13 +537,15 @@ morda::vector2 cur_window_dims(0, 0);
 
 AInputQueue* input_queue = nullptr;
 
-// array of current pointer positions, needed to detect which pointers have actually moved.
+// array of current pointer positions, needed to detect which pointers have
+// actually moved.
 std::array<morda::vector2, 10> pointers;
 
 inline morda::vector2 android_win_coords_to_morda_win_rect_coords(const morda::vector2& winDim, const morda::vector2& p)
 {
 	morda::vector2 ret(p.x(), p.y() - (cur_window_dims.y() - winDim.y()));
-	//	LOG([&](auto&o){o << "android_win_coords_to_morda_win_rect_coords(): ret = " << ret << std::endl;})
+	//	LOG([&](auto&o){o << "android_win_coords_to_morda_win_rect_coords(): ret
+	//= " << ret << std::endl;})
 	using std::round;
 	return round(ret);
 }
@@ -565,7 +576,8 @@ public:
 	std::u32string get() const
 	{
 		ASSERT(java_functions)
-		//		LOG([&](auto&o){o << "key_event_to_unicode_resolver::Resolve(): this->kc = " << this->kc << std::endl;})
+		//		LOG([&](auto&o){o << "key_event_to_unicode_resolver::Resolve():
+		// this->kc = " << this->kc << std::endl;})
 		char32_t res = java_functions->resolve_key_unicode(this->di, this->ms, this->kc);
 
 		// 0 means that key did not produce any unicode character
@@ -1036,7 +1048,8 @@ Java_io_github_cppfw_mordavokne_MordaVOkneActivity_handleCharacterStringInput(JN
 	input_string_provider provider;
 	provider.chars = std::u32string(utf32.data(), utf32.size());
 
-	//    LOG([&](auto&o){o << "handleCharacterStringInput(): provider.chars = " << provider.chars << std::endl;})
+	//    LOG([&](auto&o){o << "handleCharacterStringInput(): provider.chars = "
+	//    << provider.chars << std::endl;})
 
 	mordavokne::handle_character_input(mordavokne::inst(), provider, morda::key::unknown);
 }
@@ -1147,8 +1160,8 @@ void mordavokne::application::quit() noexcept
 void mordavokne::application::show_virtual_keyboard() noexcept
 {
 	// NOTE:
-	// ANativeActivity_showSoftInput(native_activity, ANATIVEACTIVITY_SHOW_SOFT_INPUT_FORCED);
-	// did not work for some reason.
+	// ANativeActivity_showSoftInput(native_activity,
+	// ANATIVEACTIVITY_SHOW_SOFT_INPUT_FORCED); did not work for some reason.
 
 	ASSERT(java_functions)
 	java_functions->show_virtual_keyboard();
@@ -1157,8 +1170,8 @@ void mordavokne::application::show_virtual_keyboard() noexcept
 void mordavokne::application::hide_virtual_keyboard() noexcept
 {
 	// NOTE:
-	// ANativeActivity_hideSoftInput(native_activity, ANATIVEACTIVITY_HIDE_SOFT_INPUT_NOT_ALWAYS);
-	// did not work for some reason
+	// ANativeActivity_hideSoftInput(native_activity,
+	// ANATIVEACTIVITY_HIDE_SOFT_INPUT_NOT_ALWAYS); did not work for some reason
 
 	ASSERT(java_functions)
 	java_functions->hide_virtual_keyboard();
@@ -1174,7 +1187,8 @@ void handle_input_events()
 	while (AInputQueue_getEvent(input_queue, &event) >= 0) {
 		ASSERT(event)
 
-		// LOG([&](auto&o){o << "New input event: type = " << AInputEvent_getType(event) << std::endl;})
+		// LOG([&](auto&o){o << "New input event: type = " <<
+		// AInputEvent_getType(event) << std::endl;})
 		if (AInputQueue_preDispatchEvent(input_queue, event)) {
 			continue;
 		}
@@ -1204,7 +1218,8 @@ void handle_input_events()
 								continue;
 							}
 
-							// LOG([&](auto&o){o << "Action down, ptr id = " << pointerId << std::endl;})
+							// LOG([&](auto&o){o << "Action down, ptr id = " << pointerId <<
+							// std::endl;})
 
 							morda::vector2 p(
 								AMotionEvent_getX(event, pointerIndex),
@@ -1238,7 +1253,8 @@ void handle_input_events()
 								continue;
 							}
 
-							// LOG([&](auto&o){o << "Action up, ptr id = " << pointerId << std::endl;})
+							// LOG([&](auto&o){o << "Action up, ptr id = " << pointerId <<
+							// std::endl;})
 
 							morda::vector2 p(
 								AMotionEvent_getX(event, pointerIndex),
@@ -1279,7 +1295,8 @@ void handle_input_events()
 									continue;
 								}
 
-								// LOG([&](auto&o){o << "Action move, ptr id = " << pointerId << std::endl;})
+								// LOG([&](auto&o){o << "Action move, ptr id = " << pointerId <<
+								// std::endl;})
 
 								pointers[pointerId] = p;
 
@@ -1310,8 +1327,9 @@ void handle_input_events()
 					key_input_string_resolver.ms = AKeyEvent_getMetaState(event);
 					key_input_string_resolver.di = AInputEvent_getDeviceId(event);
 
-					// LOG([&](auto&o){o << "AINPUT_EVENT_TYPE_KEY: key_input_string_resolver.kc = " <<
-					// key_input_string_resolver.kc << std::endl;})
+					// LOG([&](auto&o){o << "AINPUT_EVENT_TYPE_KEY:
+					// key_input_string_resolver.kc = " << key_input_string_resolver.kc <<
+					// std::endl;})
 
 					switch (eventAction) {
 						case AKEY_EVENT_ACTION_DOWN:
@@ -1475,7 +1493,8 @@ void on_window_focus_changed(ANativeActivity* activity, int hasFocus)
 
 int on_update_timer_expired(int fd, int events, void* data)
 {
-	//	LOG([&](auto&o){o << "on_update_timer_expired(): invoked" << std::endl;})
+	//	LOG([&](auto&o){o << "on_update_timer_expired(): invoked" <<
+	// std::endl;})
 
 	auto& app = application::inst();
 
@@ -1490,7 +1509,8 @@ int on_update_timer_expired(int fd, int events, void* data)
 	// after updating need to re-render everything
 	get_impl(app).render(app);
 
-	//	LOG([&](auto&o){o << "on_update_timer_expired(): armed timer for " << dt << std::endl;})
+	//	LOG([&](auto&o){o << "on_update_timer_expired(): armed timer for " << dt
+	//<< std::endl;})
 
 	return 1; // 1 means do not remove descriptor from looper
 }
@@ -1512,7 +1532,8 @@ void on_native_window_created(ANativeActivity* activity, ANativeWindow* window)
 		o << "on_native_window_created(): invoked" << std::endl;
 	})
 
-	// save window in a static var, so it is accessible for OpenGL initializers from morda::application class
+	// save window in a static var, so it is accessible for OpenGL initializers
+	// from morda::application class
 	android_window = window;
 
 	cur_window_dims.x() = float(ANativeWindow_getWidth(window));
@@ -1520,7 +1541,8 @@ void on_native_window_created(ANativeActivity* activity, ANativeWindow* window)
 
 	if (!activity->instance) {
 		try {
-			// use local auto-pointer for now because an exception can be thrown and need to delete object then.
+			// use local auto-pointer for now because an exception can be thrown and
+			// need to delete object then.
 			auto cfg = std::make_unique<android_configuration_wrapper>();
 			// retrieve current configuration
 			AConfiguration_fromAssetManager(cfg->android_configuration, native_activity->assetManager);
@@ -1563,8 +1585,9 @@ void on_native_window_created(ANativeActivity* activity, ANativeWindow* window)
 				throw std::runtime_error("failed to add UI message queue descriptor to looper");
 			}
 
-			fd_flag.set(); // this is to call the update() for the first time if there were any updateables started
-						   // during creating application object
+			fd_flag.set(); // this is to call the update() for the first time if there
+						   // were any updateables started during creating application
+						   // object
 		} catch (std::exception& e) {
 			LOG([&](auto& o) {
 				o << "std::exception uncaught while creating application instance: " << e.what() << std::endl;
@@ -1607,7 +1630,8 @@ void on_native_window_redraw_needed(ANativeActivity* activity, ANativeWindow* wi
 	get_impl(app).render(app);
 }
 
-// This function is called right before destroying Window object, according to documentation:
+// This function is called right before destroying Window object, according to
+// documentation:
 // https://developer.android.com/ndk/reference/struct/a-native-activity-callbacks#onnativewindowdestroyed
 void on_native_window_destroyed(ANativeActivity* activity, ANativeWindow* window)
 {
@@ -1616,7 +1640,8 @@ void on_native_window_destroyed(ANativeActivity* activity, ANativeWindow* window
 	})
 
 	// destroy EGL drawing surface associated with the window.
-	// the EGL context remains existing and should preserve all resources like textures, vertex buffers, etc.
+	// the EGL context remains existing and should preserve all resources like
+	// textures, vertex buffers, etc.
 	get_impl(get_app(activity)).destroy_surface();
 
 	// delete configuration object
@@ -1627,7 +1652,8 @@ void on_native_window_destroyed(ANativeActivity* activity, ANativeWindow* window
 
 int on_input_events_ready_for_reading_from_queue(int fd, int events, void* data)
 {
-	//	LOG([](auto&o){o << "on_input_events_ready_for_reading_from_queue(): invoked" << std::endl;})
+	//	LOG([](auto&o){o << "on_input_events_ready_for_reading_from_queue():
+	// invoked" << std::endl;})
 
 	ASSERT(input_queue) // if we get events we should have input queue
 
@@ -1697,12 +1723,15 @@ void on_content_rect_changed(ANativeActivity* activity, const ARect* rect)
 		o << "on_content_rect_changed(): cur_window_dims = " << cur_window_dims << std::endl;
 	})
 
-	// Sometimes Android calls on_content_rect_changed() even after native window was destroyed,
-	// i.e. on_native_window_destroyed() was called and, thus, application object was destroyed.
-	// So need to check if our application is still alive.
+	// Sometimes Android calls on_content_rect_changed() even after native window
+	// was destroyed, i.e. on_native_window_destroyed() was called and, thus,
+	// application object was destroyed. So need to check if our application is
+	// still alive.
 	if (!activity->instance) {
 		LOG([&](auto& o) {
-			o << "on_content_rect_changed(): application is not alive, ignoring content rect change." << std::endl;
+			o << "on_content_rect_changed(): application is not alive, ignoring "
+				 "content rect change."
+			  << std::endl;
 		})
 		return;
 	}

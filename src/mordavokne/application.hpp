@@ -97,8 +97,8 @@ struct window_params {
 /**
  * @brief Base singleton class of application.
  * An application should subclass this class and return an instance from the
- * application factory function create_application(), see application.hpp for details.
- * When instance of this class is created it also creates a window and
+ * application factory function create_application(), see application.hpp for
+ * details. When instance of this class is created it also creates a window and
  * initializes rendering API (e.g. OpenGL or OpenGL ES).
  */
 class application : public utki::intrusive_singleton<application>
@@ -124,8 +124,8 @@ public:
 public:
 	/**
 	 * @brief Create file interface into resources storage.
-	 * This function creates a morda's standard file interface to read application's
-	 * resources.
+	 * This function creates a morda's standard file interface to read
+	 * application's resources.
 	 * @param path - file path to initialize the file interface with.
 	 * @return Instance of the file interface into the resources storage.
 	 */
@@ -142,7 +142,8 @@ public:
 	const std::string storage_dir;
 
 private:
-	// this is a viewport rectangle in coordinates that are as follows: x grows right, y grows up.
+	// this is a viewport rectangle in coordinates that are as follows: x grows
+	// right, y grows up.
 	morda::rectangle curWinRect = morda::rectangle(0, 0, 0, 0);
 
 public:
@@ -221,8 +222,9 @@ public:
 	void hide_virtual_keyboard() noexcept;
 
 private:
-	// The idea with unicode_resolver parameter is that we don't want to calculate the unicode unless it is really
-	// needed, thus postpone it as much as possible.
+	// The idea with unicode_resolver parameter is that we don't want to calculate
+	// the unicode unless it is really needed, thus postpone it as much as
+	// possible.
 	void handle_character_input(const morda::gui::input_string_provider& string_provider, morda::key key_code)
 	{
 		this->gui.send_character_input(string_provider, key_code);
@@ -278,8 +280,9 @@ public:
 
 	/**
 	 * @brief Get dots per density pixel (dp) for given display parameters.
-	 * The size of the dp for desktop displays should normally be equal to one pixel.
-	 * For hand held devices size of the dp depends on physical screen size and pixel resolution.
+	 * The size of the dp for desktop displays should normally be equal to one
+	 * pixel. For hand held devices size of the dp depends on physical screen size
+	 * and pixel resolution.
 	 * @param screen_size_pixels - resolution of the display in pixels.
 	 * @param screen_size_mm - size of the display in millimeters.
 	 * @return Size of one display density pixel in pixels.
@@ -298,7 +301,8 @@ inline application& inst()
 /**
  * @brief Application factory registerer.
  * The object of this class registers the application factory function.
- * The application object will be constructed using the provided factory function at program start.
+ * The application object will be constructed using the provided factory
+ * function at program start.
  */
 class application_factory
 {

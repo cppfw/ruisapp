@@ -346,7 +346,7 @@ LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	switch (msg) {
 		case WM_ACTIVATE:
 			if (!HIWORD(wParam)) { // Check Minimization State
-				// window active
+								   // window active
 			} else {
 				// window is no longer active
 			}
@@ -524,8 +524,8 @@ LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				pos.x = GET_X_LPARAM(lParam);
 				pos.y = GET_Y_LPARAM(lParam);
 
-				// For some reason in WM_MOUSEWHEEL message mouse cursor position is sent in screen coordinates,
-				// need to traslate those to window coordinates.
+				// For some reason in WM_MOUSEWHEEL message mouse cursor position is sent in
+				// screen coordinates, need to traslate those to window coordinates.
 				if (ScreenToClient(hwnd, &pos) == 0) {
 					break;
 				}
@@ -583,7 +583,8 @@ LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			ValidateRect(
 				hwnd,
 				NULL
-			); // This is to tell Windows that we have redrawn contents and WM_PAINT should go away from message queue.
+			); // This is to tell Windows that we have redrawn contents
+			   // and WM_PAINT should go away from message queue.
 			return 0;
 
 		case WM_SIZE:
@@ -725,7 +726,8 @@ void winmain(int argc, const char** argv)
 		if (status == WAIT_OBJECT_0) {
 			MSG msg;
 			while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-				//				TRACE(<< "msg got, msg.message = " << msg.message << std::endl)
+				//				TRACE(<< "msg got, msg.message = " <<
+				// msg.message << std::endl)
 				if (msg.message == WM_QUIT) {
 					ww.quitFlag = true;
 					break;
@@ -901,7 +903,8 @@ WindowWrapper::WindowWrapper(const window_params& wp)
 		}
 	});
 
-	// NOTE: window will be shown later, right before entering main loop and after all initial App data is initialized
+	// NOTE: window will be shown later, right before entering main loop and after
+	// all initial App data is initialized
 
 	this->hdc = GetDC(this->hwnd);
 	if (!this->hdc) {
@@ -916,7 +919,9 @@ WindowWrapper::WindowWrapper(const window_params& wp)
 		}
 	});
 
-	//	TRACE_AND_LOG(<< "application::DeviceContextWrapper::DeviceContextWrapper(): DC created" << std::endl)
+	//	TRACE_AND_LOG(<<
+	//"application::DeviceContextWrapper::DeviceContextWrapper(): DC created" <<
+	// std::endl)
 
 	{
 		static PIXELFORMATDESCRIPTOR pfd = {
@@ -953,7 +958,9 @@ WindowWrapper::WindowWrapper(const window_params& wp)
 			throw std::runtime_error("Could not find suitable pixel format");
 		}
 
-		//	TRACE_AND_LOG(<< "application::DeviceContextWrapper::DeviceContextWrapper(): pixel format chosen" <<
+		//	TRACE_AND_LOG(<<
+		//"application::DeviceContextWrapper::DeviceContextWrapper(): pixel format
+		// chosen" <<
 		// std::endl)
 
 		if (!SetPixelFormat(this->hdc, pixelFormat, &pfd)) {
@@ -979,7 +986,8 @@ WindowWrapper::WindowWrapper(const window_params& wp)
 		}
 	});
 
-	//	TRACE_AND_LOG(<< "application::GLContextWrapper::GLContextWrapper(): GL rendering context created" << std::endl)
+	//	TRACE_AND_LOG(<< "application::GLContextWrapper::GLContextWrapper(): GL
+	// rendering context created" << std::endl)
 
 	if (!wglMakeCurrent(hdc, this->hrc)) {
 		throw std::runtime_error("Failed to activate OpenGL rendering context");

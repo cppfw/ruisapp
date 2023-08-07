@@ -87,8 +87,9 @@ void application::hide_virtual_keyboard() noexcept {
 morda::real application::get_pixels_per_dp(r4::vector2<unsigned> resolution, r4::vector2<unsigned> screen_size_mm)
 {
 	// NOTE: for ordinary desktop displays the DP size should be equal to 1 pixel.
-	// For high density displays it should be more than one pixel, depending on display dpi.
-	// For hand held devices the size of DP should be determined from physical screen size and pixel resolution.
+	// For high density displays it should be more than one pixel, depending on
+	// display dpi. For hand held devices the size of DP should be determined from
+	// physical screen size and pixel resolution.
 
 #if M_OS_NAME == M_OS_NAME_IOS
 	return morda::real(1); // TODO:
