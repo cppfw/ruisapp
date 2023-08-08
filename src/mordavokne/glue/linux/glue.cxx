@@ -109,17 +109,17 @@ struct window_wrapper : public utki::destructable {
 	Colormap color_map;
 	::Window window;
 #ifdef MORDAVOKNE_RENDER_OPENGL
-	GLXContext glContext;
+	GLXContext gl_context;
 #elif defined(MORDAVOKNE_RENDER_OPENGLES)
 #	ifdef MORDAVOKNE_RASPBERRYPI
-	EGL_DISPMANX_WINDOW_T rpiNativeWindow;
-	DISPMANX_DISPLAY_HANDLE_T rpiDispmanDisplay;
-	DISPMANX_UPDATE_HANDLE_T rpiDispmanUpdate;
-	DISPMANX_ELEMENT_HANDLE_T rpiDispmanElement;
+	EGL_DISPMANX_WINDOW_T rpi_native_window{};
+	DISPMANX_DISPLAY_HANDLE_T rpi_dispman_display;
+	DISPMANX_UPDATE_HANDLE_T rpi_dispman_update;
+	DISPMANX_ELEMENT_HANDLE_T rpi_dispman_element;
 #	endif
-	EGLDisplay eglDisplay;
-	EGLSurface eglSurface;
-	EGLContext eglContext;
+	EGLDisplay egl_display;
+	EGLSurface egl_surface;
+	EGLContext egl_context;
 #else
 #	error "Unknown graphics API"
 #endif
@@ -327,17 +327,17 @@ struct window_wrapper : public utki::destructable {
 		}
 #elif defined(MORDAVOKNE_RENDER_OPENGLES)
 		// NOLINTNEXTLINE(cppcoreguidelines-prefer-member-initializer)
-		this->eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-		if (this->eglDisplay == EGL_NO_DISPLAY) {
+		this->egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+		if (this->egl_display == EGL_NO_DISPLAY) {
 			throw std::runtime_error("eglGetDisplay(): failed, no matching display connection found");
 		}
 
 		utki::scope_exit scope_exit_egl_display([this]() {
-			eglTerminate(this->eglDisplay);
+			eglTerminate(this->egl_display);
 		});
 
-		if (eglInitialize(this->eglDisplay, nullptr, nullptr) == EGL_FALSE) {
-			eglTerminate(this->eglDisplay);
+		if (eglInitialize(this->egl_display, nullptr, nullptr) == EGL_FALSE) {
+			eglTerminate(this->egl_display);
 			throw std::runtime_error("eglInitialize() failed");
 		}
 
@@ -369,7 +369,7 @@ struct window_wrapper : public utki::destructable {
 			// sample, we have a very simplified selection process, where we pick
 			// the first EGLConfig that matches our criteria.
 			EGLint num_configs = 0;
-			eglChooseConfig(this->eglDisplay, attribs.data(), &egl_config, 1, &num_configs);
+			eglChooseConfig(this->egl_display, attribs.data(), &egl_config, 1, &num_configs);
 			if (num_configs <= 0) {
 				throw std::runtime_error("eglChooseConfig() failed, no matching config found");
 			}
@@ -391,8 +391,12 @@ struct window_wrapper : public utki::destructable {
 #elif defined(MORDAVOKNE_RENDER_OPENGLES)
 #	ifdef MORDAVOKNE_RASPBERRYPI
 		{
+			// the variable is initialied via output argument, so no need to
+			// initialize it here
+			// NOLINTNEXTLINE(cppcoreguidelines-init-variables)
 			int num_visuals;
 			XVisualInfo vis_template;
+			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
 			vis_template.screen = DefaultScreen(this->display.display); // LCD
 			visual_info = XGetVisualInfo(this->display.display, VisualScreenMask, &vis_template, &num_visuals);
 			if (!visual_info) {
@@ -403,7 +407,7 @@ struct window_wrapper : public utki::destructable {
 		{
 			EGLint vid = 0;
 
-			if (!eglGetConfigAttrib(this->eglDisplay, egl_config, EGL_NATIVE_VISUAL_ID, &vid)) {
+			if (!eglGetConfigAttrib(this->egl_display, egl_config, EGL_NATIVE_VISUAL_ID, &vid)) {
 				throw std::runtime_error("eglGetConfigAttrib() failed");
 			}
 
@@ -495,7 +499,7 @@ struct window_wrapper : public utki::destructable {
 
 		if (std::find(glx_extensions.begin(), glx_extensions.end(), "GLX_ARB_create_context") == glx_extensions.end()) {
 			// GLX_ARB_create_context is not supported
-			this->glContext = glXCreateContext(this->display.display, visual_info, nullptr, GL_TRUE);
+			this->gl_context = glXCreateContext(this->display.display, visual_info, nullptr, GL_TRUE);
 		} else {
 			// GLX_ARB_create_context is supported
 
@@ -532,7 +536,7 @@ struct window_wrapper : public utki::destructable {
 				None
 			};
 
-			this->glContext = glXCreateContextAttribsARB(
+			this->gl_context = glXCreateContextAttribsARB(
 				this->display.display,
 				best_fb_config,
 				nullptr,
@@ -544,15 +548,15 @@ struct window_wrapper : public utki::destructable {
 		// sync to ensure any errors generated are processed
 		XSync(this->display.display, False);
 
-		if (this->glContext == nullptr) {
+		if (this->gl_context == nullptr) {
 			throw std::runtime_error("glXCreateContext() failed");
 		}
 		utki::scope_exit scope_exit_gl_context([this]() {
 			glXMakeCurrent(this->display.display, None, nullptr);
-			glXDestroyContext(this->display.display, this->glContext);
+			glXDestroyContext(this->display.display, this->gl_context);
 		});
 
-		glXMakeCurrent(this->display.display, this->window, this->glContext);
+		glXMakeCurrent(this->display.display, this->window, this->gl_context);
 
 		// disable v-sync via swap control extension
 
@@ -609,6 +613,9 @@ struct window_wrapper : public utki::destructable {
 
 			VC_RECT_T dst_rect, src_rect;
 
+			// the variables are initialized via output argument, so no need to
+			// initialize it here
+			// NOLINTNEXTLINE(cppcoreguidelines-init-variables)
 			uint32_t display_width, display_height;
 
 			// create an EGL window surface, passing context width/height
@@ -629,47 +636,48 @@ struct window_wrapper : public utki::destructable {
 
 			src_rect.x = 0;
 			src_rect.y = 0;
-			src_rect.width = display_width << 16;
-			src_rect.height = display_height << 16;
+			src_rect.width = display_width << (utki::byte_bits * 2);
+			src_rect.height = display_height << (utki::byte_bits * 2);
 
-			this->rpiDispmanDisplay = vc_dispmanx_display_open(0); // 0 = LCD
-			this->rpiDispmanUpdate = vc_dispmanx_update_start(0);
+			this->rpi_dispman_display = vc_dispmanx_display_open(0); // 0 = LCD
+			this->rpi_dispman_update = vc_dispmanx_update_start(0);
 
-			this->rpiDispmanElement = vc_dispmanx_element_add(
-				this->rpiDispmanUpdate,
-				this->rpiDispmanDisplay,
+			this->rpi_dispman_element = vc_dispmanx_element_add(
+				this->rpi_dispman_update,
+				this->rpi_dispman_display,
 				0, // layer
 				&dst_rect,
 				0, // src
 				&src_rect,
 				DISPMANX_PROTECTION_NONE,
-				0, // alpha
-				0, // clamp
+				nullptr, // alpha
+				nullptr, // clamp
 				DISPMANX_NO_ROTATE // transform
 			);
 
-			this->rpiNativeWindow.element = this->rpiDispmanElement;
-			this->rpiNativeWindow.width = display_width;
-			this->rpiNativeWindow.height = display_height;
-			vc_dispmanx_update_submit_sync(this->rpiDispmanUpdate);
+			this->rpi_native_window.element = this->rpi_dispman_element;
+			this->rpi_native_window.width = display_width;
+			this->rpi_native_window.height = display_height;
+			vc_dispmanx_update_submit_sync(this->rpi_dispman_update);
 		}
 #	endif
 
-		this->eglSurface = eglCreateWindowSurface(
-			this->eglDisplay,
+		this->egl_surface = eglCreateWindowSurface(
+			this->egl_display,
 			egl_config,
 #	ifdef MORDAVOKNE_RASPBERRYPI
-			reinterpret_cast<EGLNativeWindowType>(&this->rpiNativeWindow),
+			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+			reinterpret_cast<EGLNativeWindowType>(&this->rpi_native_window),
 #	else
 			this->window,
 #	endif
 			nullptr
 		);
-		if (this->eglSurface == EGL_NO_SURFACE) {
+		if (this->egl_surface == EGL_NO_SURFACE) {
 			throw std::runtime_error("eglCreateWindowSurface() failed");
 		}
 		utki::scope_exit scope_exit_egl_surface([this]() {
-			eglDestroySurface(this->eglDisplay, this->eglSurface);
+			eglDestroySurface(this->egl_display, this->egl_surface);
 		});
 
 		{
@@ -680,23 +688,23 @@ struct window_wrapper : public utki::destructable {
 				EGL_NONE
 			};
 
-			this->eglContext = eglCreateContext(this->eglDisplay, egl_config, EGL_NO_CONTEXT, context_attrs.data());
-			if (this->eglContext == EGL_NO_CONTEXT) {
+			this->egl_context = eglCreateContext(this->egl_display, egl_config, EGL_NO_CONTEXT, context_attrs.data());
+			if (this->egl_context == EGL_NO_CONTEXT) {
 				throw std::runtime_error("eglCreateContext() failed");
 			}
 		}
 
-		if (eglMakeCurrent(this->eglDisplay, this->eglSurface, this->eglSurface, this->eglContext) == EGL_FALSE) {
-			eglDestroyContext(this->eglDisplay, this->eglContext);
+		if (eglMakeCurrent(this->egl_display, this->egl_surface, this->egl_surface, this->egl_context) == EGL_FALSE) {
+			eglDestroyContext(this->egl_display, this->egl_context);
 			throw std::runtime_error("eglMakeCurrent() failed");
 		}
 		utki::scope_exit scope_exit_egl_context([this]() {
-			eglMakeCurrent(this->eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-			eglDestroyContext(this->eglDisplay, this->eglContext);
+			eglMakeCurrent(this->egl_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+			eglDestroyContext(this->egl_display, this->egl_context);
 		});
 
 		// disable v-sync
-		if (eglSwapInterval(this->eglDisplay, 0) != EGL_TRUE) {
+		if (eglSwapInterval(this->egl_display, 0) != EGL_TRUE) {
 			throw std::runtime_error("eglSwapInterval() failed");
 		}
 #else
@@ -762,11 +770,11 @@ struct window_wrapper : public utki::destructable {
 
 #ifdef MORDAVOKNE_RENDER_OPENGL
 		glXMakeCurrent(this->display.display, None, nullptr);
-		glXDestroyContext(this->display.display, this->glContext);
+		glXDestroyContext(this->display.display, this->gl_context);
 #elif defined(MORDAVOKNE_RENDER_OPENGLES)
-		eglMakeCurrent(this->eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-		eglDestroyContext(this->eglDisplay, this->eglContext);
-		eglDestroySurface(this->eglDisplay, this->eglSurface);
+		eglMakeCurrent(this->egl_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+		eglDestroyContext(this->egl_display, this->egl_context);
+		eglDestroySurface(this->egl_display, this->egl_surface);
 #else
 #	error "Unknown graphics API"
 #endif
@@ -775,7 +783,7 @@ struct window_wrapper : public utki::destructable {
 		XFreeColormap(this->display.display, this->color_map);
 
 #ifdef MORDAVOKNE_RENDER_OPENGLES
-		eglTerminate(this->eglDisplay);
+		eglTerminate(this->egl_display);
 #endif
 	}
 };
@@ -1373,6 +1381,7 @@ int main(int argc, const char** argv)
 
 					// probably a WM_DELETE_WINDOW event
 					{
+						// NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
 						char* name = XGetAtomName(ww.display.display, event.xclient.message_type);
 						if ("WM_PROTOCOLS"sv == name) {
 							ww.quitFlag = true;
@@ -1472,7 +1481,7 @@ void application::swap_frame_buffers()
 #ifdef MORDAVOKNE_RENDER_OPENGL
 	glXSwapBuffers(ww.display.display, ww.window);
 #elif defined(MORDAVOKNE_RENDER_OPENGLES)
-	eglSwapBuffers(ww.eglDisplay, ww.eglSurface);
+	eglSwapBuffers(ww.egl_display, ww.egl_surface);
 #else
 #	error "Unknown graphics API"
 #endif
