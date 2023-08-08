@@ -649,7 +649,7 @@ morda::real get_dots_per_inch(HDC dc)
 		 + morda::real(GetDeviceCaps(dc, VERTRES)) * std::deci::den / morda::real(GetDeviceCaps(dc, VERTSIZE)))
 		/ morda::real(num_dimensions);
 
-	constexpr auto cm_per_inch = 2.54;
+	constexpr auto cm_per_inch = 2.54f;
 
 	return morda::real(dots_per_cm) * cm_per_inch;
 }
