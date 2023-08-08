@@ -56,16 +56,11 @@ prepare() {
 build() {
 	cd "$rootDir"
 	make
-
-	# Since we have platform-dependent code, we need to run lint in Windows builds,
-	# so build 'lint' config which runs lint. Should not be a big deal, since the library
-	# doesn't have too much code, ok to compile it twice.
-	make config=lint
 }
 
 check() {
 	cd "$rootDir"
-#	make test
+	make test
 }
 
 package() {
