@@ -649,7 +649,7 @@ morda::real get_dots_per_inch(HDC dc)
 		 + morda::real(GetDeviceCaps(dc, VERTRES)) * std::deci::den / morda::real(GetDeviceCaps(dc, VERTSIZE)))
 		/ morda::real(num_dimensions);
 
-	const auto cm_per_inch = 2.54;
+	constexpr auto cm_per_inch = 2.54;
 
 	return morda::real(dots_per_cm) * cm_per_inch;
 }
@@ -668,6 +668,9 @@ morda::real get_dots_per_pp(HDC dc)
 namespace {
 std::string initialize_storage_dir(const std::string& app_name)
 {
+	// the variable is initialized via output argument, so no need
+	// to initialize it here
+	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
 	std::array<CHAR, MAX_PATH> path;
 	if (SHGetFolderPathA(nullptr, CSIDL_PROFILE, nullptr, 0, path.data()) != S_OK) {
 		throw std::runtime_error("failed to get user's profile directory.");
@@ -710,7 +713,7 @@ application::application(std::string name, const window_params& wp) :
 					ww.hwnd,
 					WM_USER,
 					0,
-					// NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
+					// NOLINTNEXTLINE(cppcoreguidelines-owning-memory, cppcoreguidelines-pro-type-reinterpret-cast)
 					reinterpret_cast<LPARAM>(new std::remove_reference<decltype(procedure)>::type(std::move(procedure)))
 				)
 				== 0)
