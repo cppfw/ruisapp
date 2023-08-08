@@ -20,6 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 /* ================ LICENSE END ================ */
 
 #include <array>
+#include <string_view>
 #include <vector>
 
 #include <X11/Xlib.h>
@@ -53,6 +54,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../friend_accessors.cxx" // NOLINT(bugprone-suspicious-include)
 #include "../unix_common.cxx" // NOLINT(bugprone-suspicious-include)
 #include "../util.hxx"
+
+using namespace std::string_view_literals;
 
 using namespace mordavokne;
 
@@ -264,6 +267,7 @@ struct window_wrapper : public utki::destructable {
 			int fbcount = 0;
 			GLXFBConfig* fbc = glXChooseFBConfig(
 				this->display.display,
+				// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
 				DefaultScreen(this->display.display),
 				visual_attribs.data(),
 				&fbcount
@@ -421,6 +425,7 @@ struct window_wrapper : public utki::destructable {
 
 		this->color_map = XCreateColormap(
 			this->display.display,
+			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
 			RootWindow(this->display.display, visual_info->screen),
 			visual_info->visual,
 			AllocNone
@@ -441,6 +446,7 @@ struct window_wrapper : public utki::destructable {
 
 			this->window = XCreateWindow(
 				this->display.display,
+				// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast,cppcoreguidelines-pro-bounds-pointer-arithmetic)
 				RootWindow(this->display.display, visual_info->screen),
 				0,
 				0,
@@ -795,10 +801,15 @@ morda::real get_dots_per_inch(Display* display)
 
 	constexpr auto mm_per_cm = 10;
 
-	morda::real value = ((morda::real(DisplayWidth(display, src_num))
-						  / (morda::real(DisplayWidthMM(display, src_num)) / morda::real(mm_per_cm)))
-						 + (morda::real(DisplayHeight(display, src_num))
-							/ (morda::real(DisplayHeightMM(display, src_num)) / morda::real(mm_per_cm))))
+	morda::real value =
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
+		((morda::real(DisplayWidth(display, src_num))
+		  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
+		  / (morda::real(DisplayWidthMM(display, src_num)) / morda::real(mm_per_cm)))
+		 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
+		 + (morda::real(DisplayHeight(display, src_num))
+			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			/ (morda::real(DisplayHeightMM(display, src_num)) / morda::real(mm_per_cm))))
 		/ 2;
 	constexpr auto cm_per_inch = 2.54;
 	value *= morda::real(cm_per_inch);
@@ -808,7 +819,9 @@ morda::real get_dots_per_inch(Display* display)
 morda::real get_dots_per_dp(Display* display)
 {
 	int src_num = 0;
+	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
 	r4::vector2<unsigned> resolution(DisplayWidth(display, src_num), DisplayHeight(display, src_num));
+	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
 	r4::vector2<unsigned> screen_size_mm(DisplayWidthMM(display, src_num), DisplayHeightMM(display, src_num));
 
 	return application::get_pixels_per_dp(resolution, screen_size_mm);
@@ -1357,10 +1370,11 @@ int main(int argc, const char** argv)
 				case ClientMessage:
 					//						TRACE(<< "ClientMessage
 					// X event got" << std::endl)
+
 					// probably a WM_DELETE_WINDOW event
 					{
 						char* name = XGetAtomName(ww.display.display, event.xclient.message_type);
-						if (*name == *"WM_PROTOCOLS") {
+						if ("WM_PROTOCOLS"sv == name) {
 							ww.quitFlag = true;
 						}
 						XFree(name);
@@ -1434,6 +1448,7 @@ void application::set_fullscreen(bool enable)
 
 	XSendEvent(
 		ww.display.display,
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
 		DefaultRootWindow(ww.display.display),
 		False,
 		SubstructureRedirectMask | SubstructureNotifyMask,

@@ -30,6 +30,7 @@ std::unique_ptr<mordavokne::application> create_app_unix(int argc, const char** 
 
 std::string initialize_storage_dir(const std::string& app_name)
 {
+	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
 	auto home_dir = getenv("HOME");
 	if (!home_dir) {
 		throw std::runtime_error("failed to get user home directory. Is HOME environment variable set?");
