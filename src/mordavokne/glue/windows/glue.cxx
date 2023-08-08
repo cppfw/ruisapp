@@ -890,7 +890,7 @@ window_wrapper::window_wrapper(const window_params& wp)
 		wc.lpfnWndProc = (WNDPROC)window_procedure;
 		wc.cbClsExtra = 0; // no extra window data
 		wc.cbWndExtra = 0; // no extra window data
-		wc.h_instance = GetModuleHandle(nullptr); // instance handle
+		wc.hInstance = GetModuleHandle(nullptr); // instance handle
 		wc.hIcon = LoadIcon(nullptr, IDI_WINLOGO);
 		wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
 		wc.hbrBackground = nullptr; // no background required for OpenGL

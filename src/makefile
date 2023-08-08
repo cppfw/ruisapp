@@ -42,7 +42,7 @@ $(.RECIPEPREFIX)$(a)$(this_cc) -ObjC++ -c -o "$$$$@" $$(this_cxxflags) $$(OBJCXX
 
     ifeq ($1,opengles)
         ifeq ($(prorab_linux),raspbian)
-            this_cxxflags += -DMORDAVOKNE_RASPBERRYPI -I/opt/vc/include
+            this_cxxflags += -DMORDAVOKNE_RASPBERRYPI -isystem /opt/vc/include
             this_ldflags += -L/opt/vc/lib
             this_ldlibs += -lbrcmEGL
         else
