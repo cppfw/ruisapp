@@ -253,7 +253,7 @@ public:
 private:
 	bool is_fullscreen_v = false;
 
-	r4::rectangle<unsigned> before_fullscreen_window_rect{0, 0, 0, 0};
+	r4::rectangle<int> before_fullscreen_window_rect{0, 0, 0, 0};
 
 public:
 	/**

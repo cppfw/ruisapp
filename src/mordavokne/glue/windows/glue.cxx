@@ -38,8 +38,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 using namespace mordavokne;
 
 namespace {
+constexpr const char* window_class_name = "MordavokneWindowClassName";
+} // namespace
+
+namespace {
 struct window_wrapper : public utki::destructable {
-	std::string windowClassName;
 	HWND hwnd;
 	HDC hdc;
 	HGLRC hrc;
@@ -565,6 +568,7 @@ LRESULT CALLBACK window_procedure(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_
 
 		case WM_KEYDOWN:
 			{
+				// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
 				morda::key key = key_code_map[uint8_t(w_param)];
 
 				constexpr auto previous_key_state_mask = 0x40000000;
@@ -638,14 +642,16 @@ LRESULT CALLBACK window_procedure(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_
 namespace {
 morda::real get_dots_per_inch(HDC dc)
 {
+	constexpr auto num_dimensions = 2;
+	// average dots per cm over device dimensions
 	morda::real dots_per_cm =
 		(morda::real(GetDeviceCaps(dc, HORZRES)) * std::deci::den / morda::real(GetDeviceCaps(dc, HORZSIZE))
 		 + morda::real(GetDeviceCaps(dc, VERTRES)) * std::deci::den / morda::real(GetDeviceCaps(dc, VERTSIZE)))
-		/ morda::real(2.0);
+		/ morda::real(num_dimensions);
 
 	const auto cm_per_inch = 2.54;
 
-	return dots_per_cm * cm_per_inch;
+	return morda::real(dots_per_cm) * cm_per_inch;
 }
 } // namespace
 
@@ -653,58 +659,59 @@ namespace {
 morda::real get_dots_per_pp(HDC dc)
 {
 	r4::vector2<unsigned> resolution(GetDeviceCaps(dc, HORZRES), GetDeviceCaps(dc, VERTRES));
-	r4::vector2<unsigned> screenSizeMm(GetDeviceCaps(dc, HORZSIZE), GetDeviceCaps(dc, VERTSIZE));
+	r4::vector2<unsigned> screen_size_mm(GetDeviceCaps(dc, HORZSIZE), GetDeviceCaps(dc, VERTSIZE));
 
-	return mordavokne::application::get_pixels_per_dp(resolution, screenSizeMm);
+	return mordavokne::application::get_pixels_per_dp(resolution, screen_size_mm);
 }
 } // namespace
 
 namespace {
-std::string initialize_storage_dir(const std::string& appName)
+std::string initialize_storage_dir(const std::string& app_name)
 {
-	CHAR path[MAX_PATH];
-	if (SHGetFolderPathA(nullptr, CSIDL_PROFILE, nullptr, 0, path) != S_OK) {
+	std::array<CHAR, MAX_PATH> path;
+	if (SHGetFolderPathA(nullptr, CSIDL_PROFILE, nullptr, 0, path.data()) != S_OK) {
 		throw std::runtime_error("failed to get user's profile directory.");
 	}
 
-	path[sizeof(path) - 1] = '\0'; // null-terminate the string just in case
+	path.back() = '\0'; // null-terminate the string just in case
 
-	std::string homeDirStr(path, strlen(path));
+	std::string home_dir_str(path.data(), strlen(path.data()));
 
-	ASSERT(homeDirStr.size() != 0)
+	ASSERT(home_dir_str.size() != 0)
 
-	if (homeDirStr[homeDirStr.size() - 1] == '\\') {
-		homeDirStr[homeDirStr.size() - 1] = '/';
+	if (home_dir_str[home_dir_str.size() - 1] == '\\') {
+		home_dir_str[home_dir_str.size() - 1] = '/';
 	}
 
-	if (homeDirStr[homeDirStr.size() - 1] != '/') {
-		homeDirStr.append(1, '/');
+	if (home_dir_str[home_dir_str.size() - 1] != '/') {
+		home_dir_str.append(1, '/');
 	}
 
-	homeDirStr.append(1, '.').append(appName).append(1, '/');
+	home_dir_str.append(1, '.').append(app_name).append(1, '/');
 
-	papki::fs_file dir(homeDirStr);
+	papki::fs_file dir(home_dir_str);
 	if (!dir.exists()) {
 		dir.make_dir();
 	}
 
-	return homeDirStr;
+	return home_dir_str;
 }
 } // namespace
 
 application::application(std::string name, const window_params& wp) :
-	name(name),
+	name(std::move(name)),
 	window_pimpl(std::make_unique<window_wrapper>(wp)),
 	gui(utki::make_shared<morda::context>(
 		utki::make_shared<morda::render_opengl::renderer>(),
 		utki::make_shared<morda::updater>(),
-		[](std::function<void()> a) {
+		[](std::function<void()> procedure) {
 			auto& ww = get_impl(get_window_pimpl(mordavokne::inst()));
 			if (PostMessage(
 					ww.hwnd,
 					WM_USER,
 					0,
-					reinterpret_cast<LPARAM>(new std::remove_reference<decltype(a)>::type(std::move(a)))
+					// NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
+					reinterpret_cast<LPARAM>(new std::remove_reference<decltype(procedure)>::type(std::move(procedure)))
 				)
 				== 0)
 			{
@@ -772,13 +779,14 @@ void winmain(int argc, const char** argv)
 } // namespace mordavokne
 
 int WINAPI WinMain(
-	HINSTANCE hInstance, // Instance
-	HINSTANCE hPrevInstance, // Previous Instance
-	LPSTR lpCmdLine, // Command Line Parameters
-	int nCmdShow // Window Show State
+	HINSTANCE h_instance, // Instance
+	HINSTANCE h_prev_instance, // Previous Instance
+	LPSTR lp_cmd_line, // Command Line Parameters
+	int n_cmd_show // Window Show State
 )
 {
-	mordavokne::winmain(0, 0);
+	// TODO: pass argc and argv
+	mordavokne::winmain(0, nullptr);
 
 	return 0;
 }
@@ -874,8 +882,6 @@ void application::swap_frame_buffers()
 namespace {
 window_wrapper::window_wrapper(const window_params& wp)
 {
-	this->windowClassName = "MordavokneWindowClassName";
-
 	{
 		WNDCLASS wc;
 		memset(&wc, 0, sizeof(wc));
@@ -884,35 +890,38 @@ window_wrapper::window_wrapper(const window_params& wp)
 		wc.lpfnWndProc = (WNDPROC)window_procedure;
 		wc.cbClsExtra = 0; // no extra window data
 		wc.cbWndExtra = 0; // no extra window data
-		wc.hInstance = GetModuleHandle(nullptr); // instance handle
+		wc.h_instance = GetModuleHandle(nullptr); // instance handle
 		wc.hIcon = LoadIcon(nullptr, IDI_WINLOGO);
 		wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
 		wc.hbrBackground = nullptr; // no background required for OpenGL
 		wc.lpszMenuName = nullptr; // we don't want a menu
-		wc.lpszClassName = this->windowClassName.c_str(); // set the window class Name
+		wc.lpszClassName = window_class_name; // set the window class Name
 
 		if (!RegisterClass(&wc)) {
 			throw std::runtime_error("Failed to register window class");
 		}
 	}
 
-	utki::scope_exit scopeExitWindowClass([this]() {
-		if (!UnregisterClass(this->windowClassName.c_str(), GetModuleHandle(nullptr))) {
+	utki::scope_exit scope_exit_window_class([]() {
+		if (!UnregisterClass(window_class_name, GetModuleHandle(nullptr))) {
 			ASSERT(false, [&](auto& o) {
 				o << "Failed to unregister window class";
 			})
 		}
 	});
 
+	// we need to register window class name before creating the window,
+	// this is why we dont initialize hwnd in the constructor initializer list
+	// NOLINTNEXTLINE(cppcoreguidelines-prefer-member-initializer)
 	this->hwnd = CreateWindowEx(
 		WS_EX_APPWINDOW | WS_EX_WINDOWEDGE, // extended style
-		this->windowClassName.c_str(),
+		window_class_name,
 		"morda app",
 		WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
 		0, // x
 		0, // y
-		wp.dims.x() + 2 * GetSystemMetrics(SM_CXSIZEFRAME),
-		wp.dims.y() + GetSystemMetrics(SM_CYCAPTION) + 2 * GetSystemMetrics(SM_CYSIZEFRAME),
+		int(wp.dims.x()) + 2 * GetSystemMetrics(SM_CXSIZEFRAME),
+		int(wp.dims.y()) + GetSystemMetrics(SM_CYCAPTION) + 2 * GetSystemMetrics(SM_CYSIZEFRAME),
 		nullptr, // no parent window
 		nullptr, // no menu
 		GetModuleHandle(nullptr),
@@ -923,7 +932,7 @@ window_wrapper::window_wrapper(const window_params& wp)
 		throw std::runtime_error("Failed to create a window");
 	}
 
-	utki::scope_exit scopeExitHwnd([this]() {
+	utki::scope_exit scope_exit_hwnd([this]() {
 		if (!DestroyWindow(this->hwnd)) {
 			ASSERT(false, [&](auto& o) {
 				o << "Failed to destroy window";
@@ -939,7 +948,7 @@ window_wrapper::window_wrapper(const window_params& wp)
 		throw std::runtime_error("Failed to create a OpenGL device context");
 	}
 
-	utki::scope_exit scopeExitHdc([this]() {
+	utki::scope_exit scope_exit_hdc([this]() {
 		if (!ReleaseDC(this->hwnd, this->hdc)) {
 			ASSERT(false, [&](auto& o) {
 				o << "Failed to release device context";
@@ -957,7 +966,7 @@ window_wrapper::window_wrapper(const window_params& wp)
 			1, // Version number of the structure, should be 1
 			PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
 			BYTE(PFD_TYPE_RGBA),
-			BYTE(32), // color depth
+			BYTE(utki::byte_bits * 4), // 32 bit color depth
 			BYTE(0),
 			BYTE(0),
 			BYTE(0),
@@ -971,8 +980,9 @@ window_wrapper::window_wrapper(const window_params& wp)
 			BYTE(0),
 			BYTE(0),
 			BYTE(0), // accumulation bits ignored
-			wp.buffers.get(window_params::buffer_type::depth) ? BYTE(16) : BYTE(0), // 16bit depth buffer
-			wp.buffers.get(window_params::buffer_type::stencil) ? BYTE(8) : BYTE(0),
+			wp.buffers.get(window_params::buffer_type::depth) ? BYTE(utki::byte_bits * 2)
+															  : BYTE(0), // 16 bit depth buffer
+			wp.buffers.get(window_params::buffer_type::stencil) ? BYTE(utki::byte_bits) : BYTE(0),
 			BYTE(0), // no auxiliary buffer
 			BYTE(PFD_MAIN_PLANE), // main drawing layer
 			BYTE(0), // reserved
@@ -981,8 +991,8 @@ window_wrapper::window_wrapper(const window_params& wp)
 			0 // layer masks ignored
 		};
 
-		int pixelFormat = ChoosePixelFormat(this->hdc, &pfd);
-		if (!pixelFormat) {
+		int pixel_format = ChoosePixelFormat(this->hdc, &pfd);
+		if (!pixel_format) {
 			throw std::runtime_error("Could not find suitable pixel format");
 		}
 
@@ -991,7 +1001,7 @@ window_wrapper::window_wrapper(const window_params& wp)
 		// chosen" <<
 		// std::endl)
 
-		if (!SetPixelFormat(this->hdc, pixelFormat, &pfd)) {
+		if (!SetPixelFormat(this->hdc, pixel_format, &pfd)) {
 			throw std::runtime_error("Could not sent pixel format");
 		}
 	}
@@ -1001,7 +1011,7 @@ window_wrapper::window_wrapper(const window_params& wp)
 		throw std::runtime_error("Failed to create OpenGL rendering context");
 	}
 
-	utki::scope_exit scopeExitHrc([this]() {
+	utki::scope_exit scope_exit_hrc([this]() {
 		if (!wglMakeCurrent(nullptr, nullptr)) {
 			ASSERT(false, [&](auto& o) {
 				o << "Deactivating OpenGL rendering context failed";
@@ -1025,10 +1035,10 @@ window_wrapper::window_wrapper(const window_params& wp)
 		throw std::runtime_error("GLEW initialization failed");
 	}
 
-	scopeExitHrc.release();
-	scopeExitHdc.release();
-	scopeExitHwnd.release();
-	scopeExitWindowClass.release();
+	scope_exit_hrc.release();
+	scope_exit_hdc.release();
+	scope_exit_hwnd.release();
+	scope_exit_window_class.release();
 }
 
 window_wrapper::~window_wrapper()
@@ -1054,7 +1064,7 @@ window_wrapper::~window_wrapper()
 			o << "Failed to destroy window";
 		})
 	}
-	if (!UnregisterClass(this->windowClassName.c_str(), GetModuleHandle(nullptr))) {
+	if (!UnregisterClass(window_class_name, GetModuleHandle(nullptr))) {
 		ASSERT(false, [&](auto& o) {
 			o << "Failed to unregister window class";
 		})
