@@ -19,6 +19,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 /* ================ LICENSE END ================ */
 
+#include <ratio>
+
 #include <Shlobj.h> // needed for SHGetFolderPathA()
 #include <morda/context.hpp>
 #include <morda/render/opengl/renderer.hpp>
@@ -29,12 +31,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <windowsx.h> // needed for GET_X_LPARAM macro and other similar macros
 
 #include "../../application.hpp"
+
+// NOLINTNEXTLINE(bugprone-suspicious-include)
 #include "../friend_accessors.cxx"
 
 using namespace mordavokne;
 
 namespace {
-struct WindowWrapper : public utki::destructable {
+struct window_wrapper : public utki::destructable {
 	std::string windowClassName;
 	HWND hwnd;
 	HDC hdc;
@@ -48,20 +52,27 @@ struct WindowWrapper : public utki::destructable {
 
 	bool mouseCursorIsCurrentlyVisible = true;
 
-	WindowWrapper(const window_params& wp);
+	window_wrapper(const window_params& wp);
 
-	~WindowWrapper() noexcept;
+	window_wrapper(const window_wrapper&) = delete;
+	window_wrapper& operator=(const window_wrapper&) = delete;
+
+	window_wrapper(window_wrapper&&) = delete;
+	window_wrapper& operator=(window_wrapper&&) = delete;
+
+	~window_wrapper() override;
 };
 
-WindowWrapper& get_impl(const std::unique_ptr<utki::destructable>& pimpl)
+window_wrapper& get_impl(const std::unique_ptr<utki::destructable>& pimpl)
 {
-	ASSERT(dynamic_cast<WindowWrapper*>(pimpl.get()))
-	return static_cast<WindowWrapper&>(*pimpl);
+	ASSERT(dynamic_cast<window_wrapper*>(pimpl.get()))
+	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast)
+	return static_cast<window_wrapper&>(*pimpl);
 }
 } // namespace
 
 namespace {
-const std::array<morda::key, std::uint8_t(-1) + 1> keyCodeMap = {
+const std::array<morda::key, std::numeric_limits<uint8_t>::max() + 1> key_code_map = {
 	morda::key::unknown, // Undefined
 	morda::key::unknown, // VK_LBUTTON
 	morda::key::unknown, // VK_RBUTTON
@@ -325,35 +336,36 @@ class windows_input_string_provider : public morda::gui::input_string_provider
 	char32_t c;
 
 public:
-	windows_input_string_provider(char32_t unicodeChar = 0) :
-		c(unicodeChar)
+	windows_input_string_provider(char32_t unicode_char = 0) :
+		c(unicode_char)
 	{}
 
 	std::u32string get() const override
 	{
 		if (this->c == 0) {
-			return std::u32string();
+			return {};
 		}
 
-		return std::u32string(&this->c, 1);
+		return {&this->c, 1};
 	}
 };
 } // namespace
 
 namespace {
-LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK window_procedure(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 {
 	switch (msg) {
 		case WM_ACTIVATE:
-			if (!HIWORD(wParam)) { // Check Minimization State
-								   // window active
-			} else {
-				// window is no longer active
-			}
+			// TODO: do something on activate/deactivate?
+			// if (!HIWORD(w_param)) { // Check Minimization State
+			// 					   // window active
+			// } else {
+			// 	// window is no longer active
+			// }
 			return 0;
 
 		case WM_SYSCOMMAND:
-			switch (wParam) {
+			switch (w_param) {
 				case SC_SCREENSAVE: // screensaver trying to start?
 				case SC_MONITORPOWER: // montor trying to enter powersave?
 					return 0; // prevent from happening
@@ -394,7 +406,7 @@ LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				}
 				handle_mouse_move(
 					mordavokne::inst(),
-					morda::vector2(float(GET_X_LPARAM(lParam)), float(GET_Y_LPARAM(lParam))),
+					morda::vector2(float(GET_X_LPARAM(l_param)), float(GET_Y_LPARAM(l_param))),
 					0
 				);
 				return 0;
@@ -417,10 +429,11 @@ LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					auto btn = morda::mouse_button(i);
 					if (ww.mouseButtonState.get(btn)) {
 						ww.mouseButtonState.clear(btn);
+						constexpr auto outside_of_window_coordinate = 100000000;
 						handle_mouse_button(
 							mordavokne::inst(),
 							false,
-							morda::vector2(1000000, 1000000), // outside of the window
+							morda::vector2(outside_of_window_coordinate, outside_of_window_coordinate),
 							btn,
 							0
 						);
@@ -435,7 +448,7 @@ LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				handle_mouse_button(
 					mordavokne::inst(),
 					true,
-					morda::vector2(float(GET_X_LPARAM(lParam)), float(GET_Y_LPARAM(lParam))),
+					morda::vector2(float(GET_X_LPARAM(l_param)), float(GET_Y_LPARAM(l_param))),
 					morda::mouse_button::left,
 					0
 				);
@@ -448,7 +461,7 @@ LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				handle_mouse_button(
 					mordavokne::inst(),
 					false,
-					morda::vector2(float(GET_X_LPARAM(lParam)), float(GET_Y_LPARAM(lParam))),
+					morda::vector2(float(GET_X_LPARAM(l_param)), float(GET_Y_LPARAM(l_param))),
 					morda::mouse_button::left,
 					0
 				);
@@ -461,7 +474,7 @@ LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				handle_mouse_button(
 					mordavokne::inst(),
 					true,
-					morda::vector2(float(GET_X_LPARAM(lParam)), float(GET_Y_LPARAM(lParam))),
+					morda::vector2(float(GET_X_LPARAM(l_param)), float(GET_Y_LPARAM(l_param))),
 					morda::mouse_button::middle,
 					0
 				);
@@ -474,7 +487,7 @@ LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				handle_mouse_button(
 					mordavokne::inst(),
 					false,
-					morda::vector2(float(GET_X_LPARAM(lParam)), float(GET_Y_LPARAM(lParam))),
+					morda::vector2(float(GET_X_LPARAM(l_param)), float(GET_Y_LPARAM(l_param))),
 					morda::mouse_button::middle,
 					0
 				);
@@ -487,7 +500,7 @@ LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				handle_mouse_button(
 					mordavokne::inst(),
 					true,
-					morda::vector2(float(GET_X_LPARAM(lParam)), float(GET_Y_LPARAM(lParam))),
+					morda::vector2(float(GET_X_LPARAM(l_param)), float(GET_Y_LPARAM(l_param))),
 					morda::mouse_button::right,
 					0
 				);
@@ -500,7 +513,7 @@ LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				handle_mouse_button(
 					mordavokne::inst(),
 					false,
-					morda::vector2(float(GET_X_LPARAM(lParam)), float(GET_Y_LPARAM(lParam))),
+					morda::vector2(float(GET_X_LPARAM(l_param)), float(GET_Y_LPARAM(l_param))),
 					morda::mouse_button::right,
 					0
 				);
@@ -510,19 +523,20 @@ LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			[[fallthrough]];
 		case WM_MOUSEHWHEEL:
 			{
-				unsigned short int times = HIWORD(wParam);
+				unsigned short int times = HIWORD(w_param);
 				times /= WHEEL_DELTA;
-				morda::mouse_button button;
-				if (times >= 0) {
-					button = msg == WM_MOUSEWHEEL ? morda::mouse_button::wheel_up : morda::mouse_button::wheel_right;
-				} else {
-					times = -times;
-					button = msg == WM_MOUSEWHEEL ? morda::mouse_button::wheel_down : morda::mouse_button::wheel_left;
-				}
+				morda::mouse_button button = [&times, &msg]() {
+					if (times >= 0) {
+						return msg == WM_MOUSEWHEEL ? morda::mouse_button::wheel_up : morda::mouse_button::wheel_right;
+					} else {
+						times = -times;
+						return msg == WM_MOUSEWHEEL ? morda::mouse_button::wheel_down : morda::mouse_button::wheel_left;
+					}
+				}();
 
 				POINT pos;
-				pos.x = GET_X_LPARAM(lParam);
-				pos.y = GET_Y_LPARAM(lParam);
+				pos.x = GET_X_LPARAM(l_param);
+				pos.y = GET_Y_LPARAM(l_param);
 
 				// For some reason in WM_MOUSEWHEEL message mouse cursor position is sent in
 				// screen coordinates, need to traslate those to window coordinates.
@@ -551,19 +565,27 @@ LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		case WM_KEYDOWN:
 			{
-				morda::key key = keyCodeMap[std::uint8_t(wParam)];
-				if ((lParam & 0x40000000) == 0) { // ignore auto-repeated keypress event
+				morda::key key = key_code_map[uint8_t(w_param)];
+
+				constexpr auto previous_key_state_mask = 0x40000000;
+
+				if ((l_param & previous_key_state_mask) == 0) { // ignore auto-repeated keypress event
 					handle_key_event(mordavokne::inst(), true, key);
 				}
 				handle_character_input(mordavokne::inst(), windows_input_string_provider(), key);
 				return 0;
 			}
 		case WM_KEYUP:
-			handle_key_event(mordavokne::inst(), false, keyCodeMap[std::uint8_t(wParam)]);
+			handle_key_event(
+				mordavokne::inst(),
+				false,
+				// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
+				key_code_map[std::uint8_t(w_param)]
+			);
 			return 0;
 
 		case WM_CHAR:
-			switch (char32_t(wParam)) {
+			switch (char32_t(w_param)) {
 				case U'\U00000008': // Backspace character
 				case U'\U0000001b': // Escape character
 				case U'\U0000000d': // Carriage return
@@ -571,7 +593,7 @@ LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				default:
 					handle_character_input(
 						mordavokne::inst(),
-						windows_input_string_provider(char32_t(wParam)),
+						windows_input_string_provider(char32_t(w_param)),
 						morda::key::unknown
 					);
 					break;
@@ -582,7 +604,7 @@ LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			// app.Render();
 			ValidateRect(
 				hwnd,
-				NULL
+				nullptr
 			); // This is to tell Windows that we have redrawn contents
 			   // and WM_PAINT should go away from message queue.
 			return 0;
@@ -591,13 +613,16 @@ LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			// resize GL, LoWord=Width, HiWord=Height
 			update_window_rect(
 				mordavokne::inst(),
-				morda::rectangle(0, 0, float(LOWORD(lParam)), float(HIWORD(lParam)))
+				morda::rectangle(0, 0, float(LOWORD(l_param)), float(HIWORD(l_param)))
 			);
 			return 0;
 
 		case WM_USER:
 			{
-				std::unique_ptr<std::function<void()>> m(reinterpret_cast<std::function<void()>*>(lParam));
+				std::unique_ptr<std::function<void()>> m(
+					// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+					reinterpret_cast<std::function<void()>*>(l_param)
+				);
 				(*m)();
 			}
 			return 0;
@@ -606,23 +631,26 @@ LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			break;
 	}
 
-	return DefWindowProc(hwnd, msg, wParam, lParam);
+	return DefWindowProc(hwnd, msg, w_param, l_param);
 }
 } // namespace
 
 namespace {
-morda::real getDotsPerInch(HDC dc)
+morda::real get_dots_per_inch(HDC dc)
 {
-	morda::real value = (morda::real(GetDeviceCaps(dc, HORZRES)) * 10.0f / morda::real(GetDeviceCaps(dc, HORZSIZE))
-						 + morda::real(GetDeviceCaps(dc, VERTRES)) * 10.0f / morda::real(GetDeviceCaps(dc, VERTSIZE)))
-		/ 2.0f;
-	value *= 2.54f;
-	return value;
+	morda::real dots_per_cm =
+		(morda::real(GetDeviceCaps(dc, HORZRES)) * std::deci::den / morda::real(GetDeviceCaps(dc, HORZSIZE))
+		 + morda::real(GetDeviceCaps(dc, VERTRES)) * std::deci::den / morda::real(GetDeviceCaps(dc, VERTSIZE)))
+		/ morda::real(2.0);
+
+	const auto cm_per_inch = 2.54;
+
+	return dots_per_cm * cm_per_inch;
 }
 } // namespace
 
 namespace {
-morda::real getDotsPerPt(HDC dc)
+morda::real get_dots_per_pp(HDC dc)
 {
 	r4::vector2<unsigned> resolution(GetDeviceCaps(dc, HORZRES), GetDeviceCaps(dc, VERTRES));
 	r4::vector2<unsigned> screenSizeMm(GetDeviceCaps(dc, HORZSIZE), GetDeviceCaps(dc, VERTSIZE));
@@ -635,7 +663,7 @@ namespace {
 std::string initialize_storage_dir(const std::string& appName)
 {
 	CHAR path[MAX_PATH];
-	if (SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, path) != S_OK) {
+	if (SHGetFolderPathA(nullptr, CSIDL_PROFILE, nullptr, 0, path) != S_OK) {
 		throw std::runtime_error("failed to get user's profile directory.");
 	}
 
@@ -666,7 +694,7 @@ std::string initialize_storage_dir(const std::string& appName)
 
 application::application(std::string name, const window_params& wp) :
 	name(name),
-	window_pimpl(std::make_unique<WindowWrapper>(wp)),
+	window_pimpl(std::make_unique<window_wrapper>(wp)),
 	gui(utki::make_shared<morda::context>(
 		utki::make_shared<morda::render_opengl::renderer>(),
 		utki::make_shared<morda::updater>(),
@@ -686,8 +714,8 @@ application::application(std::string name, const window_params& wp) :
 		[](morda::mouse_cursor c) {
 			// TODO:
 		},
-		getDotsPerInch(get_impl(this->window_pimpl).hdc),
-		getDotsPerPt(get_impl(this->window_pimpl).hdc)
+		get_dots_per_inch(get_impl(this->window_pimpl).hdc),
+		get_dots_per_pp(get_impl(this->window_pimpl).hdc)
 	)),
 	storage_dir(initialize_storage_dir(this->name)),
 	curWinRect(0, 0, -1, -1)
@@ -719,13 +747,13 @@ void winmain(int argc, const char** argv)
 		uint32_t timeout = app->gui.update();
 		//		TRACE(<< "timeout = " << timeout << std::endl)
 
-		DWORD status = MsgWaitForMultipleObjectsEx(0, NULL, timeout, QS_ALLINPUT, MWMO_INPUTAVAILABLE);
+		DWORD status = MsgWaitForMultipleObjectsEx(0, nullptr, timeout, QS_ALLINPUT, MWMO_INPUTAVAILABLE);
 
 		//		TRACE(<< "msg" << std::endl)
 
 		if (status == WAIT_OBJECT_0) {
 			MSG msg;
-			while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+			while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
 				//				TRACE(<< "msg got, msg.message = " <<
 				// msg.message << std::endl)
 				if (msg.message == WM_QUIT) {
@@ -789,7 +817,7 @@ void application::set_fullscreen(bool enable)
 		GetMonitorInfo(MonitorFromWindow(ww.hwnd, MONITOR_DEFAULTTONEAREST), &mi);
 		SetWindowPos(
 			ww.hwnd,
-			NULL,
+			nullptr,
 			mi.rcMonitor.left,
 			mi.rcMonitor.top,
 			mi.rcMonitor.right - mi.rcMonitor.left,
@@ -808,7 +836,7 @@ void application::set_fullscreen(bool enable)
 
 		SetWindowPos(
 			ww.hwnd,
-			NULL,
+			nullptr,
 			this->before_fullscreen_window_rect.p.x(),
 			this->before_fullscreen_window_rect.p.y(),
 			this->before_fullscreen_window_rect.d.x(),
@@ -844,7 +872,7 @@ void application::swap_frame_buffers()
 }
 
 namespace {
-WindowWrapper::WindowWrapper(const window_params& wp)
+window_wrapper::window_wrapper(const window_params& wp)
 {
 	this->windowClassName = "MordavokneWindowClassName";
 
@@ -853,14 +881,14 @@ WindowWrapper::WindowWrapper(const window_params& wp)
 		memset(&wc, 0, sizeof(wc));
 
 		wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC; // redraw on resize, own DC for window
-		wc.lpfnWndProc = (WNDPROC)wndProc;
+		wc.lpfnWndProc = (WNDPROC)window_procedure;
 		wc.cbClsExtra = 0; // no extra window data
 		wc.cbWndExtra = 0; // no extra window data
-		wc.hInstance = GetModuleHandle(NULL); // instance handle
-		wc.hIcon = LoadIcon(NULL, IDI_WINLOGO);
-		wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-		wc.hbrBackground = NULL; // no background required for OpenGL
-		wc.lpszMenuName = NULL; // we don't want a menu
+		wc.hInstance = GetModuleHandle(nullptr); // instance handle
+		wc.hIcon = LoadIcon(nullptr, IDI_WINLOGO);
+		wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
+		wc.hbrBackground = nullptr; // no background required for OpenGL
+		wc.lpszMenuName = nullptr; // we don't want a menu
 		wc.lpszClassName = this->windowClassName.c_str(); // set the window class Name
 
 		if (!RegisterClass(&wc)) {
@@ -869,7 +897,7 @@ WindowWrapper::WindowWrapper(const window_params& wp)
 	}
 
 	utki::scope_exit scopeExitWindowClass([this]() {
-		if (!UnregisterClass(this->windowClassName.c_str(), GetModuleHandle(NULL))) {
+		if (!UnregisterClass(this->windowClassName.c_str(), GetModuleHandle(nullptr))) {
 			ASSERT(false, [&](auto& o) {
 				o << "Failed to unregister window class";
 			})
@@ -885,10 +913,10 @@ WindowWrapper::WindowWrapper(const window_params& wp)
 		0, // y
 		wp.dims.x() + 2 * GetSystemMetrics(SM_CXSIZEFRAME),
 		wp.dims.y() + GetSystemMetrics(SM_CYCAPTION) + 2 * GetSystemMetrics(SM_CYSIZEFRAME),
-		NULL, // no parent window
-		NULL, // no menu
-		GetModuleHandle(NULL),
-		NULL // do not pass anything to WM_CREATE
+		nullptr, // no parent window
+		nullptr, // no menu
+		GetModuleHandle(nullptr),
+		nullptr // do not pass anything to WM_CREATE
 	);
 
 	if (!this->hwnd) {
@@ -974,7 +1002,7 @@ WindowWrapper::WindowWrapper(const window_params& wp)
 	}
 
 	utki::scope_exit scopeExitHrc([this]() {
-		if (!wglMakeCurrent(NULL, NULL)) {
+		if (!wglMakeCurrent(nullptr, nullptr)) {
 			ASSERT(false, [&](auto& o) {
 				o << "Deactivating OpenGL rendering context failed";
 			})
@@ -1003,9 +1031,9 @@ WindowWrapper::WindowWrapper(const window_params& wp)
 	scopeExitWindowClass.release();
 }
 
-WindowWrapper::~WindowWrapper() noexcept
+window_wrapper::~window_wrapper()
 {
-	if (!wglMakeCurrent(NULL, NULL)) {
+	if (!wglMakeCurrent(nullptr, nullptr)) {
 		ASSERT(false, [&](auto& o) {
 			o << "Deactivating OpenGL rendering context failed";
 		})
@@ -1026,7 +1054,7 @@ WindowWrapper::~WindowWrapper() noexcept
 			o << "Failed to destroy window";
 		})
 	}
-	if (!UnregisterClass(this->windowClassName.c_str(), GetModuleHandle(NULL))) {
+	if (!UnregisterClass(this->windowClassName.c_str(), GetModuleHandle(nullptr))) {
 		ASSERT(false, [&](auto& o) {
 			o << "Failed to unregister window class";
 		})
