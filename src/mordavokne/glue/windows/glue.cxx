@@ -645,9 +645,9 @@ morda::real get_dots_per_inch(HDC dc)
 	constexpr auto num_dimensions = 2;
 	// average dots per cm over device dimensions
 	morda::real dots_per_cm =
-		(morda::real(GetDeviceCaps(dc, HORZRES)) * std::deci::den / morda::real(GetDeviceCaps(dc, HORZSIZE))
-		 + morda::real(GetDeviceCaps(dc, VERTRES)) * std::deci::den / morda::real(GetDeviceCaps(dc, VERTSIZE)))
-		/ morda::real(num_dimensions);
+		(morda::real(GetDeviceCaps(dc, HORZRES)) * std::deci::den / morda::real(GetDeviceCaps(dc, HORZSIZE)) +
+		 morda::real(GetDeviceCaps(dc, VERTRES)) * std::deci::den / morda::real(GetDeviceCaps(dc, VERTSIZE))) /
+		morda::real(num_dimensions);
 
 	constexpr auto cm_per_inch = 2.54f;
 
@@ -715,8 +715,7 @@ application::application(std::string name, const window_params& wp) :
 					0,
 					// NOLINTNEXTLINE(cppcoreguidelines-owning-memory, cppcoreguidelines-pro-type-reinterpret-cast)
 					reinterpret_cast<LPARAM>(new std::remove_reference<decltype(procedure)>::type(std::move(procedure)))
-				)
-				== 0)
+				) == 0)
 			{
 				throw std::runtime_error("PostMessage(): failed");
 			}
@@ -818,8 +817,8 @@ void application::set_fullscreen(bool enable)
 		SetWindowLong(
 			ww.hwnd,
 			GWL_EXSTYLE,
-			GetWindowLong(ww.hwnd, GWL_EXSTYLE)
-				& ~(WS_EX_DLGMODALFRAME | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE)
+			GetWindowLong(ww.hwnd, GWL_EXSTYLE) &
+				~(WS_EX_DLGMODALFRAME | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE)
 		);
 
 		// set new window size and position
@@ -841,8 +840,8 @@ void application::set_fullscreen(bool enable)
 		SetWindowLong(
 			ww.hwnd,
 			GWL_EXSTYLE,
-			GetWindowLong(ww.hwnd, GWL_EXSTYLE)
-				| (WS_EX_DLGMODALFRAME | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE)
+			GetWindowLong(ww.hwnd, GWL_EXSTYLE) |
+				(WS_EX_DLGMODALFRAME | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE)
 		);
 
 		SetWindowPos(

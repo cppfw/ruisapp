@@ -1015,8 +1015,11 @@ struct input_string_provider : public morda::gui::input_string_provider {
 
 namespace {
 
-JNIEXPORT void JNICALL
-Java_io_github_cppfw_mordavokne_MordaVOkneActivity_handleCharacterStringInput(JNIEnv* env, jclass clazz, jstring chars)
+JNIEXPORT void JNICALL Java_io_github_cppfw_mordavokne_MordaVOkneActivity_handleCharacterStringInput(
+	JNIEnv* env,
+	jclass clazz,
+	jstring chars
+)
 {
 	LOG([](auto& o) {
 		o << "handleCharacterStringInput(): invoked" << std::endl;
@@ -1206,8 +1209,8 @@ void handle_input_events()
 					case AMOTION_EVENT_ACTION_DOWN:
 						{
 							unsigned pointerIndex =
-								((eventAction & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK)
-								 >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
+								((eventAction & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >>
+								 AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
 							unsigned pointerId = unsigned(AMotionEvent_getPointerId(event, pointerIndex));
 
 							if (pointerId >= pointers.size()) {
@@ -1241,8 +1244,8 @@ void handle_input_events()
 					case AMOTION_EVENT_ACTION_UP:
 						{
 							unsigned pointerIndex =
-								((eventAction & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK)
-								 >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
+								((eventAction & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >>
+								 AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
 							unsigned pointerId = unsigned(AMotionEvent_getPointerId(event, pointerIndex));
 
 							if (pointerId >= pointers.size()) {
@@ -1565,8 +1568,7 @@ void on_native_window_created(ANativeActivity* activity, ANativeWindow* window)
 					ALOOPER_EVENT_INPUT,
 					&on_update_timer_expired,
 					0
-				)
-				== -1)
+				) == -1)
 			{
 				throw std::runtime_error("failed to add timer descriptor to looper");
 			}
@@ -1579,8 +1581,7 @@ void on_native_window_created(ANativeActivity* activity, ANativeWindow* window)
 					ALOOPER_EVENT_INPUT,
 					&on_queue_has_messages,
 					0
-				)
-				== -1)
+				) == -1)
 			{
 				throw std::runtime_error("failed to add UI message queue descriptor to looper");
 			}

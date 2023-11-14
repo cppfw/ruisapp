@@ -444,8 +444,8 @@ struct window_wrapper : public utki::destructable {
 			attr.colormap = this->color_map;
 			attr.border_pixel = 0;
 			attr.background_pixmap = None;
-			attr.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask
-				| PointerMotionMask | ButtonMotionMask | StructureNotifyMask | EnterWindowMask | LeaveWindowMask;
+			attr.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask |
+				PointerMotionMask | ButtonMotionMask | StructureNotifyMask | EnterWindowMask | LeaveWindowMask;
 			unsigned long fields = CWBorderPixel | CWColormap | CWEventMask;
 
 			this->window = XCreateWindow(
@@ -623,8 +623,7 @@ struct window_wrapper : public utki::destructable {
 					0, // LCD
 					&display_width,
 					&display_height
-				)
-				< 0)
+				) < 0)
 			{
 				throw std::runtime_error("graphics_get_display_size() failed");
 			}
@@ -817,8 +816,8 @@ morda::real get_dots_per_inch(Display* display)
 		 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
 		 + (morda::real(DisplayHeight(display, src_num))
 			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			/ (morda::real(DisplayHeightMM(display, src_num)) / morda::real(mm_per_cm))))
-		/ 2;
+			/ (morda::real(DisplayHeightMM(display, src_num)) / morda::real(mm_per_cm)))) /
+		2;
 	constexpr auto cm_per_inch = 2.54;
 	value *= morda::real(cm_per_inch);
 	return value;
@@ -1325,8 +1324,8 @@ int main(int argc, const char** argv)
 							XEvent nev;
 							XPeekEvent(ww.display.display, &nev);
 
-							if (nev.type == KeyPress && nev.xkey.time == event.xkey.time
-								&& nev.xkey.keycode == event.xkey.keycode)
+							if (nev.type == KeyPress && nev.xkey.time == event.xkey.time &&
+								nev.xkey.keycode == event.xkey.keycode)
 							{
 								// key wasn't actually released
 								handle_character_input(*app, key_event_unicode_provider(ww.input_context, nev), key);
