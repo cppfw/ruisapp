@@ -908,74 +908,74 @@ const std::array<morda::key, size_t(std::numeric_limits<uint8_t>::max()) + 1> ke
 	 morda::key::unknown,
 	 morda::key::unknown,
 	 morda::key::escape, // 9
- morda::key::one, // 10
- morda::key::two, // 11
- morda::key::three, // 12
- morda::key::four, // 13
- morda::key::five, // 14
- morda::key::six, // 15
- morda::key::seven, // 16
- morda::key::eight, // 17
- morda::key::nine, // 18
- morda::key::zero, // 19
- morda::key::minus, // 20
- morda::key::equals, // 21
- morda::key::backspace, // 22
- morda::key::tabulator, // 23
- morda::key::q, // 24
- morda::key::w, // 25
- morda::key::e, // 26
- morda::key::r, // 27
- morda::key::t, // 28
- morda::key::y, // 29
- morda::key::u, // 30
- morda::key::i, // 31
- morda::key::o, // 32
- morda::key::p, // 33
- morda::key::left_square_bracket, // 34
- morda::key::right_square_bracket, // 35
- morda::key::enter, // 36
- morda::key::left_control, // 37
- morda::key::a, // 38
- morda::key::s, // 39
- morda::key::d, // 40
- morda::key::f, // 41
- morda::key::g, // 42
- morda::key::h, // 43
- morda::key::j, // 44
- morda::key::k, // 45
- morda::key::l, // 46
- morda::key::semicolon, // 47
- morda::key::apostrophe, // 48
- morda::key::grave, // 49
- morda::key::left_shift, // 50
- morda::key::backslash, // 51
- morda::key::z, // 52
- morda::key::x, // 53
- morda::key::c, // 54
- morda::key::v, // 55
- morda::key::b, // 56
- morda::key::n, // 57
- morda::key::m, // 58
- morda::key::comma, // 59
- morda::key::period, // 60
- morda::key::slash, // 61
- morda::key::right_shift, // 62
- morda::key::unknown,
+	 morda::key::one, // 10
+	 morda::key::two, // 11
+	 morda::key::three, // 12
+	 morda::key::four, // 13
+	 morda::key::five, // 14
+	 morda::key::six, // 15
+	 morda::key::seven, // 16
+	 morda::key::eight, // 17
+	 morda::key::nine, // 18
+	 morda::key::zero, // 19
+	 morda::key::minus, // 20
+	 morda::key::equals, // 21
+	 morda::key::backspace, // 22
+	 morda::key::tabulator, // 23
+	 morda::key::q, // 24
+	 morda::key::w, // 25
+	 morda::key::e, // 26
+	 morda::key::r, // 27
+	 morda::key::t, // 28
+	 morda::key::y, // 29
+	 morda::key::u, // 30
+	 morda::key::i, // 31
+	 morda::key::o, // 32
+	 morda::key::p, // 33
+	 morda::key::left_square_bracket, // 34
+	 morda::key::right_square_bracket, // 35
+	 morda::key::enter, // 36
+	 morda::key::left_control, // 37
+	 morda::key::a, // 38
+	 morda::key::s, // 39
+	 morda::key::d, // 40
+	 morda::key::f, // 41
+	 morda::key::g, // 42
+	 morda::key::h, // 43
+	 morda::key::j, // 44
+	 morda::key::k, // 45
+	 morda::key::l, // 46
+	 morda::key::semicolon, // 47
+	 morda::key::apostrophe, // 48
+	 morda::key::grave, // 49
+	 morda::key::left_shift, // 50
+	 morda::key::backslash, // 51
+	 morda::key::z, // 52
+	 morda::key::x, // 53
+	 morda::key::c, // 54
+	 morda::key::v, // 55
+	 morda::key::b, // 56
+	 morda::key::n, // 57
+	 morda::key::m, // 58
+	 morda::key::comma, // 59
+	 morda::key::period, // 60
+	 morda::key::slash, // 61
+	 morda::key::right_shift, // 62
+	 morda::key::unknown,
 	 morda::key::left_alt, // 64
- morda::key::space, // 65
- morda::key::capslock, // 66
- morda::key::f1, // 67
- morda::key::f2, // 68
- morda::key::f3, // 69
- morda::key::f4, // 70
- morda::key::f5, // 71
- morda::key::f6, // 72
- morda::key::f7, // 73
- morda::key::f8, // 74
- morda::key::f9, // 75
- morda::key::f10, // 76
- morda::key::unknown,
+	 morda::key::space, // 65
+	 morda::key::capslock, // 66
+	 morda::key::f1, // 67
+	 morda::key::f2, // 68
+	 morda::key::f3, // 69
+	 morda::key::f4, // 70
+	 morda::key::f5, // 71
+	 morda::key::f6, // 72
+	 morda::key::f7, // 73
+	 morda::key::f8, // 74
+	 morda::key::f9, // 75
+	 morda::key::f10, // 76
+	 morda::key::unknown,
 	 morda::key::unknown,
 	 morda::key::unknown,
 	 morda::key::unknown,
@@ -994,8 +994,8 @@ const std::array<morda::key, size_t(std::numeric_limits<uint8_t>::max()) + 1> ke
 	 morda::key::unknown,
 	 morda::key::unknown,
 	 morda::key::f11, // 95
- morda::key::f12, // 96
- morda::key::unknown,
+	 morda::key::f12, // 96
+	 morda::key::unknown,
 	 morda::key::unknown,
 	 morda::key::unknown,
 	 morda::key::unknown,
@@ -1004,21 +1004,21 @@ const std::array<morda::key, size_t(std::numeric_limits<uint8_t>::max()) + 1> ke
 	 morda::key::unknown,
 	 morda::key::unknown,
 	 morda::key::right_control, // 105
- morda::key::unknown,
+	 morda::key::unknown,
 	 morda::key::print_screen, // 107
- morda::key::right_alt, // 108
- morda::key::unknown,
+	 morda::key::right_alt, // 108
+	 morda::key::unknown,
 	 morda::key::home, // 110
- morda::key::arrow_up, // 111
- morda::key::page_up, // 112
- morda::key::arrow_left, // 113
- morda::key::arrow_right, // 114
- morda::key::end, // 115
- morda::key::arrow_down, // 116
- morda::key::page_down, // 117
- morda::key::insert, // 118
- morda::key::deletion, // 119
- morda::key::unknown,
+	 morda::key::arrow_up, // 111
+	 morda::key::page_up, // 112
+	 morda::key::arrow_left, // 113
+	 morda::key::arrow_right, // 114
+	 morda::key::end, // 115
+	 morda::key::arrow_down, // 116
+	 morda::key::page_down, // 117
+	 morda::key::insert, // 118
+	 morda::key::deletion, // 119
+	 morda::key::unknown,
 	 morda::key::unknown,
 	 morda::key::unknown,
 	 morda::key::unknown,
@@ -1026,15 +1026,15 @@ const std::array<morda::key, size_t(std::numeric_limits<uint8_t>::max()) + 1> ke
 	 morda::key::unknown,
 	 morda::key::unknown,
 	 morda::key::pause, // 127
- morda::key::unknown,
+	 morda::key::unknown,
 	 morda::key::unknown,
 	 morda::key::unknown,
 	 morda::key::unknown,
 	 morda::key::unknown,
 	 morda::key::left_command, // 133
- morda::key::unknown,
+	 morda::key::unknown,
 	 morda::key::menu, // 135
- morda::key::unknown,
+	 morda::key::unknown,
 	 morda::key::unknown,
 	 morda::key::unknown,
 	 morda::key::unknown,
