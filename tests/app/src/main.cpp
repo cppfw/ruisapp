@@ -17,7 +17,7 @@
 
 #include <morda/res/texture.hpp>
 
-#include <morda/widgets/character_input_widget.hpp>
+#include <morda/widgets/input/character_input_widget.hpp>
 #include <morda/widgets/group/scroll_area.hpp>
 #include <morda/widgets/proxy/mouse_proxy.hpp>
 #include <morda/widgets/slider/scroll_bar.hpp>

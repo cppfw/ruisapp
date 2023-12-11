@@ -509,12 +509,12 @@ struct window_wrapper : public utki::destructable {
 			// SOURCE:
 			// https://dri.freedesktop.org/wiki/glXGetProcAddressNeverReturnsNULL/
 
-			// NOLINTNEXTLINE(readability-identifier-naming)
-			auto glXCreateContextAttribsARB = PFNGLXCREATECONTEXTATTRIBSARBPROC(glXGetProcAddressARB(
-				static_cast<const GLubyte*>(static_cast<const void*>("glXCreateContextAttribsARB"))
+			auto glx_create_context_attribs_arb = PFNGLXCREATECONTEXTATTRIBSARBPROC(glXGetProcAddressARB(
+				// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+				reinterpret_cast<const GLubyte*>("glXCreateContextAttribsARB")
 			));
 
-			if (!glXCreateContextAttribsARB) {
+			if (!glx_create_context_attribs_arb) {
 				// this should not happen since we checked extension presence, and
 				// anyway, glXGetProcAddressARB() never returns nullptr according to
 				// https://dri.freedesktop.org/wiki/glXGetProcAddressNeverReturnsNULL/
@@ -536,7 +536,7 @@ struct window_wrapper : public utki::destructable {
 				None
 			};
 
-			this->gl_context = glXCreateContextAttribsARB(
+			this->gl_context = glx_create_context_attribs_arb(
 				this->display.display,
 				best_fb_config,
 				nullptr,
@@ -565,30 +565,30 @@ struct window_wrapper : public utki::destructable {
 				o << "GLX_EXT_swap_control is supported\n";
 			})
 
-			// NOLINTNEXTLINE(readability-identifier-naming)
-			auto glXSwapIntervalEXT = PFNGLXSWAPINTERVALEXTPROC(
-				glXGetProcAddressARB(static_cast<const GLubyte*>(static_cast<const void*>("glXSwapIntervalEXT")))
-			);
+			auto glx_swap_interval_ext = PFNGLXSWAPINTERVALEXTPROC(glXGetProcAddressARB(
+				// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+				reinterpret_cast<const GLubyte*>("glXSwapIntervalEXT")
+			));
 
-			ASSERT(glXSwapIntervalEXT)
+			ASSERT(glx_swap_interval_ext)
 
 			// disable v-sync
-			glXSwapIntervalEXT(this->display.display, this->window, 0);
+			glx_swap_interval_ext(this->display.display, this->window, 0);
 		} else if (std::find(glx_extensions.begin(), glx_extensions.end(), "GLX_MESA_swap_control") != glx_extensions.end())
 		{
 			LOG([](auto& o) {
 				o << "GLX_MESA_swap_control is supported\n";
 			})
 
-			// NOLINTNEXTLINE(readability-identifier-naming)
-			auto glXSwapIntervalMESA = PFNGLXSWAPINTERVALMESAPROC(
-				glXGetProcAddressARB(static_cast<const GLubyte*>(static_cast<const void*>("glXSwapIntervalMESA")))
-			);
+			auto glx_swap_interval_mesa = PFNGLXSWAPINTERVALMESAPROC(glXGetProcAddressARB(
+				// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+				reinterpret_cast<const GLubyte*>("glXSwapIntervalMESA")
+			));
 
-			ASSERT(glXSwapIntervalMESA)
+			ASSERT(glx_swap_interval_mesa)
 
 			// disable v-sync
-			if (glXSwapIntervalMESA(0) != 0) {
+			if (glx_swap_interval_mesa(0) != 0) {
 				throw std::runtime_error("glXSwapIntervalMESA() failed");
 			}
 		} else {
