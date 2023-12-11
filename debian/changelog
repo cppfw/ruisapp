@@ -1,3 +1,9 @@
+libmordavokne (0.2.88) unstable; urgency=medium
+
+  * relink
+
+ -- Ivan Gagis <igagis@gmail.com>  Mon, 11 Dec 2023 22:50:09 +0200
+
 libmordavokne (0.2.87) unstable; urgency=medium
 
   * fix lint
