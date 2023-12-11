@@ -372,6 +372,8 @@ LRESULT CALLBACK window_procedure(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_
 				case SC_SCREENSAVE: // screensaver trying to start?
 				case SC_MONITORPOWER: // montor trying to enter powersave?
 					return 0; // prevent from happening
+				default:
+					break;
 			}
 			break;
 
@@ -714,7 +716,7 @@ application::application(std::string name, const window_params& wp) :
 					WM_USER,
 					0,
 					// NOLINTNEXTLINE(cppcoreguidelines-owning-memory, cppcoreguidelines-pro-type-reinterpret-cast)
-					reinterpret_cast<LPARAM>(new std::remove_reference<decltype(procedure)>::type(std::move(procedure)))
+					reinterpret_cast<LPARAM>(new std::remove_reference_t<decltype(procedure)>(std::move(procedure)))
 				) == 0)
 			{
 				throw std::runtime_error("PostMessage(): failed");
