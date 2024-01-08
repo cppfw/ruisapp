@@ -31,6 +31,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <papki/fs_file.hpp>
 #include <utki/string.hpp>
 #include <utki/unicode.hpp>
+#include <gtk/gtk.h>
+#include <gdk/gdk.h>
+#include <gdk/x11/gdkx.h>
 
 #ifdef MORDAVOKNE_RENDER_OPENGL
 #	include <GL/glew.h>
@@ -823,15 +826,27 @@ morda::real get_dots_per_inch(Display* display)
 	return value;
 }
 
-morda::real get_dots_per_dp(Display* display)
+morda::real get_dots_per_pp(window_wrapper& ww)
 {
+	auto display_name = DisplayString(ww.display.display);
+	std::cout << "display name = " << display_name << std::endl;
+	auto disp = gdk_display_open(display_name);
+	utki::assert(disp, SL);
+	std::cout << "gdk display name = " << gdk_display_get_name(disp) << std::endl;
+	auto surf = gdk_surface_new_toplevel (disp);
+	auto mon = gdk_display_get_monitor_at_surface (disp, surf);
+	int sf = gdk_monitor_get_scale_factor(mon);
+	std::cout << "scale factor = " << sf << std::endl;
+
+
+
 	int src_num = 0;
 	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-	r4::vector2<unsigned> resolution(DisplayWidth(display, src_num), DisplayHeight(display, src_num));
+	r4::vector2<unsigned> resolution(DisplayWidth(ww.display.display, src_num), DisplayHeight(ww.display.display, src_num));
 	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-	r4::vector2<unsigned> screen_size_mm(DisplayWidthMM(display, src_num), DisplayHeightMM(display, src_num));
+	r4::vector2<unsigned> screen_size_mm(DisplayWidthMM(ww.display.display, src_num), DisplayHeightMM(ww.display.display, src_num));
 
-	return application::get_pixels_per_dp(resolution, screen_size_mm);
+	return application::get_pixels_per_pp(resolution, screen_size_mm);
 }
 } // namespace
 
@@ -855,7 +870,7 @@ application::application(std::string name, const window_params& wp) :
 			ww.set_cursor(c);
 		},
 		get_dots_per_inch(get_impl(window_pimpl).display.display),
-		::get_dots_per_dp(get_impl(window_pimpl).display.display)
+		::get_dots_per_pp(get_impl(window_pimpl))
 	)),
 	storage_dir(initialize_storage_dir(this->name))
 {

@@ -84,8 +84,11 @@ void application::hide_virtual_keyboard() noexcept {
 }
 #endif
 
-morda::real application::get_pixels_per_dp(r4::vector2<unsigned> resolution, r4::vector2<unsigned> screen_size_mm)
+morda::real application::get_pixels_per_pp(r4::vector2<unsigned> resolution, r4::vector2<unsigned> screen_size_mm)
 {
+	utki::log([&](auto&o){o << "screen resolution = " << resolution << std::endl;});
+	utki::log([&](auto&o){o << "physical screen size, mm = " << screen_size_mm << std::endl;});
+
 	// NOTE: for ordinary desktop displays the DP size should be equal to 1 pixel.
 	// For high density displays it should be more than one pixel, depending on
 	// display dpi. For hand held devices the size of DP should be determined from
@@ -101,6 +104,12 @@ morda::real application::get_pixels_per_dp(r4::vector2<unsigned> resolution, r4:
 			return 1;
 		}
 	}();
+
+	// using std::max;
+	// unsigned max_dim_px = max(resolution.x(), resolution.y());
+	// unsigned max_dim_mm = max(screen_size_mm.x(), screen_size_mm.y());
+
+	// morda::real dpmm = morda::real(max_dim_px) / morda::real(max_dim_mm);
 
 	if (screen_size_mm[x_index] < 300) { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 		return morda::real(resolution[x_index]) / morda::real(700); // NOLINT(cppcoreguidelines-avoid-magic-numbers)

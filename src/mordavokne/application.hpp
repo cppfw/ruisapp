@@ -287,7 +287,7 @@ public:
 	 * @param screen_size_mm - size of the display in millimeters.
 	 * @return Size of one display density pixel in pixels.
 	 */
-	static morda::real get_pixels_per_dp(
+	static morda::real get_pixels_per_pp(
 		r4::vector2<unsigned> screen_size_pixels,
 		r4::vector2<unsigned> screen_size_mm
 	);

@@ -13,6 +13,9 @@ define mordavokne_rules
 
     this_name := mordavokne-$1
 
+    this_cxxflags += $(shell pkg-config --cflags gtk4)
+    this_ldlibs += $(shell pkg-config --libs gtk4)
+
     ifeq ($(os), linux)
         this_ldlibs += -lGLEW -ldl -lnitki -lopros -lX11
     else ifeq ($(os), windows)

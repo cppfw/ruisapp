@@ -663,7 +663,7 @@ morda::real get_dots_per_pp(HDC dc)
 	r4::vector2<unsigned> resolution(GetDeviceCaps(dc, HORZRES), GetDeviceCaps(dc, VERTRES));
 	r4::vector2<unsigned> screen_size_mm(GetDeviceCaps(dc, HORZSIZE), GetDeviceCaps(dc, VERTSIZE));
 
-	return mordavokne::application::get_pixels_per_dp(resolution, screen_size_mm);
+	return mordavokne::application::get_pixels_per_pp(resolution, screen_size_mm);
 }
 } // namespace
 

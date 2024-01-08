@@ -307,7 +307,7 @@ namespace{
 morda::real getDotsPerDp(){
 	float scale = [[UIScreen mainScreen] scale];
 
-	//TODO: use get_pixels_per_dp() function from morda util
+	//TODO: use get_pixels_per_pp() function from morda util
 
 	return morda::real(scale);
 }

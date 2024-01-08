@@ -799,7 +799,7 @@ morda::real getDotsPerPt(){
 	r4::vector2<unsigned> resolution(displayPixelSize.width, displayPixelSize.height);
 	r4::vector2<unsigned> screenSizeMm(displayPhysicalSize.width, displayPhysicalSize.height);
 
-	return application::get_pixels_per_dp(resolution, screenSizeMm);
+	return application::get_pixels_per_pp(resolution, screenSizeMm);
 }
 }
 

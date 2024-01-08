@@ -1119,7 +1119,7 @@ mordavokne::application::application(std::string name, const window_params& wp) 
 		[this]() -> float {
 			auto res = get_impl(*this).get_window_size();
 			auto dim = (res.to<float>() / java_functions->get_dots_per_inch()) * mm_per_inch;
-			return application::get_pixels_per_dp(res, dim.to<unsigned>());
+			return application::get_pixels_per_pp(res, dim.to<unsigned>());
 		}()
 	)),
 	storage_dir(initialize_storage_dir(this->name))
