@@ -31,9 +31,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <papki/fs_file.hpp>
 #include <utki/string.hpp>
 #include <utki/unicode.hpp>
-#include <gtk/gtk.h>
 #include <gdk/gdk.h>
-#include <gdk/x11/gdkx.h>
 
 #ifdef MORDAVOKNE_RENDER_OPENGL
 #	include <GL/glew.h>
@@ -596,7 +594,7 @@ struct window_wrapper : public utki::destructable {
 			}
 		} else {
 			std::cout << "none of GLX_EXT_swap_control, GLX_MESA_swap_control GLX "
-						 "extensions are supported";
+						 "extensions are supported" << std::endl;
 		}
 
 		// sync to ensure any errors generated are processed
@@ -828,14 +826,19 @@ morda::real get_dots_per_inch(Display* display)
 
 morda::real get_dots_per_pp(window_wrapper& ww)
 {
-	auto display_name = DisplayString(ww.display.display);
-	std::cout << "display name = " << display_name << std::endl;
-	auto disp = gdk_display_open(display_name);
-	utki::assert(disp, SL);
-	std::cout << "gdk display name = " << gdk_display_get_name(disp) << std::endl;
-	auto surf = gdk_surface_new_toplevel (disp);
-	auto mon = gdk_display_get_monitor_at_surface (disp, surf);
-	int sf = gdk_monitor_get_scale_factor(mon);
+	// auto display_name = DisplayString(ww.display.display);
+	// std::cout << "display name = " << display_name << std::endl;
+	// auto disp = gdk_display_open(display_name);
+	// utki::assert(disp, SL);
+	// std::cout << "gdk display name = " << gdk_display_get_name(disp) << std::endl;
+	// auto surf = gdk_surface_new_toplevel (disp);
+	// utki::assert(surf, SL);
+	// auto mon = gdk_display_get_monitor_at_surface (disp, surf);
+	// utki::assert(mon, SL);
+	// int sf = gdk_monitor_get_scale_factor(mon);
+
+	int sf = gdk_window_get_scale_factor (gdk_get_default_root_window ());
+
 	std::cout << "scale factor = " << sf << std::endl;
 
 
@@ -1246,6 +1249,12 @@ void application::quit() noexcept
 
 int main(int argc, const char** argv)
 {
+	{
+		auto c = argc;
+		auto p = const_cast<char**>(argv);
+		gdk_init(&c, &p);
+	}
+
 	std::unique_ptr<mordavokne::application> app = create_app_unix(argc, argv);
 	if (!app) {
 		return 0;
