@@ -86,8 +86,12 @@ void application::hide_virtual_keyboard() noexcept {
 
 morda::real application::get_pixels_per_pp(r4::vector2<unsigned> resolution, r4::vector2<unsigned> screen_size_mm)
 {
-	utki::log([&](auto&o){o << "screen resolution = " << resolution << std::endl;});
-	utki::log([&](auto&o){o << "physical screen size, mm = " << screen_size_mm << std::endl;});
+	utki::log([&](auto& o) {
+		o << "screen resolution = " << resolution << std::endl;
+	});
+	utki::log([&](auto& o) {
+		o << "physical screen size, mm = " << screen_size_mm << std::endl;
+	});
 
 	// NOTE: for ordinary desktop displays the DP size should be equal to 1 pixel.
 	// For high density displays it should be more than one pixel, depending on

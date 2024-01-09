@@ -13,7 +13,8 @@ define mordavokne_rules
 
     this_name := mordavokne-$1
 
-    this_cxxflags += $(shell pkg-config --cflags gdk-3.0)
+    # use -isystem instead of -I to prevent clang-tidy follow the includes from these locations
+    this_cxxflags += $(patsubst -I%,-isystem%,$(shell pkg-config --cflags gdk-3.0))
     this_ldlibs += $(shell pkg-config --libs gdk-3.0)
 
     ifeq ($(os), linux)

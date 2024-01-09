@@ -26,12 +26,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/cursorfont.h>
+#include <gdk/gdk.h>
 #include <nitki/queue.hpp>
 #include <opros/wait_set.hpp>
 #include <papki/fs_file.hpp>
 #include <utki/string.hpp>
 #include <utki/unicode.hpp>
-#include <gdk/gdk.h>
 
 #ifdef MORDAVOKNE_RENDER_OPENGL
 #	include <GL/glew.h>
@@ -594,7 +594,8 @@ struct window_wrapper : public utki::destructable {
 			}
 		} else {
 			std::cout << "none of GLX_EXT_swap_control, GLX_MESA_swap_control GLX "
-						 "extensions are supported" << std::endl;
+						 "extensions are supported"
+					  << std::endl;
 		}
 
 		// sync to ensure any errors generated are processed
@@ -837,17 +838,21 @@ morda::real get_dots_per_pp(window_wrapper& ww)
 	// utki::assert(mon, SL);
 	// int sf = gdk_monitor_get_scale_factor(mon);
 
-	int sf = gdk_window_get_scale_factor (gdk_get_default_root_window ());
+	int sf = gdk_window_get_scale_factor(gdk_get_default_root_window());
 
 	std::cout << "scale factor = " << sf << std::endl;
 
-
-
 	int src_num = 0;
 	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-	r4::vector2<unsigned> resolution(DisplayWidth(ww.display.display, src_num), DisplayHeight(ww.display.display, src_num));
+	r4::vector2<unsigned> resolution(
+		DisplayWidth(ww.display.display, src_num),
+		DisplayHeight(ww.display.display, src_num)
+	);
 	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-	r4::vector2<unsigned> screen_size_mm(DisplayWidthMM(ww.display.display, src_num), DisplayHeightMM(ww.display.display, src_num));
+	r4::vector2<unsigned> screen_size_mm(
+		DisplayWidthMM(ww.display.display, src_num),
+		DisplayHeightMM(ww.display.display, src_num)
+	);
 
 	return application::get_pixels_per_pp(resolution, screen_size_mm);
 }
@@ -1251,6 +1256,7 @@ int main(int argc, const char** argv)
 {
 	{
 		auto c = argc;
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
 		auto p = const_cast<char**>(argv);
 		gdk_init(&c, &p);
 	}
