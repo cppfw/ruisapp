@@ -843,14 +843,16 @@ morda::real get_dots_per_pp(window_wrapper& ww)
 	std::cout << "scale factor = " << sf << std::endl;
 
 	int src_num = 0;
-	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
 	r4::vector2<unsigned> resolution(
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
 		DisplayWidth(ww.display.display, src_num),
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
 		DisplayHeight(ww.display.display, src_num)
 	);
-	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
 	r4::vector2<unsigned> screen_size_mm(
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
 		DisplayWidthMM(ww.display.display, src_num),
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
 		DisplayHeightMM(ww.display.display, src_num)
 	);
 
