@@ -109,6 +109,9 @@ struct window_wrapper : public utki::destructable {
 
 	Colormap color_map;
 	::Window window;
+
+	morda::real scale_factor = 1;
+
 #ifdef MORDAVOKNE_RENDER_OPENGL
 	GLXContext gl_context;
 #elif defined(MORDAVOKNE_RENDER_OPENGLES)
@@ -712,6 +715,26 @@ struct window_wrapper : public utki::destructable {
 #	error "Unknown graphics API"
 #endif
 
+		// set scale factor
+		{
+			// GDK-4 version commented out because GDK-4 is not available in Debian 11
+
+			// auto display_name = DisplayString(ww.display.display);
+			// std::cout << "display name = " << display_name << std::endl;
+			// auto disp = gdk_display_open(display_name);
+			// utki::assert(disp, SL);
+			// std::cout << "gdk display name = " << gdk_display_get_name(disp) << std::endl;
+			// auto surf = gdk_surface_new_toplevel (disp);
+			// utki::assert(surf, SL);
+			// auto mon = gdk_display_get_monitor_at_surface (disp, surf);
+			// utki::assert(mon, SL);
+			// int sf = gdk_monitor_get_scale_factor(mon);
+
+			// GDK-3 version
+			int sf = gdk_window_get_scale_factor(gdk_get_default_root_window());
+			this->scale_factor = morda::real(sf);
+		}
+
 		// initialize input method
 
 		this->inputMethod = XOpenIM(this->display.display, nullptr, nullptr, nullptr);
@@ -827,20 +850,10 @@ morda::real get_dots_per_inch(Display* display)
 
 morda::real get_dots_per_pp(window_wrapper& ww)
 {
-	// auto display_name = DisplayString(ww.display.display);
-	// std::cout << "display name = " << display_name << std::endl;
-	// auto disp = gdk_display_open(display_name);
-	// utki::assert(disp, SL);
-	// std::cout << "gdk display name = " << gdk_display_get_name(disp) << std::endl;
-	// auto surf = gdk_surface_new_toplevel (disp);
-	// utki::assert(surf, SL);
-	// auto mon = gdk_display_get_monitor_at_surface (disp, surf);
-	// utki::assert(mon, SL);
-	// int sf = gdk_monitor_get_scale_factor(mon);
-
-	int sf = gdk_window_get_scale_factor(gdk_get_default_root_window());
-
-	std::cout << "scale factor = " << sf << std::endl;
+	// TODO: use scale factor only for desktop monitors
+	if (ww.scale_factor != morda::real(1)) {
+		return ww.scale_factor;
+	}
 
 	int src_num = 0;
 	r4::vector2<unsigned> resolution(
