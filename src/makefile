@@ -13,8 +13,8 @@ define mordavokne_rules
 
     this_name := mordavokne-$1
 
-    this_cxxflags += $(shell pkg-config --cflags gtk+-3.0)
-    this_ldlibs += $(shell pkg-config --libs gtk+-3.0)
+    this_cxxflags += $(shell pkg-config --cflags gdk-3.0)
+    this_ldlibs += $(shell pkg-config --libs gdk-3.0)
 
     ifeq ($(os), linux)
         this_ldlibs += -lGLEW -ldl -lnitki -lopros -lX11
