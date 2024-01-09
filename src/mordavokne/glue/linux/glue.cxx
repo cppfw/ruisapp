@@ -218,6 +218,28 @@ struct window_wrapper : public utki::destructable {
 
 	window_wrapper(const window_params& wp)
 	{
+		// set scale factor
+		{
+			// GDK-4 version commented out because GDK-4 is not available in Debian 11
+
+			// auto display_name = DisplayString(ww.display.display);
+			// std::cout << "display name = " << display_name << std::endl;
+			// auto disp = gdk_display_open(display_name);
+			// utki::assert(disp, SL);
+			// std::cout << "gdk display name = " << gdk_display_get_name(disp) << std::endl;
+			// auto surf = gdk_surface_new_toplevel (disp);
+			// utki::assert(surf, SL);
+			// auto mon = gdk_display_get_monitor_at_surface (disp, surf);
+			// utki::assert(mon, SL);
+			// int sf = gdk_monitor_get_scale_factor(mon);
+
+			// GDK-3 version
+			int sf = gdk_window_get_scale_factor(gdk_get_default_root_window());
+			this->scale_factor = morda::real(sf);
+
+			std::cout << "display scale factor = " << this->scale_factor << std::endl;
+		}
+
 #ifdef MORDAVOKNE_RENDER_OPENGL
 		{
 			int glx_ver_major = 0;
@@ -452,14 +474,16 @@ struct window_wrapper : public utki::destructable {
 				PointerMotionMask | ButtonMotionMask | StructureNotifyMask | EnterWindowMask | LeaveWindowMask;
 			unsigned long fields = CWBorderPixel | CWColormap | CWEventMask;
 
+			auto dims = (this->scale_factor * wp.dims.to<morda::real>()).to<unsigned>();
+
 			this->window = XCreateWindow(
 				this->display.display,
 				// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast,cppcoreguidelines-pro-bounds-pointer-arithmetic)
 				RootWindow(this->display.display, visual_info->screen),
 				0,
 				0,
-				wp.dims.x(),
-				wp.dims.y(),
+				dims.x(),
+				dims.y(),
 				0,
 				visual_info->depth,
 				InputOutput,
@@ -714,26 +738,6 @@ struct window_wrapper : public utki::destructable {
 #else
 #	error "Unknown graphics API"
 #endif
-
-		// set scale factor
-		{
-			// GDK-4 version commented out because GDK-4 is not available in Debian 11
-
-			// auto display_name = DisplayString(ww.display.display);
-			// std::cout << "display name = " << display_name << std::endl;
-			// auto disp = gdk_display_open(display_name);
-			// utki::assert(disp, SL);
-			// std::cout << "gdk display name = " << gdk_display_get_name(disp) << std::endl;
-			// auto surf = gdk_surface_new_toplevel (disp);
-			// utki::assert(surf, SL);
-			// auto mon = gdk_display_get_monitor_at_surface (disp, surf);
-			// utki::assert(mon, SL);
-			// int sf = gdk_monitor_get_scale_factor(mon);
-
-			// GDK-3 version
-			int sf = gdk_window_get_scale_factor(gdk_get_default_root_window());
-			this->scale_factor = morda::real(sf);
-		}
 
 		// initialize input method
 
