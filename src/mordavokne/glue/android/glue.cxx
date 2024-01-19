@@ -1015,11 +1015,8 @@ struct input_string_provider : public morda::gui::input_string_provider {
 
 namespace {
 
-JNIEXPORT void JNICALL Java_io_github_cppfw_mordavokne_MordaVOkneActivity_handleCharacterStringInput(
-	JNIEnv* env,
-	jclass clazz,
-	jstring chars
-)
+JNIEXPORT void JNICALL
+Java_io_github_cppfw_mordavokne_MordaVOkneActivity_handleCharacterStringInput(JNIEnv* env, jclass clazz, jstring chars)
 {
 	LOG([](auto& o) {
 		o << "handleCharacterStringInput(): invoked" << std::endl;
