@@ -36,7 +36,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #ifdef MORDAVOKNE_RENDER_OPENGL
 #	include <GL/glew.h>
 #	include <GL/glx.h>
-#	include <morda/render/opengl/renderer.hpp>
+#	include <ruis/render/opengl/renderer.hpp>
 
 #elif defined(MORDAVOKNE_RENDER_OPENGLES)
 #	include <EGL/egl.h>
@@ -45,7 +45,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #		include <bcm_host.h>
 #	endif
 
-#	include <morda/render/opengles/renderer.hpp>
+#	include <ruis/render/opengles/renderer.hpp>
 
 #else
 #	error "Unknown graphics API"

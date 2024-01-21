@@ -6,32 +6,32 @@
 
 #include <mordavokne/application.hpp>
 
-#include <morda/config.hpp>
+#include <ruis/config.hpp>
 
-#include <morda/widget.hpp>
-#include <morda/container.hpp>
-#include <morda/widgets/proxy/key_proxy.hpp>
+#include <ruis/widget.hpp>
+#include <ruis/container.hpp>
+#include <ruis/widgets/proxy/key_proxy.hpp>
 
-#include <morda/widgets/button/push_button.hpp>
-#include <morda/widgets/label/text.hpp>
+#include <ruis/widgets/button/push_button.hpp>
+#include <ruis/widgets/label/text.hpp>
 
-#include <morda/res/texture.hpp>
+#include <ruis/res/texture.hpp>
 
-#include <morda/widgets/input/character_input_widget.hpp>
-#include <morda/widgets/group/scroll_area.hpp>
-#include <morda/widgets/proxy/mouse_proxy.hpp>
-#include <morda/widgets/slider/scroll_bar.hpp>
-#include <morda/widgets/group/list.hpp>
-#include <morda/widgets/group/tree_view.hpp>
-#include <morda/widgets/proxy/resize_proxy.hpp>
-#include <morda/widgets/proxy/click_proxy.hpp>
-#include <morda/widgets/label/color.hpp>
-#include <morda/widgets/label/image.hpp>
-#include <morda/widgets/input/text_input_line.hpp>
+#include <ruis/widgets/input/character_input_widget.hpp>
+#include <ruis/widgets/group/scroll_area.hpp>
+#include <ruis/widgets/proxy/mouse_proxy.hpp>
+#include <ruis/widgets/slider/scroll_bar.hpp>
+#include <ruis/widgets/group/list.hpp>
+#include <ruis/widgets/group/tree_view.hpp>
+#include <ruis/widgets/proxy/resize_proxy.hpp>
+#include <ruis/widgets/proxy/click_proxy.hpp>
+#include <ruis/widgets/label/color.hpp>
+#include <ruis/widgets/label/image.hpp>
+#include <ruis/widgets/input/text_input_line.hpp>
 
-#include <morda/widgets/button/drop_down_box.hpp>
+#include <ruis/widgets/button/drop_down_box.hpp>
 
-#include <morda/layouts/linear_layout.hpp>
+#include <ruis/layouts/linear_layout.hpp>
 
 #ifdef assert
 #	undef assert

@@ -23,8 +23,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include <memory>
 
-#include <morda/gui.hpp>
-#include <morda/util/key.hpp>
+#include <ruis/gui.hpp>
+#include <ruis/util/key.hpp>
 #include <papki/file.hpp>
 #include <r4/vector.hpp>
 #include <utki/config.hpp>

@@ -1,7 +1,7 @@
 #include <mordavokne/application.hpp>
 
-#include <morda/widgets/label/TextLabel.hpp>
-#include <morda/widgets/button/Button.hpp>
+#include <ruis/widgets/label/TextLabel.hpp>
+#include <ruis/widgets/button/Button.hpp>
 
 
 class Application : public mordavokne::application{

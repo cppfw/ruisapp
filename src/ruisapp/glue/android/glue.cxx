@@ -28,7 +28,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <android/configuration.h>
 #include <android/native_activity.h>
 #include <android/window.h>
-#include <morda/render/opengles/renderer.hpp>
+#include <ruis/render/opengles/renderer.hpp>
 #include <nitki/queue.hpp>
 #include <sys/eventfd.h>
 #include <utki/destructable.hpp>

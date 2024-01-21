@@ -22,9 +22,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <ratio>
 
 #include <Shlobj.h> // needed for SHGetFolderPathA()
-#include <morda/context.hpp>
-#include <morda/render/opengl/renderer.hpp>
-#include <morda/util/util.hpp>
+#include <ruis/context.hpp>
+#include <ruis/render/opengl/renderer.hpp>
+#include <ruis/util/util.hpp>
 #include <papki/fs_file.hpp>
 #include <utki/destructable.hpp>
 #include <utki/windows.hpp>

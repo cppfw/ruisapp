@@ -4,10 +4,10 @@
 
 #include <utki/destructable.hpp>
 
-#include <morda/util/util.hpp>
-#include <morda/gui.hpp>
+#include <ruis/util/util.hpp>
+#include <ruis/gui.hpp>
 
-#include <morda/render/opengl/renderer.hpp>
+#include <ruis/render/opengl/renderer.hpp>
 
 #import <Cocoa/Cocoa.h>
 
