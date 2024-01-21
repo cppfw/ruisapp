@@ -541,10 +541,10 @@ AInputQueue* input_queue = nullptr;
 // actually moved.
 std::array<ruis::vector2, 10> pointers;
 
-inline ruis::vector2 android_win_coords_to_morda_win_rect_coords(const ruis::vector2& winDim, const ruis::vector2& p)
+inline ruis::vector2 android_win_coords_to_ruis_win_rect_coords(const ruis::vector2& winDim, const ruis::vector2& p)
 {
 	ruis::vector2 ret(p.x(), p.y() - (cur_window_dims.y() - winDim.y()));
-	//	LOG([&](auto&o){o << "android_win_coords_to_morda_win_rect_coords(): ret
+	//	LOG([&](auto&o){o << "android_win_coords_to_ruis_win_rect_coords(): ret
 	//= " << ret << std::endl;})
 	using std::round;
 	return round(ret);
@@ -1230,7 +1230,7 @@ void handle_input_events()
 							handle_mouse_button(
 								app,
 								true,
-								android_win_coords_to_morda_win_rect_coords(app.window_dims(), p),
+								android_win_coords_to_ruis_win_rect_coords(app.window_dims(), p),
 								ruis::mouse_button::left,
 								pointerId
 							);
@@ -1265,7 +1265,7 @@ void handle_input_events()
 							handle_mouse_button(
 								app,
 								false,
-								android_win_coords_to_morda_win_rect_coords(app.window_dims(), p),
+								android_win_coords_to_ruis_win_rect_coords(app.window_dims(), p),
 								ruis::mouse_button::left,
 								pointerId
 							);
@@ -1302,7 +1302,7 @@ void handle_input_events()
 
 								handle_mouse_move(
 									app,
-									android_win_coords_to_morda_win_rect_coords(app.window_dims(), p),
+									android_win_coords_to_ruis_win_rect_coords(app.window_dims(), p),
 									pointerId
 								);
 							}
