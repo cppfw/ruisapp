@@ -11,7 +11,7 @@ define mordavokne_rules
 
     this_srcs += $$(call prorab-src-dir, .)
 
-    this_name := mordavokne-$1
+    this_name := ruisapp-$1
 
     # use -isystem instead of -I to prevent clang-tidy follow the includes from these locations
     this_cxxflags += $(patsubst -I%,-isystem%,$(shell pkg-config --cflags gdk-3.0))
