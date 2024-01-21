@@ -11,7 +11,7 @@
 
 #import <Cocoa/Cocoa.h>
 
-using namespace mordavokne;
+using namespace ruisapp;
 
 #include "../unix_common.cxx"
 #include "../friend_accessors.cxx"
@@ -84,30 +84,30 @@ WindowWrapper& get_impl(const std::unique_ptr<utki::destructable>& pimpl){
 }
 
 namespace{
-void mouseButton(NSEvent* e, bool isDown, morda::mouse_button button){
+void mouseButton(NSEvent* e, bool isDown, ruis::mouse_button button){
 	NSPoint winPos = [e locationInWindow];
 	using std::round;
-	auto pos = round(morda::vector2(winPos.x, winPos.y));
+	auto pos = round(ruis::vector2(winPos.x, winPos.y));
 	handle_mouse_button(
-			mordavokne::application::inst(),
+			ruisapp::application::inst(),
 			isDown,
-			morda::vector2(pos.x(), mordavokne::application::inst().window_dims().y() - pos.y()),
+			ruis::vector2(pos.x(), ruisapp::application::inst().window_dims().y() - pos.y()),
 			button,
 			0
 		);
 }
 
-void macosx_HandleMouseMove(const morda::vector2& pos, unsigned id){
+void macosx_HandleMouseMove(const ruis::vector2& pos, unsigned id){
 //	TRACE(<< "Macosx_HandleMouseMove(): pos = " << pos << std::endl)
 	handle_mouse_move(
-			mordavokne::application::inst(),
-			morda::vector2(pos.x(), mordavokne::application::inst().window_dims().y() - pos.y()),
+			ruisapp::application::inst(),
+			ruis::vector2(pos.x(), ruisapp::application::inst().window_dims().y() - pos.y()),
 			id
 		);
 }
 
 void macosx_HandleMouseHover(bool isHovered){
-	auto& ww = get_impl(get_window_pimpl(mordavokne::application::inst()));
+	auto& ww = get_impl(get_window_pimpl(ruisapp::application::inst()));
 	if(!ww.mouseCursorIsCurrentlyVisible){
 		if(isHovered){
 			[NSCursor hide];
@@ -116,14 +116,14 @@ void macosx_HandleMouseHover(bool isHovered){
 		}
 	}
 
-	handle_mouse_hover(mordavokne::application::inst(), isHovered, 0);
+	handle_mouse_hover(ruisapp::application::inst(), isHovered, 0);
 }
 
-void macosx_HandleKeyEvent(bool isDown, morda::key keyCode){
-	handle_key_event(mordavokne::application::inst(), isDown, keyCode);
+void macosx_HandleKeyEvent(bool isDown, ruis::key keyCode){
+	handle_key_event(ruisapp::application::inst(), isDown, keyCode);
 }
 
-class macosx_input_string_provider : public morda::gui::input_string_provider{
+class macosx_input_string_provider : public ruis::gui::input_string_provider{
 	const NSString* nsStr;
 public:
 	macosx_input_string_provider(const NSString* nsStr = nullptr) :
@@ -146,273 +146,273 @@ public:
 	}
 };
 
-void macosx_HandleCharacterInput(const void* nsstring, morda::key key){
-	handle_character_input(mordavokne::application::inst(), macosx_input_string_provider(reinterpret_cast<const NSString*>(nsstring)), key);
+void macosx_HandleCharacterInput(const void* nsstring, ruis::key key){
+	handle_character_input(ruisapp::application::inst(), macosx_input_string_provider(reinterpret_cast<const NSString*>(nsstring)), key);
 }
 
-void macosx_UpdateWindowRect(const morda::rectangle& r){
-	auto& ww = get_impl(get_window_pimpl(mordavokne::application::inst()));
+void macosx_UpdateWindowRect(const ruis::rectangle& r){
+	auto& ww = get_impl(get_window_pimpl(ruisapp::application::inst()));
 	[ww.openglContextId update];//after resizing window we need to update OpenGL context
-	update_window_rect(mordavokne::application::inst(), r);
+	update_window_rect(ruisapp::application::inst(), r);
 }
 
-const std::array<morda::key, std::uint8_t(-1) + 1> keyCodeMap = {{
-	morda::key::a, //0
-	morda::key::s,
-	morda::key::d,
-	morda::key::f,
-	morda::key::h,
-	morda::key::g, //5
-	morda::key::z,
-	morda::key::x,
-	morda::key::c,
-	morda::key::v,
-	morda::key::unknown, //0x0A
-	morda::key::b,
-	morda::key::q,
-	morda::key::w,
-	morda::key::e,
-	morda::key::r, //15
-	morda::key::y,
-	morda::key::t,
-	morda::key::one,
-	morda::key::two,
-	morda::key::three, //20
-	morda::key::four,
-	morda::key::six,
-	morda::key::five, //0x17
-	morda::key::equals,
-	morda::key::nine, //25
-	morda::key::seven,
-	morda::key::minus,
-	morda::key::eight,
-	morda::key::zero,
-	morda::key::right_square_bracket, //30
-	morda::key::o,
-	morda::key::u,
-	morda::key::left_square_bracket,
-	morda::key::i,
-	morda::key::p, //35
-	morda::key::enter, //0x24
-	morda::key::l,
-	morda::key::j,
-	morda::key::apostrophe,
-	morda::key::k, //40
-	morda::key::semicolon,
-	morda::key::backslash,
-	morda::key::comma,
-	morda::key::slash,
-	morda::key::n, //0x2D, 45
-	morda::key::m,
-	morda::key::period,
-	morda::key::tabulator, //0x30
-	morda::key::space, //0x31
-	morda::key::grave, //50
-	morda::key::backspace, //0x33
-	morda::key::unknown, //0x34
-	morda::key::escape, //0x35
-	morda::key::unknown, //0x36
-	morda::key::left_command, //Command, 0x37, 55
-	morda::key::left_shift, //0x38
-	morda::key::capslock, //0x39
-	morda::key::unknown, //Option, 0x3A
-	morda::key::left_control, //0x3B
-	morda::key::right_shift, //0x3C, 60
-	morda::key::unknown, //RightOption, 0x3D
-	morda::key::right_control, //0x3E
-	morda::key::function, //0x3F
-	morda::key::f17, //0x40
-	morda::key::unknown, //KeypadDecimal, 0x41, 65
-	morda::key::unknown, //0x42
-	morda::key::unknown, //KeypadMultiplym 0x43
-	morda::key::unknown, //0x44
-	morda::key::unknown, //KeypadPlus, 0x45
-	morda::key::unknown, //0x46, 70
-	morda::key::unknown, //KeypadClear, 0x47
-	morda::key::unknown, //VolumeUp, 0x48
-	morda::key::unknown, //VolumeDown, 0x49
-	morda::key::unknown, //Mute, 0x4A
-	morda::key::unknown, //KeypadDivide, 0x4B, 75
-	morda::key::unknown, //KeypadEnter, 0x4C
-	morda::key::unknown, //0x4D
-	morda::key::unknown, //KeypadMinus
-	morda::key::f18, //0x4F
-	morda::key::f19, //0x50, 80
-	morda::key::unknown, //KeypadEquals, 0x51
-	morda::key::unknown, //Keypad0
-	morda::key::unknown, //Keypad1
-	morda::key::unknown, //Keypad2
-	morda::key::unknown, //Keypad3, 85
-	morda::key::unknown, //Keypad4
-	morda::key::unknown, //Keypad5
-	morda::key::unknown, //Keypad6
-	morda::key::unknown, //Keypad7, 0x59
-	morda::key::f20, //0x5A, 90
-	morda::key::unknown, //Keypad8, 0x5B
-	morda::key::unknown, //Keypad9, 0x5C
-	morda::key::unknown, //0x5D
-	morda::key::unknown, //0x5E
-	morda::key::unknown, //0x5F, 95
-	morda::key::f5, //0x60
-	morda::key::f6, //0x61
-	morda::key::f7, //0x62
-	morda::key::f3, //0x63
-	morda::key::f8, //0x64, 100
-	morda::key::f9, //0x65
-	morda::key::unknown, //0x66
-	morda::key::f11, //0x67
-	morda::key::unknown, //0x68
-	morda::key::f13, //0x69
-	morda::key::f16, //0x6A
-	morda::key::f14, //0x6B
-	morda::key::unknown, //0x6C
-	morda::key::f10, //0x6D
-	morda::key::unknown, //0x6E
-	morda::key::f12, //0x6F
-	morda::key::unknown, //0x70
-	morda::key::f15, //0x71
-	morda::key::unknown, //Help, 0x72
-	morda::key::home, //0x73
-	morda::key::page_up, //0x74
-	morda::key::deletion, //0x75
-	morda::key::f4, //0x76
-	morda::key::end, //0x77
-	morda::key::f2, //0x78
-	morda::key::page_down, //0x79
-	morda::key::f1, //0x7A
-	morda::key::arrow_left, //0x7B
-	morda::key::arrow_right, //0x7C
-	morda::key::arrow_down, //0x7D
-	morda::key::arrow_up, //0x7E
-	morda::key::unknown, //0x7F
-	morda::key::unknown, //0x80
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown, //0x90
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown, //0xA0
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown, //0xB0
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown, //0xC0
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown, //0xD0
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown, //0xE0
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown, //0xF0
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown,
-	morda::key::unknown //0xFF
+const std::array<ruis::key, std::uint8_t(-1) + 1> keyCodeMap = {{
+	ruis::key::a, //0
+	ruis::key::s,
+	ruis::key::d,
+	ruis::key::f,
+	ruis::key::h,
+	ruis::key::g, //5
+	ruis::key::z,
+	ruis::key::x,
+	ruis::key::c,
+	ruis::key::v,
+	ruis::key::unknown, //0x0A
+	ruis::key::b,
+	ruis::key::q,
+	ruis::key::w,
+	ruis::key::e,
+	ruis::key::r, //15
+	ruis::key::y,
+	ruis::key::t,
+	ruis::key::one,
+	ruis::key::two,
+	ruis::key::three, //20
+	ruis::key::four,
+	ruis::key::six,
+	ruis::key::five, //0x17
+	ruis::key::equals,
+	ruis::key::nine, //25
+	ruis::key::seven,
+	ruis::key::minus,
+	ruis::key::eight,
+	ruis::key::zero,
+	ruis::key::right_square_bracket, //30
+	ruis::key::o,
+	ruis::key::u,
+	ruis::key::left_square_bracket,
+	ruis::key::i,
+	ruis::key::p, //35
+	ruis::key::enter, //0x24
+	ruis::key::l,
+	ruis::key::j,
+	ruis::key::apostrophe,
+	ruis::key::k, //40
+	ruis::key::semicolon,
+	ruis::key::backslash,
+	ruis::key::comma,
+	ruis::key::slash,
+	ruis::key::n, //0x2D, 45
+	ruis::key::m,
+	ruis::key::period,
+	ruis::key::tabulator, //0x30
+	ruis::key::space, //0x31
+	ruis::key::grave, //50
+	ruis::key::backspace, //0x33
+	ruis::key::unknown, //0x34
+	ruis::key::escape, //0x35
+	ruis::key::unknown, //0x36
+	ruis::key::left_command, //Command, 0x37, 55
+	ruis::key::left_shift, //0x38
+	ruis::key::capslock, //0x39
+	ruis::key::unknown, //Option, 0x3A
+	ruis::key::left_control, //0x3B
+	ruis::key::right_shift, //0x3C, 60
+	ruis::key::unknown, //RightOption, 0x3D
+	ruis::key::right_control, //0x3E
+	ruis::key::function, //0x3F
+	ruis::key::f17, //0x40
+	ruis::key::unknown, //KeypadDecimal, 0x41, 65
+	ruis::key::unknown, //0x42
+	ruis::key::unknown, //KeypadMultiplym 0x43
+	ruis::key::unknown, //0x44
+	ruis::key::unknown, //KeypadPlus, 0x45
+	ruis::key::unknown, //0x46, 70
+	ruis::key::unknown, //KeypadClear, 0x47
+	ruis::key::unknown, //VolumeUp, 0x48
+	ruis::key::unknown, //VolumeDown, 0x49
+	ruis::key::unknown, //Mute, 0x4A
+	ruis::key::unknown, //KeypadDivide, 0x4B, 75
+	ruis::key::unknown, //KeypadEnter, 0x4C
+	ruis::key::unknown, //0x4D
+	ruis::key::unknown, //KeypadMinus
+	ruis::key::f18, //0x4F
+	ruis::key::f19, //0x50, 80
+	ruis::key::unknown, //KeypadEquals, 0x51
+	ruis::key::unknown, //Keypad0
+	ruis::key::unknown, //Keypad1
+	ruis::key::unknown, //Keypad2
+	ruis::key::unknown, //Keypad3, 85
+	ruis::key::unknown, //Keypad4
+	ruis::key::unknown, //Keypad5
+	ruis::key::unknown, //Keypad6
+	ruis::key::unknown, //Keypad7, 0x59
+	ruis::key::f20, //0x5A, 90
+	ruis::key::unknown, //Keypad8, 0x5B
+	ruis::key::unknown, //Keypad9, 0x5C
+	ruis::key::unknown, //0x5D
+	ruis::key::unknown, //0x5E
+	ruis::key::unknown, //0x5F, 95
+	ruis::key::f5, //0x60
+	ruis::key::f6, //0x61
+	ruis::key::f7, //0x62
+	ruis::key::f3, //0x63
+	ruis::key::f8, //0x64, 100
+	ruis::key::f9, //0x65
+	ruis::key::unknown, //0x66
+	ruis::key::f11, //0x67
+	ruis::key::unknown, //0x68
+	ruis::key::f13, //0x69
+	ruis::key::f16, //0x6A
+	ruis::key::f14, //0x6B
+	ruis::key::unknown, //0x6C
+	ruis::key::f10, //0x6D
+	ruis::key::unknown, //0x6E
+	ruis::key::f12, //0x6F
+	ruis::key::unknown, //0x70
+	ruis::key::f15, //0x71
+	ruis::key::unknown, //Help, 0x72
+	ruis::key::home, //0x73
+	ruis::key::page_up, //0x74
+	ruis::key::deletion, //0x75
+	ruis::key::f4, //0x76
+	ruis::key::end, //0x77
+	ruis::key::f2, //0x78
+	ruis::key::page_down, //0x79
+	ruis::key::f1, //0x7A
+	ruis::key::arrow_left, //0x7B
+	ruis::key::arrow_right, //0x7C
+	ruis::key::arrow_down, //0x7D
+	ruis::key::arrow_up, //0x7E
+	ruis::key::unknown, //0x7F
+	ruis::key::unknown, //0x80
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown, //0x90
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown, //0xA0
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown, //0xB0
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown, //0xC0
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown, //0xD0
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown, //0xE0
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown, //0xF0
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown,
+	ruis::key::unknown //0xFF
 }};
 }
 
@@ -440,48 +440,48 @@ const std::array<morda::key, std::uint8_t(-1) + 1> keyCodeMap = {{
 
 -(void)mouseDown: (NSEvent*)e{
 //	TRACE(<< "left down!!!!!" << std::endl)
-	mouseButton(e, true, morda::mouse_button::left);
+	mouseButton(e, true, ruis::mouse_button::left);
 }
 
 -(void)mouseUp: (NSEvent*)e{
 //	TRACE(<< "left up!!!!!" << std::endl)
-	mouseButton(e, false, morda::mouse_button::left);
+	mouseButton(e, false, ruis::mouse_button::left);
 }
 
 -(void)rightMouseDown: (NSEvent*)e{
 //	TRACE(<< "right down!!!!!" << std::endl)
-	mouseButton(e, true, morda::mouse_button::right);
+	mouseButton(e, true, ruis::mouse_button::right);
 }
 
 -(void)rightMouseUp: (NSEvent*)e{
 //	TRACE(<< "right up!!!!!" << std::endl)
-	mouseButton(e, false, morda::mouse_button::right);
+	mouseButton(e, false, ruis::mouse_button::right);
 }
 
 -(void)otherMouseDown: (NSEvent*)e{
 //	TRACE(<< "middle down!!!!!" << std::endl)
-	mouseButton(e, true, morda::mouse_button::middle);
+	mouseButton(e, true, ruis::mouse_button::middle);
 }
 
 -(void)otherMouseUp: (NSEvent*)e{
 //	TRACE(<< "middle up!!!!!" << std::endl)
-	mouseButton(e, false, morda::mouse_button::middle);
+	mouseButton(e, false, ruis::mouse_button::middle);
 }
 
 -(void)scrollWheel: (NSEvent*)e{
 //	TRACE(<< "mouse wheel!!!!!" << std::endl)
 
 	if([e hasPreciseScrollingDeltas] == NO){
-		morda::mouse_button button;
+		ruis::mouse_button button;
 //		TRACE(<< "dy = " << float(dy) << std::endl)
 		if([e scrollingDeltaY] < 0){
-			button = morda::mouse_button::wheel_down;
+			button = ruis::mouse_button::wheel_down;
 		}else if([e scrollingDeltaY] > 0){
-			button = morda::mouse_button::wheel_up;
+			button = ruis::mouse_button::wheel_up;
 		}else if([e scrollingDeltaX] < 0){
-			button = morda::mouse_button::wheel_left;
+			button = ruis::mouse_button::wheel_left;
 		}else if([e scrollingDeltaX] > 0){
-			button = morda::mouse_button::wheel_right;
+			button = ruis::mouse_button::wheel_right;
 		}else{
 			return;
 		}
@@ -500,7 +500,7 @@ const std::array<morda::key, std::uint8_t(-1) + 1> keyCodeMap = {{
 //	TRACE(<< "x = " << pos.x << std::endl)
 	using std::round;
 	macosx_HandleMouseMove(
-			round(morda::vector2(pos.x, pos.y)),
+			round(ruis::vector2(pos.x, pos.y)),
 			0
 		);
 }
@@ -532,7 +532,7 @@ const std::array<morda::key, std::uint8_t(-1) + 1> keyCodeMap = {{
 -(void)keyDown:(NSEvent*)e{
 //	TRACE(<< "keyDown event!!!!!" << std::endl)
 	std::uint8_t kc = [e keyCode];
-	morda::key key = keyCodeMap[kc];
+	ruis::key key = keyCodeMap[kc];
 
 	if([e isARepeat] == YES){
 		macosx_HandleCharacterInput([e characters], key);
@@ -592,7 +592,7 @@ const std::array<morda::key, std::uint8_t(-1) + 1> keyCodeMap = {{
 	NSWindow* nsw = [n object];
 	NSRect frame = [nsw frame];
 	NSRect rect = [nsw contentRectForFrameRect:frame];
-	macosx_UpdateWindowRect(morda::rectangle(0, 0, rect.size.width, rect.size.height));
+	macosx_UpdateWindowRect(ruis::rectangle(0, 0, rect.size.width, rect.size.height));
 }
 
 -(NSSize)windowWillResize:(NSWindow*)sender toSize:(NSSize)frameSize{
@@ -619,7 +619,7 @@ WindowWrapper::WindowWrapper(const window_params& wp){
 	this->applicationObjectId = [NSApplication sharedApplication];
 
 	if(!this->applicationObjectId){
-		throw std::runtime_error("morda::application::ApplicationObject::ApplicationObject(): failed to create application object");
+		throw std::runtime_error("ruis::application::ApplicationObject::ApplicationObject(): failed to create application object");
 	}
 
 	utki::scope_exit scopeExitApplication([this](){
@@ -634,7 +634,7 @@ WindowWrapper::WindowWrapper(const window_params& wp){
 	];
 
 	if(!this->windowObjectId){
-		throw std::runtime_error("morda::application::WindowObject::WindowObject(): failed to create Window object");
+		throw std::runtime_error("ruis::application::WindowObject::WindowObject(): failed to create Window object");
 	}
 
 	utki::scope_exit scopeExitWindow([this](){
@@ -659,14 +659,14 @@ WindowWrapper::WindowWrapper(const window_params& wp){
 
 		NSOpenGLPixelFormat *pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attributes.data()];
 		if(pixelFormat == nil){
-			throw std::runtime_error("morda::application::OpenGLContext::OpenGLContext(): failed to create pixel format");
+			throw std::runtime_error("ruis::application::OpenGLContext::OpenGLContext(): failed to create pixel format");
 		}
 
 		this->openglContextId = [[NSOpenGLContext alloc] initWithFormat:pixelFormat shareContext:nil];
 		[pixelFormat release];
 
 		if(!this->openglContextId){
-			throw std::runtime_error("morda::application::OpenGLContext::OpenGLContext(): failed to create OpenGL context");
+			throw std::runtime_error("ruis::application::OpenGLContext::OpenGLContext(): failed to create OpenGL context");
 		}
 	}
 
@@ -729,9 +729,9 @@ int main(int argc, const char** argv){
 	}
 
 	do{
-		render(mordavokne::inst());
+		render(ruisapp::inst());
 
-		uint32_t millis = mordavokne::inst().gui.update();
+		uint32_t millis = ruisapp::inst().gui.update();
 
 		NSEvent *event = [ww.applicationObjectId
 				nextEventMatchingMask:NSEventMaskAny
@@ -772,7 +772,7 @@ int main(int argc, const char** argv){
 }
 
 namespace{
-morda::real getDotsPerInch(){
+ruis::real getDotsPerInch(){
 	NSScreen *screen = [NSScreen mainScreen];
 	NSDictionary *description = [screen deviceDescription];
 	NSSize displayPixelSize = [[description objectForKey:NSDeviceSize] sizeValue];
@@ -780,7 +780,7 @@ morda::real getDotsPerInch(){
 			[[description objectForKey:@"NSScreenNumber"] unsignedIntValue]
 		);
 
-	morda::real value = morda::real(((displayPixelSize.width * 10.0f / displayPhysicalSize.width) +
+	ruis::real value = ruis::real(((displayPixelSize.width * 10.0f / displayPhysicalSize.width) +
 			(displayPixelSize.height * 10.0f / displayPhysicalSize.height)) / 2.0f);
 	value *= 2.54f;
 	return value;
@@ -788,7 +788,7 @@ morda::real getDotsPerInch(){
 }
 
 namespace{
-morda::real getDotsPerPt(){
+ruis::real getDotsPerPt(){
 	NSScreen *screen = [NSScreen mainScreen];
 	NSDictionary *description = [screen deviceDescription];
 	NSSize displayPixelSize = [[description objectForKey:NSDeviceSize] sizeValue];
@@ -807,9 +807,9 @@ application::application(std::string name, const window_params& wp) :
 		name(name),
 		window_pimpl(std::make_unique<WindowWrapper>(wp)),
 		gui(
-			utki::make_shared<morda::context>(
-			utki::make_shared<morda::render_opengl::renderer>(),
-			utki::make_shared<morda::updater>(),
+			utki::make_shared<ruis::context>(
+			utki::make_shared<ruis::render_opengl::renderer>(),
+			utki::make_shared<ruis::updater>(),
 			[this](std::function<void()> a){
 				auto& ww = get_impl(get_window_pimpl(*this));
 
@@ -827,7 +827,7 @@ application::application(std::string name, const window_params& wp) :
 
 				[ww.applicationObjectId postEvent:e atStart:NO];
 			},
-			[](morda::mouse_cursor c){
+			[](ruis::mouse_cursor c){
 				// TODO:
 			},
 			getDotsPerInch(),
@@ -837,11 +837,11 @@ application::application(std::string name, const window_params& wp) :
 {
 	LOG([&](auto&o){o << "application::application(): enter" << std::endl;})
 	this->update_window_rect(
-			morda::rectangle(
+			ruis::rectangle(
 					0,
 					0,
-					morda::real(wp.dims.x()),
-					morda::real(wp.dims.y())
+					ruis::real(wp.dims.x()),
+					ruis::real(wp.dims.y())
 				)
 		);
 }

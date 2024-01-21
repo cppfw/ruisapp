@@ -23,7 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "../application.hpp"
 
-namespace mordavokne {
+namespace ruisapp {
 
 struct version_duplet {
 	int major;
@@ -32,4 +32,4 @@ struct version_duplet {
 
 version_duplet get_opengl_version_duplet(window_params::graphics_api api);
 
-} // namespace mordavokne
+} // namespace ruisapp

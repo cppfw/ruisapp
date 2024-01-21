@@ -26,7 +26,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <utki/config.hpp>
 #include <utki/debug.hpp>
 
-using namespace mordavokne;
+using namespace ruisapp;
 
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 application::instance_type application::instance;
@@ -41,7 +41,7 @@ void application::render()
 	this->swap_frame_buffers();
 }
 
-void application::update_window_rect(const morda::rectangle& rect)
+void application::update_window_rect(const ruis::rectangle& rect)
 {
 	if (this->curWinRect == rect) {
 		return;
@@ -84,7 +84,7 @@ void application::hide_virtual_keyboard() noexcept {
 }
 #endif
 
-morda::real application::get_pixels_per_pp(r4::vector2<unsigned> resolution, r4::vector2<unsigned> screen_size_mm)
+ruis::real application::get_pixels_per_pp(r4::vector2<unsigned> resolution, r4::vector2<unsigned> screen_size_mm)
 {
 	utki::log([&](auto& o) {
 		o << "screen resolution = " << resolution << std::endl;
@@ -99,7 +99,7 @@ morda::real application::get_pixels_per_pp(r4::vector2<unsigned> resolution, r4:
 	// physical screen size and pixel resolution.
 
 #if M_OS_NAME == M_OS_NAME_IOS
-	return morda::real(1); // TODO:
+	return ruis::real(1); // TODO:
 #else
 	unsigned x_index = [&resolution]() {
 		if (resolution.x() > resolution.y()) {
@@ -113,19 +113,19 @@ morda::real application::get_pixels_per_pp(r4::vector2<unsigned> resolution, r4:
 	// unsigned max_dim_px = max(resolution.x(), resolution.y());
 	// unsigned max_dim_mm = max(screen_size_mm.x(), screen_size_mm.y());
 
-	// morda::real dpmm = morda::real(max_dim_px) / morda::real(max_dim_mm);
+	// ruis::real dpmm = ruis::real(max_dim_px) / ruis::real(max_dim_mm);
 
 	if (screen_size_mm[x_index] < 300) { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-		return morda::real(resolution[x_index]) / morda::real(700); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+		return ruis::real(resolution[x_index]) / ruis::real(700); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 	} else if (screen_size_mm[x_index] < 150) { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-		return morda::real(resolution[x_index]) / morda::real(200); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+		return ruis::real(resolution[x_index]) / ruis::real(200); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 	}
 
-	return morda::real(1);
+	return ruis::real(1);
 #endif
 }
 
-void application::handle_key_event(bool is_down, morda::key key_code)
+void application::handle_key_event(bool is_down, ruis::key key_code)
 {
 	this->gui.send_key(is_down, key_code);
 }

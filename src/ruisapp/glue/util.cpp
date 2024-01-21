@@ -21,9 +21,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "util.hxx"
 
-using namespace mordavokne;
+using namespace ruisapp;
 
-version_duplet mordavokne::get_opengl_version_duplet(window_params::graphics_api api)
+version_duplet ruisapp::get_opengl_version_duplet(window_params::graphics_api api)
 {
 	using ga = window_params::graphics_api;
 	switch (api) {

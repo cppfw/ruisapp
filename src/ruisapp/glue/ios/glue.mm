@@ -10,7 +10,7 @@
 
 #include <ruis/render/opengles/renderer.hpp>
 
-using namespace mordavokne;
+using namespace ruisapp;
 
 #include "../unix_common.cxx"
 #include "../friend_accessors.cxx"
@@ -88,7 +88,7 @@ namespace{
 			this->window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
 
 			if(!this->window){
-				throw morda::Exc("failed to create a UIWindow");
+				throw ruis::Exc("failed to create a UIWindow");
 			}
 
 			utki::ScopeExit scopeExitWindow([this](){
@@ -173,11 +173,11 @@ namespace{
 
 - (void)update{
 	//TODO: adapt to nothing to update, lower frame rate
-	mordavokne::inst().gui.update();
+	ruisapp::inst().gui.update();
 }
 
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect{
-	render(mordavokne::inst());
+	render(ruisapp::inst());
 }
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event{
@@ -186,12 +186,12 @@ namespace{
 	for(UITouch * touch in touches ){
 		CGPoint p = [touch locationInView:self.view ];
 
-//		TRACE(<< "touch began = " << morda::Vec2r(p.x * scale, p.y * scale).rounded() << std::endl)
+//		TRACE(<< "touch began = " << ruis::Vec2r(p.x * scale, p.y * scale).rounded() << std::endl)
 		handle_mouse_button(
-				mordavokne::inst(),
+				ruisapp::inst(),
 				true,
-				morda::Vec2r(p.x * scale, p.y * scale).rounded(),
-				morda::MouseButton_e::LEFT,
+				ruis::Vec2r(p.x * scale, p.y * scale).rounded(),
+				ruis::MouseButton_e::LEFT,
 				0 //TODO: id
 			);
 	}
@@ -203,10 +203,10 @@ namespace{
 	for(UITouch * touch in touches ){
 		CGPoint p = [touch locationInView:self.view ];
 
-//		TRACE(<< "touch moved = " << morda::Vec2r(p.x * scale, p.y * scale).rounded() << std::endl)
+//		TRACE(<< "touch moved = " << ruis::Vec2r(p.x * scale, p.y * scale).rounded() << std::endl)
 		handle_mouse_move(
-				mordavokne::inst(),
-				morda::Vec2r(p.x * scale, p.y * scale).rounded(),
+				ruisapp::inst(),
+				ruis::Vec2r(p.x * scale, p.y * scale).rounded(),
 				0 //TODO: id
 			);
 	}
@@ -218,12 +218,12 @@ namespace{
 	for(UITouch * touch in touches ){
 		CGPoint p = [touch locationInView:self.view ];
 
-//		TRACE(<< "touch ended = " << morda::Vec2r(p.x * scale, p.y * scale).rounded() << std::endl)
+//		TRACE(<< "touch ended = " << ruis::Vec2r(p.x * scale, p.y * scale).rounded() << std::endl)
 		handle_mouse_button(
-				mordavokne::inst(),
+				ruisapp::inst(),
 				false,
-				morda::Vec2r(p.x * scale, p.y * scale).rounded(),
-				morda::MouseButton_e::LEFT,
+				ruis::Vec2r(p.x * scale, p.y * scale).rounded(),
+				ruis::MouseButton_e::LEFT,
 				0 // TODO: id
 			);
 	}
@@ -249,9 +249,9 @@ void application::set_fullscreen(bool enable){
 			w.rootViewController.view.frame = rect;
 		}
 		update_window_rect(
-				morda::rectangle(
-						morda::vector2(0),
-						morda::vector2(
+				ruis::rectangle(
+						ruis::vector2(0),
+						ruis::vector2(
 								round(w.frame.size.width * scale),
 								round(w.frame.size.height * scale)
 							)
@@ -269,9 +269,9 @@ void application::set_fullscreen(bool enable){
 		}
 
 		update_window_rect(
-				morda::rectangle(
-						morda::vector2(0),
-						morda::vector2(
+				ruis::rectangle(
+						ruis::vector2(0),
+						ruis::vector2(
 								round(w.frame.size.width * scale),
 								round((w.frame.size.height - statusBarSize.height) * scale)
 							)
@@ -286,10 +286,10 @@ void application::quit()noexcept{
 }
 
 namespace{
-morda::real getDotsPerInch(){
+ruis::real getDotsPerInch(){
 	float scale = [[UIScreen mainScreen] scale];
 
-	morda::real value;
+	ruis::real value;
 
 	if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
 		value = 132 * scale;
@@ -304,21 +304,21 @@ morda::real getDotsPerInch(){
 }
 
 namespace{
-morda::real getDotsPerDp(){
+ruis::real getDotsPerDp(){
 	float scale = [[UIScreen mainScreen] scale];
 
 	//TODO: use get_pixels_per_pp() function from morda util
 
-	return morda::real(scale);
+	return ruis::real(scale);
 }
 }
 
 application::application(std::string name, const window_params& wp) :
 		name(name),
 		window_pimpl(utki::makeUnique<WindowWrapper>(wp)),
-		gui(utki::make_shared<morda::context>(
-				utki::make_shared<morda::render_opengles::renderer>(),
-				utki::make_shared<morda::updater>(),
+		gui(utki::make_shared<ruis::context>(
+				utki::make_shared<ruis::render_opengles::renderer>(),
+				utki::make_shared<ruis::updater>(),
 				[this](std::function<void()> a){
 					auto p = reinterpret_cast<NSInteger>(new std::function<void()>(std::move(a)));
 
@@ -327,7 +327,7 @@ application::application(std::string name, const window_params& wp) :
 						(*m)();
 					});
 				},
-				[this](morda::mouse_cursor){},
+				[this](ruis::mouse_cursor){},
 				getDotsPerInch(),
 				getDotsPerDp()
 			)),

@@ -58,25 +58,25 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 using namespace std::string_view_literals;
 
-using namespace mordavokne;
+using namespace ruisapp;
 
 namespace {
-const std::map<morda::mouse_cursor, unsigned> x_cursor_map = {
-	{			   morda::mouse_cursor::arrow,            XC_left_ptr},
-	{    morda::mouse_cursor::left_right_arrow,   XC_sb_h_double_arrow},
-	{	   morda::mouse_cursor::up_down_arrow,   XC_sb_v_double_arrow},
-	{morda::mouse_cursor::all_directions_arrow,               XC_fleur},
-	{		   morda::mouse_cursor::left_side,           XC_left_side},
-	{		  morda::mouse_cursor::right_side,          XC_right_side},
-	{			morda::mouse_cursor::top_side,            XC_top_side},
-	{		 morda::mouse_cursor::bottom_side,         XC_bottom_side},
-	{	 morda::mouse_cursor::top_left_corner,     XC_top_left_corner},
-	{    morda::mouse_cursor::top_right_corner,    XC_top_right_corner},
-	{  morda::mouse_cursor::bottom_left_corner,  XC_bottom_left_corner},
-	{ morda::mouse_cursor::bottom_right_corner, XC_bottom_right_corner},
-	{		morda::mouse_cursor::index_finger,               XC_hand2},
-	{				morda::mouse_cursor::grab,               XC_hand1},
-	{			   morda::mouse_cursor::caret,               XC_xterm}
+const std::map<ruis::mouse_cursor, unsigned> x_cursor_map = {
+	{			   ruis::mouse_cursor::arrow,            XC_left_ptr},
+	{    ruis::mouse_cursor::left_right_arrow,   XC_sb_h_double_arrow},
+	{	   ruis::mouse_cursor::up_down_arrow,   XC_sb_v_double_arrow},
+	{ruis::mouse_cursor::all_directions_arrow,               XC_fleur},
+	{		   ruis::mouse_cursor::left_side,           XC_left_side},
+	{		  ruis::mouse_cursor::right_side,          XC_right_side},
+	{			ruis::mouse_cursor::top_side,            XC_top_side},
+	{		 ruis::mouse_cursor::bottom_side,         XC_bottom_side},
+	{	 ruis::mouse_cursor::top_left_corner,     XC_top_left_corner},
+	{    ruis::mouse_cursor::top_right_corner,    XC_top_right_corner},
+	{  ruis::mouse_cursor::bottom_left_corner,  XC_bottom_left_corner},
+	{ ruis::mouse_cursor::bottom_right_corner, XC_bottom_right_corner},
+	{		ruis::mouse_cursor::index_finger,               XC_hand2},
+	{				ruis::mouse_cursor::grab,               XC_hand1},
+	{			   ruis::mouse_cursor::caret,               XC_xterm}
 };
 } // namespace
 
@@ -110,7 +110,7 @@ struct window_wrapper : public utki::destructable {
 	Colormap color_map;
 	::Window window;
 
-	morda::real scale_factor = 1;
+	ruis::real scale_factor = 1;
 
 #ifdef MORDAVOKNE_RENDER_OPENGL
 	GLXContext gl_context;
@@ -131,10 +131,10 @@ struct window_wrapper : public utki::destructable {
 		window_wrapper& owner;
 		Cursor cursor;
 
-		cursor_wrapper(window_wrapper& owner, morda::mouse_cursor c) :
+		cursor_wrapper(window_wrapper& owner, ruis::mouse_cursor c) :
 			owner(owner)
 		{
-			if (c == morda::mouse_cursor::none) {
+			if (c == ruis::mouse_cursor::none) {
 				std::array<char, 1> data = {0};
 
 				Pixmap blank =
@@ -170,14 +170,14 @@ struct window_wrapper : public utki::destructable {
 
 	cursor_wrapper* cur_cursor = nullptr;
 	bool cursor_visible = true;
-	std::map<morda::mouse_cursor, std::unique_ptr<cursor_wrapper>> cursors;
+	std::map<ruis::mouse_cursor, std::unique_ptr<cursor_wrapper>> cursors;
 
 	void apply_cursor(cursor_wrapper& c)
 	{
 		XDefineCursor(this->display.display, this->window, c.cursor);
 	}
 
-	cursor_wrapper* get_cursor(morda::mouse_cursor c)
+	cursor_wrapper* get_cursor(ruis::mouse_cursor c)
 	{
 		auto i = this->cursors.find(c);
 		if (i == this->cursors.end()) {
@@ -186,7 +186,7 @@ struct window_wrapper : public utki::destructable {
 		return i->second.get();
 	}
 
-	void set_cursor(morda::mouse_cursor c)
+	void set_cursor(ruis::mouse_cursor c)
 	{
 		this->cur_cursor = this->get_cursor(c);
 
@@ -205,7 +205,7 @@ struct window_wrapper : public utki::destructable {
 				XUndefineCursor(this->display.display, this->window);
 			}
 		} else {
-			this->apply_cursor(*this->get_cursor(morda::mouse_cursor::none));
+			this->apply_cursor(*this->get_cursor(ruis::mouse_cursor::none));
 		}
 	}
 
@@ -235,7 +235,7 @@ struct window_wrapper : public utki::destructable {
 
 			// GDK-3 version
 			int sf = gdk_window_get_scale_factor(gdk_get_default_root_window());
-			this->scale_factor = morda::real(sf);
+			this->scale_factor = ruis::real(sf);
 
 			std::cout << "display scale factor = " << this->scale_factor << std::endl;
 		}
@@ -474,7 +474,7 @@ struct window_wrapper : public utki::destructable {
 				PointerMotionMask | ButtonMotionMask | StructureNotifyMask | EnterWindowMask | LeaveWindowMask;
 			unsigned long fields = CWBorderPixel | CWColormap | CWEventMask;
 
-			auto dims = (this->scale_factor * wp.dims.to<morda::real>()).to<unsigned>();
+			auto dims = (this->scale_factor * wp.dims.to<ruis::real>()).to<unsigned>();
 
 			this->window = XCreateWindow(
 				this->display.display,
@@ -831,31 +831,31 @@ window_wrapper& get_impl(application& app)
 } // namespace
 
 namespace {
-morda::real get_dots_per_inch(Display* display)
+ruis::real get_dots_per_inch(Display* display)
 {
 	int src_num = 0;
 
 	constexpr auto mm_per_cm = 10;
 
-	morda::real value =
+	ruis::real value =
 		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-		((morda::real(DisplayWidth(display, src_num))
+		((ruis::real(DisplayWidth(display, src_num))
 		  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-		  / (morda::real(DisplayWidthMM(display, src_num)) / morda::real(mm_per_cm)))
+		  / (ruis::real(DisplayWidthMM(display, src_num)) / ruis::real(mm_per_cm)))
 		 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-		 + (morda::real(DisplayHeight(display, src_num))
+		 + (ruis::real(DisplayHeight(display, src_num))
 			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			/ (morda::real(DisplayHeightMM(display, src_num)) / morda::real(mm_per_cm)))) /
+			/ (ruis::real(DisplayHeightMM(display, src_num)) / ruis::real(mm_per_cm)))) /
 		2;
 	constexpr auto cm_per_inch = 2.54;
-	value *= morda::real(cm_per_inch);
+	value *= ruis::real(cm_per_inch);
 	return value;
 }
 
-morda::real get_dots_per_pp(window_wrapper& ww)
+ruis::real get_dots_per_pp(window_wrapper& ww)
 {
 	// TODO: use scale factor only for desktop monitors
-	if (ww.scale_factor != morda::real(1)) {
+	if (ww.scale_factor != ruis::real(1)) {
 		return ww.scale_factor;
 	}
 
@@ -880,19 +880,19 @@ morda::real get_dots_per_pp(window_wrapper& ww)
 application::application(std::string name, const window_params& wp) :
 	name(std::move(name)),
 	window_pimpl(std::make_unique<window_wrapper>(wp)),
-	gui(utki::make_shared<morda::context>(
+	gui(utki::make_shared<ruis::context>(
 #ifdef MORDAVOKNE_RENDER_OPENGL
-		utki::make_shared<morda::render_opengl::renderer>(),
+		utki::make_shared<ruis::render_opengl::renderer>(),
 #elif defined(MORDAVOKNE_RENDER_OPENGLES)
-		utki::make_shared<morda::render_opengles::renderer>(),
+		utki::make_shared<ruis::render_opengles::renderer>(),
 #else
 #	error "Unknown graphics API"
 #endif
-		utki::make_shared<morda::updater>(),
+		utki::make_shared<ruis::updater>(),
 		[this](std::function<void()> a) {
 			get_impl(get_window_pimpl(*this)).ui_queue.push_back(std::move(a));
 		},
-		[this](morda::mouse_cursor c) {
+		[this](ruis::mouse_cursor c) {
 			auto& ww = get_impl(*this);
 			ww.set_cursor(c);
 		},
@@ -904,7 +904,7 @@ application::application(std::string name, const window_params& wp) :
 #ifdef MORDAVOKNE_RASPBERRYPI
 	this->set_fullscreen(true);
 #else
-	this->update_window_rect(morda::rectangle(0, 0, morda::real(wp.dims.x()), morda::real(wp.dims.y())));
+	this->update_window_rect(ruis::rectangle(0, 0, ruis::real(wp.dims.x()), ruis::real(wp.dims.y())));
 #endif
 }
 
@@ -918,287 +918,287 @@ public:
 	{}
 };
 
-morda::mouse_button button_number_to_enum(unsigned number)
+ruis::mouse_button button_number_to_enum(unsigned number)
 {
 	switch (number) {
 		case 1: // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-			return morda::mouse_button::left;
+			return ruis::mouse_button::left;
 		default:
 		case 2: // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-			return morda::mouse_button::middle;
+			return ruis::mouse_button::middle;
 		case 3: // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-			return morda::mouse_button::right;
+			return ruis::mouse_button::right;
 		case 4: // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-			return morda::mouse_button::wheel_up;
+			return ruis::mouse_button::wheel_up;
 		case 5: // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-			return morda::mouse_button::wheel_down;
+			return ruis::mouse_button::wheel_down;
 		case 6: // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-			return morda::mouse_button::wheel_left;
+			return ruis::mouse_button::wheel_left;
 		case 7: // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-			return morda::mouse_button::wheel_right;
+			return ruis::mouse_button::wheel_right;
 	}
 }
 
-const std::array<morda::key, size_t(std::numeric_limits<uint8_t>::max()) + 1> key_code_map = {
-	{morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::escape, // 9
-	 morda::key::one, // 10
-	 morda::key::two, // 11
-	 morda::key::three, // 12
-	 morda::key::four, // 13
-	 morda::key::five, // 14
-	 morda::key::six, // 15
-	 morda::key::seven, // 16
-	 morda::key::eight, // 17
-	 morda::key::nine, // 18
-	 morda::key::zero, // 19
-	 morda::key::minus, // 20
-	 morda::key::equals, // 21
-	 morda::key::backspace, // 22
-	 morda::key::tabulator, // 23
-	 morda::key::q, // 24
-	 morda::key::w, // 25
-	 morda::key::e, // 26
-	 morda::key::r, // 27
-	 morda::key::t, // 28
-	 morda::key::y, // 29
-	 morda::key::u, // 30
-	 morda::key::i, // 31
-	 morda::key::o, // 32
-	 morda::key::p, // 33
-	 morda::key::left_square_bracket, // 34
-	 morda::key::right_square_bracket, // 35
-	 morda::key::enter, // 36
-	 morda::key::left_control, // 37
-	 morda::key::a, // 38
-	 morda::key::s, // 39
-	 morda::key::d, // 40
-	 morda::key::f, // 41
-	 morda::key::g, // 42
-	 morda::key::h, // 43
-	 morda::key::j, // 44
-	 morda::key::k, // 45
-	 morda::key::l, // 46
-	 morda::key::semicolon, // 47
-	 morda::key::apostrophe, // 48
-	 morda::key::grave, // 49
-	 morda::key::left_shift, // 50
-	 morda::key::backslash, // 51
-	 morda::key::z, // 52
-	 morda::key::x, // 53
-	 morda::key::c, // 54
-	 morda::key::v, // 55
-	 morda::key::b, // 56
-	 morda::key::n, // 57
-	 morda::key::m, // 58
-	 morda::key::comma, // 59
-	 morda::key::period, // 60
-	 morda::key::slash, // 61
-	 morda::key::right_shift, // 62
-	 morda::key::unknown,
-	 morda::key::left_alt, // 64
-	 morda::key::space, // 65
-	 morda::key::capslock, // 66
-	 morda::key::f1, // 67
-	 morda::key::f2, // 68
-	 morda::key::f3, // 69
-	 morda::key::f4, // 70
-	 morda::key::f5, // 71
-	 morda::key::f6, // 72
-	 morda::key::f7, // 73
-	 morda::key::f8, // 74
-	 morda::key::f9, // 75
-	 morda::key::f10, // 76
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::f11, // 95
-	 morda::key::f12, // 96
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::right_control, // 105
-	 morda::key::unknown,
-	 morda::key::print_screen, // 107
-	 morda::key::right_alt, // 108
-	 morda::key::unknown,
-	 morda::key::home, // 110
-	 morda::key::arrow_up, // 111
-	 morda::key::page_up, // 112
-	 morda::key::arrow_left, // 113
-	 morda::key::arrow_right, // 114
-	 morda::key::end, // 115
-	 morda::key::arrow_down, // 116
-	 morda::key::page_down, // 117
-	 morda::key::insert, // 118
-	 morda::key::deletion, // 119
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::pause, // 127
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::left_command, // 133
-	 morda::key::unknown,
-	 morda::key::menu, // 135
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown,
-	 morda::key::unknown}
+const std::array<ruis::key, size_t(std::numeric_limits<uint8_t>::max()) + 1> key_code_map = {
+	{ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::escape, // 9
+	 ruis::key::one, // 10
+	 ruis::key::two, // 11
+	 ruis::key::three, // 12
+	 ruis::key::four, // 13
+	 ruis::key::five, // 14
+	 ruis::key::six, // 15
+	 ruis::key::seven, // 16
+	 ruis::key::eight, // 17
+	 ruis::key::nine, // 18
+	 ruis::key::zero, // 19
+	 ruis::key::minus, // 20
+	 ruis::key::equals, // 21
+	 ruis::key::backspace, // 22
+	 ruis::key::tabulator, // 23
+	 ruis::key::q, // 24
+	 ruis::key::w, // 25
+	 ruis::key::e, // 26
+	 ruis::key::r, // 27
+	 ruis::key::t, // 28
+	 ruis::key::y, // 29
+	 ruis::key::u, // 30
+	 ruis::key::i, // 31
+	 ruis::key::o, // 32
+	 ruis::key::p, // 33
+	 ruis::key::left_square_bracket, // 34
+	 ruis::key::right_square_bracket, // 35
+	 ruis::key::enter, // 36
+	 ruis::key::left_control, // 37
+	 ruis::key::a, // 38
+	 ruis::key::s, // 39
+	 ruis::key::d, // 40
+	 ruis::key::f, // 41
+	 ruis::key::g, // 42
+	 ruis::key::h, // 43
+	 ruis::key::j, // 44
+	 ruis::key::k, // 45
+	 ruis::key::l, // 46
+	 ruis::key::semicolon, // 47
+	 ruis::key::apostrophe, // 48
+	 ruis::key::grave, // 49
+	 ruis::key::left_shift, // 50
+	 ruis::key::backslash, // 51
+	 ruis::key::z, // 52
+	 ruis::key::x, // 53
+	 ruis::key::c, // 54
+	 ruis::key::v, // 55
+	 ruis::key::b, // 56
+	 ruis::key::n, // 57
+	 ruis::key::m, // 58
+	 ruis::key::comma, // 59
+	 ruis::key::period, // 60
+	 ruis::key::slash, // 61
+	 ruis::key::right_shift, // 62
+	 ruis::key::unknown,
+	 ruis::key::left_alt, // 64
+	 ruis::key::space, // 65
+	 ruis::key::capslock, // 66
+	 ruis::key::f1, // 67
+	 ruis::key::f2, // 68
+	 ruis::key::f3, // 69
+	 ruis::key::f4, // 70
+	 ruis::key::f5, // 71
+	 ruis::key::f6, // 72
+	 ruis::key::f7, // 73
+	 ruis::key::f8, // 74
+	 ruis::key::f9, // 75
+	 ruis::key::f10, // 76
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::f11, // 95
+	 ruis::key::f12, // 96
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::right_control, // 105
+	 ruis::key::unknown,
+	 ruis::key::print_screen, // 107
+	 ruis::key::right_alt, // 108
+	 ruis::key::unknown,
+	 ruis::key::home, // 110
+	 ruis::key::arrow_up, // 111
+	 ruis::key::page_up, // 112
+	 ruis::key::arrow_left, // 113
+	 ruis::key::arrow_right, // 114
+	 ruis::key::end, // 115
+	 ruis::key::arrow_down, // 116
+	 ruis::key::page_down, // 117
+	 ruis::key::insert, // 118
+	 ruis::key::deletion, // 119
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::pause, // 127
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::left_command, // 133
+	 ruis::key::unknown,
+	 ruis::key::menu, // 135
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown,
+	 ruis::key::unknown}
 };
 
-class key_event_unicode_provider : public morda::gui::input_string_provider
+class key_event_unicode_provider : public ruis::gui::input_string_provider
 {
 	XIC& xic;
 	XEvent& event;
@@ -1280,7 +1280,7 @@ int main(int argc, const char** argv)
 		gdk_init(&c, &p);
 	}
 
-	std::unique_ptr<mordavokne::application> app = create_app_unix(argc, argv);
+	std::unique_ptr<ruisapp::application> app = create_app_unix(argc, argv);
 	if (!app) {
 		return 0;
 	}
@@ -1323,7 +1323,7 @@ int main(int argc, const char** argv)
 			}
 		}
 
-		morda::vector2 new_win_dims(-1, -1);
+		ruis::vector2 new_win_dims(-1, -1);
 
 		// NOTE: do not check 'read' flag for X event, for some reason when waiting
 		// with 0 timeout it will never be set.
@@ -1348,15 +1348,15 @@ int main(int argc, const char** argv)
 					//"ConfigureNotify X event got" << std::endl)
 					// squash all window resize events into one, for that store the new
 					// window dimensions and update the viewport later only once
-					new_win_dims.x() = morda::real(event.xconfigure.width);
-					new_win_dims.y() = morda::real(event.xconfigure.height);
+					new_win_dims.x() = ruis::real(event.xconfigure.width);
+					new_win_dims.y() = ruis::real(event.xconfigure.height);
 					break;
 				case KeyPress:
 					//						TRACE(<< "KeyPress X
 					// event got" << std::endl)
 					{
 						// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
-						morda::key key = key_code_map[std::uint8_t(event.xkey.keycode)];
+						ruis::key key = key_code_map[std::uint8_t(event.xkey.keycode)];
 						handle_key_event(*app, true, key);
 						handle_character_input(*app, key_event_unicode_provider(ww.input_context, event), key);
 					}
@@ -1366,7 +1366,7 @@ int main(int argc, const char** argv)
 					// event got" << std::endl)
 					{
 						// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
-						morda::key key = key_code_map[std::uint8_t(event.xkey.keycode)];
+						ruis::key key = key_code_map[std::uint8_t(event.xkey.keycode)];
 
 						// detect auto-repeated key events
 						if (XEventsQueued(ww.display.display, QueuedAfterReading)) { // if there are other events queued
@@ -1396,7 +1396,7 @@ int main(int argc, const char** argv)
 					handle_mouse_button(
 						*app,
 						true,
-						morda::vector2(event.xbutton.x, event.xbutton.y),
+						ruis::vector2(event.xbutton.x, event.xbutton.y),
 						button_number_to_enum(event.xbutton.button),
 						0
 					);
@@ -1407,7 +1407,7 @@ int main(int argc, const char** argv)
 					handle_mouse_button(
 						*app,
 						false,
-						morda::vector2(event.xbutton.x, event.xbutton.y),
+						ruis::vector2(event.xbutton.x, event.xbutton.y),
 						button_number_to_enum(event.xbutton.button),
 						0
 					);
@@ -1415,7 +1415,7 @@ int main(int argc, const char** argv)
 				case MotionNotify:
 					//						TRACE(<< "MotionNotify X
 					// event got" << std::endl)
-					handle_mouse_move(*app, morda::vector2(event.xmotion.x, event.xmotion.y), 0);
+					handle_mouse_move(*app, ruis::vector2(event.xmotion.x, event.xmotion.y), 0);
 					break;
 				case EnterNotify:
 					handle_mouse_hover(*app, true, 0);
@@ -1453,7 +1453,7 @@ int main(int argc, const char** argv)
 		}
 
 		if (new_win_dims.is_positive_or_zero()) {
-			update_window_rect(*app, morda::rectangle(0, new_win_dims));
+			update_window_rect(*app, ruis::rectangle(0, new_win_dims));
 		}
 
 		render(*app);

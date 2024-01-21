@@ -35,7 +35,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 // NOLINTNEXTLINE(bugprone-suspicious-include)
 #include "../friend_accessors.cxx"
 
-using namespace mordavokne;
+using namespace ruisapp;
 
 namespace {
 constexpr const char* window_class_name = "MordavokneWindowClassName";
@@ -51,7 +51,7 @@ struct window_wrapper : public utki::destructable {
 
 	bool isHovered = false; // for tracking when mouse enters or leaves window.
 
-	utki::flags<morda::mouse_button> mouseButtonState;
+	utki::flags<ruis::mouse_button> mouseButtonState;
 
 	bool mouseCursorIsCurrentlyVisible = true;
 
@@ -75,266 +75,266 @@ window_wrapper& get_impl(const std::unique_ptr<utki::destructable>& pimpl)
 } // namespace
 
 namespace {
-const std::array<morda::key, std::numeric_limits<uint8_t>::max() + 1> key_code_map = {
-	morda::key::unknown, // Undefined
-	morda::key::unknown, // VK_LBUTTON
-	morda::key::unknown, // VK_RBUTTON
-	morda::key::unknown, // VK_CANCEL
-	morda::key::unknown, // VK_MBUTTON
-	morda::key::unknown, // VK_XBUTTON1, 5
-	morda::key::unknown, // VK_XBUTTON2
-	morda::key::unknown, // Undefined
-	morda::key::backspace, // VK_BACK = backspace key
-	morda::key::tabulator, // VK_TAB
-	morda::key::unknown, // Reserved, 10
-	morda::key::unknown, // Reserved
-	morda::key::unknown, // VK_CLEAR = clear key???
-	morda::key::enter, // VK_RETURN
-	morda::key::unknown, // Undefined
-	morda::key::unknown, // Undefined, 15
-	morda::key::left_shift, // VK_SHIFT
-	morda::key::left_control, // VK_CONTROL
-	morda::key::left_alt, // VK_MENU = alt key
-	morda::key::pause, // VK_PAUSE
-	morda::key::capslock, // VK_CAPITAL = caps lock key, 20
-	morda::key::unknown, // VK_KANA, VK_HANGUEL, VK_HANGUL
-	morda::key::unknown, // Undefined
-	morda::key::unknown, // VK_JUNJA
-	morda::key::unknown, // VK_FINAL
-	morda::key::unknown, // VK_HANJA, VK_KANJI, 25
-	morda::key::unknown, // Undefined
-	morda::key::escape, // VK_ESCAPE
-	morda::key::unknown, // VK_CONVERT
-	morda::key::unknown, // VK_NONCONVERT
-	morda::key::unknown, // VK_ACCEPT, 30
-	morda::key::unknown, // VK_MODECHANGE
-	morda::key::space, // VK_SPACE = space bar key
-	morda::key::page_up, // VK_PRIOR = page up key
-	morda::key::page_down, // VK_NEXT = page down key
-	morda::key::end, // VK_END, 35
-	morda::key::home, // VK_HOME
-	morda::key::arrow_left, // VK_LEFT
-	morda::key::arrow_up, // VK_UP
-	morda::key::arrow_right, // VK_RIGHT
-	morda::key::arrow_down, // VK_DOWN, 40
-	morda::key::unknown, // VK_SELECT
-	morda::key::unknown, // VK_PRINT
-	morda::key::unknown, // VK_EXECUTE
-	morda::key::print_screen, // VK_SNAPSHOT = print screen key
-	morda::key::insert, // VK_INSERT, 45
-	morda::key::deletion, // VK_DELETE
-	morda::key::unknown, // VK_HELP
-	morda::key::zero, // 0 key
-	morda::key::one, // 1 key
-	morda::key::two, // 2 key, 50
-	morda::key::three, // 3 key
-	morda::key::four, // 4 key
-	morda::key::five, // 5 key
-	morda::key::six, // 6 key
-	morda::key::seven, // 7 key, 55
-	morda::key::eight, // 8 key
-	morda::key::nine, // 9 key
-	morda::key::unknown, // Undefined
-	morda::key::unknown, // Undefined
-	morda::key::unknown, // Undefined, 60
-	morda::key::unknown, // Undefined
-	morda::key::unknown, // Undefined
-	morda::key::unknown, // Undefined
-	morda::key::unknown, // Undefined
-	morda::key::a, // A key, 65
-	morda::key::b, // B key
-	morda::key::c, // C key
-	morda::key::d, // D key
-	morda::key::e, // E key
-	morda::key::f, // F key, 70
-	morda::key::g, // G key
-	morda::key::h, // H key
-	morda::key::i, // I key
-	morda::key::j, // J key
-	morda::key::k, // K key, 75
-	morda::key::l, // L key
-	morda::key::m, // M key
-	morda::key::n, // N key
-	morda::key::o, // O key
-	morda::key::p, // P key, 80
-	morda::key::q, // Q key
-	morda::key::r, // R key
-	morda::key::s, // S key
-	morda::key::t, // T key
-	morda::key::u, // U key, 85
-	morda::key::v, // V key
-	morda::key::w, // W key
-	morda::key::x, // X key
-	morda::key::y, // Y key
-	morda::key::z, // Z key, 90
-	morda::key::left_command, // VK_LWIN = left windows key
-	morda::key::right_command, // VK_RWIN = right windows key
-	morda::key::unknown, // VK_APPS = applications key
-	morda::key::unknown, // Reserved
-	morda::key::unknown, // VK_SLEEP = computer sleep key, 95
-	morda::key::zero, // VK_NUMPAD0 = numeric keypad 0 key
-	morda::key::one, // VK_NUMPAD1 = numeric keypad 1 key
-	morda::key::two, // VK_NUMPAD2 = numeric keypad 2 key
-	morda::key::three, // VK_NUMPAD3 = numeric keypad 3 key
-	morda::key::four, // VK_NUMPAD4 = numeric keypad 4 key, 100
-	morda::key::five, // VK_NUMPAD5 = numeric keypad 5 key
-	morda::key::six, // VK_NUMPAD6 = numeric keypad 6 key
-	morda::key::seven, // VK_NUMPAD7 = numeric keypad 7 key
-	morda::key::eight, // VK_NUMPAD8 = numeric keypad 8 key
-	morda::key::nine, // VK_NUMPAD9 = numeric keypad 9 key, 105
-	morda::key::unknown, // VK_MULTIPLY = multiply key
-	morda::key::unknown, // VK_ADD
-	morda::key::unknown, // VK_SEPARATOR
-	morda::key::unknown, // VK_SUBTRACT
-	morda::key::unknown, // VK_DECIMAL, 110
-	morda::key::unknown, // VK_DIVIDE
-	morda::key::f1, // VK_F1
-	morda::key::f2, // VK_F2
-	morda::key::f3, // VK_F3
-	morda::key::f4, // VK_F4, 115
-	morda::key::f5, // VK_F5
-	morda::key::f6, // VK_F6
-	morda::key::f7, // VK_F7
-	morda::key::f8, // VK_F8
-	morda::key::f9, // VK_F9, 120
-	morda::key::f10, // VK_F10
-	morda::key::f11, // VK_F11
-	morda::key::f12, // VK_F12
-	morda::key::unknown, // VK_F13
-	morda::key::unknown, // VK_F14, 125
-	morda::key::unknown, // VK_F15
-	morda::key::unknown, // VK_F16
-	morda::key::unknown, // VK_F17
-	morda::key::unknown, // VK_F18
-	morda::key::unknown, // VK_F19, 130
-	morda::key::unknown, // VK_F20
-	morda::key::unknown, // VK_F21
-	morda::key::unknown, // VK_F22
-	morda::key::unknown, // VK_F23
-	morda::key::unknown, // VK_F24, 135
-	morda::key::unknown, // Unassigned
-	morda::key::unknown, // Unassigned
-	morda::key::unknown, // Unassigned
-	morda::key::unknown, // Unassigned
-	morda::key::unknown, // Unassigned, 140
-	morda::key::unknown, // Unassigned
-	morda::key::unknown, // Unassigned
-	morda::key::unknown, // Unassigned
-	morda::key::unknown, // VK_NUMLOCK
-	morda::key::unknown, // VK_SCROLL = scroll lock key, 145
-	morda::key::unknown, // OEM specific
-	morda::key::unknown, // OEM specific
-	morda::key::unknown, // OEM specific
-	morda::key::unknown, // OEM specific
-	morda::key::unknown, // OEM specific, 150
-	morda::key::unknown, // Unassigned
-	morda::key::unknown, // Unassigned
-	morda::key::unknown, // Unassigned
-	morda::key::unknown, // Unassigned
-	morda::key::unknown, // Unassigned, 155
-	morda::key::unknown, // Unassigned
-	morda::key::unknown, // Unassigned
-	morda::key::unknown, // Unassigned
-	morda::key::unknown, // Unassigned
-	morda::key::left_shift, // VK_LSHIFT, 160
-	morda::key::right_shift, // VK_RSHIFT
-	morda::key::left_control, // VK_LCONTROL
-	morda::key::right_control, // VK_RCONTROL
-	morda::key::menu, // VK_LMENU = left menu key
-	morda::key::menu, // VK_RMENU, 165
-	morda::key::unknown, // VK_BROWSER_BACK
-	morda::key::unknown, // VK_BROWSER_FORWARD
-	morda::key::unknown, // VK_BROWSER_REFRESH
-	morda::key::unknown, // VK_BROWSER_STOP
-	morda::key::unknown, // VK_BROWSER_SEARCH, 170
-	morda::key::unknown, // VK_BROWSER_FAVORITES
-	morda::key::unknown, // VK_BROWSER_HOME
-	morda::key::unknown, // VK_VOLUME_MUTE
-	morda::key::unknown, // VK_VOLUME_DOWN
-	morda::key::unknown, // VK_VOLUME_UP, 175
-	morda::key::unknown, // VK_MEDIA_NEXT_TRACK
-	morda::key::unknown, // VK_MEDIA_PREV_TRACK
-	morda::key::unknown, // VK_MEDIA_STOP
-	morda::key::unknown, // VK_MEDIA_PLAY_PAUSE
-	morda::key::unknown, // VK_LAUNCH_MAIL, 180
-	morda::key::unknown, // VK_LAUNCH_MEDIA_SELECT
-	morda::key::unknown, // VK_LAUNCH_APP1
-	morda::key::unknown, // VK_LAUNCH_APP2
-	morda::key::unknown, // Reserved
-	morda::key::unknown, // Reserved, 185
-	morda::key::unknown, // VK_OEM_1
-	morda::key::unknown, // VK_OEM_PLUS
-	morda::key::unknown, // VK_OEM_COMMA
-	morda::key::unknown, // VK_OEM_MINUS
-	morda::key::unknown, // VK_OEM_PERIOD, 190
-	morda::key::unknown, // VK_OEM_2
-	morda::key::unknown, // VK_OEM_3
-	morda::key::unknown, // Reserved
-	morda::key::unknown, // Reserved
-	morda::key::unknown, // Reserved, 195
-	morda::key::unknown, // Reserved
-	morda::key::unknown, // Reserved
-	morda::key::unknown, // Reserved
-	morda::key::unknown, // Reserved
-	morda::key::unknown, // Reserved, 200
-	morda::key::unknown, // Reserved
-	morda::key::unknown, // Reserved
-	morda::key::unknown, // Reserved
-	morda::key::unknown, // Reserved
-	morda::key::unknown, // Reserved, 205
-	morda::key::unknown, // Reserved
-	morda::key::unknown, // Reserved
-	morda::key::unknown, // Reserved
-	morda::key::unknown, // Reserved
-	morda::key::unknown, // Reserved, 210
-	morda::key::unknown, // Reserved
-	morda::key::unknown, // Reserved
-	morda::key::unknown, // Reserved
-	morda::key::unknown, // Reserved
-	morda::key::unknown, // Reserved, 215
-	morda::key::unknown, // Unassigned
-	morda::key::unknown, // Unassigned
-	morda::key::unknown, // Unassigned
-	morda::key::unknown, // VK_OEM_4
-	morda::key::unknown, // VK_OEM_5, 220
-	morda::key::unknown, // VK_OEM_6
-	morda::key::unknown, // VK_OEM_7
-	morda::key::unknown, // VK_OEM_8
-	morda::key::unknown, // Reserved
-	morda::key::unknown, // OEM specific, 225
-	morda::key::unknown, // VK_OEM_102
-	morda::key::unknown, // OEM specific
-	morda::key::unknown, // OEM specific
-	morda::key::unknown, // VK_PROCESSKEY
-	morda::key::unknown, // OEM specific, 230
-	morda::key::unknown, // VK_PACKET
-	morda::key::unknown, // Unassigned
-	morda::key::unknown, // OEM specific
-	morda::key::unknown, // OEM specific
-	morda::key::unknown, // OEM specific, 235
-	morda::key::unknown, // OEM specific
-	morda::key::unknown, // OEM specific
-	morda::key::unknown, // OEM specific
-	morda::key::unknown, // OEM specific
-	morda::key::unknown, // OEM specific, 240
-	morda::key::unknown, // OEM specific
-	morda::key::unknown, // OEM specific
-	morda::key::unknown, // OEM specific
-	morda::key::unknown, // OEM specific
-	morda::key::unknown, // OEM specific, 245
-	morda::key::unknown, // VK_ATTN
-	morda::key::unknown, // VK_CRSEL
-	morda::key::unknown, // VK_EXSEL
-	morda::key::unknown, // VK_EREOF
-	morda::key::unknown, // VK_PLAY, 250
-	morda::key::unknown, // VK_ZOOM
-	morda::key::unknown, // VK_NONAME
-	morda::key::unknown, // VK_PA1
-	morda::key::unknown, // VK_OEM_CLEAR
-	morda::key::unknown
+const std::array<ruis::key, std::numeric_limits<uint8_t>::max() + 1> key_code_map = {
+	ruis::key::unknown, // Undefined
+	ruis::key::unknown, // VK_LBUTTON
+	ruis::key::unknown, // VK_RBUTTON
+	ruis::key::unknown, // VK_CANCEL
+	ruis::key::unknown, // VK_MBUTTON
+	ruis::key::unknown, // VK_XBUTTON1, 5
+	ruis::key::unknown, // VK_XBUTTON2
+	ruis::key::unknown, // Undefined
+	ruis::key::backspace, // VK_BACK = backspace key
+	ruis::key::tabulator, // VK_TAB
+	ruis::key::unknown, // Reserved, 10
+	ruis::key::unknown, // Reserved
+	ruis::key::unknown, // VK_CLEAR = clear key???
+	ruis::key::enter, // VK_RETURN
+	ruis::key::unknown, // Undefined
+	ruis::key::unknown, // Undefined, 15
+	ruis::key::left_shift, // VK_SHIFT
+	ruis::key::left_control, // VK_CONTROL
+	ruis::key::left_alt, // VK_MENU = alt key
+	ruis::key::pause, // VK_PAUSE
+	ruis::key::capslock, // VK_CAPITAL = caps lock key, 20
+	ruis::key::unknown, // VK_KANA, VK_HANGUEL, VK_HANGUL
+	ruis::key::unknown, // Undefined
+	ruis::key::unknown, // VK_JUNJA
+	ruis::key::unknown, // VK_FINAL
+	ruis::key::unknown, // VK_HANJA, VK_KANJI, 25
+	ruis::key::unknown, // Undefined
+	ruis::key::escape, // VK_ESCAPE
+	ruis::key::unknown, // VK_CONVERT
+	ruis::key::unknown, // VK_NONCONVERT
+	ruis::key::unknown, // VK_ACCEPT, 30
+	ruis::key::unknown, // VK_MODECHANGE
+	ruis::key::space, // VK_SPACE = space bar key
+	ruis::key::page_up, // VK_PRIOR = page up key
+	ruis::key::page_down, // VK_NEXT = page down key
+	ruis::key::end, // VK_END, 35
+	ruis::key::home, // VK_HOME
+	ruis::key::arrow_left, // VK_LEFT
+	ruis::key::arrow_up, // VK_UP
+	ruis::key::arrow_right, // VK_RIGHT
+	ruis::key::arrow_down, // VK_DOWN, 40
+	ruis::key::unknown, // VK_SELECT
+	ruis::key::unknown, // VK_PRINT
+	ruis::key::unknown, // VK_EXECUTE
+	ruis::key::print_screen, // VK_SNAPSHOT = print screen key
+	ruis::key::insert, // VK_INSERT, 45
+	ruis::key::deletion, // VK_DELETE
+	ruis::key::unknown, // VK_HELP
+	ruis::key::zero, // 0 key
+	ruis::key::one, // 1 key
+	ruis::key::two, // 2 key, 50
+	ruis::key::three, // 3 key
+	ruis::key::four, // 4 key
+	ruis::key::five, // 5 key
+	ruis::key::six, // 6 key
+	ruis::key::seven, // 7 key, 55
+	ruis::key::eight, // 8 key
+	ruis::key::nine, // 9 key
+	ruis::key::unknown, // Undefined
+	ruis::key::unknown, // Undefined
+	ruis::key::unknown, // Undefined, 60
+	ruis::key::unknown, // Undefined
+	ruis::key::unknown, // Undefined
+	ruis::key::unknown, // Undefined
+	ruis::key::unknown, // Undefined
+	ruis::key::a, // A key, 65
+	ruis::key::b, // B key
+	ruis::key::c, // C key
+	ruis::key::d, // D key
+	ruis::key::e, // E key
+	ruis::key::f, // F key, 70
+	ruis::key::g, // G key
+	ruis::key::h, // H key
+	ruis::key::i, // I key
+	ruis::key::j, // J key
+	ruis::key::k, // K key, 75
+	ruis::key::l, // L key
+	ruis::key::m, // M key
+	ruis::key::n, // N key
+	ruis::key::o, // O key
+	ruis::key::p, // P key, 80
+	ruis::key::q, // Q key
+	ruis::key::r, // R key
+	ruis::key::s, // S key
+	ruis::key::t, // T key
+	ruis::key::u, // U key, 85
+	ruis::key::v, // V key
+	ruis::key::w, // W key
+	ruis::key::x, // X key
+	ruis::key::y, // Y key
+	ruis::key::z, // Z key, 90
+	ruis::key::left_command, // VK_LWIN = left windows key
+	ruis::key::right_command, // VK_RWIN = right windows key
+	ruis::key::unknown, // VK_APPS = applications key
+	ruis::key::unknown, // Reserved
+	ruis::key::unknown, // VK_SLEEP = computer sleep key, 95
+	ruis::key::zero, // VK_NUMPAD0 = numeric keypad 0 key
+	ruis::key::one, // VK_NUMPAD1 = numeric keypad 1 key
+	ruis::key::two, // VK_NUMPAD2 = numeric keypad 2 key
+	ruis::key::three, // VK_NUMPAD3 = numeric keypad 3 key
+	ruis::key::four, // VK_NUMPAD4 = numeric keypad 4 key, 100
+	ruis::key::five, // VK_NUMPAD5 = numeric keypad 5 key
+	ruis::key::six, // VK_NUMPAD6 = numeric keypad 6 key
+	ruis::key::seven, // VK_NUMPAD7 = numeric keypad 7 key
+	ruis::key::eight, // VK_NUMPAD8 = numeric keypad 8 key
+	ruis::key::nine, // VK_NUMPAD9 = numeric keypad 9 key, 105
+	ruis::key::unknown, // VK_MULTIPLY = multiply key
+	ruis::key::unknown, // VK_ADD
+	ruis::key::unknown, // VK_SEPARATOR
+	ruis::key::unknown, // VK_SUBTRACT
+	ruis::key::unknown, // VK_DECIMAL, 110
+	ruis::key::unknown, // VK_DIVIDE
+	ruis::key::f1, // VK_F1
+	ruis::key::f2, // VK_F2
+	ruis::key::f3, // VK_F3
+	ruis::key::f4, // VK_F4, 115
+	ruis::key::f5, // VK_F5
+	ruis::key::f6, // VK_F6
+	ruis::key::f7, // VK_F7
+	ruis::key::f8, // VK_F8
+	ruis::key::f9, // VK_F9, 120
+	ruis::key::f10, // VK_F10
+	ruis::key::f11, // VK_F11
+	ruis::key::f12, // VK_F12
+	ruis::key::unknown, // VK_F13
+	ruis::key::unknown, // VK_F14, 125
+	ruis::key::unknown, // VK_F15
+	ruis::key::unknown, // VK_F16
+	ruis::key::unknown, // VK_F17
+	ruis::key::unknown, // VK_F18
+	ruis::key::unknown, // VK_F19, 130
+	ruis::key::unknown, // VK_F20
+	ruis::key::unknown, // VK_F21
+	ruis::key::unknown, // VK_F22
+	ruis::key::unknown, // VK_F23
+	ruis::key::unknown, // VK_F24, 135
+	ruis::key::unknown, // Unassigned
+	ruis::key::unknown, // Unassigned
+	ruis::key::unknown, // Unassigned
+	ruis::key::unknown, // Unassigned
+	ruis::key::unknown, // Unassigned, 140
+	ruis::key::unknown, // Unassigned
+	ruis::key::unknown, // Unassigned
+	ruis::key::unknown, // Unassigned
+	ruis::key::unknown, // VK_NUMLOCK
+	ruis::key::unknown, // VK_SCROLL = scroll lock key, 145
+	ruis::key::unknown, // OEM specific
+	ruis::key::unknown, // OEM specific
+	ruis::key::unknown, // OEM specific
+	ruis::key::unknown, // OEM specific
+	ruis::key::unknown, // OEM specific, 150
+	ruis::key::unknown, // Unassigned
+	ruis::key::unknown, // Unassigned
+	ruis::key::unknown, // Unassigned
+	ruis::key::unknown, // Unassigned
+	ruis::key::unknown, // Unassigned, 155
+	ruis::key::unknown, // Unassigned
+	ruis::key::unknown, // Unassigned
+	ruis::key::unknown, // Unassigned
+	ruis::key::unknown, // Unassigned
+	ruis::key::left_shift, // VK_LSHIFT, 160
+	ruis::key::right_shift, // VK_RSHIFT
+	ruis::key::left_control, // VK_LCONTROL
+	ruis::key::right_control, // VK_RCONTROL
+	ruis::key::menu, // VK_LMENU = left menu key
+	ruis::key::menu, // VK_RMENU, 165
+	ruis::key::unknown, // VK_BROWSER_BACK
+	ruis::key::unknown, // VK_BROWSER_FORWARD
+	ruis::key::unknown, // VK_BROWSER_REFRESH
+	ruis::key::unknown, // VK_BROWSER_STOP
+	ruis::key::unknown, // VK_BROWSER_SEARCH, 170
+	ruis::key::unknown, // VK_BROWSER_FAVORITES
+	ruis::key::unknown, // VK_BROWSER_HOME
+	ruis::key::unknown, // VK_VOLUME_MUTE
+	ruis::key::unknown, // VK_VOLUME_DOWN
+	ruis::key::unknown, // VK_VOLUME_UP, 175
+	ruis::key::unknown, // VK_MEDIA_NEXT_TRACK
+	ruis::key::unknown, // VK_MEDIA_PREV_TRACK
+	ruis::key::unknown, // VK_MEDIA_STOP
+	ruis::key::unknown, // VK_MEDIA_PLAY_PAUSE
+	ruis::key::unknown, // VK_LAUNCH_MAIL, 180
+	ruis::key::unknown, // VK_LAUNCH_MEDIA_SELECT
+	ruis::key::unknown, // VK_LAUNCH_APP1
+	ruis::key::unknown, // VK_LAUNCH_APP2
+	ruis::key::unknown, // Reserved
+	ruis::key::unknown, // Reserved, 185
+	ruis::key::unknown, // VK_OEM_1
+	ruis::key::unknown, // VK_OEM_PLUS
+	ruis::key::unknown, // VK_OEM_COMMA
+	ruis::key::unknown, // VK_OEM_MINUS
+	ruis::key::unknown, // VK_OEM_PERIOD, 190
+	ruis::key::unknown, // VK_OEM_2
+	ruis::key::unknown, // VK_OEM_3
+	ruis::key::unknown, // Reserved
+	ruis::key::unknown, // Reserved
+	ruis::key::unknown, // Reserved, 195
+	ruis::key::unknown, // Reserved
+	ruis::key::unknown, // Reserved
+	ruis::key::unknown, // Reserved
+	ruis::key::unknown, // Reserved
+	ruis::key::unknown, // Reserved, 200
+	ruis::key::unknown, // Reserved
+	ruis::key::unknown, // Reserved
+	ruis::key::unknown, // Reserved
+	ruis::key::unknown, // Reserved
+	ruis::key::unknown, // Reserved, 205
+	ruis::key::unknown, // Reserved
+	ruis::key::unknown, // Reserved
+	ruis::key::unknown, // Reserved
+	ruis::key::unknown, // Reserved
+	ruis::key::unknown, // Reserved, 210
+	ruis::key::unknown, // Reserved
+	ruis::key::unknown, // Reserved
+	ruis::key::unknown, // Reserved
+	ruis::key::unknown, // Reserved
+	ruis::key::unknown, // Reserved, 215
+	ruis::key::unknown, // Unassigned
+	ruis::key::unknown, // Unassigned
+	ruis::key::unknown, // Unassigned
+	ruis::key::unknown, // VK_OEM_4
+	ruis::key::unknown, // VK_OEM_5, 220
+	ruis::key::unknown, // VK_OEM_6
+	ruis::key::unknown, // VK_OEM_7
+	ruis::key::unknown, // VK_OEM_8
+	ruis::key::unknown, // Reserved
+	ruis::key::unknown, // OEM specific, 225
+	ruis::key::unknown, // VK_OEM_102
+	ruis::key::unknown, // OEM specific
+	ruis::key::unknown, // OEM specific
+	ruis::key::unknown, // VK_PROCESSKEY
+	ruis::key::unknown, // OEM specific, 230
+	ruis::key::unknown, // VK_PACKET
+	ruis::key::unknown, // Unassigned
+	ruis::key::unknown, // OEM specific
+	ruis::key::unknown, // OEM specific
+	ruis::key::unknown, // OEM specific, 235
+	ruis::key::unknown, // OEM specific
+	ruis::key::unknown, // OEM specific
+	ruis::key::unknown, // OEM specific
+	ruis::key::unknown, // OEM specific
+	ruis::key::unknown, // OEM specific, 240
+	ruis::key::unknown, // OEM specific
+	ruis::key::unknown, // OEM specific
+	ruis::key::unknown, // OEM specific
+	ruis::key::unknown, // OEM specific
+	ruis::key::unknown, // OEM specific, 245
+	ruis::key::unknown, // VK_ATTN
+	ruis::key::unknown, // VK_CRSEL
+	ruis::key::unknown, // VK_EXSEL
+	ruis::key::unknown, // VK_EREOF
+	ruis::key::unknown, // VK_PLAY, 250
+	ruis::key::unknown, // VK_ZOOM
+	ruis::key::unknown, // VK_NONAME
+	ruis::key::unknown, // VK_PA1
+	ruis::key::unknown, // VK_OEM_CLEAR
+	ruis::key::unknown
 };
 
-class windows_input_string_provider : public morda::gui::input_string_provider
+class windows_input_string_provider : public ruis::gui::input_string_provider
 {
 	char32_t c;
 
@@ -383,7 +383,7 @@ LRESULT CALLBACK window_procedure(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_
 
 		case WM_MOUSEMOVE:
 			{
-				auto& ww = get_impl(get_window_pimpl(mordavokne::inst()));
+				auto& ww = get_impl(get_window_pimpl(ruisapp::inst()));
 				if (!ww.isHovered) {
 					TRACKMOUSEEVENT tme = {sizeof(tme)};
 					tme.dwFlags = TME_LEAVE;
@@ -407,18 +407,18 @@ LRESULT CALLBACK window_procedure(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_
 						}
 					}
 
-					handle_mouse_hover(mordavokne::inst(), true, 0);
+					handle_mouse_hover(ruisapp::inst(), true, 0);
 				}
 				handle_mouse_move(
-					mordavokne::inst(),
-					morda::vector2(float(GET_X_LPARAM(l_param)), float(GET_Y_LPARAM(l_param))),
+					ruisapp::inst(),
+					ruis::vector2(float(GET_X_LPARAM(l_param)), float(GET_Y_LPARAM(l_param))),
 					0
 				);
 				return 0;
 			}
 		case WM_MOUSELEAVE:
 			{
-				auto& ww = get_impl(get_window_pimpl(mordavokne::inst()));
+				auto& ww = get_impl(get_window_pimpl(ruisapp::inst()));
 
 				// Windows hides the mouse cursor even in non-client areas of the window,
 				// like caption bar and borders, so show cursor if it is hidden
@@ -427,18 +427,18 @@ LRESULT CALLBACK window_procedure(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_
 				}
 
 				ww.isHovered = false;
-				handle_mouse_hover(mordavokne::inst(), false, 0);
+				handle_mouse_hover(ruisapp::inst(), false, 0);
 
 				// Report mouse button up events for all pressed mouse buttons
 				for (size_t i = 0; i != ww.mouseButtonState.size(); ++i) {
-					auto btn = morda::mouse_button(i);
+					auto btn = ruis::mouse_button(i);
 					if (ww.mouseButtonState.get(btn)) {
 						ww.mouseButtonState.clear(btn);
 						constexpr auto outside_of_window_coordinate = 100000000;
 						handle_mouse_button(
-							mordavokne::inst(),
+							ruisapp::inst(),
 							false,
-							morda::vector2(outside_of_window_coordinate, outside_of_window_coordinate),
+							ruis::vector2(outside_of_window_coordinate, outside_of_window_coordinate),
 							btn,
 							0
 						);
@@ -448,78 +448,78 @@ LRESULT CALLBACK window_procedure(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_
 			}
 		case WM_LBUTTONDOWN:
 			{
-				auto& ww = get_impl(get_window_pimpl(mordavokne::inst()));
-				ww.mouseButtonState.set(morda::mouse_button::left);
+				auto& ww = get_impl(get_window_pimpl(ruisapp::inst()));
+				ww.mouseButtonState.set(ruis::mouse_button::left);
 				handle_mouse_button(
-					mordavokne::inst(),
+					ruisapp::inst(),
 					true,
-					morda::vector2(float(GET_X_LPARAM(l_param)), float(GET_Y_LPARAM(l_param))),
-					morda::mouse_button::left,
+					ruis::vector2(float(GET_X_LPARAM(l_param)), float(GET_Y_LPARAM(l_param))),
+					ruis::mouse_button::left,
 					0
 				);
 				return 0;
 			}
 		case WM_LBUTTONUP:
 			{
-				auto& ww = get_impl(get_window_pimpl(mordavokne::inst()));
-				ww.mouseButtonState.clear(morda::mouse_button::left);
+				auto& ww = get_impl(get_window_pimpl(ruisapp::inst()));
+				ww.mouseButtonState.clear(ruis::mouse_button::left);
 				handle_mouse_button(
-					mordavokne::inst(),
+					ruisapp::inst(),
 					false,
-					morda::vector2(float(GET_X_LPARAM(l_param)), float(GET_Y_LPARAM(l_param))),
-					morda::mouse_button::left,
+					ruis::vector2(float(GET_X_LPARAM(l_param)), float(GET_Y_LPARAM(l_param))),
+					ruis::mouse_button::left,
 					0
 				);
 				return 0;
 			}
 		case WM_MBUTTONDOWN:
 			{
-				auto& ww = get_impl(get_window_pimpl(mordavokne::inst()));
-				ww.mouseButtonState.set(morda::mouse_button::middle);
+				auto& ww = get_impl(get_window_pimpl(ruisapp::inst()));
+				ww.mouseButtonState.set(ruis::mouse_button::middle);
 				handle_mouse_button(
-					mordavokne::inst(),
+					ruisapp::inst(),
 					true,
-					morda::vector2(float(GET_X_LPARAM(l_param)), float(GET_Y_LPARAM(l_param))),
-					morda::mouse_button::middle,
+					ruis::vector2(float(GET_X_LPARAM(l_param)), float(GET_Y_LPARAM(l_param))),
+					ruis::mouse_button::middle,
 					0
 				);
 				return 0;
 			}
 		case WM_MBUTTONUP:
 			{
-				auto& ww = get_impl(get_window_pimpl(mordavokne::inst()));
-				ww.mouseButtonState.clear(morda::mouse_button::middle);
+				auto& ww = get_impl(get_window_pimpl(ruisapp::inst()));
+				ww.mouseButtonState.clear(ruis::mouse_button::middle);
 				handle_mouse_button(
-					mordavokne::inst(),
+					ruisapp::inst(),
 					false,
-					morda::vector2(float(GET_X_LPARAM(l_param)), float(GET_Y_LPARAM(l_param))),
-					morda::mouse_button::middle,
+					ruis::vector2(float(GET_X_LPARAM(l_param)), float(GET_Y_LPARAM(l_param))),
+					ruis::mouse_button::middle,
 					0
 				);
 				return 0;
 			}
 		case WM_RBUTTONDOWN:
 			{
-				auto& ww = get_impl(get_window_pimpl(mordavokne::inst()));
-				ww.mouseButtonState.set(morda::mouse_button::right);
+				auto& ww = get_impl(get_window_pimpl(ruisapp::inst()));
+				ww.mouseButtonState.set(ruis::mouse_button::right);
 				handle_mouse_button(
-					mordavokne::inst(),
+					ruisapp::inst(),
 					true,
-					morda::vector2(float(GET_X_LPARAM(l_param)), float(GET_Y_LPARAM(l_param))),
-					morda::mouse_button::right,
+					ruis::vector2(float(GET_X_LPARAM(l_param)), float(GET_Y_LPARAM(l_param))),
+					ruis::mouse_button::right,
 					0
 				);
 				return 0;
 			}
 		case WM_RBUTTONUP:
 			{
-				auto& ww = get_impl(get_window_pimpl(mordavokne::inst()));
-				ww.mouseButtonState.clear(morda::mouse_button::right);
+				auto& ww = get_impl(get_window_pimpl(ruisapp::inst()));
+				ww.mouseButtonState.clear(ruis::mouse_button::right);
 				handle_mouse_button(
-					mordavokne::inst(),
+					ruisapp::inst(),
 					false,
-					morda::vector2(float(GET_X_LPARAM(l_param)), float(GET_Y_LPARAM(l_param))),
-					morda::mouse_button::right,
+					ruis::vector2(float(GET_X_LPARAM(l_param)), float(GET_Y_LPARAM(l_param))),
+					ruis::mouse_button::right,
 					0
 				);
 				return 0;
@@ -530,12 +530,12 @@ LRESULT CALLBACK window_procedure(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_
 			{
 				unsigned short int times = HIWORD(w_param);
 				times /= WHEEL_DELTA;
-				morda::mouse_button button = [&times, &msg]() {
+				ruis::mouse_button button = [&times, &msg]() {
 					if (times >= 0) {
-						return msg == WM_MOUSEWHEEL ? morda::mouse_button::wheel_up : morda::mouse_button::wheel_right;
+						return msg == WM_MOUSEWHEEL ? ruis::mouse_button::wheel_up : ruis::mouse_button::wheel_right;
 					} else {
 						times = -times;
-						return msg == WM_MOUSEWHEEL ? morda::mouse_button::wheel_down : morda::mouse_button::wheel_left;
+						return msg == WM_MOUSEWHEEL ? ruis::mouse_button::wheel_down : ruis::mouse_button::wheel_left;
 					}
 				}();
 
@@ -551,16 +551,16 @@ LRESULT CALLBACK window_procedure(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_
 
 				for (unsigned i = 0; i != times; ++i) {
 					handle_mouse_button(
-						mordavokne::inst(),
+						ruisapp::inst(),
 						true,
-						morda::vector2(float(pos.x), float(pos.y)),
+						ruis::vector2(float(pos.x), float(pos.y)),
 						button,
 						0
 					);
 					handle_mouse_button(
-						mordavokne::inst(),
+						ruisapp::inst(),
 						false,
-						morda::vector2(float(pos.x), float(pos.y)),
+						ruis::vector2(float(pos.x), float(pos.y)),
 						button,
 						0
 					);
@@ -571,19 +571,19 @@ LRESULT CALLBACK window_procedure(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_
 		case WM_KEYDOWN:
 			{
 				// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
-				morda::key key = key_code_map[uint8_t(w_param)];
+				ruis::key key = key_code_map[uint8_t(w_param)];
 
 				constexpr auto previous_key_state_mask = 0x40000000;
 
 				if ((l_param & previous_key_state_mask) == 0) { // ignore auto-repeated keypress event
-					handle_key_event(mordavokne::inst(), true, key);
+					handle_key_event(ruisapp::inst(), true, key);
 				}
-				handle_character_input(mordavokne::inst(), windows_input_string_provider(), key);
+				handle_character_input(ruisapp::inst(), windows_input_string_provider(), key);
 				return 0;
 			}
 		case WM_KEYUP:
 			handle_key_event(
-				mordavokne::inst(),
+				ruisapp::inst(),
 				false,
 				// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
 				key_code_map[std::uint8_t(w_param)]
@@ -598,9 +598,9 @@ LRESULT CALLBACK window_procedure(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_
 					break;
 				default:
 					handle_character_input(
-						mordavokne::inst(),
+						ruisapp::inst(),
 						windows_input_string_provider(char32_t(w_param)),
-						morda::key::unknown
+						ruis::key::unknown
 					);
 					break;
 			}
@@ -618,8 +618,8 @@ LRESULT CALLBACK window_procedure(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_
 		case WM_SIZE:
 			// resize GL, LoWord=Width, HiWord=Height
 			update_window_rect(
-				mordavokne::inst(),
-				morda::rectangle(0, 0, float(LOWORD(l_param)), float(HIWORD(l_param)))
+				ruisapp::inst(),
+				ruis::rectangle(0, 0, float(LOWORD(l_param)), float(HIWORD(l_param)))
 			);
 			return 0;
 
@@ -642,28 +642,28 @@ LRESULT CALLBACK window_procedure(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_
 } // namespace
 
 namespace {
-morda::real get_dots_per_inch(HDC dc)
+ruis::real get_dots_per_inch(HDC dc)
 {
 	constexpr auto num_dimensions = 2;
 	// average dots per cm over device dimensions
-	morda::real dots_per_cm =
-		(morda::real(GetDeviceCaps(dc, HORZRES)) * std::deci::den / morda::real(GetDeviceCaps(dc, HORZSIZE)) +
-		 morda::real(GetDeviceCaps(dc, VERTRES)) * std::deci::den / morda::real(GetDeviceCaps(dc, VERTSIZE))) /
-		morda::real(num_dimensions);
+	ruis::real dots_per_cm =
+		(ruis::real(GetDeviceCaps(dc, HORZRES)) * std::deci::den / ruis::real(GetDeviceCaps(dc, HORZSIZE)) +
+		 ruis::real(GetDeviceCaps(dc, VERTRES)) * std::deci::den / ruis::real(GetDeviceCaps(dc, VERTSIZE))) /
+		ruis::real(num_dimensions);
 
 	constexpr auto cm_per_inch = 2.54f;
 
-	return morda::real(dots_per_cm) * cm_per_inch;
+	return ruis::real(dots_per_cm) * cm_per_inch;
 }
 } // namespace
 
 namespace {
-morda::real get_dots_per_pp(HDC dc)
+ruis::real get_dots_per_pp(HDC dc)
 {
 	r4::vector2<unsigned> resolution(GetDeviceCaps(dc, HORZRES), GetDeviceCaps(dc, VERTRES));
 	r4::vector2<unsigned> screen_size_mm(GetDeviceCaps(dc, HORZSIZE), GetDeviceCaps(dc, VERTSIZE));
 
-	return mordavokne::application::get_pixels_per_pp(resolution, screen_size_mm);
+	return ruisapp::application::get_pixels_per_pp(resolution, screen_size_mm);
 }
 } // namespace
 
@@ -706,11 +706,11 @@ std::string initialize_storage_dir(const std::string& app_name)
 application::application(std::string name, const window_params& wp) :
 	name(std::move(name)),
 	window_pimpl(std::make_unique<window_wrapper>(wp)),
-	gui(utki::make_shared<morda::context>(
-		utki::make_shared<morda::render_opengl::renderer>(),
-		utki::make_shared<morda::updater>(),
+	gui(utki::make_shared<ruis::context>(
+		utki::make_shared<ruis::render_opengl::renderer>(),
+		utki::make_shared<ruis::updater>(),
 		[](std::function<void()> procedure) {
-			auto& ww = get_impl(get_window_pimpl(mordavokne::inst()));
+			auto& ww = get_impl(get_window_pimpl(ruisapp::inst()));
 			if (PostMessage(
 					ww.hwnd,
 					WM_USER,
@@ -722,7 +722,7 @@ application::application(std::string name, const window_params& wp) :
 				throw std::runtime_error("PostMessage(): failed");
 			}
 		},
-		[](morda::mouse_cursor c) {
+		[](ruis::mouse_cursor c) {
 			// TODO:
 		},
 		get_dots_per_inch(get_impl(this->window_pimpl).hdc),
@@ -731,7 +731,7 @@ application::application(std::string name, const window_params& wp) :
 	storage_dir(initialize_storage_dir(this->name)),
 	curWinRect(0, 0, -1, -1)
 {
-	this->update_window_rect(morda::rectangle(0, 0, morda::real(wp.dims.x()), morda::real(wp.dims.y())));
+	this->update_window_rect(ruis::rectangle(0, 0, ruis::real(wp.dims.x()), ruis::real(wp.dims.y())));
 }
 
 void application::quit() noexcept
@@ -740,10 +740,10 @@ void application::quit() noexcept
 	ww.quitFlag = true;
 }
 
-namespace mordavokne {
+namespace ruisapp {
 void winmain(int argc, const char** argv)
 {
-	auto app = mordavokne::application_factory::get_factory()(utki::make_span(argv, argc));
+	auto app = ruisapp::application_factory::get_factory()(utki::make_span(argv, argc));
 	if (!app) {
 		return;
 	}
@@ -780,7 +780,7 @@ void winmain(int argc, const char** argv)
 		//		TRACE(<< "loop" << std::endl)
 	}
 }
-} // namespace mordavokne
+} // namespace ruisapp
 
 int WINAPI WinMain(
 	HINSTANCE h_instance, // Instance
@@ -790,7 +790,7 @@ int WINAPI WinMain(
 )
 {
 	// TODO: pass argc and argv
-	mordavokne::winmain(0, nullptr);
+	ruisapp::winmain(0, nullptr);
 
 	return 0;
 }

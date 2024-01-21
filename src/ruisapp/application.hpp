@@ -34,7 +34,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "config.hpp"
 
-namespace mordavokne {
+namespace ruisapp {
 
 /**
  * @brief Desired window parameters.
@@ -119,7 +119,7 @@ private:
 	void swap_frame_buffers();
 
 public:
-	morda::gui gui;
+	ruis::gui gui;
 
 public:
 	/**
@@ -144,10 +144,10 @@ public:
 private:
 	// this is a viewport rectangle in coordinates that are as follows: x grows
 	// right, y grows up.
-	morda::rectangle curWinRect = morda::rectangle(0, 0, 0, 0);
+	ruis::rectangle curWinRect = ruis::rectangle(0, 0, 0, 0);
 
 public:
-	const morda::vector2& window_dims() const noexcept
+	const ruis::vector2& window_dims() const noexcept
 	{
 		return this->curWinRect.d;
 	}
@@ -157,9 +157,9 @@ private:
 
 	friend void render(application& app);
 
-	void update_window_rect(const morda::rectangle& rect);
+	void update_window_rect(const ruis::rectangle& rect);
 
-	friend void update_window_rect(application& app, const morda::rectangle& rect);
+	friend void update_window_rect(application& app, const ruis::rectangle& rect);
 
 	// pos is in usual window coordinates, y goes down.
 	void handle_mouse_move(const r4::vector2<float>& pos, unsigned id)
@@ -170,7 +170,7 @@ private:
 	friend void handle_mouse_move(application& app, const r4::vector2<float>& pos, unsigned id);
 
 	// pos is in usual window coordinates, y goes down.
-	void handle_mouse_button(bool is_down, const r4::vector2<float>& pos, morda::mouse_button button, unsigned id)
+	void handle_mouse_button(bool is_down, const r4::vector2<float>& pos, ruis::mouse_button button, unsigned id)
 	{
 		this->gui.send_mouse_button(is_down, pos, button, id);
 	}
@@ -179,7 +179,7 @@ private:
 		application& app,
 		bool is_down,
 		const r4::vector2<float>& pos,
-		morda::mouse_button button,
+		ruis::mouse_button button,
 		unsigned id
 	);
 
@@ -225,20 +225,20 @@ private:
 	// The idea with unicode_resolver parameter is that we don't want to calculate
 	// the unicode unless it is really needed, thus postpone it as much as
 	// possible.
-	void handle_character_input(const morda::gui::input_string_provider& string_provider, morda::key key_code)
+	void handle_character_input(const ruis::gui::input_string_provider& string_provider, ruis::key key_code)
 	{
 		this->gui.send_character_input(string_provider, key_code);
 	}
 
 	friend void handle_character_input(
 		application& app,
-		const morda::gui::input_string_provider& string_provider,
-		morda::key key_code
+		const ruis::gui::input_string_provider& string_provider,
+		ruis::key key_code
 	);
 
-	void handle_key_event(bool is_down, morda::key key_code);
+	void handle_key_event(bool is_down, ruis::key key_code);
 
-	friend void handle_key_event(application& app, bool is_down, morda::key key_code);
+	friend void handle_key_event(application& app, bool is_down, ruis::key key_code);
 
 public:
 	/**
@@ -287,7 +287,7 @@ public:
 	 * @param screen_size_mm - size of the display in millimeters.
 	 * @return Size of one display density pixel in pixels.
 	 */
-	static morda::real get_pixels_per_pp(
+	static ruis::real get_pixels_per_pp(
 		r4::vector2<unsigned> screen_size_pixels,
 		r4::vector2<unsigned> screen_size_mm
 	);
@@ -324,4 +324,4 @@ private:
 	static factory_type& get_factory_internal();
 };
 
-} // namespace mordavokne
+} // namespace ruisapp

@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 /* ================ LICENSE END ================ */
 
-namespace mordavokne {
+namespace ruisapp {
 
 const decltype(application::window_pimpl)& get_window_pimpl(application& app)
 {
@@ -31,7 +31,7 @@ void render(application& app)
 	app.render();
 }
 
-void update_window_rect(application& app, const morda::rectangle& rect)
+void update_window_rect(application& app, const ruis::rectangle& rect)
 {
 	app.update_window_rect(rect);
 }
@@ -45,7 +45,7 @@ void handle_mouse_button(
 	application& app,
 	bool is_down,
 	const r4::vector2<float>& pos,
-	morda::mouse_button button,
+	ruis::mouse_button button,
 	unsigned id
 )
 {
@@ -59,16 +59,16 @@ void handle_mouse_hover(application& app, bool is_hovered, unsigned pointer_id)
 
 void handle_character_input(
 	application& app,
-	const morda::gui::input_string_provider& string_provider,
-	morda::key key_code
+	const ruis::gui::input_string_provider& string_provider,
+	ruis::key key_code
 )
 {
 	app.handle_character_input(string_provider, key_code);
 }
 
-void handle_key_event(application& app, bool is_down, morda::key key_code)
+void handle_key_event(application& app, bool is_down, ruis::key key_code)
 {
 	app.handle_key_event(is_down, key_code);
 }
 
-} // namespace mordavokne
+} // namespace ruisapp

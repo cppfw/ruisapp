@@ -23,9 +23,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 namespace {
 
-std::unique_ptr<mordavokne::application> create_app_unix(int argc, const char** argv)
+std::unique_ptr<ruisapp::application> create_app_unix(int argc, const char** argv)
 {
-	return mordavokne::application_factory::get_factory()(utki::make_span(argv, argc));
+	return ruisapp::application_factory::get_factory()(utki::make_span(argv, argc));
 }
 
 std::string initialize_storage_dir(const std::string& app_name)
