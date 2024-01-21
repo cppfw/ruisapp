@@ -3,7 +3,7 @@ include prorab-license.mk
 include prorab-linux.mk
 include prorab-clang-format.mk
 
-define mordavokne_rules
+define ruisapp_rules
 
     $$(eval $$(call prorab-config, ../config))
 
@@ -26,13 +26,13 @@ define mordavokne_rules
         this_ldlibs += -framework Cocoa -framework OpenGL -ldl
     endif
 
-    this_ldlibs += -lmorda -lpapki -ltreeml -lutki
+    this_ldlibs += -lruis -lpapki -ltreeml -lutki
 
     ifeq ($(os), macosx)
-        this_mm_obj := $$(d)$$(this_out_dir)obj_$$(this_name)/objc/mordavokne/glue/macosx/glue.mm.o
+        this_mm_obj := $$(d)$$(this_out_dir)obj_$$(this_name)/objc/ruisapp/glue/macosx/glue.mm.o
 
         define this_subrules
-            $$(this_mm_obj): $$(d)mordavokne/glue/macosx/glue.mm
+            $$(this_mm_obj): $$(d)ruisapp/glue/macosx/glue.mm
 $(.RECIPEPREFIX)@echo compile $$$$<...
 $(.RECIPEPREFIX)$(a)mkdir -p $$$$(dir $$$$@)
 $(.RECIPEPREFIX)$(a)$(this_cc) -ObjC++ -c -o "$$$$@" $$(this_cxxflags) $$(OBJCXXFLAGS) $$ $$$$<
@@ -42,7 +42,7 @@ $(.RECIPEPREFIX)$(a)$(this_cc) -ObjC++ -c -o "$$$$@" $$(this_cxxflags) $$(OBJCXX
     endif
 
     this_cxxflags += -DMORDAVOKNE_RENDER_$(shell echo $1 | tr '[:lower:]' '[:upper:]')
-    this_ldlibs += -lmorda-render-$1
+    this_ldlibs += -lruis-render-$1
 
     ifeq ($1,opengles)
         ifeq ($(prorab_linux),raspbian)
@@ -64,14 +64,14 @@ $(.RECIPEPREFIX)$(a)$(this_cc) -ObjC++ -c -o "$$$$@" $$(this_cxxflags) $$(OBJCXX
     $$(eval $$(prorab-clear-this-vars))
 endef
 
-$(eval $(call mordavokne_rules,opengl))
+$(eval $(call ruisapp_rules,opengl))
 
 ifeq ($(os), linux)
-    $(eval $(call mordavokne_rules,opengles))
+    $(eval $(call ruisapp_rules,opengles))
 endif
 
 # clear variable
-mordavokne_rules :=
+ruisapp_rules :=
 
 this_license_file := ../LICENSE
 this_src_dir := .

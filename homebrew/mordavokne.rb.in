@@ -13,7 +13,7 @@ class Mordavokne < Formula
   depends_on "glew"
   depends_on "libr4"
   depends_on "libmorda"
-  depends_on "libmorda-render-opengl"
+  depends_on "libruis-render-opengl"
 
   # use gmake here because otherwise homebrew uses default Mac's make which is of too old version 3.81
   def install

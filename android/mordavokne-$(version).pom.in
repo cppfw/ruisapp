@@ -37,7 +37,7 @@
 	  </dependency>
 	  <dependency>
 		  <groupId>io.github.cppfw</groupId>
-		  <artifactId>morda-render-opengles</artifactId>
+		  <artifactId>ruis-render-opengles</artifactId>
 		  <version>[0.1.37,)</version>
 		  <type>aar</type>
 		  <scope>compile</scope>

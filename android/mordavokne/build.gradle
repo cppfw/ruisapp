@@ -53,7 +53,7 @@ dependencies {
     implementation 'io.github.cppfw:papki:+'
     implementation 'io.github.cppfw:r4:+'
     implementation 'io.github.cppfw:morda:+'
-    implementation 'io.github.cppfw:morda-render-opengles:+'
+    implementation 'io.github.cppfw:ruis-render-opengles:+'
     implementation 'io.github.cppfw:nitki:+'
 }
 

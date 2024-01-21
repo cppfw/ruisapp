@@ -22,7 +22,7 @@ endif
 
 ifeq ($(prorab_os),windows)
     this_ldlibs += -lmingw32 #these should go first, otherwise linker will complain about undefined reference to WinMain
-#    this_ldlibs += $(prorab_this_dir)../../src/libmorda$(prorab_lib_extension)
+#    this_ldlibs += $(prorab_this_dir)../../src/libruis$(prorab_lib_extension)
     this_ldflags += -L/usr/lib -L/usr/local/lib
     this_ldlibs +=  -lglew32 -lopengl32 -lz -lfreetype -mwindows
 
@@ -32,13 +32,13 @@ ifeq ($(prorab_os),windows)
     this_cxxflags += -D__STDC_FORMAT_MACROS
 else ifeq ($(prorab_os),macosx)
     this_ldlibs += -lGLEW -framework OpenGL -framework Cocoa -lfreetype
-    this_ldlibs += -lmordavokne
+    this_ldlibs += -lruisapp
 else ifeq ($(prorab_os),linux)
     this_ldlibs += -lGLEW -pthread -lGL
-    this_ldlibs += `pkg-config mordavokne-opengl2 --libs`
+    this_ldlibs += `pkg-config ruisapp-opengl2 --libs`
 endif
 
-this_ldlibs += -lnitki -lopros -lstob -lmorda -lstdc++
+this_ldlibs += -lnitki -lopros -lstob -lruis -lstdc++
 
 
 

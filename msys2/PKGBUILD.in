@@ -29,7 +29,7 @@ url="http://github.com/cppfw/${packageName}"
 license=('MIT')
 groups=()
 
-depends=("${pkgPrefix}morda" "${pkgPrefix}morda-render-opengl")
+depends=("${pkgPrefix}morda" "${pkgPrefix}ruis-render-opengl")
 
 # 'clang-tools-extra' for clang-tidy
 makedepends=('myci' 'prorab' 'prorab-extra' 'doxygen' "${pkgPrefix}clang-tools-extra")
