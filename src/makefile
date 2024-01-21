@@ -41,12 +41,12 @@ $(.RECIPEPREFIX)$(a)$(this_cc) -ObjC++ -c -o "$$$$@" $$(this_cxxflags) $$(OBJCXX
 
     endif
 
-    this_cxxflags += -DMORDAVOKNE_RENDER_$(shell echo $1 | tr '[:lower:]' '[:upper:]')
+    this_cxxflags += -DRUISAPP_RENDER_$(shell echo $1 | tr '[:lower:]' '[:upper:]')
     this_ldlibs += -lruis-render-$1
 
     ifeq ($1,opengles)
         ifeq ($(prorab_linux),raspbian)
-            this_cxxflags += -DMORDAVOKNE_RASPBERRYPI -isystem /opt/vc/include
+            this_cxxflags += -DRUISAPP_RASPBERRYPI -isystem /opt/vc/include
             this_ldflags += -L/opt/vc/lib
             this_ldlibs += -lbrcmEGL
         else

@@ -33,15 +33,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <utki/string.hpp>
 #include <utki/unicode.hpp>
 
-#ifdef MORDAVOKNE_RENDER_OPENGL
+#ifdef RUISAPP_RENDER_OPENGL
 #	include <GL/glew.h>
 #	include <GL/glx.h>
 #	include <ruis/render/opengl/renderer.hpp>
 
-#elif defined(MORDAVOKNE_RENDER_OPENGLES)
+#elif defined(RUISAPP_RENDER_OPENGLES)
 #	include <EGL/egl.h>
 #	include <GLES2/gl2.h>
-#	ifdef MORDAVOKNE_RASPBERRYPI
+#	ifdef RUISAPP_RASPBERRYPI
 #		include <bcm_host.h>
 #	endif
 
@@ -112,10 +112,10 @@ struct window_wrapper : public utki::destructable {
 
 	ruis::real scale_factor = 1;
 
-#ifdef MORDAVOKNE_RENDER_OPENGL
+#ifdef RUISAPP_RENDER_OPENGL
 	GLXContext gl_context;
-#elif defined(MORDAVOKNE_RENDER_OPENGLES)
-#	ifdef MORDAVOKNE_RASPBERRYPI
+#elif defined(RUISAPP_RENDER_OPENGLES)
+#	ifdef RUISAPP_RASPBERRYPI
 	EGL_DISPMANX_WINDOW_T rpi_native_window{};
 	DISPMANX_DISPLAY_HANDLE_T rpi_dispman_display;
 	DISPMANX_UPDATE_HANDLE_T rpi_dispman_update;
@@ -240,7 +240,7 @@ struct window_wrapper : public utki::destructable {
 			std::cout << "display scale factor = " << this->scale_factor << std::endl;
 		}
 
-#ifdef MORDAVOKNE_RENDER_OPENGL
+#ifdef RUISAPP_RENDER_OPENGL
 		{
 			int glx_ver_major = 0;
 			int glx_ver_minor = 0;
@@ -351,7 +351,7 @@ struct window_wrapper : public utki::destructable {
 			// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 			best_fb_config = fbc[best_fb_config_index];
 		}
-#elif defined(MORDAVOKNE_RENDER_OPENGLES)
+#elif defined(RUISAPP_RENDER_OPENGLES)
 		// NOLINTNEXTLINE(cppcoreguidelines-prefer-member-initializer)
 		this->egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 		if (this->egl_display == EGL_NO_DISPLAY) {
@@ -409,13 +409,13 @@ struct window_wrapper : public utki::destructable {
 #endif
 
 		XVisualInfo* visual_info = nullptr;
-#ifdef MORDAVOKNE_RENDER_OPENGL
+#ifdef RUISAPP_RENDER_OPENGL
 		visual_info = glXGetVisualFromFBConfig(this->display.display, best_fb_config);
 		if (!visual_info) {
 			throw std::runtime_error("glXGetVisualFromFBConfig() failed");
 		}
-#elif defined(MORDAVOKNE_RENDER_OPENGLES)
-#	ifdef MORDAVOKNE_RASPBERRYPI
+#elif defined(RUISAPP_RENDER_OPENGLES)
+#	ifdef RUISAPP_RASPBERRYPI
 		{
 			// the variable is initialied via output argument, so no need to
 			// initialize it here
@@ -511,7 +511,7 @@ struct window_wrapper : public utki::destructable {
 		//====================
 		// create GLX context
 
-#ifdef MORDAVOKNE_RENDER_OPENGL
+#ifdef RUISAPP_RENDER_OPENGL
 		// glXGetProcAddressARB() will retutn non-null pointer even if extension is
 		// not supported, so we need to explicitly check for supported extensions.
 		// SOURCE:
@@ -634,9 +634,9 @@ struct window_wrapper : public utki::destructable {
 		if (glewInit() != GLEW_OK) {
 			throw std::runtime_error("GLEW initialization failed");
 		}
-#elif defined(MORDAVOKNE_RENDER_OPENGLES)
+#elif defined(RUISAPP_RENDER_OPENGLES)
 
-#	ifdef MORDAVOKNE_RASPBERRYPI
+#	ifdef RUISAPP_RASPBERRYPI
 		{
 			bcm_host_init();
 
@@ -693,7 +693,7 @@ struct window_wrapper : public utki::destructable {
 		this->egl_surface = eglCreateWindowSurface(
 			this->egl_display,
 			egl_config,
-#	ifdef MORDAVOKNE_RASPBERRYPI
+#	ifdef RUISAPP_RASPBERRYPI
 			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
 			reinterpret_cast<EGLNativeWindowType>(&this->rpi_native_window),
 #	else
@@ -772,9 +772,9 @@ struct window_wrapper : public utki::destructable {
 		scope_exit_input_method.reset();
 		scope_exit_window.reset();
 		scope_exit_color_map.reset();
-#ifdef MORDAVOKNE_RENDER_OPENGL
+#ifdef RUISAPP_RENDER_OPENGL
 		scope_exit_gl_context.reset();
-#elif defined(MORDAVOKNE_RENDER_OPENGLES)
+#elif defined(RUISAPP_RENDER_OPENGLES)
 		scope_exit_egl_display.reset();
 		scope_exit_egl_surface.reset();
 		scope_exit_egl_context.reset();
@@ -796,10 +796,10 @@ struct window_wrapper : public utki::destructable {
 
 		XCloseIM(this->inputMethod);
 
-#ifdef MORDAVOKNE_RENDER_OPENGL
+#ifdef RUISAPP_RENDER_OPENGL
 		glXMakeCurrent(this->display.display, None, nullptr);
 		glXDestroyContext(this->display.display, this->gl_context);
-#elif defined(MORDAVOKNE_RENDER_OPENGLES)
+#elif defined(RUISAPP_RENDER_OPENGLES)
 		eglMakeCurrent(this->egl_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 		eglDestroyContext(this->egl_display, this->egl_context);
 		eglDestroySurface(this->egl_display, this->egl_surface);
@@ -810,7 +810,7 @@ struct window_wrapper : public utki::destructable {
 		XDestroyWindow(this->display.display, this->window);
 		XFreeColormap(this->display.display, this->color_map);
 
-#ifdef MORDAVOKNE_RENDER_OPENGLES
+#ifdef RUISAPP_RENDER_OPENGLES
 		eglTerminate(this->egl_display);
 #endif
 	}
@@ -881,9 +881,9 @@ application::application(std::string name, const window_params& wp) :
 	name(std::move(name)),
 	window_pimpl(std::make_unique<window_wrapper>(wp)),
 	gui(utki::make_shared<ruis::context>(
-#ifdef MORDAVOKNE_RENDER_OPENGL
+#ifdef RUISAPP_RENDER_OPENGL
 		utki::make_shared<ruis::render_opengl::renderer>(),
-#elif defined(MORDAVOKNE_RENDER_OPENGLES)
+#elif defined(RUISAPP_RENDER_OPENGLES)
 		utki::make_shared<ruis::render_opengles::renderer>(),
 #else
 #	error "Unknown graphics API"
@@ -901,7 +901,7 @@ application::application(std::string name, const window_params& wp) :
 	)),
 	storage_dir(initialize_storage_dir(this->name))
 {
-#ifdef MORDAVOKNE_RASPBERRYPI
+#ifdef RUISAPP_RASPBERRYPI
 	this->set_fullscreen(true);
 #else
 	this->update_window_rect(ruis::rectangle(0, 0, ruis::real(wp.dims.x()), ruis::real(wp.dims.y())));
@@ -1467,7 +1467,7 @@ int main(int argc, const char** argv)
 
 void application::set_fullscreen(bool enable)
 {
-#ifdef MORDAVOKNE_RASPBERRYPI
+#ifdef RUISAPP_RASPBERRYPI
 	if (this->is_fullscreen()) {
 		return;
 	}
@@ -1526,9 +1526,9 @@ void application::swap_frame_buffers()
 {
 	auto& ww = get_impl(this->window_pimpl);
 
-#ifdef MORDAVOKNE_RENDER_OPENGL
+#ifdef RUISAPP_RENDER_OPENGL
 	glXSwapBuffers(ww.display.display, ww.window);
-#elif defined(MORDAVOKNE_RENDER_OPENGLES)
+#elif defined(RUISAPP_RENDER_OPENGLES)
 	eglSwapBuffers(ww.egl_display, ww.egl_surface);
 #else
 #	error "Unknown graphics API"
