@@ -1,5 +1,5 @@
 /*
-mordavokne - morda GUI adaptation layer
+ruisapp - morda GUI adaptation layer
 
 Copyright (C) 2016-2021  Ivan Gagis <igagis@gmail.com>
 
@@ -23,10 +23,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include <memory>
 
-#include <ruis/gui.hpp>
-#include <ruis/util/key.hpp>
 #include <papki/file.hpp>
 #include <r4/vector.hpp>
+#include <ruis/gui.hpp>
+#include <ruis/util/key.hpp>
 #include <utki/config.hpp>
 #include <utki/destructable.hpp>
 #include <utki/flags.hpp>
@@ -287,10 +287,7 @@ public:
 	 * @param screen_size_mm - size of the display in millimeters.
 	 * @return Size of one display density pixel in pixels.
 	 */
-	static ruis::real get_pixels_per_pp(
-		r4::vector2<unsigned> screen_size_pixels,
-		r4::vector2<unsigned> screen_size_mm
-	);
+	static ruis::real get_pixels_per_pp(r4::vector2<unsigned> screen_size_pixels, r4::vector2<unsigned> screen_size_mm);
 };
 
 inline application& inst()

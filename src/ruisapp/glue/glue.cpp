@@ -1,5 +1,5 @@
 /*
-mordavokne - morda GUI adaptation layer
+ruisapp - morda GUI adaptation layer
 
 Copyright (C) 2016-2021  Ivan Gagis <igagis@gmail.com>
 

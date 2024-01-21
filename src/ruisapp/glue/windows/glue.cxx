@@ -1,5 +1,5 @@
 /*
-mordavokne - morda GUI adaptation layer
+ruisapp - morda GUI adaptation layer
 
 Copyright (C) 2016-2021  Ivan Gagis <igagis@gmail.com>
 
@@ -22,10 +22,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <ratio>
 
 #include <Shlobj.h> // needed for SHGetFolderPathA()
+#include <papki/fs_file.hpp>
 #include <ruis/context.hpp>
 #include <ruis/render/opengl/renderer.hpp>
 #include <ruis/util/util.hpp>
-#include <papki/fs_file.hpp>
 #include <utki/destructable.hpp>
 #include <utki/windows.hpp>
 #include <windowsx.h> // needed for GET_X_LPARAM macro and other similar macros
@@ -550,20 +550,8 @@ LRESULT CALLBACK window_procedure(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_
 				}
 
 				for (unsigned i = 0; i != times; ++i) {
-					handle_mouse_button(
-						ruisapp::inst(),
-						true,
-						ruis::vector2(float(pos.x), float(pos.y)),
-						button,
-						0
-					);
-					handle_mouse_button(
-						ruisapp::inst(),
-						false,
-						ruis::vector2(float(pos.x), float(pos.y)),
-						button,
-						0
-					);
+					handle_mouse_button(ruisapp::inst(), true, ruis::vector2(float(pos.x), float(pos.y)), button, 0);
+					handle_mouse_button(ruisapp::inst(), false, ruis::vector2(float(pos.x), float(pos.y)), button, 0);
 				}
 			}
 			return 0;
@@ -617,10 +605,7 @@ LRESULT CALLBACK window_procedure(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_
 
 		case WM_SIZE:
 			// resize GL, LoWord=Width, HiWord=Height
-			update_window_rect(
-				ruisapp::inst(),
-				ruis::rectangle(0, 0, float(LOWORD(l_param)), float(HIWORD(l_param)))
-			);
+			update_window_rect(ruisapp::inst(), ruis::rectangle(0, 0, float(LOWORD(l_param)), float(HIWORD(l_param))));
 			return 0;
 
 		case WM_USER:
