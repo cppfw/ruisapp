@@ -32,8 +32,8 @@ nuget{
 	dependencies {
 		packages : {
 			libr4/0.1.53;
-			libruis/0.5.163;
-			libruis-render-opengl/0.1.46;
+			libruis/0.5.210;
+			libruis-render-opengl/0.1.63;
 			glew.v140/1.12.0;
 			libpapki/1.0.93;
 			libopros/1.0.46;

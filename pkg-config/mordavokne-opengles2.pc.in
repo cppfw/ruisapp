@@ -1,9 +1,9 @@
 Name: ruisapp   # human-readable name
-Description: C++ OpenGL ES 2 GUI library
+Description: C++ OpenGL ES GUI library
 Version: $(version)
 URL: https://github.com/cppfw/ruisapp
 Requires:
 Conflicts:
-Libs: -lruisapp-opengles2 -rdynamic
+Libs: -lruisapp-opengles -rdynamic
 Libs.private:
 Cflags:

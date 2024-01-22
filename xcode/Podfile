@@ -2,7 +2,6 @@ source 'https://github.com/cppfw/cocoapods-repo.git'
 
 project 'ruisapp/ruisapp.xcodeproj'
 
-# TODO: make 11.0 ?
 platform :ios, '13.0'
 
 target "ruisapp" do
@@ -10,6 +9,6 @@ target "ruisapp" do
 	pod 'papki', '>= 1.0.93'
 	pod 'r4', '>= 0.1.53'
 	pod 'treeml', '>= 0.1.28'
-	pod 'ruis', '>= 0.5.195'
-	pod 'ruis-render-opengles', '>= 0.1.37'
+	pod 'ruis', '>= 0.5.210'
+	pod 'ruis-render-opengles', '>= 0.1.50'
 end
