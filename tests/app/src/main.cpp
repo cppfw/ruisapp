@@ -4,7 +4,7 @@
 #include <utki/debug.hpp>
 #include <papki/fs_file.hpp>
 
-#include <mordavokne/application.hpp>
+#include <ruisapp/application.hpp>
 
 #include <ruis/config.hpp>
 
@@ -478,7 +478,7 @@ public:
 class application : public ruisapp::application{
 public:
 	application() :
-			ruisapp::application("morda-tests", [](){
+			ruisapp::application("ruis-tests", [](){
 				// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
 				ruisapp::window_params wp(r4::vector2<unsigned>(1024, 800));
 		// wp.graphics_api_request = ruisapp::window_params::graphics_api::gl_4_5;

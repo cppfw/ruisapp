@@ -12,7 +12,7 @@ cmake_minimum_required(VERSION 3.4.1)
 
 file(GLOB_RECURSE srcs "../../src/*.cpp")
 
-set(name mordavokne)
+set(name ruisapp)
 
 include(${ANDROID_GRADLE_NATIVE_BUNDLE_PLUGIN_MK})
 

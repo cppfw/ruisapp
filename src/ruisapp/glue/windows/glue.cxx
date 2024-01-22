@@ -1,7 +1,7 @@
 /*
-ruisapp - morda GUI adaptation layer
+ruisapp - ruis GUI adaptation layer
 
-Copyright (C) 2016-2021  Ivan Gagis <igagis@gmail.com>
+Copyright (C) 2016-2024  Ivan Gagis <igagis@gmail.com>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 using namespace ruisapp;
 
 namespace {
-constexpr const char* window_class_name = "MordavokneWindowClassName";
+constexpr const char* window_class_name = "RuisappWindowClassName";
 } // namespace
 
 namespace {
@@ -905,7 +905,7 @@ window_wrapper::window_wrapper(const window_params& wp)
 	this->hwnd = CreateWindowEx(
 		WS_EX_APPWINDOW | WS_EX_WINDOWEDGE, // extended style
 		window_class_name,
-		"morda app",
+		"ruis app",
 		WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
 		0, // x
 		0, // y

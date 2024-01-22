@@ -1,7 +1,7 @@
 /*
-ruisapp - morda GUI adaptation layer
+ruisapp - ruis GUI adaptation layer
 
-Copyright (C) 2016-2021  Ivan Gagis <igagis@gmail.com>
+Copyright (C) 2016-2024  Ivan Gagis <igagis@gmail.com>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -1016,7 +1016,7 @@ struct input_string_provider : public ruis::gui::input_string_provider {
 namespace {
 
 JNIEXPORT void JNICALL
-Java_io_github_cppfw_mordavokne_MordaVOkneActivity_handleCharacterStringInput(JNIEnv* env, jclass clazz, jstring chars)
+Java_io_github_cppfw_ruisapp_RuisappActivity_handleCharacterStringInput(JNIEnv* env, jclass clazz, jstring chars)
 {
 	LOG([](auto& o) {
 		o << "handleCharacterStringInput(): invoked" << std::endl;
@@ -1069,9 +1069,9 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 
 	static JNINativeMethod methods[] = {
 		{"handleCharacterStringInput",
-		 "(Ljava/lang/String;)V", (void*)&Java_io_github_cppfw_mordavokne_MordaVOkneActivity_handleCharacterStringInput},
+		 "(Ljava/lang/String;)V", (void*)&Java_io_github_cppfw_ruisapp_RuisappActivity_handleCharacterStringInput},
 	};
-	jclass clazz = env->FindClass("io/github/cppfw/mordavokne/MordaVOkneActivity");
+	jclass clazz = env->FindClass("io/github/cppfw/ruisapp/RuisappActivity");
 	ASSERT(clazz)
 	if (env->RegisterNatives(clazz, methods, 1) < 0) {
 		ASSERT(false)

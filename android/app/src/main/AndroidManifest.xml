@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
 
-    package="io.github.cppfw.mordavoknetests">
+    package="io.github.cppfw.ruisapptests">
 
     <application
         android:allowBackup="true"

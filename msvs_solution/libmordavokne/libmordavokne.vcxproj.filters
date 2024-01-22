@@ -21,10 +21,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\mordavokne\application.cpp">
+    <ClCompile Include="..\..\src\ruisapp\application.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\mordavokne\glue\glue.cpp">
+    <ClCompile Include="..\..\src\ruisapp\glue\glue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

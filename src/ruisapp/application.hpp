@@ -1,7 +1,7 @@
 /*
-ruisapp - morda GUI adaptation layer
+ruisapp - ruis GUI adaptation layer
 
-Copyright (C) 2016-2021  Ivan Gagis <igagis@gmail.com>
+Copyright (C) 2016-2024  Ivan Gagis <igagis@gmail.com>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -124,7 +124,7 @@ public:
 public:
 	/**
 	 * @brief Create file interface into resources storage.
-	 * This function creates a morda's standard file interface to read
+	 * This function creates a ruis's standard file interface to read
 	 * application's resources.
 	 * @param path - file path to initialize the file interface with.
 	 * @return Instance of the file interface into the resources storage.

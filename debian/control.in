@@ -1,4 +1,4 @@
-Source: libmordavokne
+Source: libruisapp
 Section: libs
 Priority: extra
 Maintainer: Ivan Gagis <igagis@gmail.com>
@@ -11,7 +11,7 @@ Build-Depends:
 		clang-format,
 		libutki-dev (>= 1.1.124),
 		libpapki-dev (>= 1.0.93),
-		libmorda-dev (>= 0.5.163),
+		libruis-dev (>= 0.5.163),
 		libr4-dev (>= 0.1.53),
 		libglew-dev,
 		libnitki-dev (>= 1.0.41),
@@ -23,60 +23,60 @@ Build-Depends:
 Build-Depends-Indep: doxygen
 Standards-Version: 3.9.5
 
-Package: mordavokne-test
+Package: ruisapp-test
 Section: devel
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libmordavokne$(soname)
+Depends: ${shlibs:Depends}, ${misc:Depends}, libruisapp$(soname)
 Description: cross-platform C++ GUI library tests.
  GUI library tests.
 
-Package: libmordavokne-opengl$(soname)
+Package: libruisapp-opengl$(soname)
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: cross-platform C++ GUI library.
  GUI library using OpenGL 2 rendering backend.
 
-Package: libmordavokne-opengl$(soname)-dbg
+Package: libruisapp-opengl$(soname)-dbg
 Architecture: any
 Section: debug
-Depends: libmordavokne-opengl$(soname) (= ${binary:Version}), ${misc:Depends}
-Description: libmordavokne-opengl2 debugging symbols
- Debug symbols for libmordavokne-opengl2 library.
+Depends: libruisapp-opengl$(soname) (= ${binary:Version}), ${misc:Depends}
+Description: libruisapp-opengl2 debugging symbols
+ Debug symbols for libruisapp-opengl2 library.
 
-Package: libmordavokne-opengles$(soname)
+Package: libruisapp-opengles$(soname)
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: cross-platform C++ GUI library.
  GUI library using OpenGL 2 rendering backend.
 
-Package: libmordavokne-opengles$(soname)-dbg
+Package: libruisapp-opengles$(soname)-dbg
 Architecture: any
 Section: debug
-Depends: libmordavokne-opengles$(soname) (= ${binary:Version}), ${misc:Depends}
-Description: libmordavokne-opengl2 debugging symbols
- Debug symbols for libmordavokne-opengl2 library.
+Depends: libruisapp-opengles$(soname) (= ${binary:Version}), ${misc:Depends}
+Description: libruisapp-opengl2 debugging symbols
+ Debug symbols for libruisapp-opengl2 library.
 
-Package: libmordavokne-dev
+Package: libruisapp-dev
 Section: libdevel
 Architecture: any
 Depends:
-		libmordavokne-opengl$(soname) (= ${binary:Version}),
-		libmordavokne-opengl$(soname)-dbg (= ${binary:Version}),
-		libmordavokne-opengles$(soname) (= ${binary:Version}),
-		libmordavokne-opengles$(soname)-dbg (= ${binary:Version}),
+		libruisapp-opengl$(soname) (= ${binary:Version}),
+		libruisapp-opengl$(soname)-dbg (= ${binary:Version}),
+		libruisapp-opengles$(soname) (= ${binary:Version}),
+		libruisapp-opengles$(soname)-dbg (= ${binary:Version}),
 		${misc:Depends},
 		libutki-dev,
-		libmorda-dev,
+		libruis-dev,
 		libpapki-dev
-Suggests: libmordavokne-doc
+Suggests: libruisapp-doc
 Description: cross-platform C++ GUI library.
  GUI library development files.
 
-Package: libmordavokne-doc
+Package: libruisapp-doc
 Architecture: all
 Section: doc
 Depends: ${misc:Depends}
-Description: documentation for libmordavokne library.
- For more details see description to libmordavokne-dev package.
+Description: documentation for libruisapp library.
+ For more details see description to libruisapp-dev package.

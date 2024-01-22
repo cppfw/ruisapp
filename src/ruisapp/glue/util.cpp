@@ -1,7 +1,7 @@
 /*
-ruisapp - morda GUI adaptation layer
+ruisapp - ruis GUI adaptation layer
 
-Copyright (C) 2016-2021  Ivan Gagis <igagis@gmail.com>
+Copyright (C) 2016-2024  Ivan Gagis <igagis@gmail.com>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -59,7 +59,7 @@ version_duplet ruisapp::get_opengl_version_duplet(window_params::graphics_api ap
 
 	std::stringstream ss;
 	ss << "non-opengl api requested from opengl-based implementation of "
-		  "mordavokne: window_params::graphics_api = ";
+		  "ruisapp: window_params::graphics_api = ";
 	ss << unsigned(api);
 
 	throw std::logic_error(ss.str());

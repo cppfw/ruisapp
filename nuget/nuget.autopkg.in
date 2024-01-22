@@ -13,14 +13,14 @@ configurations {
 
 nuget{
 	nuspec{
-		id = libmordavokne;
+		id = libruisapp;
 		version : $(version);
 		title: Intrusive C++ GUI library;
 		authors: {Ivan Gagis};
 		owners: {Ivan Gagis};
-		licenseUrl: "https://raw.githubusercontent.com/cppfw/mordavokne/master/LICENSE";
-		projectUrl: "https://github.com/cppfw/mordavokne";
-		iconUrl: "https://github.com/cppfw/mordavokne/blob/master/logo.svg";
+		licenseUrl: "https://raw.githubusercontent.com/cppfw/ruisapp/master/LICENSE";
+		projectUrl: "https://github.com/cppfw/ruisapp";
+		iconUrl: "https://github.com/cppfw/ruisapp/blob/master/logo.svg";
 		requireLicenseAcceptance:false;
 		summary: C++ GUI library;
 
@@ -32,7 +32,7 @@ nuget{
 	dependencies {
 		packages : {
 			libr4/0.1.53;
-			libmorda/0.5.163;
+			libruis/0.5.163;
 			libruis-render-opengl/0.1.46;
 			glew.v140/1.12.0;
 			libpapki/1.0.93;
@@ -42,72 +42,72 @@ nuget{
 		};
 	}
 	files {
-		//this is needed to put headers in the mordavokne folder
+		//this is needed to put headers in the ruisapp folder
 		nestedInclude: {
-			#destination = ${d_include}mordavokne;
-			"..\src\mordavokne\**\*.hpp"
+			#destination = ${d_include}ruisapp;
+			"..\src\ruisapp\**\*.hpp"
 		};
 
 		// ======== v140 ========
 
 /*
 		[x86,v140,release] {
-			lib: ..\msvs_solution\v140_Release\libmordavokne.lib;
+			lib: ..\msvs_solution\v140_Release\libruisapp.lib;
 		}
 		[x86,v140,debug] {
-			lib: ..\msvs_solution\v140_Debug\libmordavokne.lib;
+			lib: ..\msvs_solution\v140_Debug\libruisapp.lib;
 		}
 		[x64,v140,release] {
-			lib: ..\msvs_solution\x64\v140_Release\libmordavokne.lib;
+			lib: ..\msvs_solution\x64\v140_Release\libruisapp.lib;
 		}
 		[x64,v140,debug] {
-			lib: ..\msvs_solution\x64\v140_Debug\libmordavokne.lib;
+			lib: ..\msvs_solution\x64\v140_Debug\libruisapp.lib;
 		}
 */
 
 		// ======== v141 ========
 /*
 		[x86,v141,release] {
-			lib: ..\msvs_solution\v141_Release\libmordavokne.lib;
+			lib: ..\msvs_solution\v141_Release\libruisapp.lib;
 		}
 		[x86,v141,debug] {
-			lib: ..\msvs_solution\v141_Debug\libmordavokne.lib;
+			lib: ..\msvs_solution\v141_Debug\libruisapp.lib;
 		}
 		[x64,v141,release] {
-			lib: ..\msvs_solution\x64\v141_Release\libmordavokne.lib;
+			lib: ..\msvs_solution\x64\v141_Release\libruisapp.lib;
 		}
 		[x64,v141,debug] {
-			lib: ..\msvs_solution\x64\v141_Debug\libmordavokne.lib;
+			lib: ..\msvs_solution\x64\v141_Debug\libruisapp.lib;
 		}
 */
 		// ======== v142 ========
 
 /*
 		[x86,v142,release,MultiThreaded] {
-			lib: ..\msvs_solution\v142_Release_MT\libmordavokne.lib;
+			lib: ..\msvs_solution\v142_Release_MT\libruisapp.lib;
 		}
 		[x86,v142,debug,MultiThreadedDebug] {
-			lib: ..\msvs_solution\v142_Debug_MT\libmordavokne.lib;
+			lib: ..\msvs_solution\v142_Debug_MT\libruisapp.lib;
 		}
 		[x64,v142,release,MultiThreaded] {
-			lib: ..\msvs_solution\x64\v142_Release_MT\libmordavokne.lib;
+			lib: ..\msvs_solution\x64\v142_Release_MT\libruisapp.lib;
 		}
 		[x64,v142,debug,MultiThreadedDebug] {
-			lib: ..\msvs_solution\x64\v142_Debug_MT\libmordavokne.lib;
+			lib: ..\msvs_solution\x64\v142_Debug_MT\libruisapp.lib;
 		}
 */
 
 		[x86,v142,release,MultiThreadedDLL] {
-			lib: ..\msvs_solution\v142_Release_MD\libmordavokne.lib;
+			lib: ..\msvs_solution\v142_Release_MD\libruisapp.lib;
 		}
 		[x86,v142,debug,MultiThreadedDebugDLL] {
-			lib: ..\msvs_solution\v142_Debug_MD\libmordavokne.lib;
+			lib: ..\msvs_solution\v142_Debug_MD\libruisapp.lib;
 		}
 		[x64,v142,release,MultiThreadedDLL] {
-			lib: ..\msvs_solution\x64\v142_Release_MD\libmordavokne.lib;
+			lib: ..\msvs_solution\x64\v142_Release_MD\libruisapp.lib;
 		}
 		[x64,v142,debug,MultiThreadedDebugDLL] {
-			lib: ..\msvs_solution\x64\v142_Debug_MD\libmordavokne.lib;
+			lib: ..\msvs_solution\x64\v142_Debug_MD\libruisapp.lib;
 		}
 	}
 }

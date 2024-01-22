@@ -1,9 +1,9 @@
-Name: mordavokne-opengl2   # human-readable name
+Name: ruisapp-opengl2   # human-readable name
 Description: C++ OpenGL 2 GUI library
 Version: $(version)
-URL: https://github.com/cppfw/mordavokne
+URL: https://github.com/cppfw/ruisapp
 Requires:
 Conflicts:
-Libs: -lmordavokne-opengl2 -rdynamic
+Libs: -lruisapp-opengl2 -rdynamic
 Libs.private:
 Cflags:

@@ -1,7 +1,7 @@
-class Mordavokne < Formula
+class Ruisapp < Formula
   desc "Intrusive C++ cross-platform OpenGL based GUI library."
-  homepage "https://github.com/cppfw/mordavokne"
-  url "https://github.com/cppfw/mordavokne/archive/$(version).tar.gz"
+  homepage "https://github.com/cppfw/ruisapp"
+  url "https://github.com/cppfw/ruisapp/archive/$(version).tar.gz"
   sha256 "$(sha256)"
 
   depends_on "prorab" => :build
@@ -12,7 +12,7 @@ class Mordavokne < Formula
   depends_on "libtreeml"
   depends_on "glew"
   depends_on "libr4"
-  depends_on "libmorda"
+  depends_on "libruis"
   depends_on "libruis-render-opengl"
 
   # use gmake here because otherwise homebrew uses default Mac's make which is of too old version 3.81

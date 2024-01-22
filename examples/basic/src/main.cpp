@@ -1,4 +1,4 @@
-#include <mordavokne/application.hpp>
+#include <ruisapp/application.hpp>
 
 #include <ruis/widgets/label/TextLabel.hpp>
 #include <ruis/widgets/button/Button.hpp>

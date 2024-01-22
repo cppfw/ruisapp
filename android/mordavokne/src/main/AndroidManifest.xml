@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="io.github.cppfw.mordavokne">
+    package="io.github.cppfw.ruisapp">
 
     <supports-screens
         android:anyDensity="true"
@@ -10,7 +10,7 @@
 
     <application tools:node="merge">
         <activity
-            android:name=".MordaVOkneActivity"
+            android:name=".RuisappActivity"
             android:configChanges="orientation|keyboardHidden"
             android:theme="@android:style/Theme.NoTitleBar"
             android:hasCode="true"
@@ -18,7 +18,7 @@
             >
             <meta-data
                 android:name="android.app.lib_name"
-                android:value="mordavokneapp"
+                android:value="ruisapp_application"
                 />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

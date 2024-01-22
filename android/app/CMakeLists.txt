@@ -12,13 +12,13 @@ cmake_minimum_required(VERSION 3.4.1)
 
 file(GLOB_RECURSE srcs "../../tests/app/*.cpp")
 
-set(name mordavokneapp) # this has to be 'mordavokneapp' so that MordaVOkneActivity loads that named .so
+set(name ruisapp_application) # this has to be 'ruisapp_application' so that RuisappActivity loads that named .so
 
 include(${ANDROID_GRADLE_NATIVE_BUNDLE_PLUGIN_MK})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 
-link_directories( ../mordavokne/build/intermediates/cmake/debug/obj/${ANDROID_ABI} )
+link_directories( ../ruisapp/build/intermediates/cmake/debug/obj/${ANDROID_ABI} )
 
 add_library(
         # Specifies the name of the library.
@@ -33,5 +33,5 @@ add_library(
 
 target_link_libraries(
         ${name}
-        mordavokne android log GLESv2 EGL z ${ANDROID_GRADLE_NATIVE_MODULES}
+        ruisapp android log GLESv2 EGL z ${ANDROID_GRADLE_NATIVE_MODULES}
     )

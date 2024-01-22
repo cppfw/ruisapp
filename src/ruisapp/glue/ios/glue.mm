@@ -307,7 +307,7 @@ namespace{
 ruis::real getDotsPerDp(){
 	float scale = [[UIScreen mainScreen] scale];
 
-	//TODO: use get_pixels_per_pp() function from morda util
+	//TODO: use get_pixels_per_pp() function from ruis util
 
 	return ruis::real(scale);
 }

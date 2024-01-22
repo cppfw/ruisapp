@@ -53,7 +53,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1F656B83-1E51-406C-AF65-60249F4B2CB7}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>libmordavokne</RootNamespace>
+    <RootNamespace>libruisapp</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -428,8 +428,8 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\mordavokne\application.cpp" />
-    <ClCompile Include="..\..\src\mordavokne\glue\glue.cpp" />
+    <ClCompile Include="..\..\src\ruisapp\application.cpp" />
+    <ClCompile Include="..\..\src\ruisapp\glue\glue.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
@@ -449,8 +449,8 @@
     <Import Project="..\packages\libsvgdom.0.4.10\build\native\libsvgdom.targets" Condition="Exists('..\packages\libsvgdom.0.4.10\build\native\libsvgdom.targets')" />
     <Import Project="..\packages\libsvgren.0.6.8\build\native\libsvgren.targets" Condition="Exists('..\packages\libsvgren.0.6.8\build\native\libsvgren.targets')" />
     <Import Project="..\packages\libtreeml.0.2.12\build\native\libtreeml.targets" Condition="Exists('..\packages\libtreeml.0.2.12\build\native\libtreeml.targets')" />
-    <Import Project="..\packages\libmorda.0.5.208\build\native\libmorda.targets" Condition="Exists('..\packages\libmorda.0.5.208\build\native\libmorda.targets')" />
-    <Import Project="..\packages\libmorda-render-opengl.0.1.61\build\native\libmorda-render-opengl.targets" Condition="Exists('..\packages\libmorda-render-opengl.0.1.61\build\native\libmorda-render-opengl.targets')" />
+    <Import Project="..\packages\libruis.0.5.208\build\native\libruis.targets" Condition="Exists('..\packages\libruis.0.5.208\build\native\libruis.targets')" />
+    <Import Project="..\packages\libruis-render-opengl.0.1.61\build\native\libruis-render-opengl.targets" Condition="Exists('..\packages\libruis-render-opengl.0.1.61\build\native\libruis-render-opengl.targets')" />
     <Import Project="..\packages\librasterimage.0.1.6\build\native\librasterimage.targets" Condition="Exists('..\packages\librasterimage.0.1.6\build\native\librasterimage.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
@@ -473,8 +473,8 @@
     <Error Condition="!Exists('..\packages\libsvgdom.0.4.10\build\native\libsvgdom.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libsvgdom.0.4.10\build\native\libsvgdom.targets'))" />
     <Error Condition="!Exists('..\packages\libsvgren.0.6.8\build\native\libsvgren.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libsvgren.0.6.8\build\native\libsvgren.targets'))" />
     <Error Condition="!Exists('..\packages\libtreeml.0.2.12\build\native\libtreeml.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libtreeml.0.2.12\build\native\libtreeml.targets'))" />
-    <Error Condition="!Exists('..\packages\libmorda.0.5.208\build\native\libmorda.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libmorda.0.5.208\build\native\libmorda.targets'))" />
-    <Error Condition="!Exists('..\packages\libmorda-render-opengl.0.1.61\build\native\libmorda-render-opengl.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libmorda-render-opengl.0.1.61\build\native\libmorda-render-opengl.targets'))" />
+    <Error Condition="!Exists('..\packages\libruis.0.5.208\build\native\libruis.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libruis.0.5.208\build\native\libruis.targets'))" />
+    <Error Condition="!Exists('..\packages\libruis-render-opengl.0.1.61\build\native\libruis-render-opengl.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libruis-render-opengl.0.1.61\build\native\libruis-render-opengl.targets'))" />
     <Error Condition="!Exists('..\packages\librasterimage.0.1.6\build\native\librasterimage.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\librasterimage.0.1.6\build\native\librasterimage.targets'))" />
   </Target>
 </Project>

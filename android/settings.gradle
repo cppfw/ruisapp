@@ -1,1 +1,1 @@
-include ':app', ':mordavokne'
+include ':app', ':ruisapp'

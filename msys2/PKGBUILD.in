@@ -17,19 +17,19 @@ else
 	exit 1
 fi
 
-packageName=mordavokne
+packageName=ruisapp
 
 pkgname="${pkgPrefix}${packageName}"
 pkgver=$(version)
 pkgrel=1
 epoch=
-pkgdesc="Platform abstraction layer for 'morda'"
+pkgdesc="Platform abstraction layer for 'ruis'"
 #arch=('any') #defined above
 url="http://github.com/cppfw/${packageName}"
 license=('MIT')
 groups=()
 
-depends=("${pkgPrefix}morda" "${pkgPrefix}ruis-render-opengl")
+depends=("${pkgPrefix}ruis" "${pkgPrefix}ruis-render-opengl")
 
 # 'clang-tools-extra' for clang-tidy
 makedepends=('myci' 'prorab' 'prorab-extra' 'doxygen' "${pkgPrefix}clang-tools-extra")

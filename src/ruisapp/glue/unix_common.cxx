@@ -1,7 +1,7 @@
 /*
-ruisapp - morda GUI adaptation layer
+ruisapp - ruis GUI adaptation layer
 
-Copyright (C) 2016-2021  Ivan Gagis <igagis@gmail.com>
+Copyright (C) 2016-2024  Ivan Gagis <igagis@gmail.com>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

@@ -1,593 +1,593 @@
-libmordavokne (0.2.88) unstable; urgency=medium
+libruisapp (0.2.88) unstable; urgency=medium
 
   * relink
 
  -- Ivan Gagis <igagis@gmail.com>  Mon, 11 Dec 2023 22:50:09 +0200
 
-libmordavokne (0.2.87) unstable; urgency=medium
+libruisapp (0.2.87) unstable; urgency=medium
 
   * fix lint
 
  -- Ivan Gagis <igagis@gmail.com>  Wed, 09 Aug 2023 09:36:21 +0300
 
-libmordavokne (0.2.86) unstable; urgency=medium
+libruisapp (0.2.86) unstable; urgency=medium
 
   * relink
 
  -- Ivan Gagis <igagis@gmail.com>  Sun, 02 Jul 2023 18:06:08 +0300
 
-libmordavokne (0.2.85) unstable; urgency=medium
+libruisapp (0.2.85) unstable; urgency=medium
 
   * update to latest libmorda
 
  -- Ivan Gagis <igagis@gmail.com>  Mon, 01 May 2023 16:25:29 +0300
 
-libmordavokne (0.2.84) unstable; urgency=medium
+libruisapp (0.2.84) unstable; urgency=medium
 
   * relink
 
  -- Ivan Gagis <igagis@gmail.com>  Fri, 24 Feb 2023 20:55:43 +0200
 
-libmordavokne (0.2.83) unstable; urgency=medium
+libruisapp (0.2.83) unstable; urgency=medium
 
   * relink
 
  -- Ivan Gagis <igagis@gmail.com>  Wed, 22 Feb 2023 22:07:54 +0200
 
-libmordavokne (0.2.82) unstable; urgency=medium
+libruisapp (0.2.82) unstable; urgency=medium
 
   * shared_ref
 
  -- Ivan Gagis <igagis@gmail.com>  Mon, 20 Feb 2023 00:02:20 +0200
 
-libmordavokne (0.2.81) unstable; urgency=medium
+libruisapp (0.2.81) unstable; urgency=medium
 
   * update to latest morda
 
  -- Ivan Gagis <igagis@gmail.com>  Sun, 13 Feb 2022 02:28:02 +0200
 
-libmordavokne (0.2.80) unstable; urgency=medium
+libruisapp (0.2.80) unstable; urgency=medium
 
   * update to latest morda
 
  -- Ivan Gagis <igagis@gmail.com>  Fri, 19 Nov 2021 03:27:31 +0200
 
-libmordavokne (0.2.79) unstable; urgency=medium
+libruisapp (0.2.79) unstable; urgency=medium
 
   * update to latest morda
 
  -- Ivan Gagis <igagis@gmail.com>  Fri, 12 Nov 2021 19:09:31 +0200
 
-libmordavokne (0.2.78) unstable; urgency=medium
+libruisapp (0.2.78) unstable; urgency=medium
 
   * xcode: static framework
 
  -- Ivan Gagis <igagis@gmail.com>  Tue, 09 Nov 2021 15:16:30 +0200
 
-libmordavokne (0.2.77) unstable; urgency=medium
+libruisapp (0.2.77) unstable; urgency=medium
 
   * linux: handle mouse wheel left/right events
 
  -- Ivan Gagis <igagis@gmail.com>  Thu, 30 Sep 2021 11:51:20 +0300
 
-libmordavokne (0.2.76) unstable; urgency=medium
+libruisapp (0.2.76) unstable; urgency=medium
 
   * linux: set initial viewport to requested window size
 
  -- Ivan Gagis <igagis@gmail.com>  Thu, 30 Sep 2021 09:40:24 +0300
 
-libmordavokne (0.2.75) unstable; urgency=medium
+libruisapp (0.2.75) unstable; urgency=medium
 
   * linux X11: turn on v-sync, glFinish after swap
 
  -- Ivan Gagis <igagis@gmail.com>  Tue, 28 Sep 2021 18:15:56 +0300
 
-libmordavokne (0.2.74) unstable; urgency=medium
+libruisapp (0.2.74) unstable; urgency=medium
 
   * build for debian bullseye
 
  -- Ivan Gagis <igagis@gmail.com>  Mon, 30 Aug 2021 02:23:20 +0300
 
-libmordavokne (0.2.73) unstable; urgency=medium
+libruisapp (0.2.73) unstable; urgency=medium
 
   * relink to latest utki
 
  -- Ivan Gagis <igagis@gmail.com>  Fri, 27 Aug 2021 18:33:12 +0300
 
-libmordavokne (0.2.72) unstable; urgency=medium
+libruisapp (0.2.72) unstable; urgency=medium
 
   * use latest make in homebrew formulae
 
  -- Ivan Gagis <igagis@gmail.com>  Thu, 12 Aug 2021 17:17:43 +0300
 
-libmordavokne (0.2.71) unstable; urgency=medium
+libruisapp (0.2.71) unstable; urgency=medium
 
   * test release
 
  -- Ivan Gagis <igagis@gmail.com>  Sat, 24 Jul 2021 18:05:31 +0300
 
-libmordavokne (0.2.70) unstable; urgency=medium
+libruisapp (0.2.70) unstable; urgency=medium
 
   * deploy to own repo
 
  -- Ivan Gagis <igagis@gmail.com>  Thu, 22 Jul 2021 15:03:06 +0300
 
-libmordavokne (0.2.69) unstable; urgency=medium
+libruisapp (0.2.69) unstable; urgency=medium
 
   * relink to latest libs
 
  -- Ivan Gagis <igagis@gmail.com>  Tue, 22 Jun 2021 01:45:11 +0300
 
-libmordavokne (0.2.68) unstable; urgency=medium
+libruisapp (0.2.68) unstable; urgency=medium
 
   * relink to latest libs
 
  -- Ivan Gagis <igagis@gmail.com>  Sun, 30 May 2021 01:16:45 +0300
 
-libmordavokne (0.2.67) unstable; urgency=medium
+libruisapp (0.2.67) unstable; urgency=medium
 
   * application factory
 
  -- Ivan Gagis <igagis@gmail.com>  Sat, 15 May 2021 01:21:19 +0300
 
-libmordavokne (0.2.66) unstable; urgency=medium
+libruisapp (0.2.66) unstable; urgency=medium
 
   * deploy to jfrog
 
  -- Ivan Gagis <igagis@gmail.com>  Fri, 09 Apr 2021 17:24:22 +0300
 
-libmordavokne (0.2.65) unstable; urgency=medium
+libruisapp (0.2.65) unstable; urgency=medium
 
   * android: preserve EGL context when window is hidden
 
  -- Ivan Gagis <igagis@gmail.com>  Thu, 18 Mar 2021 19:18:11 +0200
 
-libmordavokne (0.2.64) unstable; urgency=medium
+libruisapp (0.2.64) unstable; urgency=medium
 
   * msvs: disable whole program optimization
 
  -- Ivan Gagis <igagis@gmail.com>  Wed, 17 Mar 2021 23:21:10 +0200
 
-libmordavokne (0.2.63) unstable; urgency=medium
+libruisapp (0.2.63) unstable; urgency=medium
 
   * add all directions arrow cursor
 
  -- Ivan Gagis <igagis@gmail.com>  Tue, 02 Mar 2021 01:31:11 +0200
 
-libmordavokne (0.2.62) unstable; urgency=medium
+libruisapp (0.2.62) unstable; urgency=medium
 
   * exit gracefully in case no application object is created
 
  -- Ivan Gagis <igagis@gmail.com>  Sun, 28 Feb 2021 21:13:35 +0200
 
-libmordavokne (0.2.61) unstable; urgency=medium
+libruisapp (0.2.61) unstable; urgency=medium
 
   * update to latest morda
 
  -- Ivan Gagis <igagis@gmail.com>  Sat, 27 Feb 2021 01:15:29 +0200
 
-libmordavokne (0.2.60) unstable; urgency=medium
+libruisapp (0.2.60) unstable; urgency=medium
 
   * dependency versions update
 
  -- Ivan Gagis <igagis@gmail.com>  Sun, 14 Feb 2021 00:21:31 +0200
 
-libmordavokne (0.2.59) unstable; urgency=medium
+libruisapp (0.2.59) unstable; urgency=medium
 
   * update to latest r4
 
  -- Ivan Gagis <igagis@gmail.com>  Mon, 01 Feb 2021 17:43:15 +0200
 
-libmordavokne (0.2.58) unstable; urgency=medium
+libruisapp (0.2.58) unstable; urgency=medium
 
   * github actions
 
  -- Ivan Gagis <igagis@gmail.com>  Tue, 01 Dec 2020 23:47:09 +0200
 
-libmordavokne (0.2.57) unstable; urgency=medium
+libruisapp (0.2.57) unstable; urgency=medium
 
   * update to latest libs
 
  -- Ivan Gagis <igagis@gmail.com>  Sun, 20 Sep 2020 15:32:17 +0300
 
-libmordavokne (0.2.56) unstable; urgency=medium
+libruisapp (0.2.56) unstable; urgency=medium
 
   * update to latest morda
 
  -- Ivan Gagis <igagis@gmail.com>  Mon, 14 Sep 2020 16:40:31 +0300
 
-libmordavokne (0.2.55) unstable; urgency=medium
+libruisapp (0.2.55) unstable; urgency=medium
 
   * deploy to raspbian buster
 
  -- Ivan Gagis <igagis@gmail.com>  Mon, 17 Aug 2020 20:24:48 +0300
 
-libmordavokne (0.2.54) unstable; urgency=medium
+libruisapp (0.2.54) unstable; urgency=medium
 
   * update to latest libs
 
  -- Ivan Gagis <igagis@gmail.com>  Sun, 05 Jul 2020 06:09:52 +0300
 
-libmordavokne (0.2.53) unstable; urgency=medium
+libruisapp (0.2.53) unstable; urgency=medium
 
   * update to latest libs
 
  -- Ivan Gagis <igagis@gmail.com>  Sun, 05 Jul 2020 01:42:08 +0300
 
-libmordavokne (0.2.52) unstable; urgency=medium
+libruisapp (0.2.52) unstable; urgency=medium
 
   * use android native bundle plugin
 
  -- Ivan Gagis <igagis@gmail.com>  Sat, 20 Jun 2020 16:20:12 +0300
 
-libmordavokne (0.2.51) unstable; urgency=medium
+libruisapp (0.2.51) unstable; urgency=medium
 
   * update to latest libs
 
  -- Ivan Gagis <igagis@gmail.com>  Sun, 14 Jun 2020 15:20:56 +0300
 
-libmordavokne (0.2.50) unstable; urgency=medium
+libruisapp (0.2.50) unstable; urgency=medium
 
   * update to latest libs
 
  -- Ivan Gagis <igagis@gmail.com>  Sat, 29 Feb 2020 02:01:38 +0200
 
-libmordavokne (0.2.49) unstable; urgency=medium
+libruisapp (0.2.49) unstable; urgency=medium
 
   * update to latest morda
 
  -- Ivan Gagis <igagis@gmail.com>  Fri, 14 Feb 2020 20:04:22 +0200
 
-libmordavokne (0.2.48) unstable; urgency=medium
+libruisapp (0.2.48) unstable; urgency=medium
 
   * use libopros
 
  -- Ivan Gagis <igagis@gmail.com>  Fri, 24 Jan 2020 19:46:00 +0200
 
-libmordavokne (0.2.47) unstable; urgency=medium
+libruisapp (0.2.47) unstable; urgency=medium
 
   * debian/buster i386 packages
 
  -- Ivan Gagis <igagis@gmail.com>  Wed, 22 Jan 2020 17:58:42 +0200
 
-libmordavokne (0.2.46) unstable; urgency=medium
+libruisapp (0.2.46) unstable; urgency=medium
 
   * adapt to latest libs
 
  -- Ivan Gagis <igagis@gmail.com>  Wed, 08 Jan 2020 21:44:17 +0200
 
-libmordavokne (0.2.45) unstable; urgency=medium
+libruisapp (0.2.45) unstable; urgency=medium
 
   * refactoring
 
  -- Ivan Gagis <igagis@gmail.com>  Tue, 03 Dec 2019 19:13:40 +0200
 
-libmordavokne (0.2.44) unstable; urgency=medium
+libruisapp (0.2.44) unstable; urgency=medium
 
   * nuget update
 
  -- Ivan Gagis <igagis@gmail.com>  Sat, 30 Nov 2019 15:08:43 +0200
 
-libmordavokne (0.2.43) unstable; urgency=medium
+libruisapp (0.2.43) unstable; urgency=medium
 
   * debian buster
 
  -- Ivan Gagis <igagis@gmail.com>  Sat, 30 Nov 2019 14:11:53 +0200
 
-libmordavokne (0.2.42) unstable; urgency=medium
+libruisapp (0.2.42) unstable; urgency=medium
 
   * podspec dependency corrected
 
  -- Ivan Gagis <igagis@gmail.com>  Tue, 12 Nov 2019 14:49:50 +0200
 
-libmordavokne (0.2.41) unstable; urgency=medium
+libruisapp (0.2.41) unstable; urgency=medium
 
   * adapt to r4~
 
  -- Ivan Gagis <igagis@gmail.com>  Mon, 11 Nov 2019 23:52:29 +0200
 
-libmordavokne (0.2.40) unstable; urgency=medium
+libruisapp (0.2.40) unstable; urgency=medium
 
   * deploy to bionic
 
  -- Ivan Gagis <igagis@gmail.com>  Wed, 17 Apr 2019 02:30:34 +0300
 
-libmordavokne (0.2.39) unstable; urgency=medium
+libruisapp (0.2.39) unstable; urgency=medium
 
   * deploy to bionic
 
  -- Ivan Gagis <igagis@gmail.com>  Wed, 17 Apr 2019 01:01:35 +0300
 
-libmordavokne (0.2.38) unstable; urgency=medium
+libruisapp (0.2.38) unstable; urgency=medium
 
   * linux build fix
 
  -- Ivan Gagis <igagis@gmail.com>  Mon, 14 Jan 2019 22:44:32 +0200
 
-libmordavokne (0.2.37) unstable; urgency=medium
+libruisapp (0.2.37) unstable; urgency=medium
 
   * msys2 deployment
 
  -- Ivan Gagis <igagis@gmail.com>  Mon, 14 Jan 2019 19:59:51 +0200
 
-libmordavokne (0.2.36) unstable; urgency=medium
+libruisapp (0.2.36) unstable; urgency=medium
 
   * android fix for not working drop down list
 
  -- Ivan Gagis <igagis@gmail.com>  Sat, 13 Oct 2018 22:41:12 +0300
 
-libmordavokne (0.2.35) unstable; urgency=medium
+libruisapp (0.2.35) unstable; urgency=medium
 
   * android crash fix
 
  -- Ivan Gagis <igagis@gmail.com>  Sun, 23 Sep 2018 22:46:57 +0300
 
-libmordavokne (0.2.34) unstable; urgency=medium
+libruisapp (0.2.34) unstable; urgency=medium
 
   * App::onSaveState() api removed
 
  -- Ivan Gagis <igagis@gmail.com>  Fri, 21 Sep 2018 17:15:34 +0300
 
-libmordavokne (0.2.33) unstable; urgency=medium
+libruisapp (0.2.33) unstable; urgency=medium
 
   * storageDir API added
 
  -- Ivan Gagis <igagis@gmail.com>  Wed, 19 Sep 2018 20:41:08 +0300
 
-libmordavokne (0.2.32) unstable; urgency=medium
+libruisapp (0.2.32) unstable; urgency=medium
 
   * android: fix for saving/restoring state on activity kill by os
 
  -- Ivan Gagis <igagis@gmail.com>  Sun, 16 Sep 2018 03:06:38 +0300
 
-libmordavokne (0.2.31) unstable; urgency=medium
+libruisapp (0.2.31) unstable; urgency=medium
 
   * android 7 fix: do not use dlopen()
 
  -- Ivan Gagis <igagis@gmail.com>  Sun, 12 Aug 2018 20:06:55 +0300
 
-libmordavokne (0.2.30) unstable; urgency=medium
+libruisapp (0.2.30) unstable; urgency=medium
 
   * android saveInstanceState()
 
  -- Ivan Gagis <igagis@gmail.com>  Fri, 11 May 2018 23:34:45 +0300
 
-libmordavokne (0.2.29) unstable; urgency=medium
+libruisapp (0.2.29) unstable; urgency=medium
 
   * add libmorda-opengl2-ren dependency to homebrew
 
  -- Ivan Gagis <igagis@gmail.com>  Thu, 22 Mar 2018 17:58:45 +0200
 
-libmordavokne (0.2.28) unstable; urgency=medium
+libruisapp (0.2.28) unstable; urgency=medium
 
   * add libmorda dependency to homebrew
 
  -- Ivan Gagis <igagis@gmail.com>  Thu, 22 Mar 2018 17:47:03 +0200
 
-libmordavokne (0.2.27) unstable; urgency=medium
+libruisapp (0.2.27) unstable; urgency=medium
 
   * bintray deployment fixed
 
  -- Ivan Gagis <igagis@gmail.com>  Sat, 17 Mar 2018 13:51:40 +0200
 
-libmordavokne (0.2.26) unstable; urgency=medium
+libruisapp (0.2.26) unstable; urgency=medium
 
   * logging improved
 
  -- Ivan Gagis <igagis@gmail.com>  Sat, 17 Mar 2018 13:12:39 +0200
 
-libmordavokne (0.2.25) unstable; urgency=medium
+libruisapp (0.2.25) unstable; urgency=medium
 
   * cocoapods deploy fix
 
  -- Ivan Gagis <igagis@gmail.com>  Tue, 27 Feb 2018 17:41:38 +0200
 
-libmordavokne (0.2.24) unstable; urgency=medium
+libruisapp (0.2.24) unstable; urgency=medium
 
   * update to latest libmorda
 
  -- Ivan Gagis <igagis@gmail.com>  Tue, 27 Feb 2018 16:52:27 +0200
 
-libmordavokne (0.2.23) unstable; urgency=medium
+libruisapp (0.2.23) unstable; urgency=medium
 
   * update to latest morda
 
  -- Ivan Gagis <igagis@gmail.com>  Thu, 14 Dec 2017 17:24:53 +0200
 
-libmordavokne (0.2.22) unstable; urgency=medium
+libruisapp (0.2.22) unstable; urgency=medium
 
   * test release
 
  -- Ivan Gagis <igagis@gmail.com>  Tue, 29 Aug 2017 22:21:51 +0300
 
-libmordavokne (0.2.21) unstable; urgency=medium
+libruisapp (0.2.21) unstable; urgency=medium
 
   * test release
 
  -- Ivan Gagis <igagis@gmail.com>  Fri, 11 Aug 2017 14:51:12 +0300
 
-libmordavokne (0.2.20) unstable; urgency=medium
+libruisapp (0.2.20) unstable; urgency=medium
 
   * nuget dependency on renderer added
 
  -- Ivan Gagis <igagis@gmail.com>  Fri, 30 Jun 2017 17:02:58 +0300
 
-libmordavokne (0.2.19) unstable; urgency=medium
+libruisapp (0.2.19) unstable; urgency=medium
 
   * test release
 
  -- Ivan Gagis <igagis@gmail.com>  Tue, 14 Mar 2017 22:21:02 +0200
 
-libmordavokne (0.2.18) unstable; urgency=medium
+libruisapp (0.2.18) unstable; urgency=medium
 
   * test release
 
  -- Ivan Gagis <igagis@gmail.com>  Thu, 09 Mar 2017 22:41:06 +0200
 
-libmordavokne (0.2.17) unstable; urgency=medium
+libruisapp (0.2.17) unstable; urgency=medium
 
   * test release
 
  -- Ivan Gagis <igagis@gmail.com>  Thu, 09 Mar 2017 21:05:19 +0200
 
-libmordavokne (0.2.16) unstable; urgency=medium
+libruisapp (0.2.16) unstable; urgency=medium
 
   * test release
 
  -- Ivan Gagis <igagis@gmail.com>  Sat, 04 Mar 2017 19:29:50 +0200
 
-libmordavokne (0.2.15) unstable; urgency=medium
+libruisapp (0.2.15) unstable; urgency=medium
 
   * test release
 
  -- Ivan Gagis <igagis@gmail.com>  Thu, 23 Feb 2017 22:50:42 +0200
 
-libmordavokne (0.2.14) unstable; urgency=medium
+libruisapp (0.2.14) unstable; urgency=medium
 
   * test release
 
  -- Ivan Gagis <igagis@gmail.com>  Sun, 19 Feb 2017 18:59:36 +0200
 
-libmordavokne (0.2.13) unstable; urgency=medium
+libruisapp (0.2.13) unstable; urgency=medium
 
   * test release
 
  -- Ivan Gagis <igagis@gmail.com>  Sun, 19 Feb 2017 18:56:07 +0200
 
-libmordavokne (0.2.12) unstable; urgency=medium
+libruisapp (0.2.12) unstable; urgency=medium
 
   * test release
 
  -- Ivan Gagis <igagis@gmail.com>  Sun, 19 Feb 2017 18:39:00 +0200
 
-libmordavokne (0.2.11) unstable; urgency=medium
+libruisapp (0.2.11) unstable; urgency=medium
 
   * test release
 
  -- Ivan Gagis <igagis@gmail.com>  Sun, 19 Feb 2017 16:52:11 +0200
 
-libmordavokne (0.2.10) unstable; urgency=medium
+libruisapp (0.2.10) unstable; urgency=medium
 
   * test release
 
  -- Ivan Gagis <igagis@gmail.com>  Sun, 19 Feb 2017 16:34:00 +0200
 
-libmordavokne (0.2.9) unstable; urgency=medium
+libruisapp (0.2.9) unstable; urgency=medium
 
   * rasp release
 
  -- Ivan Gagis <igagis@gmail.com>  Sun, 18 Sep 2016 14:57:07 +0300
 
-libmordavokne (0.2.8) unstable; urgency=medium
+libruisapp (0.2.8) unstable; urgency=medium
 
   * deploy to debian,ubuntu,raspberry
 
  -- Ivan Gagis <igagis@gmail.com>  Sat, 17 Sep 2016 01:13:28 +0300
 
-libmordavokne (0.2.7) unstable; urgency=medium
+libruisapp (0.2.7) unstable; urgency=medium
 
   * cocoapods dependency fix
 
  -- Ivan Gagis <igagis@gmail.com>  Thu, 08 Sep 2016 19:24:55 +0300
 
-libmordavokne (0.2.6) unstable; urgency=medium
+libruisapp (0.2.6) unstable; urgency=medium
 
-  * nuget package renamed to libmordavokne
+  * nuget package renamed to libruisapp
 
  -- Ivan Gagis <igagis@gmail.com>  Wed, 07 Sep 2016 11:14:08 +0300
 
-libmordavokne (0.2.5) unstable; urgency=medium
+libruisapp (0.2.5) unstable; urgency=medium
 
   * windows: filter out backspace, escape and carriage return from
     character input
 
  -- Ivan Gagis <igagis@gmail.com>  Tue, 16 Aug 2016 20:49:31 +0300
 
-libmordavokne (0.2.4) unstable; urgency=medium
+libruisapp (0.2.4) unstable; urgency=medium
 
   * nuget: fixed library files pickup
 
  -- Ivan Gagis <igagis@gmail.com>  Mon, 15 Aug 2016 20:14:45 +0300
 
-libmordavokne (0.2.3) unstable; urgency=medium
+libruisapp (0.2.3) unstable; urgency=medium
 
   * cocoapods release
 
  -- Ivan Gagis <igagis@gmail.com>  Sun, 14 Aug 2016 22:47:43 +0300
 
-libmordavokne (0.2.2) unstable; urgency=medium
+libruisapp (0.2.2) unstable; urgency=medium
 
   * nuget update
 
  -- Ivan Gagis <igagis@gmail.com>  Sat, 13 Aug 2016 03:22:31 +0300
 
-libmordavokne (0.2.1) unstable; urgency=medium
+libruisapp (0.2.1) unstable; urgency=medium
 
   * msvs debug symbols
 
  -- Ivan Gagis <igagis@gmail.com>  Fri, 12 Aug 2016 16:26:50 +0300
 
-libmordavokne (0.2.0) unstable; urgency=medium
+libruisapp (0.2.0) unstable; urgency=medium
 
   * initial release
 
  -- Ivan Gagis <igagis@gmail.com>  Thu, 11 Aug 2016 11:55:29 +0300
 
-libmordavokne (0.1.9) unstable; urgency=medium
+libruisapp (0.1.9) unstable; urgency=medium
 
   * rdynamic flag added to pkg-config
 
  -- Ivan Gagis <igagis@gmail.com>  Mon, 08 Aug 2016 13:47:11 +0300
 
-libmordavokne (0.1.8) unstable; urgency=medium
+libruisapp (0.1.8) unstable; urgency=medium
 
   * cocoapods build
 
  -- Ivan Gagis <igagis@gmail.com>  Fri, 05 Aug 2016 00:48:39 +0300
 
-libmordavokne (0.1.7) unstable; urgency=medium
+libruisapp (0.1.7) unstable; urgency=medium
 
   * cocoapods workaround
 
  -- Ivan Gagis <igagis@gmail.com>  Thu, 04 Aug 2016 22:33:12 +0300
 
-libmordavokne (0.1.6) unstable; urgency=medium
+libruisapp (0.1.6) unstable; urgency=medium
 
   * test release
 
  -- Ivan Gagis <igagis@gmail.com>  Wed, 03 Aug 2016 23:57:33 +0300
 
-libmordavokne (0.1.5) unstable; urgency=medium
+libruisapp (0.1.5) unstable; urgency=medium
 
   * test release
 
  -- Ivan Gagis <igagis@gmail.com>  Wed, 03 Aug 2016 20:25:34 +0300
 
-libmordavokne (0.1.4) unstable; urgency=medium
+libruisapp (0.1.4) unstable; urgency=medium
 
   * bintray secure key fixed
 
  -- Ivan Gagis <igagis@gmail.com>  Wed, 03 Aug 2016 17:35:43 +0300
 
-libmordavokne (0.1.3) unstable; urgency=medium
+libruisapp (0.1.3) unstable; urgency=medium
 
   * add deployment token to travis
 
  -- Ivan Gagis <igagis@gmail.com>  Wed, 03 Aug 2016 16:30:34 +0300
 
-libmordavokne (0.1.2) unstable; urgency=medium
+libruisapp (0.1.2) unstable; urgency=medium
 
   * travis corrected
 
  -- Ivan Gagis <igagis@gmail.com>  Wed, 03 Aug 2016 00:39:04 +0300
 
-libmordavokne (0.1.1) unstable; urgency=medium
+libruisapp (0.1.1) unstable; urgency=medium
 
   * periodic release
 
  -- Ivan Gagis <igagis@gmail.com>  Wed, 03 Aug 2016 00:19:00 +0300
 
-libmordavokne (0.1.0) unstable; urgency=low
+libruisapp (0.1.0) unstable; urgency=low
 
   * Initial release
 

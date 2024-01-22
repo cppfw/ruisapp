@@ -4,7 +4,7 @@ apply plugin: 'com.ydq.android.gradle.native-aar.import' // must go after androi
 android {
     compileSdkVersion 29
     defaultConfig {
-        applicationId "io.github.cppfw.mordavokne_test_app"
+        applicationId "io.github.cppfw.ruisapp_test_app"
         minSdkVersion 21
         targetSdkVersion 29
 
@@ -12,7 +12,7 @@ android {
 
         externalNativeBuild {
             cmake {
-                targets "mordavokneapp"
+                targets "ruisapp_application"
 
                 arguments "-DANDROID_STL=c++_shared", "-DANDROID_TOOLCHAIN=clang"
             }
@@ -48,9 +48,9 @@ dependencies {
     implementation 'io.github.cppfw:r4:+'
     implementation 'io.github.cppfw:papki:+'
     implementation 'io.github.cppfw:nitki:+'
-    implementation 'io.github.cppfw:morda:+'
+    implementation 'io.github.cppfw:ruis:+'
     implementation 'io.github.cppfw:ruis-render-opengles:+'
-    implementation project(path: ':mordavokne', configuration: 'default')
+    implementation project(path: ':ruisapp', configuration: 'default')
 }
 
 
