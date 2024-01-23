@@ -15,8 +15,8 @@ define ruisapp_rules
 
     ifeq ($(os), linux)
         # use -isystem instead of -I to prevent clang-tidy follow the includes from these locations
-        this_cxxflags += $(patsubst -I%,-isystem%,$(shell pkg-config --cflags gdk-3.0))
-        this_ldlibs += $(shell pkg-config --libs gdk-3.0)
+        this_cxxflags += $$(patsubst -I%,-isystem%,$$(shell pkg-config --cflags gdk-3.0))
+        this_ldlibs += $$(shell pkg-config --libs gdk-3.0)
 
         this_ldlibs += -lGLEW -ldl -lnitki -lopros -lX11
     else ifeq ($(os), windows)
