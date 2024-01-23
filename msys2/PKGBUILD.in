@@ -17,12 +17,10 @@ else
 	exit 1
 fi
 
-[ -z "$PACKAGE_VERSION" ] && echo "ERROR: PACKAGE_VERSION env var is not set" && exit 1;
-
 packageName=ruisapp
 
 pkgname="${pkgPrefix}${packageName}"
-pkgver=$PACKAGE_VERSION
+pkgver=$(version)
 pkgrel=1
 epoch=
 pkgdesc="Platform abstraction layer for 'ruis'"
