@@ -7,7 +7,7 @@ $(eval $(call prorab-config, ../../config))
 
 this_srcs += $(call prorab-src-dir, src)
 
-this_cxxflags += -isystem ../../src
+this_cxxflags += -I ../../src
 
 ifeq ($(ogles2), true)
     this_libruisapp := libruisapp-opengles
