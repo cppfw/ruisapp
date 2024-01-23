@@ -602,7 +602,13 @@ struct window_wrapper : public utki::destructable {
 
 			// disable v-sync
 			glx_swap_interval_ext(this->display.display, this->window, 0);
-		} else if (std::find(glx_extensions.begin(), glx_extensions.end(), "GLX_MESA_swap_control") != glx_extensions.end())
+		} else if ( //
+			std::find( //
+					   glx_extensions.begin(),
+					   glx_extensions.end(),
+					   "GLX_MESA_swap_control"
+				   ) != glx_extensions.end()
+		)
 		{
 			LOG([](auto& o) {
 				o << "GLX_MESA_swap_control is supported\n";
