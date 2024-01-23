@@ -253,8 +253,9 @@ jobs:
         key-server: https://gagis.hopto.org/repo/cppfw/pubkey.gpg
     - name: git clone
       uses: myci-actions/checkout@master
-    - name: prepare pacman package
-      run: myci-apply-version.sh --version $(myci-deb-version.sh debian/changelog) msys2/PKGBUILD.in
+    - name: set PACKAGE_VERSION
+      uses: myci-actions/export-env-var@master
+      with: {name: PACKAGE_VERSION, value: $(myci-deb-version.sh debian/changelog)}
     - name: build
       # to make makepkg-mingw build only one architecture we need to set the MINGW_ARCH
       env: {MINGW_ARCH: '${{ matrix.repo }}'}
