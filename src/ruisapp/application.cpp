@@ -62,7 +62,7 @@ void application::update_window_rect(const ruis::rectangle& rect)
 	this->gui.set_viewport(this->curWinRect.d);
 }
 
-#if M_OS_NAME != M_OS_NAME_ANDROID && M_OS_NAME != M_OS_NAME_IOS
+#if CFG_OS_NAME != CFG_OS_NAME_ANDROID && CFG_OS_NAME != CFG_OS_NAME_IOS
 std::unique_ptr<papki::file> application::get_res_file(const std::string& path) const
 {
 	return std::make_unique<papki::fs_file>(path);
@@ -98,7 +98,7 @@ ruis::real application::get_pixels_per_pp(r4::vector2<unsigned> resolution, r4::
 	// display dpi. For hand held devices the size of DP should be determined from
 	// physical screen size and pixel resolution.
 
-#if M_OS_NAME == M_OS_NAME_IOS
+#if CFG_OS_NAME == CFG_OS_NAME_IOS
 	return ruis::real(1); // TODO:
 #else
 	unsigned x_index = [&resolution]() {

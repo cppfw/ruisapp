@@ -80,9 +80,9 @@ struct window_params {
 	};
 
 	graphics_api graphics_api_request =
-#if M_OS_NAME == M_OS_NAME_ANDROID || M_OS_NAME == M_OS_NAME_IOS
+#if CFG_OS_NAME == CFG_OS_NAME_ANDROID || CFG_OS_NAME == CFG_OS_NAME_IOS
 		graphics_api::gles_2_0
-#elif M_OS == M_OS_WINDOWS || M_OS == M_OS_LINUX || M_OS == M_OS_MACOSX
+#elif CFG_OS == CFG_OS_WINDOWS || CFG_OS == CFG_OS_LINUX || CFG_OS == CFG_OS_MACOSX
 		graphics_api::gl_2_0
 #else
 #	error "unknown OS"

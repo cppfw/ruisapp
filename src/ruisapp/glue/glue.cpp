@@ -21,12 +21,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include <utki/config.hpp>
 
-#if M_OS == M_OS_WINDOWS
+#if CFG_OS == CFG_OS_WINDOWS
 // NOLINTNEXTLINE(bugprone-suspicious-include)
 #	include "windows/glue.cxx"
-#elif M_OS == M_OS_LINUX && M_OS_NAME == M_OS_NAME_ANDROID
+#elif CFG_OS == CFG_OS_LINUX && CFG_OS_NAME == CFG_OS_NAME_ANDROID
 #	include "android/glue.cxx"
-#elif M_OS == M_OS_LINUX
+#elif CFG_OS == CFG_OS_LINUX
 // NOLINTNEXTLINE(bugprone-suspicious-include)
 #	include "linux/glue.cxx"
 #endif
