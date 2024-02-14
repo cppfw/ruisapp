@@ -41,7 +41,7 @@ void application::render()
 	this->swap_frame_buffers();
 }
 
-void application::update_window_rect(const ruis::rectangle& rect)
+void application::update_window_rect(const ruis::rect& rect)
 {
 	if (this->curWinRect == rect) {
 		return;

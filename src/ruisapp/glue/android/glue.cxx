@@ -1122,7 +1122,7 @@ ruisapp::application::application(std::string name, const window_params& wp) :
 	storage_dir(initialize_storage_dir(this->name))
 {
 	auto win_size = get_impl(*this).get_window_size();
-	this->update_window_rect(ruis::rectangle(ruis::vector2(0), win_size.to<ruis::real>()));
+	this->update_window_rect(ruis::rect(ruis::vector2(0), win_size.to<ruis::real>()));
 }
 
 std::unique_ptr<papki::file> ruisapp::application::get_res_file(const std::string& path) const
@@ -1738,7 +1738,7 @@ void on_content_rect_changed(ANativeActivity* activity, const ARect* rect)
 
 	update_window_rect(
 		app,
-		ruis::rectangle(
+		ruis::rect(
 			float(rect->left),
 			cur_window_dims.y() - float(rect->bottom),
 			float(rect->right - rect->left),

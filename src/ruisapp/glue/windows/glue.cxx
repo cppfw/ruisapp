@@ -605,7 +605,7 @@ LRESULT CALLBACK window_procedure(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_
 
 		case WM_SIZE:
 			// resize GL, LoWord=Width, HiWord=Height
-			update_window_rect(ruisapp::inst(), ruis::rectangle(0, 0, float(LOWORD(l_param)), float(HIWORD(l_param))));
+			update_window_rect(ruisapp::inst(), ruis::rect(0, 0, float(LOWORD(l_param)), float(HIWORD(l_param))));
 			return 0;
 
 		case WM_USER:
@@ -716,7 +716,7 @@ application::application(std::string name, const window_params& wp) :
 	storage_dir(initialize_storage_dir(this->name)),
 	curWinRect(0, 0, -1, -1)
 {
-	this->update_window_rect(ruis::rectangle(0, 0, ruis::real(wp.dims.x()), ruis::real(wp.dims.y())));
+	this->update_window_rect(ruis::rect(0, 0, ruis::real(wp.dims.x()), ruis::real(wp.dims.y())));
 }
 
 void application::quit() noexcept

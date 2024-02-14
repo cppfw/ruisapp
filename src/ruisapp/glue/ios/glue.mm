@@ -249,7 +249,7 @@ void application::set_fullscreen(bool enable){
 			w.rootViewController.view.frame = rect;
 		}
 		update_window_rect(
-				ruis::rectangle(
+				ruis::rect(
 						ruis::vector2(0),
 						ruis::vector2(
 								round(w.frame.size.width * scale),
@@ -269,7 +269,7 @@ void application::set_fullscreen(bool enable){
 		}
 
 		update_window_rect(
-				ruis::rectangle(
+				ruis::rect(
 						ruis::vector2(0),
 						ruis::vector2(
 								round(w.frame.size.width * scale),

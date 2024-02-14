@@ -910,7 +910,7 @@ application::application(std::string name, const window_params& wp) :
 #ifdef RUISAPP_RASPBERRYPI
 	this->set_fullscreen(true);
 #else
-	this->update_window_rect(ruis::rectangle(0, 0, ruis::real(wp.dims.x()), ruis::real(wp.dims.y())));
+	this->update_window_rect(ruis::rect(0, 0, ruis::real(wp.dims.x()), ruis::real(wp.dims.y())));
 #endif
 }
 
@@ -1459,7 +1459,7 @@ int main(int argc, const char** argv)
 		}
 
 		if (new_win_dims.is_positive_or_zero()) {
-			update_window_rect(*app, ruis::rectangle(0, new_win_dims));
+			update_window_rect(*app, ruis::rect(0, new_win_dims));
 		}
 
 		render(*app);

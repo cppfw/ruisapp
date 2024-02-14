@@ -144,7 +144,8 @@ public:
 private:
 	// this is a viewport rectangle in coordinates that are as follows: x grows
 	// right, y grows up.
-	ruis::rectangle curWinRect = ruis::rectangle(0, 0, 0, 0);
+	// TODO: naming convention
+	ruis::rect curWinRect = {0, 0, 0, 0};
 
 public:
 	const ruis::vector2& window_dims() const noexcept
@@ -157,9 +158,9 @@ private:
 
 	friend void render(application& app);
 
-	void update_window_rect(const ruis::rectangle& rect);
+	void update_window_rect(const ruis::rect& rect);
 
-	friend void update_window_rect(application& app, const ruis::rectangle& rect);
+	friend void update_window_rect(application& app, const ruis::rect& rect);
 
 	// pos is in usual window coordinates, y goes down.
 	void handle_mouse_move(const r4::vector2<float>& pos, unsigned id)

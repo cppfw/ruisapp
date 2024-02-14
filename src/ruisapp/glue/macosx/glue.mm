@@ -150,7 +150,7 @@ void macosx_HandleCharacterInput(const void* nsstring, ruis::key key){
 	handle_character_input(ruisapp::application::inst(), macosx_input_string_provider(reinterpret_cast<const NSString*>(nsstring)), key);
 }
 
-void macosx_UpdateWindowRect(const ruis::rectangle& r){
+void macosx_UpdateWindowRect(const ruis::rect& r){
 	auto& ww = get_impl(get_window_pimpl(ruisapp::application::inst()));
 	[ww.openglContextId update];//after resizing window we need to update OpenGL context
 	update_window_rect(ruisapp::application::inst(), r);
@@ -592,7 +592,7 @@ const std::array<ruis::key, std::uint8_t(-1) + 1> keyCodeMap = {{
 	NSWindow* nsw = [n object];
 	NSRect frame = [nsw frame];
 	NSRect rect = [nsw contentRectForFrameRect:frame];
-	macosx_UpdateWindowRect(ruis::rectangle(0, 0, rect.size.width, rect.size.height));
+	macosx_UpdateWindowRect(ruis::rect(0, 0, rect.size.width, rect.size.height));
 }
 
 -(NSSize)windowWillResize:(NSWindow*)sender toSize:(NSSize)frameSize{
@@ -837,7 +837,7 @@ application::application(std::string name, const window_params& wp) :
 {
 	LOG([&](auto&o){o << "application::application(): enter" << std::endl;})
 	this->update_window_rect(
-			ruis::rectangle(
+			ruis::rect(
 					0,
 					0,
 					ruis::real(wp.dims.x()),

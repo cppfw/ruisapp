@@ -31,7 +31,7 @@ void render(application& app)
 	app.render();
 }
 
-void update_window_rect(application& app, const ruis::rectangle& rect)
+void update_window_rect(application& app, const ruis::rect& rect)
 {
 	app.update_window_rect(rect);
 }
