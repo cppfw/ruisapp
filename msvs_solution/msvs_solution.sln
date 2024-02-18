@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30717.126
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34607.119
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libruisapp", "libruisapp\libruisapp.vcxproj", "{1F656B83-1E51-406C-AF65-60249F4B2CB7}"
 EndProject
@@ -21,6 +21,10 @@ Global
 		v142_Debug_MD|x86 = v142_Debug_MD|x86
 		v142_Release_MD|x64 = v142_Release_MD|x64
 		v142_Release_MD|x86 = v142_Release_MD|x86
+		v143_Debug_MD|x64 = v143_Debug_MD|x64
+		v143_Debug_MD|x86 = v143_Debug_MD|x86
+		v143_Release_MD|x64 = v143_Release_MD|x64
+		v143_Release_MD|x86 = v143_Release_MD|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{1F656B83-1E51-406C-AF65-60249F4B2CB7}.v140_Debug|x64.ActiveCfg = v140_Debug|x64
@@ -47,6 +51,14 @@ Global
 		{1F656B83-1E51-406C-AF65-60249F4B2CB7}.v142_Release_MD|x64.Build.0 = v142_Release_MD|x64
 		{1F656B83-1E51-406C-AF65-60249F4B2CB7}.v142_Release_MD|x86.ActiveCfg = v142_Release_MD|Win32
 		{1F656B83-1E51-406C-AF65-60249F4B2CB7}.v142_Release_MD|x86.Build.0 = v142_Release_MD|Win32
+		{1F656B83-1E51-406C-AF65-60249F4B2CB7}.v143_Debug_MD|x64.ActiveCfg = v143_Debug_MD|x64
+		{1F656B83-1E51-406C-AF65-60249F4B2CB7}.v143_Debug_MD|x64.Build.0 = v143_Debug_MD|x64
+		{1F656B83-1E51-406C-AF65-60249F4B2CB7}.v143_Debug_MD|x86.ActiveCfg = v143_Debug_MD|Win32
+		{1F656B83-1E51-406C-AF65-60249F4B2CB7}.v143_Debug_MD|x86.Build.0 = v143_Debug_MD|Win32
+		{1F656B83-1E51-406C-AF65-60249F4B2CB7}.v143_Release_MD|x64.ActiveCfg = v143_Release_MD|x64
+		{1F656B83-1E51-406C-AF65-60249F4B2CB7}.v143_Release_MD|x64.Build.0 = v143_Release_MD|x64
+		{1F656B83-1E51-406C-AF65-60249F4B2CB7}.v143_Release_MD|x86.ActiveCfg = v143_Release_MD|Win32
+		{1F656B83-1E51-406C-AF65-60249F4B2CB7}.v143_Release_MD|x86.Build.0 = v143_Release_MD|Win32
 		{7BBD68D9-FF3E-4779-A099-B52528FD8CA8}.v140_Debug|x64.ActiveCfg = v140_Debug|x64
 		{7BBD68D9-FF3E-4779-A099-B52528FD8CA8}.v140_Debug|x64.Build.0 = v140_Debug|x64
 		{7BBD68D9-FF3E-4779-A099-B52528FD8CA8}.v140_Debug|x86.ActiveCfg = v140_Debug|Win32
@@ -71,6 +83,14 @@ Global
 		{7BBD68D9-FF3E-4779-A099-B52528FD8CA8}.v142_Release_MD|x64.Build.0 = v142_Release_MD|x64
 		{7BBD68D9-FF3E-4779-A099-B52528FD8CA8}.v142_Release_MD|x86.ActiveCfg = v142_Release_MD|Win32
 		{7BBD68D9-FF3E-4779-A099-B52528FD8CA8}.v142_Release_MD|x86.Build.0 = v142_Release_MD|Win32
+		{7BBD68D9-FF3E-4779-A099-B52528FD8CA8}.v143_Debug_MD|x64.ActiveCfg = v143_Debug_MD|x64
+		{7BBD68D9-FF3E-4779-A099-B52528FD8CA8}.v143_Debug_MD|x64.Build.0 = v143_Debug_MD|x64
+		{7BBD68D9-FF3E-4779-A099-B52528FD8CA8}.v143_Debug_MD|x86.ActiveCfg = v143_Debug_MD|Win32
+		{7BBD68D9-FF3E-4779-A099-B52528FD8CA8}.v143_Debug_MD|x86.Build.0 = v143_Debug_MD|Win32
+		{7BBD68D9-FF3E-4779-A099-B52528FD8CA8}.v143_Release_MD|x64.ActiveCfg = v143_Release_MD|x64
+		{7BBD68D9-FF3E-4779-A099-B52528FD8CA8}.v143_Release_MD|x64.Build.0 = v143_Release_MD|x64
+		{7BBD68D9-FF3E-4779-A099-B52528FD8CA8}.v143_Release_MD|x86.ActiveCfg = v143_Release_MD|Win32
+		{7BBD68D9-FF3E-4779-A099-B52528FD8CA8}.v143_Release_MD|x86.Build.0 = v143_Release_MD|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
