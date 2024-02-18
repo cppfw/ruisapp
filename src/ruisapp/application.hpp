@@ -25,6 +25,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include <papki/file.hpp>
 #include <r4/vector.hpp>
+#include <ruis/config.hpp>
 #include <ruis/gui.hpp>
 #include <ruis/util/key.hpp>
 #include <utki/config.hpp>
