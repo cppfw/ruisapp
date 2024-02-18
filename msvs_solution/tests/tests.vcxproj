@@ -598,7 +598,7 @@
     <Import Project="..\packages\libsvgren.0.6.10\build\native\libsvgren.targets" Condition="Exists('..\packages\libsvgren.0.6.10\build\native\libsvgren.targets')" />
     <Import Project="..\packages\libtreeml.0.2.13\build\native\libtreeml.targets" Condition="Exists('..\packages\libtreeml.0.2.13\build\native\libtreeml.targets')" />
     <Import Project="..\packages\libruis.0.5.213\build\native\libruis.targets" Condition="Exists('..\packages\libruis.0.5.213\build\native\libruis.targets')" />
-    <Import Project="..\packages\libruis-render-opengl.0.1.64\build\native\libruis-render-opengl.targets" Condition="Exists('..\packages\libruis-render-opengl.0.1.64\build\native\libruis-render-opengl.targets')" />
+    <Import Project="..\packages\libruis-render-opengl.0.1.65\build\native\libruis-render-opengl.targets" Condition="Exists('..\packages\libruis-render-opengl.0.1.65\build\native\libruis-render-opengl.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -622,6 +622,6 @@
     <Error Condition="!Exists('..\packages\libsvgren.0.6.10\build\native\libsvgren.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libsvgren.0.6.10\build\native\libsvgren.targets'))" />
     <Error Condition="!Exists('..\packages\libtreeml.0.2.13\build\native\libtreeml.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libtreeml.0.2.13\build\native\libtreeml.targets'))" />
     <Error Condition="!Exists('..\packages\libruis.0.5.213\build\native\libruis.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libruis.0.5.213\build\native\libruis.targets'))" />
-    <Error Condition="!Exists('..\packages\libruis-render-opengl.0.1.64\build\native\libruis-render-opengl.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libruis-render-opengl.0.1.64\build\native\libruis-render-opengl.targets'))" />
+    <Error Condition="!Exists('..\packages\libruis-render-opengl.0.1.65\build\native\libruis-render-opengl.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libruis-render-opengl.0.1.65\build\native\libruis-render-opengl.targets'))" />
   </Target>
 </Project>
