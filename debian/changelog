@@ -1,3 +1,9 @@
+libruisapp (0.2.90) unstable; urgency=medium
+
+  * msvs: v143
+
+ -- Ivan Gagis <igagis@gmail.com>  Sun, 18 Feb 2024 21:14:28 +0200
+
 libruisapp (0.2.89) unstable; urgency=medium
 
   * rename mordavokne to ruisapp
