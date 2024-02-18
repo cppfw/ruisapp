@@ -31,14 +31,14 @@ nuget{
 	}
 	dependencies {
 		packages : {
-			libr4/0.1.53;
-			libruis/0.5.210;
-			libruis-render-opengl/0.1.63;
+			libr4/1.0.79;
+			libruis/0.5.213;
+			libruis-render-opengl/0.1.65;
 			glew.v140/1.12.0;
-			libpapki/1.0.93;
-			libopros/1.0.46;
-			libtreeml/0.1.28;
-			libutki/1.1.124;
+			libpapki/1.0.134;
+			libopros/1.0.91;
+			libtreeml/0.2.13;
+			libutki/1.1.228;
 		};
 	}
 	files {
