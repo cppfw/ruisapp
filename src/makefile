@@ -45,13 +45,7 @@ $(.RECIPEPREFIX)$(a)$(this_cc) -ObjC++ -c -o "$$$$@" $$(this_cxxflags) $$(OBJCXX
     this_ldlibs += -lruis-render-$1
 
     ifeq ($1,opengles)
-        ifeq ($(prorab_linux),raspbian)
-            this_cxxflags += -DRUISAPP_RASPBERRYPI -isystem /opt/vc/include
-            this_ldflags += -L/opt/vc/lib
-            this_ldlibs += -lbrcmEGL
-        else
-            this_ldlibs += -lEGL
-        endif
+        this_ldlibs += -lEGL
     endif
 
     $$(eval $$(prorab-build-lib))
