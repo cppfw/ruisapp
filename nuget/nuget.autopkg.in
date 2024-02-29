@@ -37,7 +37,7 @@ nuget{
 			glew.v140/1.12.0;
 			libpapki/1.0.134;
 			libopros/1.0.91;
-			libtreeml/0.2.13;
+			libtml/0.2.13;
 			libutki/1.1.228;
 		};
 	}

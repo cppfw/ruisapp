@@ -26,7 +26,7 @@ define ruisapp_rules
         this_ldlibs += -framework Cocoa -framework OpenGL -ldl
     endif
 
-    this_ldlibs += -lruis -lpapki -ltreeml -lutki
+    this_ldlibs += -lruis -lpapki -ltml -lutki
 
     ifeq ($(os), macosx)
         this_mm_obj := $$(d)$$(this_out_dir)obj_$$(this_name)/objc/ruisapp/glue/macosx/glue.mm.o
