@@ -12,7 +12,7 @@
 #include <ruis/container.hpp>
 #include <ruis/widgets/proxy/key_proxy.hpp>
 
-#include <ruis/widgets/button/push_button.hpp>
+#include <ruis/widgets/button/base/push_button.hpp>
 #include <ruis/widgets/label/text.hpp>
 
 #include <ruis/res/texture.hpp>
