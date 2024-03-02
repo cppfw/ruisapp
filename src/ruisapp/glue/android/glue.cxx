@@ -354,9 +354,11 @@ class asset_file : public papki::file
 	mutable AAsset* handle = nullptr;
 
 public:
-	asset_file(AAssetManager* manager, 
-	// TODO: naming convention
-	std::string_view pathName = std::string_view()) :
+	asset_file(
+		AAssetManager* manager,
+		// TODO: naming convention
+		std::string_view pathName = std::string_view()
+	) :
 		manager(manager),
 		papki::file(pathName)
 	{

@@ -28,30 +28,43 @@ version_duplet ruisapp::get_opengl_version_duplet(window_params::graphics_api ap
 	using ga = window_params::graphics_api;
 	switch (api) {
 		case ga::gl_2_0:
+			// NOLINTNEXTLINE(modernize-use-designated-initializers)
 			return {2, 0}; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 		case ga::gl_2_1:
+			// NOLINTNEXTLINE(modernize-use-designated-initializers)
 			return {2, 1}; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 		case ga::gl_3_0:
+			// NOLINTNEXTLINE(modernize-use-designated-initializers)
 			return {3, 0}; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 		case ga::gl_3_1:
+			// NOLINTNEXTLINE(modernize-use-designated-initializers)
 			return {3, 1}; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 		case ga::gl_3_2:
+			// NOLINTNEXTLINE(modernize-use-designated-initializers)
 			return {3, 2}; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 		case ga::gl_3_3:
+			// NOLINTNEXTLINE(modernize-use-designated-initializers)
 			return {3, 3}; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 		case ga::gl_4_0:
+			// NOLINTNEXTLINE(modernize-use-designated-initializers)
 			return {4, 0}; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 		case ga::gl_4_1:
+			// NOLINTNEXTLINE(modernize-use-designated-initializers)
 			return {4, 1}; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 		case ga::gl_4_2:
+			// NOLINTNEXTLINE(modernize-use-designated-initializers)
 			return {4, 2}; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 		case ga::gl_4_3:
+			// NOLINTNEXTLINE(modernize-use-designated-initializers)
 			return {4, 3}; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 		case ga::gl_4_4:
+			// NOLINTNEXTLINE(modernize-use-designated-initializers)
 			return {4, 4}; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 		case ga::gl_4_5:
+			// NOLINTNEXTLINE(modernize-use-designated-initializers)
 			return {4, 5}; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 		case ga::gl_4_6:
+			// NOLINTNEXTLINE(modernize-use-designated-initializers)
 			return {4, 6}; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 		default:
 			break;
