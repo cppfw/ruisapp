@@ -354,7 +354,9 @@ class asset_file : public papki::file
 	mutable AAsset* handle = nullptr;
 
 public:
-	asset_file(AAssetManager* manager, const std::string& pathName = std::string()) :
+	asset_file(AAssetManager* manager, 
+	// TODO: naming convention
+	std::string_view pathName = std::string_view()) :
 		manager(manager),
 		papki::file(pathName)
 	{
@@ -1125,7 +1127,7 @@ ruisapp::application::application(std::string name, const window_params& wp) :
 	this->update_window_rect(ruis::rect(ruis::vector2(0), win_size.to<ruis::real>()));
 }
 
-std::unique_ptr<papki::file> ruisapp::application::get_res_file(const std::string& path) const
+std::unique_ptr<papki::file> ruisapp::application::get_res_file(std::string_view path) const
 {
 	return std::make_unique<asset_file>(native_activity->assetManager, path);
 }

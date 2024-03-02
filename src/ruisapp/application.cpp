@@ -63,7 +63,7 @@ void application::update_window_rect(const ruis::rect& rect)
 }
 
 #if CFG_OS_NAME != CFG_OS_NAME_ANDROID && CFG_OS_NAME != CFG_OS_NAME_IOS
-std::unique_ptr<papki::file> application::get_res_file(const std::string& path) const
+std::unique_ptr<papki::file> application::get_res_file(std::string_view path) const
 {
 	return std::make_unique<papki::fs_file>(path);
 }

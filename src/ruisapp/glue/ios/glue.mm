@@ -337,7 +337,7 @@ application::application(std::string name, const window_params& wp) :
 }
 
 void application::swap_frame_buffers(){
-	//do nothing
+	// do nothing
 }
 
 void application::show_virtual_keyboard()noexcept{
@@ -348,7 +348,7 @@ void application::hide_virtual_keyboard()noexcept{
 	//TODO:
 }
 
-std::unique_ptr<papki::file> application::get_res_file(const std::string& path)const{
+std::unique_ptr<papki::file> application::get_res_file(std::string_view path)const{
 	std::string dir([[[NSBundle mainBundle] resourcePath] fileSystemRepresentation]);
 
 //	TRACE(<< "res path = " << dir << std::endl)
@@ -360,5 +360,5 @@ std::unique_ptr<papki::file> application::get_res_file(const std::string& path)c
 }
 
 void application::set_mouse_cursor_visible(bool visible){
-	//do nothing
+	// do nothing
 }
