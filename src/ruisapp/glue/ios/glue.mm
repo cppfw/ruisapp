@@ -1,9 +1,13 @@
 #include "../../application.hpp"
 
+#include <utki/destructable.hpp>
+#include <utki/util.hpp>
+
 #include <papki/fs_file.hpp>
 #include <papki/root_dir.hpp>
 
 #include <sstream>
+#include <stdexcept>
 
 #import <UIKit/UIKit.h>
 #import <GLKit/GLKit.h>
@@ -79,7 +83,7 @@ int main(int argc, char * argv[]){
 namespace{
 	window_params windowParams(0);
 
-	struct WindowWrapper : public utki::Unique{
+	struct WindowWrapper : public utki::destructable{
 		UIWindow *window;
 
 		WindowWrapper(const window_params& wp){
@@ -88,10 +92,10 @@ namespace{
 			this->window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
 
 			if(!this->window){
-				throw ruis::Exc("failed to create a UIWindow");
+				throw std::runtime_error("failed to create a UIWindow");
 			}
 
-			utki::ScopeExit scopeExitWindow([this](){
+			utki::scope_exit scopeExitWindow([this](){
 				[this->window release];
 			});
 
@@ -103,14 +107,14 @@ namespace{
 
 			[this->window makeKeyAndVisible];
 
-			scopeExitWindow.reset();
+			scopeExitWindow.release();
 		}
 		~WindowWrapper()noexcept{
 			[this->window release];
 		}
 	};
 
-	WindowWrapper& get_impl(const std::unique_ptr<utki::Unique>& pimpl){
+	WindowWrapper& get_impl(const std::unique_ptr<utki::destructable>& pimpl){
 		ASSERT(pimpl)
 		ASSERT(dynamic_cast<WindowWrapper*>(pimpl.get()))
 		return static_cast<WindowWrapper&>(*pimpl);
