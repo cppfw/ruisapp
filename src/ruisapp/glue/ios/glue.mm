@@ -1,7 +1,7 @@
 #include "../../application.hpp"
 
 #include <papki/fs_file.hpp>
-#include <papki/root_dir_file.hpp>
+#include <papki/root_dir.hpp>
 
 #include <sstream>
 
@@ -353,8 +353,8 @@ std::unique_ptr<papki::file> application::get_res_file(std::string_view path)con
 
 //	TRACE(<< "res path = " << dir << std::endl)
 
-	auto rdf = std::make_unique<papki::root_dir_file>(std::make_unique<papki::fs_file>(), dir + "/");
-	rdf->setPath(path);
+	auto rdf = std::make_unique<papki::root_dir>(std::make_unique<papki::fs_file>(), dir + "/");
+	rdf->set_path(path);
 
 	return std::move(rdf);
 }
