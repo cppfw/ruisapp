@@ -194,8 +194,8 @@ namespace{
 		handle_mouse_button(
 				ruisapp::inst(),
 				true,
-				ruis::Vec2r(p.x * scale, p.y * scale).rounded(),
-				ruis::MouseButton_e::LEFT,
+				ruis::vector2(p.x * scale, p.y * scale).rounded(),
+				ruis::mouse_button::left,
 				0 //TODO: id
 			);
 	}
@@ -210,7 +210,7 @@ namespace{
 //		TRACE(<< "touch moved = " << ruis::Vec2r(p.x * scale, p.y * scale).rounded() << std::endl)
 		handle_mouse_move(
 				ruisapp::inst(),
-				ruis::Vec2r(p.x * scale, p.y * scale).rounded(),
+				ruis::vector2(p.x * scale, p.y * scale).rounded(),
 				0 //TODO: id
 			);
 	}
@@ -226,8 +226,8 @@ namespace{
 		handle_mouse_button(
 				ruisapp::inst(),
 				false,
-				ruis::Vec2r(p.x * scale, p.y * scale).rounded(),
-				ruis::MouseButton_e::LEFT,
+				ruis::vector2(p.x * scale, p.y * scale).rounded(),
+				ruis::mouse_button::left,
 				0 // TODO: id
 			);
 	}
@@ -319,7 +319,7 @@ ruis::real getDotsPerDp(){
 
 application::application(std::string name, const window_params& wp) :
 		name(name),
-		window_pimpl(utki::makeUnique<WindowWrapper>(wp)),
+		window_pimpl(std::make_unique<WindowWrapper>(wp)),
 		gui(utki::make_shared<ruis::context>(
 				utki::make_shared<ruis::render_opengles::renderer>(),
 				utki::make_shared<ruis::updater>(),
