@@ -191,10 +191,11 @@ namespace{
 		CGPoint p = [touch locationInView:self.view ];
 
 //		TRACE(<< "touch began = " << ruis::Vec2r(p.x * scale, p.y * scale).rounded() << std::endl)
+		using std::round;
 		handle_mouse_button(
 				ruisapp::inst(),
 				true,
-				ruis::vector2(p.x * scale, p.y * scale).rounded(),
+				round(ruis::vector2(p.x * scale, p.y * scale)),
 				ruis::mouse_button::left,
 				0 //TODO: id
 			);
@@ -208,9 +209,10 @@ namespace{
 		CGPoint p = [touch locationInView:self.view ];
 
 //		TRACE(<< "touch moved = " << ruis::Vec2r(p.x * scale, p.y * scale).rounded() << std::endl)
+		using std::round;
 		handle_mouse_move(
 				ruisapp::inst(),
-				ruis::vector2(p.x * scale, p.y * scale).rounded(),
+				round(ruis::vector2(p.x * scale, p.y * scale)),
 				0 //TODO: id
 			);
 	}
@@ -223,10 +225,11 @@ namespace{
 		CGPoint p = [touch locationInView:self.view ];
 
 //		TRACE(<< "touch ended = " << ruis::Vec2r(p.x * scale, p.y * scale).rounded() << std::endl)
+		using std::round;
 		handle_mouse_button(
 				ruisapp::inst(),
 				false,
-				ruis::vector2(p.x * scale, p.y * scale).rounded(),
+				round(ruis::vector2(p.x * scale, p.y * scale)),
 				ruis::mouse_button::left,
 				0 // TODO: id
 			);
