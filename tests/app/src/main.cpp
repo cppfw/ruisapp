@@ -8,8 +8,8 @@
 
 #include <ruis/config.hpp>
 
-#include <ruis/widget.hpp>
-#include <ruis/container.hpp>
+#include <ruis/widgets/widget.hpp>
+#include <ruis/widgets/container.hpp>
 #include <ruis/widgets/proxy/key_proxy.hpp>
 
 #include <ruis/widgets/button/base/push_button.hpp>
