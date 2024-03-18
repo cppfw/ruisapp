@@ -1,3 +1,9 @@
+libruisapp (0.2.93) unstable; urgency=medium
+
+  * improve command line arguments passing
+
+ -- Ivan Gagis <igagis@gmail.com>  Mon, 18 Mar 2024 13:05:10 +0200
+
 libruisapp (0.2.92) unstable; urgency=medium
 
   * bookworm
