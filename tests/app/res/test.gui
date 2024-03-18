@@ -244,7 +244,7 @@ cursor{crs_arrow}
 			@pile{
 				lp{
 					dx{fill}
-					dy{0}
+					dy{fill}
 					weight{1}
 				}
 				@pan_list{
@@ -325,13 +325,13 @@ cursor{crs_arrow}
 
 			@row{
 				lp{
-					dx{max} dy{0}
+					dx{max} dy{fill}
 					weight{1}
 				}
 
 				@pile{
 					lp{
-						dx{0} dy{max}
+						dx{fill} dy{max}
 						weight{1}
 					}
 					@tree_view{
@@ -418,7 +418,7 @@ cursor{crs_arrow}
 
 			@horizontal_scroll_bar{
 				lp{
-					dx{50pp} dy{40pp} //TODO: min min
+					dx{fill} dy{40pp} //TODO: min min
 					weight{1}
 				}
 			}
@@ -542,16 +542,16 @@ cursor{crs_arrow}
 					dx{max} dy{min}
 				}
 			}
-			@push_button{lp{dy{0}weight{1}}@text{text{button!!!}}}
-			@push_button{lp{dy{0}weight{1}}@text{text{button!!!}}}
-			@push_button{lp{dy{0}weight{1}}@text{text{button!!!}}}
-			@push_button{lp{dy{0}weight{1}}@text{text{button!!!}}}
-			@push_button{lp{dy{0}weight{1}}@text{text{button!!!}}}
-			@push_button{lp{dy{0}weight{1}}@text{text{button!!!}}}
-			@push_button{lp{dy{0}weight{1}}@text{text{button!!!}}}
-			@push_button{lp{dy{0}weight{1}}@text{text{button!!!}}}
-			@push_button{lp{dy{0}weight{1}}@text{text{button!!!}}}
-			@push_button{lp{dy{0}weight{1}}@text{text{button!!!}}}
+			@push_button{lp{dy{fill}weight{1}}@text{text{button!!!}}}
+			@push_button{lp{dy{fill}weight{1}}@text{text{button!!!}}}
+			@push_button{lp{dy{fill}weight{1}}@text{text{button!!!}}}
+			@push_button{lp{dy{fill}weight{1}}@text{text{button!!!}}}
+			@push_button{lp{dy{fill}weight{1}}@text{text{button!!!}}}
+			@push_button{lp{dy{fill}weight{1}}@text{text{button!!!}}}
+			@push_button{lp{dy{fill}weight{1}}@text{text{button!!!}}}
+			@push_button{lp{dy{fill}weight{1}}@text{text{button!!!}}}
+			@push_button{lp{dy{fill}weight{1}}@text{text{button!!!}}}
+			@push_button{lp{dy{fill}weight{1}}@text{text{button!!!}}}
 
 		}
 	}
@@ -572,7 +572,7 @@ cursor{crs_arrow}
 
 			@row{
 				lp{
-					dx{max} dy{0}
+					dx{max} dy{fill}
 					weight{1}
 				}
 
@@ -580,7 +580,7 @@ cursor{crs_arrow}
 
 				@pile{
 					lp{
-						dx{0} dy{max}
+						dx{fill} dy{max}
 						weight{1}
 					}
 					@scroll_area{
@@ -646,7 +646,7 @@ cursor{crs_arrow}
 					id{scroll_area_horizontal_slider}
 
 					lp{
-						dx{0}
+						dx{fill}
 						weight{1}
 					}
 				}
@@ -711,7 +711,7 @@ cursor{crs_arrow}
 
 			@pile{
 				lp{
-					dx{0} dy{max}
+					dx{fill} dy{max}
 					weight{1}
 				}
 				@list{
