@@ -23,13 +23,6 @@ Build-Depends:
 Build-Depends-Indep: doxygen
 Standards-Version: 3.9.5
 
-Package: ruisapp-test
-Section: devel
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libruisapp$(soname)
-Description: cross-platform C++ GUI library tests.
- GUI library tests.
-
 Package: libruisapp-opengl$(soname)
 Section: libs
 Architecture: any
