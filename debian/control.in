@@ -37,26 +37,12 @@ Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: cross-platform C++ GUI library.
  GUI library using OpenGL 2 rendering backend.
 
-Package: libruisapp-opengl$(soname)-dbg
-Architecture: any
-Section: debug
-Depends: libruisapp-opengl$(soname) (= ${binary:Version}), ${misc:Depends}
-Description: libruisapp-opengl2 debugging symbols
- Debug symbols for libruisapp-opengl2 library.
-
 Package: libruisapp-opengles$(soname)
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: cross-platform C++ GUI library.
  GUI library using OpenGL 2 rendering backend.
-
-Package: libruisapp-opengles$(soname)-dbg
-Architecture: any
-Section: debug
-Depends: libruisapp-opengles$(soname) (= ${binary:Version}), ${misc:Depends}
-Description: libruisapp-opengl2 debugging symbols
- Debug symbols for libruisapp-opengl2 library.
 
 Package: libruisapp-dev
 Section: libdevel
