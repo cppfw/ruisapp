@@ -728,7 +728,7 @@ void application::quit() noexcept
 namespace ruisapp {
 void winmain(int argc, const char** argv)
 {
-	auto app = ruisapp::application_factory::get_factory()(utki::make_span(argv, argc));
+	auto app = ruisapp::application_factory::create_application(argc, argv);
 	if (!app) {
 		return;
 	}

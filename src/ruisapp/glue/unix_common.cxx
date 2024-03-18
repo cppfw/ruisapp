@@ -25,7 +25,7 @@ namespace {
 
 std::unique_ptr<ruisapp::application> create_app_unix(int argc, const char** argv)
 {
-	return ruisapp::application_factory::get_factory()(utki::make_span(argv, argc));
+	return ruisapp::application_factory::create_application(argc, argv);
 }
 
 std::string initialize_storage_dir(const std::string& app_name)

@@ -306,7 +306,8 @@ inline application& inst()
 class application_factory
 {
 public:
-	using factory_type = std::function<std::unique_ptr<application>(utki::span<const char*>)>;
+	using factory_type =
+		std::function<std::unique_ptr<application>(std::string_view executable, utki::span<const char*>)>;
 
 	/**
 	 * @brief Constructor.
@@ -315,9 +316,17 @@ public:
 	 * @param factory - application factory function.
 	 * @throw std::logic_error - in case a factory is already registered.
 	 */
-	application_factory(factory_type&& factory);
+	application_factory(factory_type factory);
 
 	static const factory_type& get_factory();
+
+	/**
+	 * @brief Create application object.
+	 * @param argc - number of command line arguments.
+	 * @param argv - array of command line arguments. First argument is the
+	 *               executable filename.
+	 */
+	static std::unique_ptr<application> create_application(int argc, const char** argv);
 
 private:
 	static factory_type& get_factory_internal();

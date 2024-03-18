@@ -145,7 +145,18 @@ const application_factory::factory_type& application_factory::get_factory()
 	return f;
 }
 
-application_factory::application_factory(factory_type&& factory)
+std::unique_ptr<application> application_factory::create_application(int argc, const char** argv)
+{
+	auto args = utki::make_span(argv, argc);
+
+	if (args.empty()) {
+		return get_factory()(std::string_view(), nullptr);
+	}
+
+	return get_factory()(args.front(), args.subspan(1));
+}
+
+application_factory::application_factory(factory_type factory)
 {
 	auto& f = this->get_factory_internal();
 	if (f) {
