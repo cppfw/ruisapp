@@ -27,6 +27,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #elif CFG_OS == CFG_OS_LINUX && CFG_OS_NAME == CFG_OS_NAME_ANDROID
 #	include "android/glue.cxx"
 #elif CFG_OS == CFG_OS_LINUX
+#   ifdef RUISAPP_WAYLAND
 // NOLINTNEXTLINE(bugprone-suspicious-include)
-#	include "linux/glue_x11.cxx"
+#       include "linux/glue_wayland.cxx"
+#   else
+// NOLINTNEXTLINE(bugprone-suspicious-include)
+#	    include "linux/glue_x11.cxx"
+#   endif
 #endif
