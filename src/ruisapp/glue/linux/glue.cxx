@@ -214,7 +214,7 @@ struct window_wrapper : public utki::destructable {
 
 	nitki::queue ui_queue;
 
-	volatile bool quitFlag = false;
+	std::atomic_bool quit_flag = false;
 
 	window_wrapper(const window_params& wp)
 	{
@@ -1272,7 +1272,7 @@ void application::quit() noexcept
 {
 	auto& ww = get_impl(this->window_pimpl);
 
-	ww.quitFlag = true;
+	ww.quit_flag.store(true);
 }
 
 int main(int argc, const char** argv)
@@ -1305,7 +1305,7 @@ int main(int argc, const char** argv)
 	// everything for the first time.
 	render(*app);
 
-	while (!ww.quitFlag) {
+	while (!ww.quit_flag.load()) {
 		wait_set.wait(app->gui.update());
 
 		auto triggered_events = wait_set.get_triggered();
@@ -1436,7 +1436,7 @@ int main(int argc, const char** argv)
 						// NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
 						char* name = XGetAtomName(ww.display.display, event.xclient.message_type);
 						if ("WM_PROTOCOLS"sv == name) {
-							ww.quitFlag = true;
+							ww.quit_flag.store(true);
 						}
 						XFree(name);
 					}
