@@ -28,5 +28,5 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #	include "android/glue.cxx"
 #elif CFG_OS == CFG_OS_LINUX
 // NOLINTNEXTLINE(bugprone-suspicious-include)
-#	include "linux/glue.cxx"
+#	include "linux/glue_x11.cxx"
 #endif
