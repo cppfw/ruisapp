@@ -820,6 +820,51 @@ struct window_wrapper : public utki::destructable {
 		eglTerminate(this->egl_display);
 #endif
 	}
+
+	ruis::real get_dots_per_inch()
+	{
+		int src_num = 0;
+
+		constexpr auto mm_per_cm = 10;
+
+		ruis::real value =
+			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			((ruis::real(DisplayWidth(this->display.display, src_num))
+			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			/ (ruis::real(DisplayWidthMM(this->display.display, src_num)) / ruis::real(mm_per_cm)))
+			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			+ (ruis::real(DisplayHeight(this->display.display, src_num))
+				// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
+				/ (ruis::real(DisplayHeightMM(this->display.display, src_num)) / ruis::real(mm_per_cm)))) /
+			2;
+		constexpr auto cm_per_inch = 2.54;
+		value *= ruis::real(cm_per_inch);
+		return value;
+	}
+
+	ruis::real get_dots_per_pp()
+	{
+		// TODO: use scale factor only for desktop monitors
+		if (this->scale_factor != ruis::real(1)) {
+			return this->scale_factor;
+		}
+
+		int src_num = 0;
+		r4::vector2<unsigned> resolution(
+			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			DisplayWidth(this->display.display, src_num),
+			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			DisplayHeight(this->display.display, src_num)
+		);
+		r4::vector2<unsigned> screen_size_mm(
+			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			DisplayWidthMM(this->display.display, src_num),
+			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			DisplayHeightMM(this->display.display, src_num)
+		);
+
+		return application::get_pixels_per_pp(resolution, screen_size_mm);
+	}
 };
 
 window_wrapper& get_impl(const std::unique_ptr<utki::destructable>& pimpl)
@@ -834,53 +879,6 @@ window_wrapper& get_impl(application& app)
 	return get_impl(get_window_pimpl(app));
 }
 
-} // namespace
-
-namespace {
-ruis::real get_dots_per_inch(Display* display)
-{
-	int src_num = 0;
-
-	constexpr auto mm_per_cm = 10;
-
-	ruis::real value =
-		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-		((ruis::real(DisplayWidth(display, src_num))
-		  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-		  / (ruis::real(DisplayWidthMM(display, src_num)) / ruis::real(mm_per_cm)))
-		 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-		 + (ruis::real(DisplayHeight(display, src_num))
-			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			/ (ruis::real(DisplayHeightMM(display, src_num)) / ruis::real(mm_per_cm)))) /
-		2;
-	constexpr auto cm_per_inch = 2.54;
-	value *= ruis::real(cm_per_inch);
-	return value;
-}
-
-ruis::real get_dots_per_pp(window_wrapper& ww)
-{
-	// TODO: use scale factor only for desktop monitors
-	if (ww.scale_factor != ruis::real(1)) {
-		return ww.scale_factor;
-	}
-
-	int src_num = 0;
-	r4::vector2<unsigned> resolution(
-		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-		DisplayWidth(ww.display.display, src_num),
-		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-		DisplayHeight(ww.display.display, src_num)
-	);
-	r4::vector2<unsigned> screen_size_mm(
-		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-		DisplayWidthMM(ww.display.display, src_num),
-		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-		DisplayHeightMM(ww.display.display, src_num)
-	);
-
-	return application::get_pixels_per_pp(resolution, screen_size_mm);
-}
 } // namespace
 
 application::application(std::string name, const window_params& wp) :
@@ -902,8 +900,8 @@ application::application(std::string name, const window_params& wp) :
 			auto& ww = get_impl(*this);
 			ww.set_cursor(c);
 		},
-		get_dots_per_inch(get_impl(window_pimpl).display.display),
-		::get_dots_per_pp(get_impl(window_pimpl))
+		get_impl(window_pimpl).get_dots_per_inch(),
+		get_impl(window_pimpl).get_dots_per_pp()
 	)),
 	storage_dir(initialize_storage_dir(this->name))
 {

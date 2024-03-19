@@ -145,13 +145,12 @@ public:
 private:
 	// this is a viewport rectangle in coordinates that are as follows: x grows
 	// right, y grows up.
-	// TODO: naming convention
-	ruis::rect curWinRect = {0, 0, 0, 0};
+	ruis::rect cur_window_rect = {0, 0, 0, 0};
 
 public:
 	const ruis::vector2& window_dims() const noexcept
 	{
-		return this->curWinRect.d;
+		return this->cur_window_rect.d;
 	}
 
 private:

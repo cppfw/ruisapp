@@ -43,23 +43,23 @@ void application::render()
 
 void application::update_window_rect(const ruis::rect& rect)
 {
-	if (this->curWinRect == rect) {
+	if (this->cur_window_rect == rect) {
 		return;
 	}
 
-	this->curWinRect = rect;
+	this->cur_window_rect = rect;
 
 	LOG([&](auto& o) {
-		o << "application::update_window_rect(): this->curWinRect = " << this->curWinRect << std::endl;
+		o << "application::update_window_rect(): this->cur_window_rect = " << this->cur_window_rect << std::endl;
 	})
 	this->gui.context.get().renderer.get().set_viewport(r4::rectangle<int>(
-		int(this->curWinRect.p.x()),
-		int(this->curWinRect.p.y()),
-		int(this->curWinRect.d.x()),
-		int(this->curWinRect.d.y())
+		int(this->cur_window_rect.p.x()),
+		int(this->cur_window_rect.p.y()),
+		int(this->cur_window_rect.d.x()),
+		int(this->cur_window_rect.d.y())
 	));
 
-	this->gui.set_viewport(this->curWinRect.d);
+	this->gui.set_viewport(this->cur_window_rect.d);
 }
 
 #if CFG_OS_NAME != CFG_OS_NAME_ANDROID && CFG_OS_NAME != CFG_OS_NAME_IOS
