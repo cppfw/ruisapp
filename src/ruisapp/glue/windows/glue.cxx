@@ -714,7 +714,7 @@ application::application(std::string name, const window_params& wp) :
 		get_dots_per_pp(get_impl(this->window_pimpl).hdc)
 	)),
 	storage_dir(initialize_storage_dir(this->name)),
-	curWinRect(0, 0, -1, -1)
+	cur_window_rect(0, 0, -1, -1)
 {
 	this->update_window_rect(ruis::rect(0, 0, ruis::real(wp.dims.x()), ruis::real(wp.dims.y())));
 }
