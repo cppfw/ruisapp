@@ -68,7 +68,7 @@ endif
 ruisapp_rules :=
 
 this_license_file := ../LICENSE
-this_src_dir := $(this_name)
+this_src_dir := ruisapp
 $(eval $(prorab-license))
 
 $(eval $(prorab-clang-format))
