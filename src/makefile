@@ -11,14 +11,21 @@ define ruisapp_rules
 
     this_srcs += $$(call prorab-src-dir, .)
 
-    this_name := ruisapp-$1
+    this_name := ruisapp-$1$(if $2,-$2)
 
     ifeq ($(os), linux)
         # use -isystem instead of -I to prevent clang-tidy follow the includes from these locations
         this_cxxflags += $$(patsubst -I%,-isystem%,$$(shell pkg-config --cflags gdk-3.0))
         this_ldlibs += $$(shell pkg-config --libs gdk-3.0)
 
-        this_ldlibs += -lGLEW -ldl -lnitki -lopros -lX11
+        this_ldlibs += -lGLEW -lnitki -lopros
+
+        ifeq ($2,wayland)
+            this_ldlibs +=
+            this_cxxflags += -D RUISAPP_WAYLAND
+        else
+            this_ldlibs += -lX11
+        endif
     else ifeq ($(os), windows)
         this_ldlibs += -lgdi32 -lopengl32 -lglew32
     else ifeq ($(os), macosx)
@@ -41,7 +48,7 @@ $(.RECIPEPREFIX)$(a)$(this_cc) -ObjC++ -c -o "$$$$@" $$(this_cxxflags) $$(OBJCXX
 
     endif
 
-    this_cxxflags += -DRUISAPP_RENDER_$(shell echo $1 | tr '[:lower:]' '[:upper:]')
+    this_cxxflags += -D RUISAPP_RENDER_$(shell echo $1 | tr '[:lower:]' '[:upper:]')
     this_ldlibs += -lruis-render-$1
 
     ifeq ($1,opengles)
@@ -58,10 +65,13 @@ $(.RECIPEPREFIX)$(a)$(this_cc) -ObjC++ -c -o "$$$$@" $$(this_cxxflags) $$(OBJCXX
     $$(eval $$(prorab-clear-this-vars))
 endef
 
-$(eval $(call ruisapp_rules,opengl))
-
 ifeq ($(os), linux)
-    $(eval $(call ruisapp_rules,opengles))
+    $(eval $(call ruisapp_rules,opengl,x11))
+    $(eval $(call ruisapp_rules,opengles,x11))
+    $(eval $(call ruisapp_rules,opengl,wayland))
+    $(eval $(call ruisapp_rules,opengles,wayland))
+else
+    $(eval $(call ruisapp_rules,opengl))
 endif
 
 # clear variable

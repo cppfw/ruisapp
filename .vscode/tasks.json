@@ -52,6 +52,22 @@
             "group": "build"
         },
         {
+            "label": "run-app-dbg-ogles2",
+            "type": "shell",
+            "command": "make run-app config=dbg ogles2=true",
+            "problemMatcher": [],
+            "dependsOn": "build_dbg",
+            "group": "build"
+        },
+        {
+            "label": "run-app-dbg-ogles2-wayland",
+            "type": "shell",
+            "command": "make run-app config=dbg ogles2=true wayland=true",
+            "problemMatcher": [],
+            "dependsOn": "build_dbg",
+            "group": "build"
+        },
+        {
             "label": "test_",
             "type": "shell",
             "command": "make test",
