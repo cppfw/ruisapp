@@ -108,7 +108,7 @@ struct window_wrapper : public utki::destructable {
 		};
 
 		display_wrapper() :
-			disp(wl_display_connect(NULL))
+			disp(wl_display_connect(nullptr))
 		{
 			if (!this->disp) {
 				throw std::runtime_error("could not connect to wayland display");
