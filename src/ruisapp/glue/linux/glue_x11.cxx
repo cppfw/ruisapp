@@ -1288,7 +1288,7 @@ int main(int argc, const char** argv)
 
 	std::unique_ptr<ruisapp::application> app = create_app_unix(argc, argv);
 	if (!app) {
-		return 0;
+		return 1;
 	}
 
 	ASSERT(app)

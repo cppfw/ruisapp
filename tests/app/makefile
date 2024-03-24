@@ -10,12 +10,13 @@ this_srcs += $(call prorab-src-dir, src)
 this_cxxflags += -I ../../src
 
 ifeq ($(os),linux)
-    this_libruisapp := libruisapp-$(if $(ogles2),opengles,opengl)-$(if $(wayland),wayland,x11)
+    this__cfg_suffix := $(if $(ogles2),opengles,opengl)-$(if $(wayland),wayland,x11)
+    this_libruisapp := libruisapp-$(this__cfg_suffix)
 else
     this_libruisapp := libruisapp-opengl
 endif
 
-this_libruisapp := ../../src/out/$(c)/$(this_libruisapp)$(dot_so)
+this_libruisapp := ../../src/out/$(c)/$(this__cfg_suffix)/$(this_libruisapp)$(dot_so)
 
 this_ldlibs += $(this_libruisapp)
 
@@ -39,7 +40,7 @@ $(eval $(call prorab-depend, $(prorab_this_name), $(this_libruisapp)))
 this_run_name := app
 this_test_cmd := $(prorab_this_name)
 this_test_deps := $(prorab_this_name)
-this_test_ld_path := ../../src/out/$(c)
+this_test_ld_path := ../../src/out/$(c)/$(this__cfg_suffix)/
 $(eval $(prorab-run))
 
 $(eval $(call prorab-include, ../../src/makefile))

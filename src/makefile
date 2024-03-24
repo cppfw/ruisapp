@@ -3,13 +3,34 @@ include prorab-license.mk
 include prorab-linux.mk
 include prorab-clang-format.mk
 
+ifeq ($(os), linux)
+    wayland_shell_protocol_source := out/xdg-shell-client-protocol
+
+    define this__rules
+        $(d)$(wayland_shell_protocol_source).c: /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml
+$(.RECIPEPREFIX)$(a)echo generate $$@
+$(.RECIPEPREFIX)$(a)mkdir -p $(dir $$@)
+$(.RECIPEPREFIX)$(a)wayland-scanner private-code $$< $$@
+
+        $(d)$(wayland_shell_protocol_source).h: /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml
+$(.RECIPEPREFIX)$(a)echo generate $$@
+$(.RECIPEPREFIX)$(a)mkdir -p $(dir $$@)
+$(.RECIPEPREFIX)$(a)wayland-scanner client-header $$< $$@
+    endef
+    $(eval $(this__rules))
+endif
+
+$(eval $(prorab-clear-this-vars))
+
 define ruisapp_rules
 
     $$(eval $$(call prorab-config, ../config))
 
+    this_out_dir := $$(this_out_dir)$1$$(if $2,-$2)
+
     this_soname := $(shell cat $(d)soname.txt)
 
-    this_srcs += $$(call prorab-src-dir, .)
+    this_srcs += $$(call prorab-src-dir, ruisapp)
 
     this_name := ruisapp-$1$(if $2,-$2)
 
@@ -21,6 +42,9 @@ define ruisapp_rules
         this_ldlibs += -lGLEW -lnitki -lopros
 
         ifeq ($2,wayland)
+            this_srcs += $(wayland_shell_protocol_source).c
+            $$(d)ruisapp/glue/glue.cpp: $$(d)$(wayland_shell_protocol_source).h
+
             this_ldlibs +=
             this_cxxflags += -D RUISAPP_WAYLAND
         else
@@ -40,12 +64,11 @@ define ruisapp_rules
 
         define this_subrules
             $$(this_mm_obj): $$(d)ruisapp/glue/macosx/glue.mm
-$(.RECIPEPREFIX)@echo compile $$$$<...
+$(.RECIPEPREFIX)@echo compile $$$$<
 $(.RECIPEPREFIX)$(a)mkdir -p $$$$(dir $$$$@)
 $(.RECIPEPREFIX)$(a)$(this_cc) -ObjC++ -c -o "$$$$@" $$(this_cxxflags) $$(OBJCXXFLAGS) $$ $$$$<
         endef
         $$(eval $$(this_subrules))
-
     endif
 
     this_cxxflags += -D RUISAPP_RENDER_$(shell echo $1 | tr '[:lower:]' '[:upper:]')
