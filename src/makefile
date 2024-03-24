@@ -45,7 +45,7 @@ define ruisapp_rules
             this_srcs += $(wayland_shell_protocol_source).c
             $$(d)ruisapp/glue/glue.cpp: $$(d)$(wayland_shell_protocol_source).h
 
-            this_ldlibs +=
+            this_ldlibs += -lwayland-client
             this_cxxflags += -D RUISAPP_WAYLAND
         else
             this_ldlibs += -lX11
