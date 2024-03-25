@@ -19,11 +19,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 /* ================ LICENSE END ================ */
 
+#include <papki/fs_file.hpp>
+#include <utki/destructable.hpp>
 #include <wayland-client-core.h>
 #include <wayland-client-protocol.h>
-
-#include <utki/destructable.hpp>
-#include <papki/fs_file.hpp>
 
 #ifdef RUISAPP_RENDER_OPENGL
 #	include <GL/glew.h>
@@ -42,7 +41,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <xdg-shell-client-protocol.h>
 
 #include "../../application.hpp"
-
 #include "../friend_accessors.cxx" // NOLINT(bugprone-suspicious-include)
 #include "../unix_common.cxx" // NOLINT(bugprone-suspicious-include)
 
@@ -82,10 +80,10 @@ struct window_wrapper : public utki::destructable {
 				o << "got a registry event for: " << interface << ", id = " << id << std::endl;
 			});
 			if (std::string_view(interface) == "wl_compositor"sv) {
-                void* compositor = wl_registry_bind(registry, id, &wl_compositor_interface, 1);
+				void* compositor = wl_registry_bind(registry, id, &wl_compositor_interface, 1);
 				self.compositor = static_cast<wl_compositor*>(compositor);
 			} else if (std::string_view(interface) == xdg_wm_base_interface.name) {
-                void* wm_base = wl_registry_bind(registry, id, &xdg_wm_base_interface, 1);
+				void* wm_base = wl_registry_bind(registry, id, &xdg_wm_base_interface, 1);
 				self.wm_base = static_cast<xdg_wm_base*>(wm_base);
 				xdg_wm_base_add_listener(self.wm_base, &wm_base_listener, nullptr);
 			}
@@ -103,8 +101,8 @@ struct window_wrapper : public utki::destructable {
 		}
 
 		constexpr static const wl_registry_listener listener = {
-			&global_registry_handler, //
-			&global_registry_remover
+			.global = &global_registry_handler, //
+			.global_remove = &global_registry_remover
 		};
 
 		display_wrapper() :
@@ -123,6 +121,12 @@ struct window_wrapper : public utki::destructable {
 			wl_display_roundtrip(this->disp);
 		}
 
+		display_wrapper(const display_wrapper&) = delete;
+		display_wrapper& operator=(const display_wrapper&) = delete;
+
+		display_wrapper(display_wrapper&&) = delete;
+		display_wrapper& operator=(display_wrapper&&) = delete;
+
 		~display_wrapper()
 		{
 			wl_display_disconnect(this->disp);
@@ -131,10 +135,10 @@ struct window_wrapper : public utki::destructable {
 
 	window_wrapper(const window_params& wp) {}
 
-    	ruis::real get_dots_per_inch()
+	ruis::real get_dots_per_inch()
 	{
-        // TODO:
-        return 96;
+		// TODO:
+		return 96; // NOLINT
 
 		// int src_num = 0;
 
@@ -159,8 +163,8 @@ struct window_wrapper : public utki::destructable {
 
 	ruis::real get_dots_per_pp()
 	{
-        // TODO:
-        return 1;
+		// TODO:
+		return 1;
 
 		// // TODO: use scale factor only for desktop monitors
 		// if (this->scale_factor != ruis::real(1)) {
@@ -201,7 +205,7 @@ window_wrapper& get_impl(const std::unique_ptr<utki::destructable>& pimpl)
 } // namespace
 
 application::application(std::string name, const window_params& wp) :
-name(std::move(name)),
+	name(std::move(name)),
 	window_pimpl(std::make_unique<window_wrapper>(wp)),
 	gui(utki::make_shared<ruis::context>(
 #ifdef RUISAPP_RENDER_OPENGL
@@ -212,12 +216,12 @@ name(std::move(name)),
 #	error "Unknown graphics API"
 #endif
 		utki::make_shared<ruis::updater>(),
-		[this](std::function<void()> a) {
-            // TODO:
+		[](std::function<void()> proc) {
+			// TODO:
 			// get_impl(get_window_pimpl(*this)).ui_queue.push_back(std::move(a));
 		},
-		[this](ruis::mouse_cursor c) {
-            // TODO:
+		[](ruis::mouse_cursor c) {
+			// TODO:
 			// auto& ww = get_impl(*this);
 			// ww.set_cursor(c);
 		},
@@ -226,33 +230,37 @@ name(std::move(name)),
 	)),
 	storage_dir(initialize_storage_dir(this->name))
 {
-    // TODO:
+	// TODO:
 }
 
-void application::swap_frame_buffers(){
-    // TODO:
+void application::swap_frame_buffers()
+{
+	// TODO:
 }
 
-void application::set_mouse_cursor_visible(bool visible){
-    // TODO:
+void application::set_mouse_cursor_visible(bool visible)
+{
+	// TODO:
 }
 
-void application::set_fullscreen(bool fullscreen){
-    // TODO:
+void application::set_fullscreen(bool fullscreen)
+{
+	// TODO:
 }
 
-void ruisapp::application::quit()noexcept{
-    // TODO:
+void ruisapp::application::quit() noexcept
+{
+	// TODO:
 }
 
 int main(int argc, const char** argv)
 {
-    std::unique_ptr<ruisapp::application> app = create_app_unix(argc, argv);
+	std::unique_ptr<ruisapp::application> app = create_app_unix(argc, argv);
 	if (!app) {
 		return 1;
 	}
 
-    // TODO:
+	// TODO:
 
 	return 0;
 }
