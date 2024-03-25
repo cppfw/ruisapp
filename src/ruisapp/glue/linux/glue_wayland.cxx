@@ -39,7 +39,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #	error "Unknown graphics API"
 #endif
 
-#include "../../../out/xdg-shell-client-protocol.h"
+#include <xdg-shell-client-protocol.h>
 
 #include "../../application.hpp"
 

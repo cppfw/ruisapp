@@ -3,23 +3,42 @@ include prorab-license.mk
 include prorab-linux.mk
 include prorab-clang-format.mk
 
+# === wayland shell client protocol ===
+
 ifeq ($(os), linux)
-    wayland_shell_protocol_source := out/xdg-shell-client-protocol
+    this_out_dir := out/
+
+    this_name := xdg-shell-client-protocol
+
+    this__wayland_shell_protocol_source := $(this_out_dir)$(this_name).c
+
+    wayland_shell_protocol_header := $(this_out_dir)$(this_name).h
+
+    this_srcs := $(this__wayland_shell_protocol_source)
+
+    this_static_lib_only := true
+    this_no_install := true
+
+    $(eval $(prorab-build-lib))
+
+    wayland_shell_protocol_lib := $(prorab_this_static_lib)
 
     define this__rules
-        $(d)$(wayland_shell_protocol_source).c: /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml
+        $(d)$(this__wayland_shell_protocol_source): /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml
 $(.RECIPEPREFIX)$(a)echo generate $$@
 $(.RECIPEPREFIX)$(a)mkdir -p $(dir $$@)
 $(.RECIPEPREFIX)$(a)wayland-scanner private-code $$< $$@
 
-        $(d)$(wayland_shell_protocol_source).h: /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml
+        $(d)$(wayland_shell_protocol_header): /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml
 $(.RECIPEPREFIX)$(a)echo generate $$@
 $(.RECIPEPREFIX)$(a)mkdir -p $(dir $$@)
 $(.RECIPEPREFIX)$(a)wayland-scanner client-header $$< $$@
     endef
     $(eval $(this__rules))
+
 endif
 
+# === ruisapp ===
 $(eval $(prorab-clear-this-vars))
 
 define ruisapp_rules
@@ -42,10 +61,11 @@ define ruisapp_rules
         this_ldlibs += -lGLEW -lnitki -lopros
 
         ifeq ($2,wayland)
-            this_srcs += $(wayland_shell_protocol_source).c
-            $$(d)ruisapp/glue/glue.cpp: $$(d)$(wayland_shell_protocol_source).h
+            $$(d)ruisapp/glue/glue.cpp: $$(d)$(wayland_shell_protocol_header)
 
             this_ldlibs += -lwayland-client
+            this_ldlibs += $(wayland_shell_protocol_lib)
+            this_cxxflags += -isystem $(dir $(wayland_shell_protocol_header))
             this_cxxflags += -D RUISAPP_WAYLAND
         else
             this_ldlibs += -lX11
@@ -83,6 +103,12 @@ $(.RECIPEPREFIX)$(a)$(this_cc) -ObjC++ -c -o "$$$$@" $$(this_cxxflags) $$(OBJCXX
     ifeq ($(os), macosx)
         $$(prorab_this_staticlib): $$(this_mm_obj)
         $$(prorab_this_name): $$(this_mm_obj)
+    
+    else ifeq ($(os), linux)
+        ifeq ($2,wayland)
+            $$(prorab_this_staticlib): $(wayland_shell_protocol_lib)
+            $$(prorab_this_name): $(wayland_shell_protocol_lib)
+        endif
     endif
 
     $$(eval $$(prorab-clear-this-vars))
