@@ -26,12 +26,12 @@ ifeq ($(os), linux)
     define this__rules
         $(d)$(this__wayland_shell_protocol_source): /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml
 $(.RECIPEPREFIX)$(a)echo generate $$@
-$(.RECIPEPREFIX)$(a)mkdir -p $(dir $$@)
+$(.RECIPEPREFIX)$(a)mkdir -p $$(dir $$@)
 $(.RECIPEPREFIX)$(a)wayland-scanner private-code $$< $$@
 
         $(d)$(wayland_shell_protocol_header): /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml
 $(.RECIPEPREFIX)$(a)echo generate $$@
-$(.RECIPEPREFIX)$(a)mkdir -p $(dir $$@)
+$(.RECIPEPREFIX)$(a)mkdir -p $$(dir $$@)
 $(.RECIPEPREFIX)$(a)wayland-scanner client-header $$< $$@
     endef
     $(eval $(this__rules))
