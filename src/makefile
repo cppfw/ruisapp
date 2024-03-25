@@ -120,7 +120,7 @@ ifeq ($(os), linux)
     $(eval $(call ruisapp_rules,opengl,wayland))
     $(eval $(call ruisapp_rules,opengles,wayland))
 else
-    $(eval $(call ruisapp_rules,opengl))
+    $(eval $(call ruisapp_rules,opengl,))
 endif
 
 # clear variable

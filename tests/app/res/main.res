@@ -42,7 +42,7 @@ img_camera{
 
 npt_sample{
 	tex{ruis_tex_ui}
-	rect{0 0 13 13}
+//	rect{0 0 13 13}
 	borders{6 6 6 6}
 }
 
