@@ -56,10 +56,29 @@ struct window_params {
 	};
 
 	/**
-	 * @brief Flags describing desired buffers for OpneGL context.
+	 * @brief Flags describing desired buffers for rendering context.
+	 * Color buffer is always there implicitly.
 	 */
 	utki::flags<buffer_type> buffers = false;
 
+	enum class graphics_api_version{
+		v_default,
+		v_2_0,
+		v_2_1,
+		v_3_0,
+		v_3_1,
+		v_3_2,
+		v_3_3,
+		v_4_0,
+		v_4_1,
+		v_4_2,
+		v_4_3,
+		v_4_4,
+		v_4_5,
+		v_4_6
+	};
+
+	// TODO: remove in favor of graphics_api_version
 	enum class graphics_api {
 		gl_2_0,
 		gl_2_1,
@@ -80,6 +99,7 @@ struct window_params {
 		enum_size
 	};
 
+	// TODO: use graphics_api_version
 	graphics_api graphics_api_request =
 #if CFG_OS_NAME == CFG_OS_NAME_ANDROID || CFG_OS_NAME == CFG_OS_NAME_IOS
 		graphics_api::gles_2_0

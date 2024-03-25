@@ -377,7 +377,17 @@ struct window_wrapper : public utki::destructable {
 				EGL_SURFACE_TYPE,
 				EGL_WINDOW_BIT,
 				EGL_RENDERABLE_TYPE,
-				EGL_OPENGL_ES2_BIT, // we want OpenGL ES 2.0
+				[&wp](){
+					switch(wp.graphics_api_request){
+						default:
+							std::cout << "Requested default rendering API: OpenGL ES 2" << std::endl;
+							[[fallthrough]];
+						case ruisapp::window_params::graphics_api::gles_2_0:
+							return EGL_OPENGL_ES2_BIT;
+						case ruisapp::window_params::graphics_api::gles_3_0:
+							return EGL_OPENGL_ES3_BIT;
+					}
+				}(),
 				EGL_BLUE_SIZE,
 				8,
 				EGL_GREEN_SIZE,
