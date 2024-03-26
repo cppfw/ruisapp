@@ -53,6 +53,29 @@ struct window_wrapper : public utki::destructable {
 	struct display_wrapper {
 		wl_display* disp;
 
+		display_wrapper() :
+			disp(wl_display_connect(nullptr))
+		{
+			if (!this->disp) {
+				throw std::runtime_error("could not connect to wayland display");
+			}
+		}
+
+		display_wrapper(const display_wrapper&) = delete;
+		display_wrapper& operator=(const display_wrapper&) = delete;
+
+		display_wrapper(display_wrapper&&) = delete;
+		display_wrapper& operator=(display_wrapper&&) = delete;
+
+		~display_wrapper()
+		{
+			wl_display_disconnect(this->disp);
+		}
+	} display;
+
+	struct registry_wrapper {
+		wl_registry* reg;
+
 		wl_compositor* compositor = nullptr;
 		xdg_wm_base* wm_base = nullptr;
 
@@ -74,16 +97,18 @@ struct window_wrapper : public utki::destructable {
 		)
 		{
 			ASSERT(data)
-			auto& self = *static_cast<display_wrapper*>(data);
+			auto& self = *static_cast<registry_wrapper*>(data);
 
 			LOG([&](auto& o) {
 				o << "got a registry event for: " << interface << ", id = " << id << std::endl;
 			});
-			if (std::string_view(interface) == "wl_compositor"sv) {
+			if (std::string_view(interface) == "wl_compositor"sv && !self.compositor) {
 				void* compositor = wl_registry_bind(registry, id, &wl_compositor_interface, 1);
+				ASSERT(compositor)
 				self.compositor = static_cast<wl_compositor*>(compositor);
-			} else if (std::string_view(interface) == xdg_wm_base_interface.name) {
+			} else if (std::string_view(interface) == xdg_wm_base_interface.name && !self.wm_base) {
 				void* wm_base = wl_registry_bind(registry, id, &xdg_wm_base_interface, 1);
+				ASSERT(wm_base)
 				self.wm_base = static_cast<xdg_wm_base*>(wm_base);
 				xdg_wm_base_add_listener(self.wm_base, &wm_base_listener, nullptr);
 			}
@@ -98,6 +123,7 @@ struct window_wrapper : public utki::destructable {
 			LOG([&](auto& o) {
 				o << "got a registry losing event, id = " << id << std::endl;
 			});
+			// we assume that compositor and shell objects will never be removed
 		}
 
 		constexpr static const wl_registry_listener listener = {
@@ -105,35 +131,170 @@ struct window_wrapper : public utki::destructable {
 			.global_remove = &global_registry_remover
 		};
 
-		display_wrapper() :
-			disp(wl_display_connect(nullptr))
+		registry_wrapper(display_wrapper& display) :
+			reg(wl_display_get_registry(display.disp))
 		{
-			if (!this->disp) {
-				throw std::runtime_error("could not connect to wayland display");
+			if (!this->reg) {
+				throw std::runtime_error("could not create wayland registry");
+			}
+			utki::scope_exit registry_scope_exit([this]() {
+				this->destroy();
+			});
+
+			wl_registry_add_listener(this->reg, &listener, this);
+
+			// this will call the attached listener's global_registry_handler
+			wl_display_dispatch(display.disp);
+			wl_display_roundtrip(display.disp);
+
+			// at this point we should have compositor and shell set by global_registry_handler
+
+			if (!this->compositor) {
+				throw std::runtime_error("could not find wayland compositor");
 			}
 
-			wl_registry* registry = wl_display_get_registry(this->disp);
-			ASSERT(registry)
-			wl_registry_add_listener(registry, &listener, this);
+			if (!this->wm_base) {
+				throw std::runtime_error("could not find xdg_shell");
+			}
 
-			// this will call the attached listener global_registry_handler
-			wl_display_dispatch(this->disp);
-			wl_display_roundtrip(this->disp);
+			registry_scope_exit.release();
 		}
 
-		display_wrapper(const display_wrapper&) = delete;
-		display_wrapper& operator=(const display_wrapper&) = delete;
-
-		display_wrapper(display_wrapper&&) = delete;
-		display_wrapper& operator=(display_wrapper&&) = delete;
-
-		~display_wrapper()
+		~registry_wrapper()
 		{
-			wl_display_disconnect(this->disp);
+			this->destroy();
 		}
-	} display;
 
-	window_wrapper(const window_params& wp) {}
+	private:
+		void destroy()
+		{
+			if (this->wm_base) {
+				xdg_wm_base_destroy(this->wm_base);
+			}
+			if (this->compositor) {
+				wl_compositor_destroy(this->compositor);
+			}
+			wl_registry_destroy(this->reg);
+		}
+	} registry;
+
+	struct surface_wrapper {
+		wl_surface* sur;
+
+		surface_wrapper(registry_wrapper& registry) :
+			sur(wl_compositor_create_surface(registry.compositor))
+		{
+			if (!this->sur) {
+				throw std::runtime_error("could not create wayland surface");
+			}
+		}
+
+		~surface_wrapper()
+		{
+			wl_surface_destroy(this->sur);
+		}
+
+		void commit()
+		{
+			wl_surface_commit(this->sur);
+		}
+	} surface;
+
+	struct xdg_surface_wrapper {
+		xdg_surface* xdg_sur;
+
+		static void xdg_surface_configure( //
+			void* data,
+			struct xdg_surface* xdg_surface,
+			uint32_t serial
+		)
+		{
+			xdg_surface_ack_configure(xdg_surface, serial);
+		}
+
+		constexpr static const xdg_surface_listener listener = {
+			.configure = xdg_surface_configure,
+		};
+
+		xdg_surface_wrapper(surface_wrapper& surface, registry_wrapper& registry) :
+			xdg_sur(xdg_wm_base_get_xdg_surface(registry.wm_base, surface.sur))
+		{
+			if (!xdg_sur) {
+				throw std::runtime_error("could not create wayland xdg surface");
+			}
+
+			xdg_surface_add_listener(this->xdg_sur, &listener, nullptr);
+		}
+
+		~xdg_surface_wrapper()
+		{
+			xdg_surface_destroy(this->xdg_sur);
+		}
+	} xdg_surface;
+
+	struct toplevel_wrapper {
+		xdg_toplevel* toplev;
+
+		static void xdg_toplevel_handle_configure(
+			void* data,
+			struct xdg_toplevel* xdg_toplevel,
+			int32_t w,
+			int32_t h,
+			struct wl_array* states
+		)
+		{
+			// no window geometry event, ignore
+			if (w == 0 && h == 0)
+				return;
+
+			// window resized
+
+			// TODO:
+			// if(old_w != w && old_h != h) {
+			// 	old_w = w;
+			// 	old_h = h;
+
+			// wl_egl_window_resize(ESContext.native_window, w, h, 0, 0);
+			// wl_surface_commit(surface);
+			// }
+		}
+
+		static void xdg_toplevel_handle_close(void* data, struct xdg_toplevel* xdg_toplevel)
+		{
+			// window closed, be sure that this event gets processed
+			// program_alive = false;
+		}
+
+		constexpr static const xdg_toplevel_listener listener = {
+			.configure = xdg_toplevel_handle_configure,
+			.close = xdg_toplevel_handle_close,
+		};
+
+		toplevel_wrapper(surface_wrapper& surface, xdg_surface_wrapper& xdg_surface) :
+			toplev(xdg_surface_get_toplevel(xdg_surface.xdg_sur))
+		{
+			if (!this->toplev) {
+				throw std::runtime_error("could not get wayland xdg toplevel");
+			}
+
+			xdg_toplevel_set_title(this->toplev, "Wayland EGL example");
+			xdg_toplevel_add_listener(this->toplev, &listener, nullptr);
+
+			surface.commit();
+		}
+
+		~toplevel_wrapper()
+		{
+			xdg_toplevel_destroy(this->toplev);
+		}
+	} toplevel;
+
+	window_wrapper(const window_params& wp) :
+		registry(this->display),
+		surface(this->registry),
+		xdg_surface(this->surface, this->registry),
+		toplevel(this->surface, this->xdg_surface)
+	{}
 
 	ruis::real get_dots_per_inch()
 	{
