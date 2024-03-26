@@ -54,7 +54,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../../application.hpp"
 #include "../friend_accessors.cxx" // NOLINT(bugprone-suspicious-include)
 #include "../unix_common.cxx" // NOLINT(bugprone-suspicious-include)
-#include "../util.hxx"
 
 using namespace std::string_view_literals;
 
@@ -279,11 +278,11 @@ struct window_wrapper : public utki::destructable {
 			visual_attribs.push_back(GLX_ALPHA_SIZE);
 			visual_attribs.push_back(utki::byte_bits);
 
-			if (wp.buffers.get(window_params::buffer_type::depth)) {
+			if (wp.buffers.get(window_params::buffer::depth)) {
 				visual_attribs.push_back(GLX_DEPTH_SIZE);
 				visual_attribs.push_back(utki::byte_bits * 3); // 24 bits per pixel for depth buffer
 			}
-			if (wp.buffers.get(window_params::buffer_type::stencil)) {
+			if (wp.buffers.get(window_params::buffer::stencil)) {
 				visual_attribs.push_back(GLX_STENCIL_SIZE);
 				visual_attribs.push_back(utki::byte_bits);
 			}
@@ -378,13 +377,15 @@ struct window_wrapper : public utki::destructable {
 				EGL_WINDOW_BIT,
 				EGL_RENDERABLE_TYPE,
 				[&wp]() {
-					switch (wp.graphics_api_request) {
+					const auto& ver = wp.graphics_api_version;
+					switch (ver.to_uint32_t()) {
 						default:
-							std::cout << "Requested default rendering API: OpenGL ES 2" << std::endl;
+							throw std::logic_error(utki::cat("unknown OpenGL ES version requested: ", ver.major, '.', ver.minor));
+						case 0: // default version
 							[[fallthrough]];
-						case ruisapp::window_params::graphics_api::gles_2_0:
+						case utki::version_duplet{2, 0}.to_uint32_t():
 							return EGL_OPENGL_ES2_BIT;
-						case ruisapp::window_params::graphics_api::gles_3_0:
+						case utki::version_duplet{3, 0}.to_uint32_t():
 							return EGL_OPENGL_ES3_BIT;
 					}
 				}(),
@@ -561,7 +562,17 @@ struct window_wrapper : public utki::destructable {
 				throw std::runtime_error("glXCreateContextAttribsARB() not found");
 			}
 
-			auto ver = get_opengl_version_duplet(wp.graphics_api_request);
+			auto ver = [&ver = wp.graphics_api_version](){
+				switch(ver.to_uint32_t()){
+					case 0:
+						// default OpenGL version
+						[[fallthrough]];
+					case utki::version_duplet{2, 0}.to_uint32_t():
+						return utki::version_duplet{2, 0};
+					default:
+						return ver;
+				}
+			}();
 
 			static const std::array<int, 7> context_attribs = {
 				GLX_CONTEXT_MAJOR_VERSION_ARB,

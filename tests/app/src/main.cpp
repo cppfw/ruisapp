@@ -481,9 +481,7 @@ public:
 			ruisapp::application("ruis-tests", [](){
 				// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
 				ruisapp::window_params wp(r4::vector2<unsigned>(1024, 800));
-		// wp.graphics_api_request = ruisapp::window_params::graphics_api::gl_4_5;
-
-		return wp;
+				return wp;
 			}())
 	{
 		this->gui.init_standard_widgets(*this->get_res_file("../../res/ruis_res/"));

@@ -32,6 +32,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <utki/destructable.hpp>
 #include <utki/flags.hpp>
 #include <utki/singleton.hpp>
+#include <utki/util.hpp>
 
 #include "config.hpp"
 
@@ -48,7 +49,7 @@ struct window_params {
 
 	// TODO: add window title string
 
-	enum class buffer_type {
+	enum class buffer {
 		depth,
 		stencil,
 
@@ -59,56 +60,10 @@ struct window_params {
 	 * @brief Flags describing desired buffers for rendering context.
 	 * Color buffer is always there implicitly.
 	 */
-	utki::flags<buffer_type> buffers = false;
+	utki::flags<buffer> buffers = false;
 
-	enum class graphics_api_version {
-		v_default,
-		v_2_0,
-		v_2_1,
-		v_3_0,
-		v_3_1,
-		v_3_2,
-		v_3_3,
-		v_4_0,
-		v_4_1,
-		v_4_2,
-		v_4_3,
-		v_4_4,
-		v_4_5,
-		v_4_6
-	};
-
-	// TODO: remove in favor of graphics_api_version
-	enum class graphics_api {
-		gl_2_0,
-		gl_2_1,
-		gl_3_0,
-		gl_3_1,
-		gl_3_2,
-		gl_3_3,
-		gl_4_0,
-		gl_4_1,
-		gl_4_2,
-		gl_4_3,
-		gl_4_4,
-		gl_4_5,
-		gl_4_6,
-		gles_2_0,
-		gles_3_0,
-
-		enum_size
-	};
-
-	// TODO: use graphics_api_version
-	graphics_api graphics_api_request =
-#if CFG_OS_NAME == CFG_OS_NAME_ANDROID || CFG_OS_NAME == CFG_OS_NAME_IOS
-		graphics_api::gles_2_0
-#elif CFG_OS == CFG_OS_WINDOWS || CFG_OS == CFG_OS_LINUX || CFG_OS == CFG_OS_MACOSX
-		graphics_api::gl_2_0
-#else
-#	error "unknown OS"
-#endif
-		;
+	// version 0.0 means default version
+	utki::version_duplet graphics_api_version = {0, 0};
 
 	window_params(r4::vector2<unsigned> dims) :
 		dims(dims)

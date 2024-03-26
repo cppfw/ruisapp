@@ -141,12 +141,12 @@ namespace{
 
 	{
 		const window_params& wp = windowParams;
-		if(wp.buffers.get(window_params::buffer_type::depth)){
+		if(wp.buffers.get(window_params::buffer::depth)){
 			view.drawableDepthFormat = GLKViewDrawableDepthFormat16;
 		}else{
 			view.drawableDepthFormat = GLKViewDrawableDepthFormatNone;
 		}
-		if(wp.buffers.get(window_params::buffer_type::stencil)){
+		if(wp.buffers.get(window_params::buffer::stencil)){
 			view.drawableStencilFormat = GLKViewDrawableStencilFormat8;
 		}else{
 			view.drawableStencilFormat = GLKViewDrawableStencilFormatNone;
