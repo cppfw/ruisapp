@@ -240,6 +240,17 @@ struct window_wrapper : public utki::destructable {
 		}
 
 #ifdef RUISAPP_RENDER_OPENGL
+		auto graphics_api_version = [&ver = wp.graphics_api_version]() {
+			if (ver.to_uint32_t() == 0) {
+				// default OpenGL version is 2.0
+				return utki::version_duplet{
+					.major = 2, //
+					.minor = 0
+				};
+			}
+			return ver;
+		}();
+
 		{
 			int glx_ver_major = 0;
 			int glx_ver_minor = 0;
@@ -351,6 +362,17 @@ struct window_wrapper : public utki::destructable {
 			best_fb_config = fbc[best_fb_config_index];
 		}
 #elif defined(RUISAPP_RENDER_OPENGLES)
+		auto graphics_api_version = [&ver = wp.graphics_api_version]() {
+			if (ver.to_uint32_t() == 0) {
+				// default OpenGL ES version is 2.0
+				return utki::version_duplet{
+					.major = 2, //
+					.minor = 0
+				};
+			}
+			return ver;
+		}();
+
 		// NOLINTNEXTLINE(cppcoreguidelines-prefer-member-initializer)
 		this->egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 		if (this->egl_display == EGL_NO_DISPLAY) {
@@ -368,24 +390,22 @@ struct window_wrapper : public utki::destructable {
 
 		EGLConfig egl_config = nullptr;
 		{
-			// TODO: allow stencil and depth configuration etc. via window_params
 			// Here specify the attributes of the desired configuration.
 			// Below, we select an EGLConfig with at least 8 bits per color
 			// component compatible with on-screen windows.
-			const std::array<EGLint, 15> attribs = {
+			const std::array<EGLint, 17> attribs = {
 				EGL_SURFACE_TYPE,
 				EGL_WINDOW_BIT,
 				EGL_RENDERABLE_TYPE,
-				[&wp]() {
-					const auto& ver = wp.graphics_api_version;
+				[&ver = graphics_api_version]() {
 					switch (ver.to_uint32_t()) {
 						default:
-							throw std::logic_error(utki::cat("unknown OpenGL ES version requested: ", ver.major, '.', ver.minor));
-						case 0: // default version
-							[[fallthrough]];
-						case utki::version_duplet{2, 0}.to_uint32_t():
+							throw std::logic_error(
+								utki::cat("unknown OpenGL ES version requested: ", ver.major, '.', ver.minor)
+							);
+						case utki::version_duplet{.major = 2, .minor = 0}.to_uint32_t():
 							return EGL_OPENGL_ES2_BIT;
-						case utki::version_duplet{3, 0}.to_uint32_t():
+						case utki::version_duplet{.major = 3, .minor = 0}.to_uint32_t():
 							return EGL_OPENGL_ES3_BIT;
 					}
 				}(),
@@ -398,7 +418,9 @@ struct window_wrapper : public utki::destructable {
 				EGL_ALPHA_SIZE,
 				8,
 				EGL_DEPTH_SIZE,
-				16,
+				wp.buffers.get(window_params::buffer::depth) ? int(utki::byte_bits * sizeof(uint16_t)) : 0,
+				EGL_STENCIL_SIZE,
+				wp.buffers.get(window_params::buffer::stencil) ? utki::byte_bits : 0,
 				EGL_NONE
 			};
 
@@ -562,17 +584,7 @@ struct window_wrapper : public utki::destructable {
 				throw std::runtime_error("glXCreateContextAttribsARB() not found");
 			}
 
-			auto ver = [&ver = wp.graphics_api_version](){
-				switch(ver.to_uint32_t()){
-					case 0:
-						// default OpenGL version
-						[[fallthrough]];
-					case utki::version_duplet{2, 0}.to_uint32_t():
-						return utki::version_duplet{2, 0};
-					default:
-						return ver;
-				}
-			}();
+			const auto& ver = graphics_api_version;
 
 			static const std::array<int, 7> context_attribs = {
 				GLX_CONTEXT_MAJOR_VERSION_ARB,
@@ -736,10 +748,11 @@ struct window_wrapper : public utki::destructable {
 		});
 
 		{
-			std::array<EGLint, 3> context_attrs = {
-				EGL_CONTEXT_CLIENT_VERSION,
-				2, // this is needed at least on Android, otherwise eglCreateContext()
-				   // thinks that we want OpenGL ES 1.1, but we want 2.0
+			std::array<EGLint, 5> context_attrs = {
+				EGL_CONTEXT_MAJOR_VERSION,
+				graphics_api_version.major,
+				EGL_CONTEXT_MINOR_VERSION,
+				graphics_api_version.minor,
 				EGL_NONE
 			};
 

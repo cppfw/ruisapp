@@ -969,8 +969,7 @@ window_wrapper::window_wrapper(const window_params& wp)
 			BYTE(0),
 			BYTE(0),
 			BYTE(0), // accumulation bits ignored
-			wp.buffers.get(window_params::buffer::depth) ? BYTE(utki::byte_bits * 2)
-															  : BYTE(0), // 16 bit depth buffer
+			wp.buffers.get(window_params::buffer::depth) ? BYTE(utki::byte_bits * 2) : BYTE(0), // 16 bit depth buffer
 			wp.buffers.get(window_params::buffer::stencil) ? BYTE(utki::byte_bits) : BYTE(0),
 			BYTE(0), // no auxiliary buffer
 			BYTE(PFD_MAIN_PLANE), // main drawing layer
