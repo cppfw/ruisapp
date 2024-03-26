@@ -199,22 +199,46 @@ struct window_wrapper : public utki::destructable {
 			throw std::runtime_error("eglInitialize() failed");
 		}
 
-		// TODO: allow stencil configuration etc. via window_params
+		auto graphics_api_version = [&ver = wp.graphics_api_version]() {
+			if (ver.to_uint32_t() == 0) {
+				// default OpenGL ES version is 2.0
+				return utki::version_duplet{
+					.major = 2, //
+					.minor = 0
+				};
+			}
+			return ver;
+		}();
 
 		// Specify the attributes of the desired configuration.
 		// We need an EGLConfig with at least 8 bits per color
 		// component compatible with on-screen windows.
-		const EGLint attribs[] = {
+		const std::array<EGLint, 15> attribs[] = {
 			EGL_SURFACE_TYPE,
 			EGL_WINDOW_BIT,
 			EGL_RENDERABLE_TYPE,
-			EGL_OPENGL_ES2_BIT, // we want OpenGL ES 2.0
+			[&ver = graphics_api_version]() {
+				switch (ver.to_uint32_t()) {
+					default:
+						throw std::logic_error(
+							utki::cat("unknown OpenGL ES version requested: ", ver.major, '.', ver.minor)
+						);
+					case utki::version_duplet{.major = 2, .minor = 0}.to_uint32_t():
+						return EGL_OPENGL_ES2_BIT;
+					case utki::version_duplet{.major = 3, .minor = 0}.to_uint32_t():
+						return EGL_OPENGL_ES3_BIT;
+				}
+			}(),
 			EGL_BLUE_SIZE,
 			8,
 			EGL_GREEN_SIZE,
 			8,
 			EGL_RED_SIZE,
 			8,
+			EGL_DEPTH_SIZE,
+			wp.buffers.get(window_params::buffer::depth) ? int(utki::byte_bits * sizeof(uint16_t)) : 0,
+			EGL_STENCIL_SIZE,
+			wp.buffers.get(window_params::buffer::stencil) ? utki::byte_bits : 0,
 			EGL_NONE
 		};
 
@@ -222,7 +246,7 @@ struct window_wrapper : public utki::destructable {
 		// sample, we have a very simplified selection process, where we pick
 		// the first EGLConfig that matches our criteria
 		EGLint numConfigs;
-		eglChooseConfig(this->display, attribs, &this->config, 1, &numConfigs);
+		eglChooseConfig(this->display, attribs.data(), &this->config, 1, &numConfigs);
 		if (numConfigs <= 0) {
 			throw std::runtime_error("eglChooseConfig() failed, no matching config found");
 		}
@@ -235,14 +259,15 @@ struct window_wrapper : public utki::destructable {
 			throw std::runtime_error("eglGetConfigAttrib() failed");
 		}
 
-		EGLint context_attrs[] = {
-			EGL_CONTEXT_CLIENT_VERSION,
-			2, // this is needed on Android, otherwise eglCreateContext() thinks
-			   // that we want OpenGL ES 1.1, but we want 2.0
+		std::array<EGLint, 5> context_attrs = {
+			EGL_CONTEXT_MAJOR_VERSION,
+			graphics_api_version.major,
+			EGL_CONTEXT_MINOR_VERSION,
+			graphics_api_version.minor,
 			EGL_NONE
 		};
 
-		this->context = eglCreateContext(this->display, this->config, NULL, context_attrs);
+		this->context = eglCreateContext(this->display, this->config, NULL, context_attrs.data());
 		if (this->context == EGL_NO_CONTEXT) {
 			throw std::runtime_error("eglCreateContext() failed");
 		}

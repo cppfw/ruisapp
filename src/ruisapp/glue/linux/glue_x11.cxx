@@ -393,7 +393,7 @@ struct window_wrapper : public utki::destructable {
 			// Here specify the attributes of the desired configuration.
 			// Below, we select an EGLConfig with at least 8 bits per color
 			// component compatible with on-screen windows.
-			const std::array<EGLint, 17> attribs = {
+			const std::array<EGLint, 15> attribs = {
 				EGL_SURFACE_TYPE,
 				EGL_WINDOW_BIT,
 				EGL_RENDERABLE_TYPE,
@@ -414,8 +414,6 @@ struct window_wrapper : public utki::destructable {
 				EGL_GREEN_SIZE,
 				8,
 				EGL_RED_SIZE,
-				8,
-				EGL_ALPHA_SIZE,
 				8,
 				EGL_DEPTH_SIZE,
 				wp.buffers.get(window_params::buffer::depth) ? int(utki::byte_bits * sizeof(uint16_t)) : 0,

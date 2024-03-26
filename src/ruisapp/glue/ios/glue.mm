@@ -126,6 +126,7 @@ namespace{
 - (void)viewDidLoad{
 	[super viewDidLoad];
 
+	// TODO: init requested context version from window_params
 	self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
 	if (self.context == nil) {
 		self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
@@ -133,6 +134,7 @@ namespace{
 
 	if (!self.context) {
 		NSLog(@"Failed to create ES context");
+		// TODO: throw std::runtime_error()?
 	}
 
 	GLKView *view = (GLKView *)self.view;
