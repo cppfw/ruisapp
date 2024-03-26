@@ -377,8 +377,8 @@ struct window_wrapper : public utki::destructable {
 				EGL_SURFACE_TYPE,
 				EGL_WINDOW_BIT,
 				EGL_RENDERABLE_TYPE,
-				[&wp](){
-					switch(wp.graphics_api_request){
+				[&wp]() {
+					switch (wp.graphics_api_request) {
 						default:
 							std::cout << "Requested default rendering API: OpenGL ES 2" << std::endl;
 							[[fallthrough]];

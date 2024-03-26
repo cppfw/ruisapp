@@ -61,7 +61,7 @@ struct window_params {
 	 */
 	utki::flags<buffer_type> buffers = false;
 
-	enum class graphics_api_version{
+	enum class graphics_api_version {
 		v_default,
 		v_2_0,
 		v_2_1,
