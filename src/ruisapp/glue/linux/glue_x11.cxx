@@ -746,7 +746,8 @@ struct window_wrapper : public utki::destructable {
 		});
 
 		{
-			std::array<EGLint, 5> context_attrs = {
+			constexpr auto attrs_array_size = 5;
+			std::array<EGLint, attrs_array_size> context_attrs = {
 				EGL_CONTEXT_MAJOR_VERSION,
 				graphics_api_version.major,
 				EGL_CONTEXT_MINOR_VERSION,
