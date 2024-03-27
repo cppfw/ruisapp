@@ -160,6 +160,12 @@ struct window_wrapper : public utki::destructable {
 			registry_scope_exit.release();
 		}
 
+		registry_wrapper(const registry_wrapper&) = delete;
+		registry_wrapper& operator=(const registry_wrapper&) = delete;
+
+		registry_wrapper(registry_wrapper&&) = delete;
+		registry_wrapper& operator=(registry_wrapper&&) = delete;
+
 		~registry_wrapper()
 		{
 			this->destroy();
@@ -188,6 +194,12 @@ struct window_wrapper : public utki::destructable {
 				throw std::runtime_error("could not create wayland surface");
 			}
 		}
+
+		surface_wrapper(const surface_wrapper&) = delete;
+		surface_wrapper& operator=(const surface_wrapper&) = delete;
+
+		surface_wrapper(surface_wrapper&&) = delete;
+		surface_wrapper& operator=(surface_wrapper&&) = delete;
 
 		~surface_wrapper()
 		{
@@ -225,6 +237,12 @@ struct window_wrapper : public utki::destructable {
 
 			xdg_surface_add_listener(this->xdg_sur, &listener, nullptr);
 		}
+
+		xdg_surface_wrapper(const xdg_surface_wrapper&) = delete;
+		xdg_surface_wrapper& operator=(const xdg_surface_wrapper&) = delete;
+
+		xdg_surface_wrapper(xdg_surface_wrapper&&) = delete;
+		xdg_surface_wrapper& operator=(xdg_surface_wrapper&&) = delete;
 
 		~xdg_surface_wrapper()
 		{
@@ -282,6 +300,12 @@ struct window_wrapper : public utki::destructable {
 
 			surface.commit();
 		}
+
+		toplevel_wrapper(const toplevel_wrapper&) = delete;
+		toplevel_wrapper& operator=(const toplevel_wrapper&) = delete;
+
+		toplevel_wrapper(toplevel_wrapper&&) = delete;
+		toplevel_wrapper& operator=(toplevel_wrapper&&) = delete;
 
 		~toplevel_wrapper()
 		{
