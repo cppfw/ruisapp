@@ -19,6 +19,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 /* ================ LICENSE END ================ */
 
+#include <atomic>
+
 #include <papki/fs_file.hpp>
 #include <utki/destructable.hpp>
 #include <wayland-client-core.h>
@@ -50,6 +52,12 @@ using namespace std::string_view_literals;
 using namespace ruisapp;
 
 namespace {
+
+struct window_wrapper;
+
+window_wrapper& get_impl(const std::unique_ptr<utki::destructable>& pimpl);
+window_wrapper& get_impl(application& app);
+
 struct window_wrapper : public utki::destructable {
 	struct display_wrapper {
 		wl_display* disp;
@@ -290,31 +298,34 @@ struct window_wrapper : public utki::destructable {
 		static void xdg_toplevel_handle_configure(
 			void* data,
 			struct xdg_toplevel* xdg_toplevel,
-			int32_t w,
-			int32_t h,
+			int32_t width,
+			int32_t height,
 			struct wl_array* states
 		)
 		{
-			// no window geometry event, ignore
-			if (w == 0 && h == 0)
+			// not a window geometry event, ignore
+			if (width == 0 && height == 0){
 				return;
+			}
+
+			ASSERT(width >= 0)
+			ASSERT(height >= 0)
 
 			// window resized
 
-			// TODO:
-			// if(old_w != w && old_h != h) {
-			// 	old_w = w;
-			// 	old_h = h;
+			auto& ww = get_impl(ruisapp::inst());
 
-			// wl_egl_window_resize(ESContext.native_window, w, h, 0, 0);
-			// wl_surface_commit(surface);
-			// }
+			wl_egl_window_resize(ww.egl_window.win, width, height, 0, 0);
+			ww.surface.commit();
+
+			update_window_rect(ruisapp::inst(), ruis::rect(0, {ruis::real(width), ruis::real(height)}));
 		}
 
 		static void xdg_toplevel_handle_close(void* data, struct xdg_toplevel* xdg_toplevel)
 		{
-			// window closed, be sure that this event gets processed
-			// program_alive = false;
+			// window closed
+			auto& ww = get_impl(ruisapp::inst());
+			ww.quit_flag.store(true);
 		}
 
 		constexpr static const xdg_toplevel_listener listener = {
@@ -507,6 +518,10 @@ struct window_wrapper : public utki::destructable {
 			eglDestroySurface(this->egl_display, this->egl_surface);
 			eglTerminate(this->egl_display);
 		}
+
+		void swap_frame_buffers(){
+			eglSwapBuffers(this->egl_display, this->egl_surface);
+		}
 	} egl_context;
 
 	window_wrapper(const window_params& wp) :
@@ -518,6 +533,8 @@ struct window_wrapper : public utki::destructable {
 		egl_window(this->surface, this->region, wp.dims),
 		egl_context(this->display, this->egl_window, wp)
 	{}
+
+	std::atomic_bool quit_flag = false;
 
 	ruis::real get_dots_per_inch()
 	{
@@ -580,11 +597,10 @@ window_wrapper& get_impl(const std::unique_ptr<utki::destructable>& pimpl)
 	return static_cast<window_wrapper&>(*pimpl);
 }
 
-// TODO:
-// window_wrapper& get_impl(application& app)
-// {
-// 	return get_impl(get_window_pimpl(app));
-// }
+window_wrapper& get_impl(application& app)
+{
+	return get_impl(get_window_pimpl(app));
+}
 
 } // namespace
 
@@ -619,7 +635,8 @@ application::application(std::string name, const window_params& wp) :
 
 void application::swap_frame_buffers()
 {
-	// TODO:
+	auto& ww = get_impl(this->window_pimpl);
+	ww.egl_context.swap_frame_buffers();
 }
 
 void application::set_mouse_cursor_visible(bool visible)
@@ -644,7 +661,19 @@ int main(int argc, const char** argv)
 		return 1;
 	}
 
-	// TODO:
+	auto& ww = get_impl(*app);
+
+	while (!ww.quit_flag.load()) {
+		wl_display_dispatch_pending(ww.display.disp);
+		std::cout << "loop" << std::endl;
+
+		glClearColor(0, 0, 1.0, 1.0);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		// render(*app);
+
+		ww.egl_context.swap_frame_buffers();
+	}
 
 	return 0;
 }
