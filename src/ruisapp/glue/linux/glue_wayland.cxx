@@ -304,7 +304,7 @@ struct window_wrapper : public utki::destructable {
 		)
 		{
 			// not a window geometry event, ignore
-			if (width == 0 && height == 0){
+			if (width == 0 && height == 0) {
 				return;
 			}
 
@@ -519,7 +519,8 @@ struct window_wrapper : public utki::destructable {
 			eglTerminate(this->egl_display);
 		}
 
-		void swap_frame_buffers(){
+		void swap_frame_buffers()
+		{
 			eglSwapBuffers(this->egl_display, this->egl_surface);
 		}
 	} egl_context;
