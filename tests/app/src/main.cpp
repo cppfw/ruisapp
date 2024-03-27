@@ -841,6 +841,8 @@ public:
 				}
 			};
 		}
+
+		std::cout << "application constructed" << std::endl;
 	}
 };
 

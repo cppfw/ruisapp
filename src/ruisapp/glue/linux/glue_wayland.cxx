@@ -303,6 +303,8 @@ struct window_wrapper : public utki::destructable {
 			struct wl_array* states
 		)
 		{
+			LOG([](auto&o){o << "window configure" << std::endl;})
+
 			// not a window geometry event, ignore
 			if (width == 0 && height == 0) {
 				return;
@@ -312,6 +314,8 @@ struct window_wrapper : public utki::destructable {
 			ASSERT(height >= 0)
 
 			// window resized
+
+			LOG([](auto&o){o << "window resized" << std::endl;})
 
 			auto& ww = get_impl(ruisapp::inst());
 
@@ -447,9 +451,8 @@ struct window_wrapper : public utki::destructable {
 				}
 			}
 
-			// TODO: is this needed?
 			if (eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE) {
-				throw std::runtime_error("eglBindApi() failed");
+				throw std::runtime_error("eglBindApi(OpenGL ES) failed");
 			}
 
 			this->egl_surface = eglCreateWindowSurface(this->egl_display, egl_config, egl_window.win, nullptr);
@@ -490,6 +493,9 @@ struct window_wrapper : public utki::destructable {
 			}
 
 			utki::scope_exit scope_exit_egl_context([this]() {
+				// unset current context
+				eglMakeCurrent(this->egl_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+
 				eglDestroyContext(this->egl_display, this->egl_context);
 			});
 
@@ -497,6 +503,11 @@ struct window_wrapper : public utki::destructable {
 			{
 				throw std::runtime_error("eglMakeCurrent() failed");
 			}
+
+			// disable v-sync
+			// if (eglSwapInterval(this->egl_display, 0) != EGL_TRUE) {
+			// 	throw std::runtime_error("eglSwapInterval() failed");
+			// }
 
 			scope_exit_egl_context.release();
 			scope_exit_egl_window_surface.release();
@@ -631,7 +642,7 @@ application::application(std::string name, const window_params& wp) :
 	)),
 	storage_dir(initialize_storage_dir(this->name))
 {
-	// TODO:
+	this->update_window_rect(ruis::rect(0, 0, ruis::real(wp.dims.x()), ruis::real(wp.dims.y())));
 }
 
 void application::swap_frame_buffers()
@@ -652,7 +663,8 @@ void application::set_fullscreen(bool fullscreen)
 
 void ruisapp::application::quit() noexcept
 {
-	// TODO:
+	auto& ww = get_impl(this->window_pimpl);
+	ww.quit_flag.store(true);
 }
 
 int main(int argc, const char** argv)
@@ -666,14 +678,10 @@ int main(int argc, const char** argv)
 
 	while (!ww.quit_flag.load()) {
 		wl_display_dispatch_pending(ww.display.disp);
+
 		std::cout << "loop" << std::endl;
 
-		glClearColor(0, 0, 1.0, 1.0);
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		// render(*app);
-
-		ww.egl_context.swap_frame_buffers();
+		render(*app);
 	}
 
 	return 0;
