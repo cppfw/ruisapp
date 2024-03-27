@@ -117,7 +117,7 @@ endef
 ifeq ($(os), linux)
     $(eval $(call ruisapp_rules,opengl,x11))
     $(eval $(call ruisapp_rules,opengles,x11))
-    $(eval $(call ruisapp_rules,opengl,wayland))
+    # $(eval $(call ruisapp_rules,opengl,wayland))
     $(eval $(call ruisapp_rules,opengles,wayland))
 else
     $(eval $(call ruisapp_rules,opengl,))
