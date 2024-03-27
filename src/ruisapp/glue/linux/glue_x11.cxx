@@ -807,16 +807,16 @@ struct window_wrapper : public utki::destructable {
 			XDestroyIC(this->input_context);
 		});
 
-		scope_exit_input_context.reset();
-		scope_exit_input_method.reset();
-		scope_exit_window.reset();
-		scope_exit_color_map.reset();
+		scope_exit_input_context.release();
+		scope_exit_input_method.release();
+		scope_exit_window.release();
+		scope_exit_color_map.release();
 #ifdef RUISAPP_RENDER_OPENGL
-		scope_exit_gl_context.reset();
+		scope_exit_gl_context.release();
 #elif defined(RUISAPP_RENDER_OPENGLES)
-		scope_exit_egl_display.reset();
-		scope_exit_egl_surface.reset();
-		scope_exit_egl_context.reset();
+		scope_exit_egl_display.release();
+		scope_exit_egl_surface.release();
+		scope_exit_egl_context.release();
 #else
 #	error "Unknown graphics API"
 #endif

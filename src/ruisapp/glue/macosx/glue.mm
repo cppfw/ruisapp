@@ -681,9 +681,9 @@ WindowWrapper::WindowWrapper(const window_params& wp){
 		throw std::runtime_error("GLEW initialization failed");
 	}
 
-	scopeExitOpenGLContext.reset();
-	scopeExitWindow.reset();
-	scopeExitApplication.reset();
+	scopeExitOpenGLContext.release();
+	scopeExitWindow.release();
+	scopeExitApplication.release();
 
 	LOG([&](auto&o){o << "WindowWrapper::WindowWrapper(): exit" << std::endl;})
 }

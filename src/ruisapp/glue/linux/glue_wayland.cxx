@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <utki/destructable.hpp>
 #include <wayland-client-core.h>
 #include <wayland-client-protocol.h>
+#include <wayland-egl.h> // Wayland EGL MUST be included before EGL headers
 
 #ifdef RUISAPP_RENDER_OPENGL
 #	include <GL/glew.h>
@@ -184,6 +185,34 @@ struct window_wrapper : public utki::destructable {
 		}
 	} registry;
 
+	struct region_wrapper {
+		wl_region* reg;
+
+		region_wrapper(registry_wrapper& registry) :
+			reg(wl_compositor_create_region(registry.compositor))
+		{
+			if (!this->reg) {
+				throw std::runtime_error("could not create wayland region");
+			}
+		}
+
+		region_wrapper(const region_wrapper&) = delete;
+		region_wrapper& operator=(const region_wrapper&) = delete;
+
+		region_wrapper(region_wrapper&&) = delete;
+		region_wrapper& operator=(region_wrapper&&) = delete;
+
+		~region_wrapper()
+		{
+			wl_region_destroy(this->reg);
+		}
+
+		void add(r4::rectangle<int32_t> rect)
+		{
+			wl_region_add(this->reg, rect.p.x(), rect.p.y(), rect.d.x(), rect.d.y());
+		}
+	};
+
 	struct surface_wrapper {
 		wl_surface* sur;
 
@@ -209,6 +238,11 @@ struct window_wrapper : public utki::destructable {
 		void commit()
 		{
 			wl_surface_commit(this->sur);
+		}
+
+		void set_opaque_region(const region_wrapper& region)
+		{
+			wl_surface_set_opaque_region(this->sur, region.reg);
 		}
 	} surface;
 
@@ -313,11 +347,42 @@ struct window_wrapper : public utki::destructable {
 		}
 	} toplevel;
 
+	region_wrapper region;
+
+	struct egl_window_wrapper {
+		wl_egl_window* win;
+
+		egl_window_wrapper(surface_wrapper& surface, region_wrapper& region, r4::vector2<unsigned> dims)
+		{
+			region.add(r4::rectangle({0, 0}, dims.to<int32_t>()));
+			surface.set_opaque_region(region);
+
+			this->win = wl_egl_window_create(surface.sur, dims.x(), dims.y());
+
+			if (!this->win) {
+				throw std::runtime_error("could not create wayland egl window");
+			}
+		}
+
+		egl_window_wrapper(const egl_window_wrapper&) = delete;
+		egl_window_wrapper& operator=(const egl_window_wrapper&) = delete;
+
+		egl_window_wrapper(egl_window_wrapper&&) = delete;
+		egl_window_wrapper& operator=(egl_window_wrapper&&) = delete;
+
+		~egl_window_wrapper()
+		{
+			wl_egl_window_destroy(this->win);
+		}
+	} egl_window;
+
 	window_wrapper(const window_params& wp) :
 		registry(this->display),
 		surface(this->registry),
 		xdg_surface(this->surface, this->registry),
-		toplevel(this->surface, this->xdg_surface)
+		toplevel(this->surface, this->xdg_surface),
+		region(this->registry),
+		egl_window(this->surface, this->region, wp.dims)
 	{}
 
 	ruis::real get_dots_per_inch()
