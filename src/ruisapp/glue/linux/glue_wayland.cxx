@@ -357,7 +357,10 @@ struct window_wrapper : public utki::destructable {
 			region.add(r4::rectangle({0, 0}, dims.to<int32_t>()));
 			surface.set_opaque_region(region);
 
-			this->win = wl_egl_window_create(surface.sur, dims.x(), dims.y());
+			auto int_dims = dims.to<int>();
+
+			// NOLINTNEXTLINE(cppcoreguidelines-prefer-member-initializer)
+			this->win = wl_egl_window_create(surface.sur, int_dims.x(), int_dims.y());
 
 			if (!this->win) {
 				throw std::runtime_error("could not create wayland egl window");
@@ -488,6 +491,12 @@ struct window_wrapper : public utki::destructable {
 			scope_exit_egl_window_surface.release();
 			scope_exit_egl_display.release();
 		}
+
+		egl_context_wrapper(const egl_context_wrapper&) = delete;
+		egl_context_wrapper& operator=(const egl_context_wrapper&) = delete;
+
+		egl_context_wrapper(egl_context_wrapper&&) = delete;
+		egl_context_wrapper& operator=(egl_context_wrapper&&) = delete;
 
 		~egl_context_wrapper()
 		{
