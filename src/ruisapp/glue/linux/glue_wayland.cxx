@@ -376,13 +376,138 @@ struct window_wrapper : public utki::destructable {
 		}
 	} egl_window;
 
+	struct egl_context_wrapper {
+		EGLDisplay egl_display;
+		EGLSurface egl_surface;
+		EGLContext egl_context;
+
+		egl_context_wrapper(
+			const display_wrapper& display,
+			const egl_window_wrapper& egl_window,
+			const window_params& wp
+		) :
+			egl_display(eglGetDisplay(display.disp))
+		{
+			if (this->egl_display == EGL_NO_DISPLAY) {
+				throw std::runtime_error("could not open EGL display");
+			}
+
+			utki::scope_exit scope_exit_egl_display([this]() {
+				eglTerminate(this->egl_display);
+			});
+
+			if (!eglInitialize(this->egl_display, nullptr, nullptr)) {
+				throw std::runtime_error("could not initialize EGL");
+			}
+
+			EGLConfig egl_config = nullptr;
+			{
+				// Here specify the attributes of the desired configuration.
+				// Below, we select an EGLConfig with at least 8 bits per color
+				// component compatible with on-screen windows.
+				const std::array<EGLint, 15> attribs = {
+					EGL_SURFACE_TYPE,
+					EGL_WINDOW_BIT,
+					EGL_RENDERABLE_TYPE,
+					EGL_OPENGL_ES2_BIT | EGL_OPENGL_ES3_BIT,
+					EGL_BLUE_SIZE,
+					8,
+					EGL_GREEN_SIZE,
+					8,
+					EGL_RED_SIZE,
+					8,
+					EGL_DEPTH_SIZE,
+					wp.buffers.get(window_params::buffer::depth) ? int(utki::byte_bits * sizeof(uint16_t)) : 0,
+					EGL_STENCIL_SIZE,
+					wp.buffers.get(window_params::buffer::stencil) ? utki::byte_bits : 0,
+					EGL_NONE
+				};
+
+				// Here, the application chooses the configuration it desires. In this
+				// sample, we have a very simplified selection process, where we pick
+				// the first EGLConfig that matches our criteria.
+				EGLint num_configs = 0;
+				eglChooseConfig(this->egl_display, attribs.data(), &egl_config, 1, &num_configs);
+				if (num_configs <= 0) {
+					throw std::runtime_error("eglChooseConfig() failed, no matching config found");
+				}
+			}
+
+			// TODO: is this needed?
+			if (eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE) {
+				throw std::runtime_error("eglBindApi() failed");
+			}
+
+			this->egl_surface = eglCreateWindowSurface(this->egl_display, egl_config, egl_window.win, nullptr);
+			if (this->egl_surface == EGL_NO_SURFACE) {
+				throw std::runtime_error("could not create EGL window surface");
+			}
+
+			utki::scope_exit scope_exit_egl_window_surface([this]() {
+				eglDestroySurface(this->egl_display, this->egl_surface);
+			});
+
+			auto graphics_api_version = [&ver = wp.graphics_api_version]() {
+				if (ver.to_uint32_t() == 0) {
+					// default OpenGL ES version is 2.0
+					return utki::version_duplet{
+						.major = 2, //
+						.minor = 0
+					};
+				}
+				return ver;
+			}();
+
+			{
+				constexpr auto attrs_array_size = 5;
+				std::array<EGLint, attrs_array_size> context_attrs = {
+					EGL_CONTEXT_MAJOR_VERSION,
+					graphics_api_version.major,
+					EGL_CONTEXT_MINOR_VERSION,
+					graphics_api_version.minor,
+					EGL_NONE
+				};
+
+				this->egl_context =
+					eglCreateContext(this->egl_display, egl_config, EGL_NO_CONTEXT, context_attrs.data());
+				if (this->egl_context == EGL_NO_CONTEXT) {
+					throw std::runtime_error("could not create EGL context");
+				}
+			}
+
+			utki::scope_exit scope_exit_egl_context([this]() {
+				eglDestroyContext(this->egl_display, this->egl_context);
+			});
+
+			if (eglMakeCurrent(this->egl_display, this->egl_surface, this->egl_surface, this->egl_context) == EGL_FALSE)
+			{
+				throw std::runtime_error("eglMakeCurrent() failed");
+			}
+
+			scope_exit_egl_context.release();
+			scope_exit_egl_window_surface.release();
+			scope_exit_egl_display.release();
+		}
+
+		~egl_context_wrapper()
+		{
+			// unset current context
+			eglMakeCurrent(this->egl_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+
+			eglDestroyContext(this->egl_display, this->egl_context);
+			eglDestroySurface(this->egl_display, this->egl_surface);
+			eglTerminate(this->egl_display);
+		}
+	} egl_context;
+
 	window_wrapper(const window_params& wp) :
 		registry(this->display),
 		surface(this->registry),
 		xdg_surface(this->surface, this->registry),
 		toplevel(this->surface, this->xdg_surface),
 		region(this->registry),
-		egl_window(this->surface, this->region, wp.dims)
+		egl_window(this->surface, this->region, wp.dims),
+		egl_context(this->display, this->egl_window, wp)
 	{}
 
 	ruis::real get_dots_per_inch()

@@ -384,7 +384,6 @@ struct window_wrapper : public utki::destructable {
 		});
 
 		if (eglInitialize(this->egl_display, nullptr, nullptr) == EGL_FALSE) {
-			eglTerminate(this->egl_display);
 			throw std::runtime_error("eglInitialize() failed");
 		}
 
@@ -397,18 +396,7 @@ struct window_wrapper : public utki::destructable {
 				EGL_SURFACE_TYPE,
 				EGL_WINDOW_BIT,
 				EGL_RENDERABLE_TYPE,
-				[&ver = graphics_api_version]() {
-					switch (ver.to_uint32_t()) {
-						default:
-							throw std::logic_error(
-								utki::cat("unknown OpenGL ES version requested: ", ver.major, '.', ver.minor)
-							);
-						case utki::version_duplet{.major = 2, .minor = 0}.to_uint32_t():
-							return EGL_OPENGL_ES2_BIT;
-						case utki::version_duplet{.major = 3, .minor = 0}.to_uint32_t():
-							return EGL_OPENGL_ES3_BIT;
-					}
-				}(),
+				EGL_OPENGL_ES2_BIT | EGL_OPENGL_ES3_BIT,
 				EGL_BLUE_SIZE,
 				8,
 				EGL_GREEN_SIZE,
