@@ -87,6 +87,7 @@ struct window_wrapper : public utki::destructable {
 
 		wl_compositor* compositor = nullptr;
 		xdg_wm_base* wm_base = nullptr;
+		wl_seat* seat = nullptr;
 
 		static void xdg_wm_base_ping(void* data, xdg_wm_base* wm_base, uint32_t serial)
 		{
@@ -120,6 +121,12 @@ struct window_wrapper : public utki::destructable {
 				ASSERT(wm_base)
 				self.wm_base = static_cast<xdg_wm_base*>(wm_base);
 				xdg_wm_base_add_listener(self.wm_base, &wm_base_listener, nullptr);
+			} else if (std::string_view(interface) == "wl_seat"sv && !self.seat) {
+				void* seat = wl_registry_bind(registry, id, &wl_seat_interface, 1);
+				ASSERT(seat)
+				self.seat = static_cast<wl_seat*>(seat);
+				// TODO:
+				// wl_seat_add_listener(self.seat, &seat_listener, d);
 			}
 		}
 
@@ -166,6 +173,10 @@ struct window_wrapper : public utki::destructable {
 				throw std::runtime_error("could not find xdg_shell");
 			}
 
+			if (!this->seat) {
+				throw std::runtime_error("could not find wl_seat");
+			}
+
 			registry_scope_exit.release();
 		}
 
@@ -183,6 +194,9 @@ struct window_wrapper : public utki::destructable {
 	private:
 		void destroy()
 		{
+			if (this->seat) {
+				wl_seat_destroy(this->seat);
+			}
 			if (this->wm_base) {
 				xdg_wm_base_destroy(this->wm_base);
 			}
