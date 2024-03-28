@@ -52,6 +52,42 @@ using namespace std::string_view_literals;
 using namespace ruisapp;
 
 namespace {
+ruis::mouse_button button_number_to_enum(uint32_t number)
+{
+	// from wayland's comments:
+	// The button is a button code as defined in the Linux kernel's
+	// linux/input-event-codes.h header file, e.g. BTN_LEFT.
+
+	switch (number) {
+		case 0x110: // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+			return ruis::mouse_button::left;
+		default:
+		case 0x112: // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+			return ruis::mouse_button::middle;
+		case 0x111: // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+			return ruis::mouse_button::right;
+
+			// TODO: handle
+
+			// #define BTN_SIDE		0x113
+			// #define BTN_EXTRA		0x114
+			// #define BTN_FORWARD		0x115
+			// #define BTN_BACK		0x116
+			// #define BTN_TASK		0x117
+
+			// case 4: // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+			// 	return ruis::mouse_button::wheel_up;
+			// case 5: // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+			// 	return ruis::mouse_button::wheel_down;
+			// case 6: // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+			// 	return ruis::mouse_button::wheel_left;
+			// case 7: // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+			// 	return ruis::mouse_button::wheel_right;
+	}
+}
+} // namespace
+
+namespace {
 
 struct window_wrapper;
 
@@ -92,6 +128,8 @@ struct window_wrapper : public utki::destructable {
 		wl_seat* seat = nullptr;
 		wl_pointer* pointer = nullptr;
 
+		ruis::vector2 cur_pointer_pos{0, 0};
+
 		constexpr static const xdg_wm_base_listener wm_base_listener = {
 			.ping =
 				[](void* data, xdg_wm_base* wm_base, uint32_t serial) {
@@ -108,20 +146,23 @@ struct window_wrapper : public utki::destructable {
 				   wl_fixed_t x,
 				   wl_fixed_t y) //
 			{
-				// auto& self = *static_cast<registry_wrapper*>(data);
-				std::cout << "mouse enter: x,y = " << std::dec << x << ", " << y << std::endl;
-				// TODO: send mouse move
+				// std::cout << "mouse enter: x,y = " << std::dec << x << ", " << y << std::endl;
+				auto& self = *static_cast<registry_wrapper*>(data);
+				handle_mouse_hover(ruisapp::inst(), true, 0);
+				self.cur_pointer_pos = ruis::vector2(wl_fixed_to_int(x), wl_fixed_to_int(y));
+				handle_mouse_move(ruisapp::inst(), self.cur_pointer_pos, 0);
 			},
 			.leave =
 				[](void* data, struct wl_pointer* pointer, uint32_t serial, struct wl_surface* surface) {
-					// auto& self = *static_cast<registry_wrapper*>(data);
-					std::cout << "mouse leave" << std::endl;
+					// std::cout << "mouse leave" << std::endl;
+					handle_mouse_hover(ruisapp::inst(), false, 0);
 				},
 			.motion =
 				[](void* data, struct wl_pointer* pointer, uint32_t time, wl_fixed_t x, wl_fixed_t y) {
-					// auto& self = *static_cast<registry_wrapper*>(data);
-					std::cout << "mouse move: x,y = " << std::dec << x << ", " << y << " time = " << time << std::endl;
-					// TODO: send mouse move
+					// std::cout << "mouse move: x,y = " << std::dec << x << ", " << y << std::endl;
+					auto& self = *static_cast<registry_wrapper*>(data);
+					self.cur_pointer_pos = ruis::vector2(wl_fixed_to_int(x), wl_fixed_to_int(y));
+					handle_mouse_move(ruisapp::inst(), self.cur_pointer_pos, 0);
 				},
 			.button =
 				[](void* data,
@@ -131,14 +172,20 @@ struct window_wrapper : public utki::destructable {
 				   uint32_t button,
 				   uint32_t state) //
 			{
-				// auto& self = *static_cast<registry_wrapper*>(data);
-				std::cout << "mouse button: " << std::hex << button << ", state = " << "0x" << state << std::endl;
-				// TODO: send mouse button
+				// std::cout << "mouse button: " << std::hex << button << ", state = " << "0x" << state << std::endl;
+				auto& self = *static_cast<registry_wrapper*>(data);
+				handle_mouse_button(
+					ruisapp::inst(),
+					state == WL_POINTER_BUTTON_STATE_PRESSED,
+					self.cur_pointer_pos,
+					button_number_to_enum(button),
+					0
+				);
 			},
 			.axis =
 				[](void* data, struct wl_pointer* pointer, uint32_t time, uint32_t axis, wl_fixed_t value) {
-					// auto& self = *static_cast<registry_wrapper*>(data);
 					std::cout << "mouse axis: " << std::dec << axis << ", value = " << value << std::endl;
+					// axis == WL_POINTER_AXIS_VERTICAL_SCROLL
 					// TODO: send mouse button
 				},
 			.frame =
