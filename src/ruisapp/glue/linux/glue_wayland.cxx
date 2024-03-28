@@ -99,17 +99,66 @@ struct window_wrapper : public utki::destructable {
 				} //
 		};
 
-		// constexpr static const wl_pointer_listener pointer_listener = {
-		// 	.enter = wl_pointer_enter,
-		// 	.leave = wl_pointer_leave,
-		// 	.motion = wl_pointer_motion,
-		// 	.button = wl_pointer_button,
-		// 	.axis = wl_pointer_axis,
-		// 	.frame = wl_pointer_frame,
-		// 	.axis_source = wl_pointer_axis_source,
-		// 	.axis_stop = wl_pointer_axis_stop,
-		// 	.axis_discrete = wl_pointer_axis_discrete,
-		// };
+		constexpr static const wl_pointer_listener pointer_listener = {
+			.enter =
+				[](void* data,
+				   struct wl_pointer* pointer,
+				   uint32_t serial,
+				   struct wl_surface* surface,
+				   wl_fixed_t x,
+				   wl_fixed_t y) //
+			{
+				// auto& self = *static_cast<registry_wrapper*>(data);
+				std::cout << "mouse enter: x,y = " << std::dec << x << ", " << y << std::endl;
+				// TODO: send mouse move
+			},
+			.leave =
+				[](void* data, struct wl_pointer* pointer, uint32_t serial, struct wl_surface* surface) {
+					// auto& self = *static_cast<registry_wrapper*>(data);
+					std::cout << "mouse leave" << std::endl;
+				},
+			.motion =
+				[](void* data, struct wl_pointer* pointer, uint32_t time, wl_fixed_t x, wl_fixed_t y) {
+					// auto& self = *static_cast<registry_wrapper*>(data);
+					std::cout << "mouse move: x,y = " << std::dec << x << ", " << y << " time = " << time << std::endl;
+					// TODO: send mouse move
+				},
+			.button =
+				[](void* data,
+				   struct wl_pointer* pointer,
+				   uint32_t serial,
+				   uint32_t time,
+				   uint32_t button,
+				   uint32_t state) //
+			{
+				// auto& self = *static_cast<registry_wrapper*>(data);
+				std::cout << "mouse button: " << std::hex << button << ", state = " << "0x" << state << std::endl;
+				// TODO: send mouse button
+			},
+			.axis =
+				[](void* data, struct wl_pointer* pointer, uint32_t time, uint32_t axis, wl_fixed_t value) {
+					// auto& self = *static_cast<registry_wrapper*>(data);
+					std::cout << "mouse axis: " << std::dec << axis << ", value = " << value << std::endl;
+					// TODO: send mouse button
+				},
+			.frame =
+				[](void* data, struct wl_pointer* pointer) {
+					std::cout << "pointer frame" << std::endl;
+				},
+			.axis_source =
+				[](void* data, struct wl_pointer* pointer, uint32_t source) {
+					std::cout << "axis source: " << std::dec << source << std::endl;
+				},
+			.axis_stop =
+				[](void* data, struct wl_pointer* pointer, uint32_t time, uint32_t axis) {
+					std::cout << "axis stop: axis = " << std::dec << axis << std::endl;
+				},
+			.axis_discrete =
+				[](void* data, struct wl_pointer* pointer, uint32_t axis, int32_t discrete) {
+					std::cout << "axis discrete: axis = " << std::dec << axis << ", discrete = " << discrete
+							  << std::endl;
+				}
+		};
 
 		constexpr static const wl_seat_listener seat_listener = {
 			.capabilities =
@@ -122,8 +171,7 @@ struct window_wrapper : public utki::destructable {
 
 					if (have_pointer && !self.pointer) {
 						self.pointer = wl_seat_get_pointer(self.seat);
-						// TODO:
-						// wl_pointer_add_listener(self.pointer, &pointer_listener, &self);
+						wl_pointer_add_listener(self.pointer, &pointer_listener, &self);
 					} else if (!have_pointer && self.pointer) {
 						// pointer device was disconnected
 						wl_pointer_release(self.pointer);
