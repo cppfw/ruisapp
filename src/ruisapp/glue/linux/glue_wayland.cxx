@@ -303,7 +303,9 @@ struct window_wrapper : public utki::destructable {
 			struct wl_array* states
 		)
 		{
-			LOG([](auto&o){o << "window configure" << std::endl;})
+			LOG([](auto& o) {
+				o << "window configure" << std::endl;
+			})
 
 			// not a window geometry event, ignore
 			if (width == 0 && height == 0) {
@@ -315,7 +317,9 @@ struct window_wrapper : public utki::destructable {
 
 			// window resized
 
-			LOG([](auto&o){o << "window resized" << std::endl;})
+			LOG([](auto& o) {
+				o << "window resized" << std::endl;
+			})
 
 			auto& ww = get_impl(ruisapp::inst());
 
