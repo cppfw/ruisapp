@@ -137,51 +137,59 @@ struct window_wrapper : public utki::destructable {
 				} //
 		};
 
+		static void wl_pointer_enter(
+			void* data,
+			struct wl_pointer* pointer,
+			uint32_t serial,
+			struct wl_surface* surface,
+			wl_fixed_t x,
+			wl_fixed_t y
+		) //
+		{
+			// std::cout << "mouse enter: x,y = " << std::dec << x << ", " << y << std::endl;
+			auto& self = *static_cast<registry_wrapper*>(data);
+			handle_mouse_hover(ruisapp::inst(), true, 0);
+			self.cur_pointer_pos = ruis::vector2(wl_fixed_to_int(x), wl_fixed_to_int(y));
+			handle_mouse_move(ruisapp::inst(), self.cur_pointer_pos, 0);
+		}
+
+		static void wl_pointer_motion(void* data, struct wl_pointer* pointer, uint32_t time, wl_fixed_t x, wl_fixed_t y)
+		{
+			// std::cout << "mouse move: x,y = " << std::dec << x << ", " << y << std::endl;
+			auto& self = *static_cast<registry_wrapper*>(data);
+			self.cur_pointer_pos = ruis::vector2(wl_fixed_to_int(x), wl_fixed_to_int(y));
+			handle_mouse_move(ruisapp::inst(), self.cur_pointer_pos, 0);
+		}
+
+		static void wl_pointer_button(
+			void* data,
+			struct wl_pointer* pointer,
+			uint32_t serial,
+			uint32_t time,
+			uint32_t button,
+			uint32_t state
+		) //
+		{
+			// std::cout << "mouse button: " << std::hex << button << ", state = " << "0x" << state << std::endl;
+			auto& self = *static_cast<registry_wrapper*>(data);
+			handle_mouse_button(
+				ruisapp::inst(),
+				state == WL_POINTER_BUTTON_STATE_PRESSED,
+				self.cur_pointer_pos,
+				button_number_to_enum(button),
+				0
+			);
+		}
+
 		constexpr static const wl_pointer_listener pointer_listener = {
-			.enter =
-				[](void* data,
-				   struct wl_pointer* pointer,
-				   uint32_t serial,
-				   struct wl_surface* surface,
-				   wl_fixed_t x,
-				   wl_fixed_t y) //
-			{
-				// std::cout << "mouse enter: x,y = " << std::dec << x << ", " << y << std::endl;
-				auto& self = *static_cast<registry_wrapper*>(data);
-				handle_mouse_hover(ruisapp::inst(), true, 0);
-				self.cur_pointer_pos = ruis::vector2(wl_fixed_to_int(x), wl_fixed_to_int(y));
-				handle_mouse_move(ruisapp::inst(), self.cur_pointer_pos, 0);
-			},
+			.enter = &wl_pointer_enter,
 			.leave =
 				[](void* data, struct wl_pointer* pointer, uint32_t serial, struct wl_surface* surface) {
 					// std::cout << "mouse leave" << std::endl;
 					handle_mouse_hover(ruisapp::inst(), false, 0);
 				},
-			.motion =
-				[](void* data, struct wl_pointer* pointer, uint32_t time, wl_fixed_t x, wl_fixed_t y) {
-					// std::cout << "mouse move: x,y = " << std::dec << x << ", " << y << std::endl;
-					auto& self = *static_cast<registry_wrapper*>(data);
-					self.cur_pointer_pos = ruis::vector2(wl_fixed_to_int(x), wl_fixed_to_int(y));
-					handle_mouse_move(ruisapp::inst(), self.cur_pointer_pos, 0);
-				},
-			.button =
-				[](void* data,
-				   struct wl_pointer* pointer,
-				   uint32_t serial,
-				   uint32_t time,
-				   uint32_t button,
-				   uint32_t state) //
-			{
-				// std::cout << "mouse button: " << std::hex << button << ", state = " << "0x" << state << std::endl;
-				auto& self = *static_cast<registry_wrapper*>(data);
-				handle_mouse_button(
-					ruisapp::inst(),
-					state == WL_POINTER_BUTTON_STATE_PRESSED,
-					self.cur_pointer_pos,
-					button_number_to_enum(button),
-					0
-				);
-			},
+			.motion = &wl_pointer_motion,
+			.button = &wl_pointer_button,
 			.axis =
 				[](void* data, struct wl_pointer* pointer, uint32_t time, uint32_t axis, wl_fixed_t value) {
 					std::cout << "mouse axis: " << std::dec << axis << ", value = " << value << std::endl;
@@ -207,64 +215,72 @@ struct window_wrapper : public utki::destructable {
 				}
 		};
 
-		constexpr static const wl_seat_listener seat_listener = {
-			.capabilities =
-				[](void* data, struct wl_seat* wl_seat, uint32_t capabilities) {
-					std::cout << "seat capabilities: " << std::hex << "0x" << capabilities << std::endl;
+		static void wl_seat_capabilities(void* data, struct wl_seat* wl_seat, uint32_t capabilities)
+		{
+			std::cout << "seat capabilities: " << std::hex << "0x" << capabilities << std::endl;
 
-					auto& self = *static_cast<registry_wrapper*>(data);
+			auto& self = *static_cast<registry_wrapper*>(data);
 
-					bool have_pointer = capabilities & WL_SEAT_CAPABILITY_POINTER;
+			bool have_pointer = capabilities & WL_SEAT_CAPABILITY_POINTER;
 
-					if (have_pointer && !self.pointer) {
-						self.pointer = wl_seat_get_pointer(self.seat);
-						wl_pointer_add_listener(self.pointer, &pointer_listener, &self);
-					} else if (!have_pointer && self.pointer) {
-						// pointer device was disconnected
-						wl_pointer_release(self.pointer);
-						self.pointer = nullptr;
-					}
-				}, //
-			.name =
-				[](void* data, struct wl_seat* seat, const char* name) {
-					LOG([&](auto& o) {
-						o << "seat name: " << name << std::endl;
-					})
-				}
-		};
+			if (have_pointer && !self.pointer) {
+				self.pointer = wl_seat_get_pointer(self.seat);
+				wl_pointer_add_listener(self.pointer, &pointer_listener, &self);
+			} else if (!have_pointer && self.pointer) {
+				// pointer device was disconnected
+				wl_pointer_release(self.pointer);
+				self.pointer = nullptr;
+			}
+		}
+
+		constexpr static const wl_seat_listener seat_listener =
+			{.capabilities = &wl_seat_capabilities, //
+			 .name = [](void* data, struct wl_seat* seat, const char* name) {
+				 LOG([&](auto& o) {
+					 o << "seat name: " << name << std::endl;
+				 })
+			 }};
+
+		static void wl_registry_global(
+			void* data,
+			wl_registry* registry,
+			uint32_t id,
+			const char* interface,
+			uint32_t version
+		)
+		{
+			ASSERT(data)
+			auto& self = *static_cast<registry_wrapper*>(data);
+
+			LOG([&](auto& o) {
+				o << "got a registry event for: " << interface << ", id = " << id << std::endl;
+			});
+			if (std::string_view(interface) == "wl_compositor"sv && !self.compositor) {
+				void* compositor = wl_registry_bind(registry, id, &wl_compositor_interface, 1);
+				ASSERT(compositor)
+				self.compositor = static_cast<wl_compositor*>(compositor);
+			} else if (std::string_view(interface) == xdg_wm_base_interface.name && !self.wm_base) {
+				void* wm_base = wl_registry_bind(registry, id, &xdg_wm_base_interface, 1);
+				ASSERT(wm_base)
+				self.wm_base = static_cast<xdg_wm_base*>(wm_base);
+				xdg_wm_base_add_listener(self.wm_base, &wm_base_listener, nullptr);
+			} else if (std::string_view(interface) == "wl_seat"sv && !self.seat) {
+				void* seat = wl_registry_bind(registry, id, &wl_seat_interface, 1);
+				ASSERT(seat)
+				self.seat = static_cast<wl_seat*>(seat);
+				wl_seat_add_listener(self.seat, &seat_listener, &self);
+			}
+		}
 
 		constexpr static const wl_registry_listener listener = {
-			.global =
-				[](void* data, wl_registry* registry, uint32_t id, const char* interface, uint32_t version) {
-					ASSERT(data)
-					auto& self = *static_cast<registry_wrapper*>(data);
-
-					LOG([&](auto& o) {
-						o << "got a registry event for: " << interface << ", id = " << id << std::endl;
-					});
-					if (std::string_view(interface) == "wl_compositor"sv && !self.compositor) {
-						void* compositor = wl_registry_bind(registry, id, &wl_compositor_interface, 1);
-						ASSERT(compositor)
-						self.compositor = static_cast<wl_compositor*>(compositor);
-					} else if (std::string_view(interface) == xdg_wm_base_interface.name && !self.wm_base) {
-						void* wm_base = wl_registry_bind(registry, id, &xdg_wm_base_interface, 1);
-						ASSERT(wm_base)
-						self.wm_base = static_cast<xdg_wm_base*>(wm_base);
-						xdg_wm_base_add_listener(self.wm_base, &wm_base_listener, nullptr);
-					} else if (std::string_view(interface) == "wl_seat"sv && !self.seat) {
-						void* seat = wl_registry_bind(registry, id, &wl_seat_interface, 1);
-						ASSERT(seat)
-						self.seat = static_cast<wl_seat*>(seat);
-						wl_seat_add_listener(self.seat, &seat_listener, &self);
-					}
-				}, //
+			.global = &wl_registry_global,
 			.global_remove =
 				[](void* data, struct wl_registry* registry, uint32_t id) {
 					LOG([&](auto& o) {
 						o << "got a registry losing event, id = " << id << std::endl;
 					});
 					// we assume that compositor and shell objects will never be removed
-				}
+				} //
 		};
 
 		registry_wrapper(display_wrapper& display) :
@@ -460,14 +476,16 @@ struct window_wrapper : public utki::destructable {
 			update_window_rect(ruisapp::inst(), ruis::rect(0, {ruis::real(width), ruis::real(height)}));
 		}
 
+		static void xdg_toplevel_close(void* data, struct xdg_toplevel* xdg_toplevel)
+		{
+			// window closed
+			auto& ww = get_impl(ruisapp::inst());
+			ww.quit_flag.store(true);
+		}
+
 		constexpr static const xdg_toplevel_listener listener = {
 			.configure = xdg_toplevel_handle_configure,
-			.close =
-				[](void* data, struct xdg_toplevel* xdg_toplevel) {
-					// window closed
-					auto& ww = get_impl(ruisapp::inst());
-					ww.quit_flag.store(true);
-				},
+			.close = &xdg_toplevel_close,
 		};
 
 		toplevel_wrapper(surface_wrapper& surface, xdg_surface_wrapper& xdg_surface) :
