@@ -59,7 +59,7 @@
         {
             "label": "run-app-dbg-ogles2-wayland",
             "type": "shell",
-            "command": "make run-app config=dbg ogles2=true wayland=true",
+            "command": "WAYLAND_DISPLAY=$(ls /run/user/$UID/ | grep wayland-[0-9]$) make run-app config=dbg ogles2=true wayland=true",
             "problemMatcher": [],
             "group": "build"
         },
