@@ -842,17 +842,16 @@ application::application(std::string name, const window_params& wp) :
 #	error "Unknown graphics API"
 #endif
 		utki::make_shared<ruis::updater>(),
-		[](std::function<void()> proc) {
-			// TODO:
-			// get_impl(get_window_pimpl(*this)).ui_queue.push_back(std::move(a));
+		[this](std::function<void()> proc) {
+			get_impl(*this).ui_queue.push_back(std::move(proc));
 		},
 		[](ruis::mouse_cursor c) {
 			// TODO:
 			// auto& ww = get_impl(*this);
 			// ww.set_cursor(c);
 		},
-		get_impl(window_pimpl).get_dots_per_inch(),
-		get_impl(window_pimpl).get_dots_per_pp()
+		get_impl(this->window_pimpl).get_dots_per_inch(),
+		get_impl(this->window_pimpl).get_dots_per_pp()
 	)),
 	storage_dir(initialize_storage_dir(this->name))
 {
@@ -965,9 +964,7 @@ int main(int argc, const char** argv)
 
 			if (ui_queue_ready_to_read) {
 				while (auto m = ww.ui_queue.pop_front()) {
-					// LOG([](auto& o) {
-					// 	o << "loop proc" << std::endl;
-					// })
+					std::cout << "loop proc" << std::endl;
 					m();
 				}
 			}
