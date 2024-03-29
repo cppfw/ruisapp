@@ -183,7 +183,9 @@ struct window_wrapper : public utki::destructable {
 		{
 			auto& self = *static_cast<registry_wrapper*>(data);
 
+			// we get +-10 for each mouse wheel step
 			auto val = wl_fixed_to_int(value);
+
 			// std::cout << "mouse axis: " << std::dec << axis << ", val = " << val << std::endl;
 
 			for (unsigned i = 0; i != 2; ++i) {
