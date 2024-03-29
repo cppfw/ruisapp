@@ -21,6 +21,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include <atomic>
 
+#include <nitki/queue.hpp>
+#include <opros/wait_set.hpp>
 #include <papki/fs_file.hpp>
 #include <utki/destructable.hpp>
 #include <wayland-client-core.h>
@@ -88,6 +90,8 @@ window_wrapper& get_impl(application& app);
 struct window_wrapper : public utki::destructable {
 	std::atomic_bool quit_flag = false;
 
+	nitki::queue ui_queue;
+
 	struct display_wrapper {
 		wl_display* disp;
 
@@ -110,6 +114,18 @@ struct window_wrapper : public utki::destructable {
 			wl_display_disconnect(this->disp);
 		}
 	} display;
+
+	class wayland_waitable : public opros::waitable
+	{
+	public:
+		wayland_waitable(display_wrapper& display) :
+			opros::waitable([&]() {
+				auto fd = wl_display_get_fd(display.disp);
+				ASSERT(fd != 0)
+				return fd;
+			}())
+		{}
+	} waitable;
 
 	struct registry_wrapper {
 		wl_registry* reg;
@@ -722,6 +738,7 @@ struct window_wrapper : public utki::destructable {
 	} egl_context;
 
 	window_wrapper(const window_params& wp) :
+		waitable(this->display),
 		registry(this->display),
 		surface(this->registry),
 		xdg_surface(this->surface, this->registry),
@@ -852,19 +869,90 @@ void ruisapp::application::quit() noexcept
 
 int main(int argc, const char** argv)
 {
-	std::unique_ptr<ruisapp::application> app = create_app_unix(argc, argv);
-	if (!app) {
+	std::unique_ptr<ruisapp::application> application = create_app_unix(argc, argv);
+	if (!application) {
 		return 1;
 	}
 
-	auto& ww = get_impl(*app);
+	auto& app = *application;
+
+	auto& ww = get_impl(app);
+
+	opros::wait_set wait_set(2);
+	wait_set.add(ww.waitable, {opros::ready::read}, &ww.waitable);
+	wait_set.add(ww.ui_queue, {opros::ready::read}, &ww.ui_queue);
+
+	utki::scope_exit scope_exit_wait_set([&](){
+		wait_set.remove(ww.ui_queue);
+		wait_set.remove(ww.waitable);
+	});
 
 	while (!ww.quit_flag.load()) {
-		wl_display_dispatch_pending(ww.display.disp);
-
 		std::cout << "loop" << std::endl;
 
-		render(*app);
+		if(wl_display_dispatch_pending(ww.display.disp) < 0){
+			throw std::runtime_error("wl_display_dispatch_pending() failed");
+		}
+
+		// send queued wayland requests to server
+		if(wl_display_flush(ww.display.disp) < 0){
+			if(errno == EAGAIN){
+				std::cout << "wayland display more to flush" << std::endl;
+				wait_set.change(ww.waitable, {opros::ready::read, opros::ready::write}, &ww.waitable);
+			}else{
+				throw std::runtime_error("wl_display_flush() failed");
+			}
+		}else{
+			std::cout << "wayland display flushed" << std::endl;
+			wait_set.change(ww.waitable, {opros::ready::read}, &ww.waitable);
+		}
+
+		auto dt = app.gui.update();
+
+		std::cout << "dt = " << dt << std::endl;
+
+		wait_set.wait(dt);
+
+		std::cout << "waited" << std::endl;
+
+		auto triggered_events = wait_set.get_triggered();
+
+		// we want to first handle messages of ui queue,
+		// but since we don't know the order of triggered objects,
+		// first go through all of them and set readiness flags
+		bool ui_queue_ready_to_read = false;
+		bool wayland_queue_ready_to_read = false;
+
+		for (auto& ei : triggered_events) {
+			if (ei.user_data == &ww.ui_queue) {
+				ui_queue_ready_to_read = true;
+			}else if(ei.user_data == &ww.waitable){
+				wayland_queue_ready_to_read = true;
+			}
+		}
+
+		if (ui_queue_ready_to_read) {
+			while (auto m = ww.ui_queue.pop_front()) {
+				LOG([](auto& o) {
+					o << "loop proc" << std::endl;
+				})
+				m();
+			}
+		}
+
+		if(wayland_queue_ready_to_read){
+			if(wl_display_prepare_read(ww.display.disp) < 0){
+				throw std::runtime_error("wl_display_prepare_read() failed");
+			}
+			if(wl_display_read_events(ww.display.disp) < 0){
+				throw std::runtime_error("wl_display_read_events() failed");
+			}
+			if(wl_display_dispatch_pending(ww.display.disp) < 0){
+				throw std::runtime_error("wl_display_dispatch_pending() failed");
+			}
+		}
+
+		render(app);
 	}
 
 	return 0;
