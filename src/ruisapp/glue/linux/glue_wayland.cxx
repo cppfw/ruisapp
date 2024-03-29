@@ -223,20 +223,27 @@ struct window_wrapper : public utki::destructable {
 			.axis = &wl_pointer_axis,
 			.frame =
 				[](void* data, struct wl_pointer* pointer) {
-					std::cout << "pointer frame" << std::endl;
+					LOG([](auto& o) {
+						o << "pointer frame" << std::endl;
+					})
 				},
 			.axis_source =
 				[](void* data, struct wl_pointer* pointer, uint32_t source) {
-					std::cout << "axis source: " << std::dec << source << std::endl;
+					LOG([&](auto& o) {
+						o << "axis source: " << std::dec << source << std::endl;
+					})
 				},
 			.axis_stop =
 				[](void* data, struct wl_pointer* pointer, uint32_t time, uint32_t axis) {
-					std::cout << "axis stop: axis = " << std::dec << axis << std::endl;
+					LOG([&](auto& o) {
+						o << "axis stop: axis = " << std::dec << axis << std::endl;
+					})
 				},
 			.axis_discrete =
 				[](void* data, struct wl_pointer* pointer, uint32_t axis, int32_t discrete) {
-					std::cout << "axis discrete: axis = " << std::dec << axis << ", discrete = " << discrete
-							  << std::endl;
+					LOG([&](auto& o) {
+						o << "axis discrete: axis = " << std::dec << axis << ", discrete = " << discrete << std::endl;
+					})
 				}
 		};
 
