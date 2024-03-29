@@ -74,15 +74,6 @@ ruis::mouse_button button_number_to_enum(uint32_t number)
 			// #define BTN_FORWARD		0x115
 			// #define BTN_BACK		0x116
 			// #define BTN_TASK		0x117
-
-			// case 4: // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-			// 	return ruis::mouse_button::wheel_up;
-			// case 5: // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-			// 	return ruis::mouse_button::wheel_down;
-			// case 6: // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-			// 	return ruis::mouse_button::wheel_left;
-			// case 7: // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-			// 	return ruis::mouse_button::wheel_right;
 	}
 }
 } // namespace
@@ -170,7 +161,8 @@ struct window_wrapper : public utki::destructable {
 			uint32_t state
 		) //
 		{
-			// std::cout << "mouse button: " << std::hex << button << ", state = " << "0x" << state << std::endl;
+			// std::cout << "mouse button: " << std::hex << "0x" << button << ", state = " << "0x" << state <<
+			// std::endl;
 			auto& self = *static_cast<registry_wrapper*>(data);
 			handle_mouse_button(
 				ruisapp::inst(),
@@ -181,6 +173,44 @@ struct window_wrapper : public utki::destructable {
 			);
 		}
 
+		static void wl_pointer_axis(
+			void* data,
+			struct wl_pointer* pointer,
+			uint32_t time,
+			uint32_t axis,
+			wl_fixed_t value
+		)
+		{
+			auto& self = *static_cast<registry_wrapper*>(data);
+
+			auto val = wl_fixed_to_int(value);
+			// std::cout << "mouse axis: " << std::dec << axis << ", val = " << val << std::endl;
+
+			for (unsigned i = 0; i != 2; ++i) {
+				handle_mouse_button(
+					ruisapp::inst(),
+					i == 0, // pressed/released
+					self.cur_pointer_pos,
+					[axis, val]() {
+						if (axis == WL_POINTER_AXIS_VERTICAL_SCROLL) {
+							if (val >= 0) {
+								return ruis::mouse_button::wheel_down;
+							} else {
+								return ruis::mouse_button::wheel_up;
+							}
+						} else {
+							if (val >= 0) {
+								return ruis::mouse_button::wheel_right;
+							} else {
+								return ruis::mouse_button::wheel_left;
+							}
+						}
+					}(),
+					0 // pointer id
+				);
+			}
+		};
+
 		constexpr static const wl_pointer_listener pointer_listener = {
 			.enter = &wl_pointer_enter,
 			.leave =
@@ -190,12 +220,7 @@ struct window_wrapper : public utki::destructable {
 				},
 			.motion = &wl_pointer_motion,
 			.button = &wl_pointer_button,
-			.axis =
-				[](void* data, struct wl_pointer* pointer, uint32_t time, uint32_t axis, wl_fixed_t value) {
-					std::cout << "mouse axis: " << std::dec << axis << ", value = " << value << std::endl;
-					// axis == WL_POINTER_AXIS_VERTICAL_SCROLL
-					// TODO: send mouse button
-				},
+			.axis = &wl_pointer_axis,
 			.frame =
 				[](void* data, struct wl_pointer* pointer) {
 					std::cout << "pointer frame" << std::endl;
@@ -296,8 +321,8 @@ struct window_wrapper : public utki::destructable {
 			wl_registry_add_listener(this->reg, &listener, this);
 
 			// this will call the attached listener's global_registry_handler
-			wl_display_dispatch(display.disp);
 			wl_display_roundtrip(display.disp);
+			wl_display_dispatch(display.disp);
 
 			// at this point we should have compositor and shell set by global_registry_handler
 
