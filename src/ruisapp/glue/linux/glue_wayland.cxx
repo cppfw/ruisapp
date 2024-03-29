@@ -267,7 +267,9 @@ struct window_wrapper : public utki::destructable {
 
 		static void wl_seat_capabilities(void* data, struct wl_seat* wl_seat, uint32_t capabilities)
 		{
-			std::cout << "seat capabilities: " << std::hex << "0x" << capabilities << std::endl;
+			LOG([&](auto& o) {
+				o << "seat capabilities: " << std::hex << "0x" << capabilities << std::endl;
+			})
 
 			auto& self = *static_cast<registry_wrapper*>(data);
 
@@ -492,7 +494,7 @@ struct window_wrapper : public utki::destructable {
 	struct toplevel_wrapper {
 		xdg_toplevel* toplev;
 
-		static void xdg_toplevel_handle_configure(
+		static void xdg_toplevel_configure(
 			void* data,
 			struct xdg_toplevel* xdg_toplevel,
 			int32_t width,
@@ -534,7 +536,7 @@ struct window_wrapper : public utki::destructable {
 		}
 
 		constexpr static const xdg_toplevel_listener listener = {
-			.configure = xdg_toplevel_handle_configure,
+			.configure = xdg_toplevel_configure,
 			.close = &xdg_toplevel_close,
 		};
 
@@ -746,7 +748,19 @@ struct window_wrapper : public utki::destructable {
 		region(this->registry),
 		egl_window(this->surface, this->region, wp.dims),
 		egl_context(this->display, this->egl_window, wp)
-	{}
+	{
+		// WORKAROUND: the following calls are figured out by trial and error. Without those the wayland main loop
+		//             either gets stuck on waiting for events and no events come and window is not shown, or
+		//             some call related to wayland events queue fails with error.
+		// no idea why roundtrip is needed, perhaps to configure the xdg surface before actually drawing to it
+		wl_display_roundtrip(this->display.disp);
+		// no idea why initial buffer swap is needed, perhaps it moves the window configure procedure forward somehow
+		this->egl_context.swap_frame_buffers();
+
+		LOG([](auto& o) {
+			o << "window wrapper constructed" << std::endl;
+		})
+	}
 
 	ruis::real get_dots_per_inch()
 	{
@@ -882,93 +896,96 @@ int main(int argc, const char** argv)
 	wait_set.add(ww.waitable, {opros::ready::read}, &ww.waitable);
 	wait_set.add(ww.ui_queue, {opros::ready::read}, &ww.ui_queue);
 
-	utki::scope_exit scope_exit_wait_set([&](){
+	utki::scope_exit scope_exit_wait_set([&]() {
 		wait_set.remove(ww.ui_queue);
 		wait_set.remove(ww.waitable);
 	});
 
-	wl_display_roundtrip(ww.display.disp);
-	// wl_display_dispatch(ww.display.disp);
-
-ww.egl_context.swap_frame_buffers();
-
-		// if(wl_display_dispatch_pending(ww.display.disp) < 0){
-		// 	throw std::runtime_error(utki::cat("wl_display_dispatch_pending() 1 failed: ", strerror(errno)));
-		// }
-
 	while (!ww.quit_flag.load()) {
-		std::cout << "loop" << std::endl;
+		// std::cout << "loop" << std::endl;
 
-		while(wl_display_prepare_read(ww.display.disp) != 0){
+		while (wl_display_prepare_read(ww.display.disp) != 0) {
 			// there are events in wayland queue
-			if(wl_display_dispatch_pending(ww.display.disp) < 0){
+			if (wl_display_dispatch_pending(ww.display.disp) < 0) {
 				throw std::runtime_error(utki::cat("wl_display_dispatch_pending() failed: ", strerror(errno)));
 			}
 		}
 
-		utki::scope_exit scope_exit_wayland_prepare_read([&](){
-			wl_display_cancel_read(ww.display.disp);
-		});
+		{
+			utki::scope_exit scope_exit_wayland_prepare_read([&]() {
+				wl_display_cancel_read(ww.display.disp);
+			});
 
-		// send queued wayland requests to server
-		if(wl_display_flush(ww.display.disp) < 0){
-			if(errno == EAGAIN){
-				std::cout << "wayland display more to flush" << std::endl;
-				wait_set.change(ww.waitable, {opros::ready::read, opros::ready::write}, &ww.waitable);
-			}else{
-				throw std::runtime_error(utki::cat("wl_display_flush() failed: ", strerror(errno)));
-			}
-		}else{
-			std::cout << "wayland display flushed" << std::endl;
-			wait_set.change(ww.waitable, {opros::ready::read}, &ww.waitable);
-		}
-
-		wait_set.wait(app.gui.update());
-
-		std::cout << "waited" << std::endl;
-
-		auto triggered_events = wait_set.get_triggered();
-
-		// we want to first handle messages of ui queue,
-		// but since we don't know the order of triggered objects,
-		// first go through all of them and set readiness flags
-		bool ui_queue_ready_to_read = false;
-		bool wayland_queue_ready_to_read = false;
-
-		for (auto& ei : triggered_events) {
-			if (ei.user_data == &ww.ui_queue) {
-				if(ei.flags.get(opros::ready::error)){
-					throw std::runtime_error("waiting on ui queue errored");
+			// send queued wayland requests to server
+			if (wl_display_flush(ww.display.disp) < 0) {
+				if (errno == EAGAIN) {
+					// std::cout << "wayland display more to flush" << std::endl;
+					wait_set.change(ww.waitable, {opros::ready::read, opros::ready::write}, &ww.waitable);
+				} else {
+					throw std::runtime_error(utki::cat("wl_display_flush() failed: ", strerror(errno)));
 				}
-				ui_queue_ready_to_read = true;
-			}else if(ei.user_data == &ww.waitable){
-				if(ei.flags.get(opros::ready::error)){
-					throw std::runtime_error("waiting on wayland file descriptor errored");
+			} else {
+				// std::cout << "wayland display flushed" << std::endl;
+				wait_set.change(ww.waitable, {opros::ready::read}, &ww.waitable);
+			}
+
+			wait_set.wait(app.gui.update());
+
+			// std::cout << "waited" << std::endl;
+
+			auto triggered_events = wait_set.get_triggered();
+
+			// std::cout << "num triggered = " << triggered_events.size() << std::endl;
+
+			// we want to first handle messages of ui queue,
+			// but since we don't know the order of triggered objects,
+			// first go through all of them and set readiness flags
+			bool ui_queue_ready_to_read = false;
+			bool wayland_queue_ready_to_read = false;
+
+			for (auto& ei : triggered_events) {
+				if (ei.user_data == &ww.ui_queue) {
+					if (ei.flags.get(opros::ready::error)) {
+						throw std::runtime_error("waiting on ui queue errored");
+					}
+					if (ei.flags.get(opros::ready::read)) {
+						// std::cout << "ui queue ready" << std::endl;
+						ui_queue_ready_to_read = true;
+					}
+				} else if (ei.user_data == &ww.waitable) {
+					if (ei.flags.get(opros::ready::error)) {
+						throw std::runtime_error("waiting on wayland file descriptor errored");
+					}
+					if (ei.flags.get(opros::ready::read)) {
+						// std::cout << "wayland queue ready to read" << std::endl;
+						wayland_queue_ready_to_read = true;
+					}
 				}
-				wayland_queue_ready_to_read = true;
+			}
+
+			if (ui_queue_ready_to_read) {
+				while (auto m = ww.ui_queue.pop_front()) {
+					// LOG([](auto& o) {
+					// 	o << "loop proc" << std::endl;
+					// })
+					m();
+				}
+			}
+
+			if (wayland_queue_ready_to_read) {
+				scope_exit_wayland_prepare_read.release();
+
+				// std::cout << "read" << std::endl;
+				if (wl_display_read_events(ww.display.disp) < 0) {
+					throw std::runtime_error(utki::cat("wl_display_read_events() failed: ", strerror(errno)));
+				}
+
+				// std::cout << "disppatch" << std::endl;
+				if (wl_display_dispatch_pending(ww.display.disp) < 0) {
+					throw std::runtime_error(utki::cat("wl_display_dispatch_pending() failed: ", strerror(errno)));
+				}
 			}
 		}
-
-		if (ui_queue_ready_to_read) {
-			while (auto m = ww.ui_queue.pop_front()) {
-				LOG([](auto& o) {
-					o << "loop proc" << std::endl;
-				})
-				m();
-			}
-		}
-
-		if(wayland_queue_ready_to_read){
-			scope_exit_wayland_prepare_read.release();
-
-			if(wl_display_read_events(ww.display.disp) < 0){
-				throw std::runtime_error(utki::cat("wl_display_read_events() failed: ", strerror(errno)));
-			}
-			// if(wl_display_dispatch_pending(ww.display.disp) < 0){
-			// 	throw std::runtime_error(utki::cat("wl_display_dispatch_pending() failed: ", strerror(errno)));
-			// }
-		}
-
 		render(app);
 	}
 
