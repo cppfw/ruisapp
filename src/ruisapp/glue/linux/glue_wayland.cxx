@@ -887,12 +887,28 @@ int main(int argc, const char** argv)
 		wait_set.remove(ww.waitable);
 	});
 
+	wl_display_roundtrip(ww.display.disp);
+	// wl_display_dispatch(ww.display.disp);
+
+ww.egl_context.swap_frame_buffers();
+
+		// if(wl_display_dispatch_pending(ww.display.disp) < 0){
+		// 	throw std::runtime_error(utki::cat("wl_display_dispatch_pending() 1 failed: ", strerror(errno)));
+		// }
+
 	while (!ww.quit_flag.load()) {
 		std::cout << "loop" << std::endl;
 
-		if(wl_display_dispatch_pending(ww.display.disp) < 0){
-			throw std::runtime_error("wl_display_dispatch_pending() failed");
+		while(wl_display_prepare_read(ww.display.disp) != 0){
+			// there are events in wayland queue
+			if(wl_display_dispatch_pending(ww.display.disp) < 0){
+				throw std::runtime_error(utki::cat("wl_display_dispatch_pending() failed: ", strerror(errno)));
+			}
 		}
+
+		utki::scope_exit scope_exit_wayland_prepare_read([&](){
+			wl_display_cancel_read(ww.display.disp);
+		});
 
 		// send queued wayland requests to server
 		if(wl_display_flush(ww.display.disp) < 0){
@@ -900,18 +916,14 @@ int main(int argc, const char** argv)
 				std::cout << "wayland display more to flush" << std::endl;
 				wait_set.change(ww.waitable, {opros::ready::read, opros::ready::write}, &ww.waitable);
 			}else{
-				throw std::runtime_error("wl_display_flush() failed");
+				throw std::runtime_error(utki::cat("wl_display_flush() failed: ", strerror(errno)));
 			}
 		}else{
 			std::cout << "wayland display flushed" << std::endl;
 			wait_set.change(ww.waitable, {opros::ready::read}, &ww.waitable);
 		}
 
-		auto dt = app.gui.update();
-
-		std::cout << "dt = " << dt << std::endl;
-
-		wait_set.wait(dt);
+		wait_set.wait(app.gui.update());
 
 		std::cout << "waited" << std::endl;
 
@@ -925,8 +937,14 @@ int main(int argc, const char** argv)
 
 		for (auto& ei : triggered_events) {
 			if (ei.user_data == &ww.ui_queue) {
+				if(ei.flags.get(opros::ready::error)){
+					throw std::runtime_error("waiting on ui queue errored");
+				}
 				ui_queue_ready_to_read = true;
 			}else if(ei.user_data == &ww.waitable){
+				if(ei.flags.get(opros::ready::error)){
+					throw std::runtime_error("waiting on wayland file descriptor errored");
+				}
 				wayland_queue_ready_to_read = true;
 			}
 		}
@@ -941,15 +959,14 @@ int main(int argc, const char** argv)
 		}
 
 		if(wayland_queue_ready_to_read){
-			if(wl_display_prepare_read(ww.display.disp) < 0){
-				throw std::runtime_error("wl_display_prepare_read() failed");
-			}
+			scope_exit_wayland_prepare_read.release();
+
 			if(wl_display_read_events(ww.display.disp) < 0){
-				throw std::runtime_error("wl_display_read_events() failed");
+				throw std::runtime_error(utki::cat("wl_display_read_events() failed: ", strerror(errno)));
 			}
-			if(wl_display_dispatch_pending(ww.display.disp) < 0){
-				throw std::runtime_error("wl_display_dispatch_pending() failed");
-			}
+			// if(wl_display_dispatch_pending(ww.display.disp) < 0){
+			// 	throw std::runtime_error(utki::cat("wl_display_dispatch_pending() failed: ", strerror(errno)));
+			// }
 		}
 
 		render(app);
