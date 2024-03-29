@@ -547,7 +547,7 @@ struct window_wrapper : public utki::destructable {
 				throw std::runtime_error("could not get wayland xdg toplevel");
 			}
 
-			xdg_toplevel_set_title(this->toplev, "Wayland EGL example");
+			xdg_toplevel_set_title(this->toplev, "ruisapp wayland");
 			xdg_toplevel_add_listener(this->toplev, &listener, nullptr);
 
 			surface.commit();
