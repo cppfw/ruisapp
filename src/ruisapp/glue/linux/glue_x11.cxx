@@ -967,7 +967,8 @@ ruis::mouse_button button_number_to_enum(unsigned number)
 }
 
 const std::array<ruis::key, size_t(std::numeric_limits<uint8_t>::max()) + 1> key_code_map = {
-	{ruis::key::unknown,
+	{//
+	 ruis::key::unknown,
 	 ruis::key::unknown,
 	 ruis::key::unknown,
 	 ruis::key::unknown,
@@ -1222,7 +1223,8 @@ const std::array<ruis::key, size_t(std::numeric_limits<uint8_t>::max()) + 1> key
 	 ruis::key::unknown,
 	 ruis::key::unknown,
 	 ruis::key::unknown,
-	 ruis::key::unknown}
+	 ruis::key::unknown
+	}
 };
 
 class key_event_unicode_provider : public ruis::gui::input_string_provider
