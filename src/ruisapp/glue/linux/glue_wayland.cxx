@@ -91,6 +91,8 @@ struct keyboard_wrapper {
 		// ASSERT(data)
 		// auto& self = *static_cast<keyboard_wrapper*>(data);
 
+		std::cout << "keymap" << std::endl;
+
 		//    struct client_state *client_state = data;
 		//    assert(format == WL_KEYBOARD_KEYMAP_FORMAT_XKB_V1);
 
@@ -118,6 +120,7 @@ struct keyboard_wrapper {
 		struct wl_array* keys
 	)
 	{
+		std::cout << "keyboard enter" << std::endl;
 		//    struct client_state *client_state = data;
 		//    fprintf(stderr, "keyboard enter; keys pressed are:\n");
 		//    uint32_t *key;
@@ -135,7 +138,7 @@ struct keyboard_wrapper {
 
 	static void wl_keyboard_leave(void* data, struct wl_keyboard* keyboard, uint32_t serial, struct wl_surface* surface)
 	{
-		//    fprintf(stderr, "keyboard leave\n");
+		std::cout << "keyboard leave" << std::endl;
 	}
 
 	static void wl_keyboard_key(
@@ -147,6 +150,7 @@ struct keyboard_wrapper {
 		uint32_t state
 	)
 	{
+		std::cout << "keyboard key = " << key << ", pressed = " << (state == WL_KEYBOARD_KEY_STATE_PRESSED) << std::endl;
 		//    struct client_state *client_state = data;
 		//    char buf[128];
 		//    uint32_t keycode = key + 8;
@@ -171,13 +175,14 @@ struct keyboard_wrapper {
 		uint32_t group
 	)
 	{
+		std::cout << "modifiers" << std::endl;
 		// struct client_state* client_state = data;
 		// xkb_state_update_mask(client_state->xkb_state, mods_depressed, mods_latched, mods_locked, 0, 0, group);
 	}
 
 	static void wl_keyboard_repeat_info(void* data, struct wl_keyboard* keyboard, int32_t rate, int32_t delay)
 	{
-		// TODO:
+		std::cout << "repeat info" << std::endl;
 	}
 
 	constexpr static const wl_keyboard_listener listener = {
