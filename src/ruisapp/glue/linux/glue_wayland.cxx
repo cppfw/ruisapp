@@ -507,7 +507,7 @@ struct keyboard_wrapper {
 		}
 	}
 
-	keyboard_wrapper() {}
+	keyboard_wrapper() = default;
 
 	~keyboard_wrapper()
 	{
@@ -683,6 +683,8 @@ struct pointer_wrapper {
 		}
 	}
 
+	pointer_wrapper() = default;
+
 	~pointer_wrapper()
 	{
 		if (this->pointer) {
@@ -745,6 +747,7 @@ struct window_wrapper : public utki::destructable {
 		wl_compositor* compositor = nullptr;
 		xdg_wm_base* wm_base = nullptr;
 		wl_seat* seat = nullptr;
+		wl_shm* shm = nullptr;
 
 		pointer_wrapper pointer;
 		keyboard_wrapper keyboard;
@@ -819,6 +822,10 @@ struct window_wrapper : public utki::destructable {
 				ASSERT(seat)
 				self.seat = static_cast<wl_seat*>(seat);
 				wl_seat_add_listener(self.seat, &seat_listener, &self);
+			} else if (std::string_view(interface) == "wl_shm"sv && !self.shm) {
+				void* shm = wl_registry_bind(registry, id, &wl_shm_interface, 1);
+				ASSERT(shm)
+				self.shm = static_cast<wl_shm*>(shm);
 			}
 		}
 
@@ -863,6 +870,10 @@ struct window_wrapper : public utki::destructable {
 				throw std::runtime_error("could not find wl_seat");
 			}
 
+			if (!this->shm) {
+				throw std::runtime_error("could not find wl_shm");
+			}
+
 			registry_scope_exit.release();
 		}
 
@@ -880,6 +891,9 @@ struct window_wrapper : public utki::destructable {
 	private:
 		void destroy()
 		{
+			if (this->shm) {
+				wl_shm_destroy(this->shm);
+			}
 			if (this->seat) {
 				wl_seat_destroy(this->seat);
 			}
