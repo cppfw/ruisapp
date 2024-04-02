@@ -24,10 +24,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <nitki/queue.hpp>
 #include <opros/wait_set.hpp>
 #include <papki/fs_file.hpp>
+#include <sys/mman.h>
 #include <utki/destructable.hpp>
 #include <wayland-client-core.h>
 #include <wayland-client-protocol.h>
 #include <wayland-egl.h> // Wayland EGL MUST be included before EGL headers
+#include <xkbcommon/xkbcommon.h>
 
 #ifdef RUISAPP_RENDER_OPENGL
 #	include <GL/glew.h>
@@ -54,6 +56,10 @@ using namespace std::string_view_literals;
 using namespace ruisapp;
 
 namespace {
+struct registry_wrapper;
+} // namespace
+
+namespace {
 ruis::mouse_button button_number_to_enum(uint32_t number)
 {
 	// from wayland's comments:
@@ -78,6 +84,31 @@ ruis::mouse_button button_number_to_enum(uint32_t number)
 			// #define BTN_TASK		0x117
 	}
 }
+} // namespace
+
+namespace {
+struct display_wrapper {
+	wl_display* disp;
+
+	display_wrapper() :
+		disp(wl_display_connect(nullptr))
+	{
+		if (!this->disp) {
+			throw std::runtime_error("could not connect to wayland display");
+		}
+	}
+
+	display_wrapper(const display_wrapper&) = delete;
+	display_wrapper& operator=(const display_wrapper&) = delete;
+
+	display_wrapper(display_wrapper&&) = delete;
+	display_wrapper& operator=(display_wrapper&&) = delete;
+
+	~display_wrapper()
+	{
+		wl_display_disconnect(this->disp);
+	}
+};
 } // namespace
 
 namespace {
@@ -345,34 +376,85 @@ const std::array<ruis::key, size_t(std::numeric_limits<uint8_t>::max()) + 1> key
 
 namespace {
 struct keyboard_wrapper {
+	registry_wrapper& registry;
+
 	unsigned num_connected = 0;
 
 	wl_keyboard* keyboard = nullptr;
 
+	struct xkb_wrapper {
+		xkb_context* context;
+		xkb_keymap* keymap = nullptr;
+		xkb_state* state = nullptr;
+
+		xkb_wrapper() :
+			context(xkb_context_new(XKB_CONTEXT_NO_FLAGS))
+		{
+			if (!this->context) {
+				throw std::runtime_error("could not create xkb context");
+			}
+		}
+
+		~xkb_wrapper()
+		{
+			this->set(nullptr, nullptr);
+			xkb_context_unref(this->context);
+		}
+
+		void set(xkb_state* state, xkb_keymap* keymap) noexcept
+		{
+			xkb_state_unref(this->state);
+			xkb_keymap_unref(this->keymap);
+			this->state = state;
+			this->keymap = keymap;
+		}
+	} xkb;
+
 	static void wl_keyboard_keymap(void* data, struct wl_keyboard* keyboard, uint32_t format, int32_t fd, uint32_t size)
 	{
-		// ASSERT(data)
-		// auto& self = *static_cast<keyboard_wrapper*>(data);
+		ASSERT(data)
+		auto& self = *static_cast<keyboard_wrapper*>(data);
 
 		std::cout << "keymap" << std::endl;
 
 		//    struct client_state *client_state = data;
-		//    assert(format == WL_KEYBOARD_KEYMAP_FORMAT_XKB_V1);
+		ASSERT(format == WL_KEYBOARD_KEYMAP_FORMAT_XKB_V1)
 
-		//    char *map_shm = mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
-		//    assert(map_shm != MAP_FAILED);
+		auto map_shm = mmap(nullptr, size, PROT_READ, MAP_SHARED, fd, 0);
+		if (map_shm == MAP_FAILED) {
+			throw std::runtime_error("could not map shared memory to read wayland keymap");
+		}
 
-		//    struct xkb_keymap *xkb_keymap = xkb_keymap_new_from_string(
-		//                    client_state->xkb_context, map_shm,
-		//                    XKB_KEYMAP_FORMAT_TEXT_V1, XKB_KEYMAP_COMPILE_NO_FLAGS);
-		//    munmap(map_shm, size);
-		//    close(fd);
+		utki::scope_exit scope_exit_mmap([&]() {
+			munmap(map_shm, size);
+			close(fd);
+		});
 
-		//    struct xkb_state *xkb_state = xkb_state_new(xkb_keymap);
-		//    xkb_keymap_unref(client_state->xkb_keymap);
-		//    xkb_state_unref(client_state->xkb_state);
-		//    client_state->xkb_keymap = xkb_keymap;
-		//    client_state->xkb_state = xkb_state;
+		xkb_keymap* keymap = xkb_keymap_new_from_string(
+			self.xkb.context,
+			static_cast<const char*>(map_shm),
+			XKB_KEYMAP_FORMAT_TEXT_V1,
+			XKB_KEYMAP_COMPILE_NO_FLAGS
+		);
+		if (!keymap) {
+			throw std::runtime_error("could not create xkb_keymap from string");
+		}
+		utki::scope_exit scope_exit_keymap([&]() {
+			xkb_keymap_unref(keymap);
+		});
+
+		xkb_state* state = xkb_state_new(keymap);
+		if (!state) {
+			throw std::runtime_error("could not create xkb_state for keymap");
+		}
+		utki::scope_exit scope_exit_state([&]() {
+			xkb_state_unref(state);
+		});
+
+		self.xkb.set(state, keymap);
+
+		scope_exit_state.release();
+		scope_exit_keymap.release();
 	}
 
 	static void wl_keyboard_enter(
@@ -507,7 +589,9 @@ struct keyboard_wrapper {
 		}
 	}
 
-	keyboard_wrapper() = default;
+	keyboard_wrapper(registry_wrapper& registry) :
+		registry(registry)
+	{}
 
 	~keyboard_wrapper()
 	{
@@ -695,6 +779,175 @@ struct pointer_wrapper {
 } // namespace
 
 namespace {
+struct registry_wrapper {
+	wl_registry* reg;
+
+	wl_compositor* compositor = nullptr;
+	xdg_wm_base* wm_base = nullptr;
+	wl_seat* seat = nullptr;
+	wl_shm* shm = nullptr;
+
+	pointer_wrapper pointer;
+	keyboard_wrapper keyboard;
+
+	constexpr static const xdg_wm_base_listener wm_base_listener = {
+		.ping =
+			[](void* data, xdg_wm_base* wm_base, uint32_t serial) {
+				xdg_wm_base_pong(wm_base, serial);
+			} //
+	};
+
+	static void wl_seat_capabilities(void* data, struct wl_seat* wl_seat, uint32_t capabilities)
+	{
+		LOG([&](auto& o) {
+			o << "seat capabilities: " << std::hex << "0x" << capabilities << std::endl;
+		})
+
+		auto& self = *static_cast<registry_wrapper*>(data);
+
+		bool have_pointer = capabilities & WL_SEAT_CAPABILITY_POINTER;
+
+		if (have_pointer) {
+			self.pointer.connect(self.seat);
+		} else {
+			self.pointer.disconnect();
+		}
+
+		bool have_keyboard = capabilities & WL_SEAT_CAPABILITY_KEYBOARD;
+
+		if (have_keyboard) {
+			self.keyboard.connect(self.seat);
+		} else {
+			self.keyboard.disconnect();
+		}
+	}
+
+	constexpr static const wl_seat_listener seat_listener = {
+		.capabilities = &wl_seat_capabilities,
+		.name =
+			[](void* data, struct wl_seat* seat, const char* name) {
+				LOG([&](auto& o) {
+					o << "seat name: " << name << std::endl;
+				})
+			} //
+	};
+
+	static void wl_registry_global(
+		void* data,
+		wl_registry* registry,
+		uint32_t id,
+		const char* interface,
+		uint32_t version
+	)
+	{
+		ASSERT(data)
+		auto& self = *static_cast<registry_wrapper*>(data);
+
+		LOG([&](auto& o) {
+			o << "got a registry event for: " << interface << ", id = " << id << std::endl;
+		});
+		if (std::string_view(interface) == "wl_compositor"sv && !self.compositor) {
+			void* compositor = wl_registry_bind(registry, id, &wl_compositor_interface, 1);
+			ASSERT(compositor)
+			self.compositor = static_cast<wl_compositor*>(compositor);
+		} else if (std::string_view(interface) == xdg_wm_base_interface.name && !self.wm_base) {
+			void* wm_base = wl_registry_bind(registry, id, &xdg_wm_base_interface, 1);
+			ASSERT(wm_base)
+			self.wm_base = static_cast<xdg_wm_base*>(wm_base);
+			xdg_wm_base_add_listener(self.wm_base, &wm_base_listener, nullptr);
+		} else if (std::string_view(interface) == "wl_seat"sv && !self.seat) {
+			void* seat = wl_registry_bind(registry, id, &wl_seat_interface, 1);
+			ASSERT(seat)
+			self.seat = static_cast<wl_seat*>(seat);
+			wl_seat_add_listener(self.seat, &seat_listener, &self);
+		} else if (std::string_view(interface) == "wl_shm"sv && !self.shm) {
+			void* shm = wl_registry_bind(registry, id, &wl_shm_interface, 1);
+			ASSERT(shm)
+			self.shm = static_cast<wl_shm*>(shm);
+		}
+	}
+
+	constexpr static const wl_registry_listener listener = {
+		.global = &wl_registry_global,
+		.global_remove =
+			[](void* data, struct wl_registry* registry, uint32_t id) {
+				LOG([&](auto& o) {
+					o << "got a registry losing event, id = " << id << std::endl;
+				});
+				// we assume that compositor and shell objects will never be removed
+			} //
+	};
+
+	registry_wrapper(display_wrapper& display) :
+		reg(wl_display_get_registry(display.disp)),
+		keyboard(*this)
+	{
+		if (!this->reg) {
+			throw std::runtime_error("could not create wayland registry");
+		}
+		utki::scope_exit registry_scope_exit([this]() {
+			this->destroy();
+		});
+
+		wl_registry_add_listener(this->reg, &listener, this);
+
+		// this will call the attached listener's global_registry_handler
+		wl_display_roundtrip(display.disp);
+		wl_display_dispatch(display.disp);
+
+		// at this point we should have compositor and shell set by global_registry_handler
+
+		if (!this->compositor) {
+			throw std::runtime_error("could not find wayland compositor");
+		}
+
+		if (!this->wm_base) {
+			throw std::runtime_error("could not find xdg_shell");
+		}
+
+		if (!this->seat) {
+			throw std::runtime_error("could not find wl_seat");
+		}
+
+		if (!this->shm) {
+			throw std::runtime_error("could not find wl_shm");
+		}
+
+		registry_scope_exit.release();
+	}
+
+	registry_wrapper(const registry_wrapper&) = delete;
+	registry_wrapper& operator=(const registry_wrapper&) = delete;
+
+	registry_wrapper(registry_wrapper&&) = delete;
+	registry_wrapper& operator=(registry_wrapper&&) = delete;
+
+	~registry_wrapper()
+	{
+		this->destroy();
+	}
+
+private:
+	void destroy()
+	{
+		if (this->shm) {
+			wl_shm_destroy(this->shm);
+		}
+		if (this->seat) {
+			wl_seat_destroy(this->seat);
+		}
+		if (this->wm_base) {
+			xdg_wm_base_destroy(this->wm_base);
+		}
+		if (this->compositor) {
+			wl_compositor_destroy(this->compositor);
+		}
+		wl_registry_destroy(this->reg);
+	}
+};
+} // namespace
+
+namespace {
 
 struct window_wrapper;
 
@@ -706,28 +959,7 @@ struct window_wrapper : public utki::destructable {
 
 	nitki::queue ui_queue;
 
-	struct display_wrapper {
-		wl_display* disp;
-
-		display_wrapper() :
-			disp(wl_display_connect(nullptr))
-		{
-			if (!this->disp) {
-				throw std::runtime_error("could not connect to wayland display");
-			}
-		}
-
-		display_wrapper(const display_wrapper&) = delete;
-		display_wrapper& operator=(const display_wrapper&) = delete;
-
-		display_wrapper(display_wrapper&&) = delete;
-		display_wrapper& operator=(display_wrapper&&) = delete;
-
-		~display_wrapper()
-		{
-			wl_display_disconnect(this->disp);
-		}
-	} display;
+	display_wrapper display;
 
 	class wayland_waitable : public opros::waitable
 	{
@@ -741,171 +973,7 @@ struct window_wrapper : public utki::destructable {
 		{}
 	} waitable;
 
-	struct registry_wrapper {
-		wl_registry* reg;
-
-		wl_compositor* compositor = nullptr;
-		xdg_wm_base* wm_base = nullptr;
-		wl_seat* seat = nullptr;
-		wl_shm* shm = nullptr;
-
-		pointer_wrapper pointer;
-		keyboard_wrapper keyboard;
-
-		constexpr static const xdg_wm_base_listener wm_base_listener = {
-			.ping =
-				[](void* data, xdg_wm_base* wm_base, uint32_t serial) {
-					xdg_wm_base_pong(wm_base, serial);
-				} //
-		};
-
-		static void wl_seat_capabilities(void* data, struct wl_seat* wl_seat, uint32_t capabilities)
-		{
-			LOG([&](auto& o) {
-				o << "seat capabilities: " << std::hex << "0x" << capabilities << std::endl;
-			})
-
-			auto& self = *static_cast<registry_wrapper*>(data);
-
-			bool have_pointer = capabilities & WL_SEAT_CAPABILITY_POINTER;
-
-			if (have_pointer) {
-				self.pointer.connect(self.seat);
-			} else {
-				self.pointer.disconnect();
-			}
-
-			bool have_keyboard = capabilities & WL_SEAT_CAPABILITY_KEYBOARD;
-
-			if (have_keyboard) {
-				self.keyboard.connect(self.seat);
-			} else {
-				self.keyboard.disconnect();
-			}
-		}
-
-		constexpr static const wl_seat_listener seat_listener = {
-			.capabilities = &wl_seat_capabilities,
-			.name =
-				[](void* data, struct wl_seat* seat, const char* name) {
-					LOG([&](auto& o) {
-						o << "seat name: " << name << std::endl;
-					})
-				} //
-		};
-
-		static void wl_registry_global(
-			void* data,
-			wl_registry* registry,
-			uint32_t id,
-			const char* interface,
-			uint32_t version
-		)
-		{
-			ASSERT(data)
-			auto& self = *static_cast<registry_wrapper*>(data);
-
-			LOG([&](auto& o) {
-				o << "got a registry event for: " << interface << ", id = " << id << std::endl;
-			});
-			if (std::string_view(interface) == "wl_compositor"sv && !self.compositor) {
-				void* compositor = wl_registry_bind(registry, id, &wl_compositor_interface, 1);
-				ASSERT(compositor)
-				self.compositor = static_cast<wl_compositor*>(compositor);
-			} else if (std::string_view(interface) == xdg_wm_base_interface.name && !self.wm_base) {
-				void* wm_base = wl_registry_bind(registry, id, &xdg_wm_base_interface, 1);
-				ASSERT(wm_base)
-				self.wm_base = static_cast<xdg_wm_base*>(wm_base);
-				xdg_wm_base_add_listener(self.wm_base, &wm_base_listener, nullptr);
-			} else if (std::string_view(interface) == "wl_seat"sv && !self.seat) {
-				void* seat = wl_registry_bind(registry, id, &wl_seat_interface, 1);
-				ASSERT(seat)
-				self.seat = static_cast<wl_seat*>(seat);
-				wl_seat_add_listener(self.seat, &seat_listener, &self);
-			} else if (std::string_view(interface) == "wl_shm"sv && !self.shm) {
-				void* shm = wl_registry_bind(registry, id, &wl_shm_interface, 1);
-				ASSERT(shm)
-				self.shm = static_cast<wl_shm*>(shm);
-			}
-		}
-
-		constexpr static const wl_registry_listener listener = {
-			.global = &wl_registry_global,
-			.global_remove =
-				[](void* data, struct wl_registry* registry, uint32_t id) {
-					LOG([&](auto& o) {
-						o << "got a registry losing event, id = " << id << std::endl;
-					});
-					// we assume that compositor and shell objects will never be removed
-				} //
-		};
-
-		registry_wrapper(display_wrapper& display) :
-			reg(wl_display_get_registry(display.disp))
-		{
-			if (!this->reg) {
-				throw std::runtime_error("could not create wayland registry");
-			}
-			utki::scope_exit registry_scope_exit([this]() {
-				this->destroy();
-			});
-
-			wl_registry_add_listener(this->reg, &listener, this);
-
-			// this will call the attached listener's global_registry_handler
-			wl_display_roundtrip(display.disp);
-			wl_display_dispatch(display.disp);
-
-			// at this point we should have compositor and shell set by global_registry_handler
-
-			if (!this->compositor) {
-				throw std::runtime_error("could not find wayland compositor");
-			}
-
-			if (!this->wm_base) {
-				throw std::runtime_error("could not find xdg_shell");
-			}
-
-			if (!this->seat) {
-				throw std::runtime_error("could not find wl_seat");
-			}
-
-			if (!this->shm) {
-				throw std::runtime_error("could not find wl_shm");
-			}
-
-			registry_scope_exit.release();
-		}
-
-		registry_wrapper(const registry_wrapper&) = delete;
-		registry_wrapper& operator=(const registry_wrapper&) = delete;
-
-		registry_wrapper(registry_wrapper&&) = delete;
-		registry_wrapper& operator=(registry_wrapper&&) = delete;
-
-		~registry_wrapper()
-		{
-			this->destroy();
-		}
-
-	private:
-		void destroy()
-		{
-			if (this->shm) {
-				wl_shm_destroy(this->shm);
-			}
-			if (this->seat) {
-				wl_seat_destroy(this->seat);
-			}
-			if (this->wm_base) {
-				xdg_wm_base_destroy(this->wm_base);
-			}
-			if (this->compositor) {
-				wl_compositor_destroy(this->compositor);
-			}
-			wl_registry_destroy(this->reg);
-		}
-	} registry;
+	registry_wrapper registry;
 
 	struct region_wrapper {
 		wl_region* reg;

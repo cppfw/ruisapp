@@ -65,6 +65,7 @@ define ruisapp_rules
 
             this_ldlibs += -lwayland-client -lwayland-egl
             this_ldlibs += $(wayland_shell_protocol_lib)
+            this_ldlibs += -lxkbcommon
             this_cxxflags += -isystem $(dir $(wayland_shell_protocol_header))
             this_cxxflags += -D RUISAPP_WAYLAND
         else
