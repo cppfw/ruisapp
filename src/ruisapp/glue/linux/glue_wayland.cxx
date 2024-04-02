@@ -396,6 +396,12 @@ struct keyboard_wrapper {
 			}
 		}
 
+		xkb_wrapper(const xkb_wrapper&) = delete;
+		xkb_wrapper& operator=(const xkb_wrapper&) = delete;
+
+		xkb_wrapper(xkb_wrapper&&) = delete;
+		xkb_wrapper& operator=(xkb_wrapper&&) = delete;
+
 		~xkb_wrapper()
 		{
 			this->set(nullptr, nullptr);
@@ -517,7 +523,7 @@ struct keyboard_wrapper {
 			std::u32string get() const override
 			{
 				constexpr auto buf_size = 128;
-				std::array<char, buf_size> buf;
+				std::array<char, buf_size> buf{};
 
 				constexpr auto wayland_linux_keycode_offset = 8;
 				uint32_t keycode = this->key + wayland_linux_keycode_offset;
@@ -616,6 +622,12 @@ struct keyboard_wrapper {
 	keyboard_wrapper(registry_wrapper& registry) :
 		registry(registry)
 	{}
+
+	keyboard_wrapper(const keyboard_wrapper&) = delete;
+	keyboard_wrapper& operator=(const keyboard_wrapper&) = delete;
+
+	keyboard_wrapper(keyboard_wrapper&&) = delete;
+	keyboard_wrapper& operator=(keyboard_wrapper&&) = delete;
 
 	~keyboard_wrapper()
 	{
@@ -792,6 +804,12 @@ struct pointer_wrapper {
 	}
 
 	pointer_wrapper() = default;
+
+	pointer_wrapper(const pointer_wrapper&) = delete;
+	pointer_wrapper& operator=(const pointer_wrapper&) = delete;
+
+	pointer_wrapper(pointer_wrapper&&) = delete;
+	pointer_wrapper& operator=(pointer_wrapper&&) = delete;
 
 	~pointer_wrapper()
 	{
@@ -1481,6 +1499,7 @@ void ruisapp::application::quit() noexcept
 	ww.quit_flag.store(true);
 }
 
+// NOLINTNEXTLINE(bugprone-exception-escape, "it's what we want")
 int main(int argc, const char** argv)
 {
 	std::unique_ptr<ruisapp::application> application = create_app_unix(argc, argv);
