@@ -411,7 +411,7 @@ struct keyboard_wrapper {
 		}
 	} xkb;
 
-	static void wl_keyboard_keymap(void* data, struct wl_keyboard* keyboard, uint32_t format, int32_t fd, uint32_t size)
+	static void wl_keyboard_keymap(void* data, wl_keyboard* keyboard, uint32_t format, int32_t fd, uint32_t size)
 	{
 		ASSERT(data)
 		auto& self = *static_cast<keyboard_wrapper*>(data);
@@ -460,30 +460,23 @@ struct keyboard_wrapper {
 
 	static void wl_keyboard_enter(
 		void* data,
-		struct wl_keyboard* keyboard,
+		wl_keyboard* keyboard,
 		uint32_t serial,
-		struct wl_surface* surface,
-		struct wl_array* keys
+		wl_surface* surface,
+		wl_array* keys
 	)
 	{
 		std::cout << "keyboard enter" << std::endl;
-		// TODO:
-		//    struct client_state *client_state = data;
-		//    fprintf(stderr, "keyboard enter; keys pressed are:\n");
-		//    uint32_t *key;
-		//    wl_array_for_each(key, keys) {
-		//            char buf[128];
-		//            xkb_keysym_t sym = xkb_state_key_get_one_sym(
-		//                            client_state->xkb_state, *key + 8);
-		//            xkb_keysym_get_name(sym, buf, sizeof(buf));
-		//            fprintf(stderr, "sym: %-12s (%d), ", buf, sym);
-		//            xkb_state_key_get_utf8(client_state->xkb_state,
-		//                            *key + 8, buf, sizeof(buf));
-		//            fprintf(stderr, "utf8: '%s'\n", buf);
-		//    }
+
+		// notify ruis about pressed keys
+		for (auto key : utki::make_span(static_cast<uint32_t*>(keys->data), keys->size)) {
+			// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
+			ruis::key ruis_key = key_code_map[std::uint8_t(key)];
+			handle_key_event(ruisapp::inst(), true, ruis_key);
+		}
 	}
 
-	static void wl_keyboard_leave(void* data, struct wl_keyboard* keyboard, uint32_t serial, struct wl_surface* surface)
+	static void wl_keyboard_leave(void* data, wl_keyboard* keyboard, uint32_t serial, wl_surface* surface)
 	{
 		std::cout << "keyboard leave" << std::endl;
 		// TODO: send key releases
@@ -491,7 +484,7 @@ struct keyboard_wrapper {
 
 	static void wl_keyboard_key(
 		void* data,
-		struct wl_keyboard* keyboard,
+		wl_keyboard* keyboard,
 		uint32_t serial,
 		uint32_t time,
 		uint32_t key,
@@ -549,7 +542,7 @@ struct keyboard_wrapper {
 
 	static void wl_keyboard_modifiers(
 		void* data,
-		struct wl_keyboard* keyboard,
+		wl_keyboard* keyboard,
 		uint32_t serial,
 		uint32_t mods_depressed,
 		uint32_t mods_latched,
@@ -565,7 +558,7 @@ struct keyboard_wrapper {
 		xkb_state_update_mask(self.xkb.state, mods_depressed, mods_latched, mods_locked, 0, 0, group);
 	}
 
-	static void wl_keyboard_repeat_info(void* data, struct wl_keyboard* keyboard, int32_t rate, int32_t delay)
+	static void wl_keyboard_repeat_info(void* data, wl_keyboard* keyboard, int32_t rate, int32_t delay)
 	{
 		std::cout << "repeat info" << std::endl;
 	}
