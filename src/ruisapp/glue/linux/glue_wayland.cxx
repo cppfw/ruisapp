@@ -422,12 +422,12 @@ struct keyboard_wrapper {
 		ASSERT(data)
 		auto& self = *static_cast<keyboard_wrapper*>(data);
 
-		std::cout << "keymap" << std::endl;
+		// std::cout << "keymap" << std::endl;
 
-		//    struct client_state *client_state = data;
 		ASSERT(format == WL_KEYBOARD_KEYMAP_FORMAT_XKB_V1)
 
 		auto map_shm = mmap(nullptr, size, PROT_READ, MAP_SHARED, fd, 0);
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, "using C API")
 		if (map_shm == MAP_FAILED) {
 			throw std::runtime_error("could not map shared memory to read wayland keymap");
 		}
@@ -472,7 +472,9 @@ struct keyboard_wrapper {
 		wl_array* keys
 	)
 	{
-		std::cout << "keyboard enter" << std::endl;
+		LOG([](auto& o) {
+			o << "keyboard enter" << std::endl;
+		})
 
 		// notify ruis about pressed keys
 		for (auto key : utki::make_span(static_cast<uint32_t*>(keys->data), keys->size)) {
@@ -484,7 +486,9 @@ struct keyboard_wrapper {
 
 	static void wl_keyboard_leave(void* data, wl_keyboard* keyboard, uint32_t serial, wl_surface* surface)
 	{
-		std::cout << "keyboard leave" << std::endl;
+		LOG([](auto& o) {
+			o << "keyboard leave" << std::endl;
+		})
 		// TODO: send key releases
 	}
 
@@ -566,7 +570,9 @@ struct keyboard_wrapper {
 
 	static void wl_keyboard_repeat_info(void* data, wl_keyboard* keyboard, int32_t rate, int32_t delay)
 	{
-		std::cout << "repeat info" << std::endl;
+		LOG([](auto& o) {
+			o << "repeat info" << std::endl;
+		})
 	}
 
 	constexpr static const wl_keyboard_listener listener = {
@@ -1584,7 +1590,9 @@ int main(int argc, const char** argv)
 
 			if (ui_queue_ready_to_read) {
 				while (auto m = ww.ui_queue.pop_front()) {
-					std::cout << "loop proc" << std::endl;
+					LOG([](auto& o) {
+						o << "loop proc" << std::endl;
+					})
 					m();
 				}
 			}
