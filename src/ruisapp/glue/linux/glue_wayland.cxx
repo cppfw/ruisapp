@@ -26,6 +26,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <papki/fs_file.hpp>
 #include <sys/mman.h>
 #include <utki/destructable.hpp>
+#include <utki/unicode.hpp>
 #include <wayland-client-core.h>
 #include <wayland-client-protocol.h>
 #include <wayland-egl.h> // Wayland EGL MUST be included before EGL headers
@@ -466,6 +467,7 @@ struct keyboard_wrapper {
 	)
 	{
 		std::cout << "keyboard enter" << std::endl;
+		// TODO:
 		//    struct client_state *client_state = data;
 		//    fprintf(stderr, "keyboard enter; keys pressed are:\n");
 		//    uint32_t *key;
@@ -484,6 +486,7 @@ struct keyboard_wrapper {
 	static void wl_keyboard_leave(void* data, struct wl_keyboard* keyboard, uint32_t serial, struct wl_surface* surface)
 	{
 		std::cout << "keyboard leave" << std::endl;
+		// TODO: send key releases
 	}
 
 	static void wl_keyboard_key(
@@ -495,28 +498,53 @@ struct keyboard_wrapper {
 		uint32_t state
 	)
 	{
+		ASSERT(data)
+		auto& self = *static_cast<keyboard_wrapper*>(data);
+
 		// std::cout << "keyboard key = " << key << ", pressed = " << (state == WL_KEYBOARD_KEY_STATE_PRESSED)
 		// 		  << std::endl;
 
+		bool is_pressed = state == WL_KEYBOARD_KEY_STATE_PRESSED;
+
 		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
 		ruis::key ruis_key = key_code_map[std::uint8_t(key)];
-		handle_key_event(ruisapp::inst(), state == WL_KEYBOARD_KEY_STATE_PRESSED, ruis_key);
+		handle_key_event(ruisapp::inst(), is_pressed, ruis_key);
 
-		// TODO:
-		// handle_character_input(*app, key_event_unicode_provider(ww.input_context, event), key);
+		class unicode_provider : public ruis::gui::input_string_provider
+		{
+			uint32_t key;
+			xkb_wrapper& xkb;
 
-		//    struct client_state *client_state = data;
-		//    char buf[128];
-		//    uint32_t keycode = key + 8;
-		//    xkb_keysym_t sym = xkb_state_key_get_one_sym(
-		//                    client_state->xkb_state, keycode);
-		//    xkb_keysym_get_name(sym, buf, sizeof(buf));
-		//    const char *action =
-		//            state == WL_KEYBOARD_KEY_STATE_PRESSED ? "press" : "release";
-		//    fprintf(stderr, "key %s: sym: %-12s (%d), ", action, buf, sym);
-		//    xkb_state_key_get_utf8(client_state->xkb_state, keycode,
-		//                    buf, sizeof(buf));
-		//    fprintf(stderr, "utf8: '%s'\n", buf);
+		public:
+			unicode_provider(uint32_t key, xkb_wrapper& xkb) :
+				key(key),
+				xkb(xkb)
+			{}
+
+			std::u32string get() const override
+			{
+				constexpr auto buf_size = 128;
+				std::array<char, buf_size> buf;
+
+				constexpr auto wayland_linux_keycode_offset = 8;
+				uint32_t keycode = this->key + wayland_linux_keycode_offset;
+				ASSERT(this->xkb.state)
+
+				xkb_state_key_get_utf8(this->xkb.state, keycode, buf.data(), buf.size() - 1);
+
+				buf.back() = '\0';
+
+				return utki::to_utf32(buf.data());
+			}
+		};
+
+		if (is_pressed) {
+			handle_character_input( //
+				ruisapp::inst(),
+				unicode_provider(key, self.xkb),
+				ruis_key
+			);
+		}
 	}
 
 	static void wl_keyboard_modifiers(
@@ -529,9 +557,12 @@ struct keyboard_wrapper {
 		uint32_t group
 	)
 	{
-		std::cout << "modifiers" << std::endl;
-		// struct client_state* client_state = data;
-		// xkb_state_update_mask(client_state->xkb_state, mods_depressed, mods_latched, mods_locked, 0, 0, group);
+		ASSERT(data)
+		auto& self = *static_cast<keyboard_wrapper*>(data);
+
+		// std::cout << "modifiers" << std::endl;
+
+		xkb_state_update_mask(self.xkb.state, mods_depressed, mods_latched, mods_locked, 0, 0, group);
 	}
 
 	static void wl_keyboard_repeat_info(void* data, struct wl_keyboard* keyboard, int32_t rate, int32_t delay)
