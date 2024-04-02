@@ -150,7 +150,8 @@ struct keyboard_wrapper {
 		uint32_t state
 	)
 	{
-		std::cout << "keyboard key = " << key << ", pressed = " << (state == WL_KEYBOARD_KEY_STATE_PRESSED) << std::endl;
+		std::cout << "keyboard key = " << key << ", pressed = " << (state == WL_KEYBOARD_KEY_STATE_PRESSED)
+				  << std::endl;
 		//    struct client_state *client_state = data;
 		//    char buf[128];
 		//    uint32_t keycode = key + 8;
@@ -248,6 +249,179 @@ struct keyboard_wrapper {
 } // namespace
 
 namespace {
+struct pointer_wrapper {
+	unsigned num_connected = 0;
+
+	wl_pointer* pointer = nullptr;
+
+	ruis::vector2 cur_pointer_pos{0, 0};
+
+	static void wl_pointer_enter(
+		void* data,
+		struct wl_pointer* pointer,
+		uint32_t serial,
+		struct wl_surface* surface,
+		wl_fixed_t x,
+		wl_fixed_t y
+	) //
+	{
+		// std::cout << "mouse enter: x,y = " << std::dec << x << ", " << y << std::endl;
+		auto& self = *static_cast<pointer_wrapper*>(data);
+		handle_mouse_hover(ruisapp::inst(), true, 0);
+		self.cur_pointer_pos = ruis::vector2(wl_fixed_to_int(x), wl_fixed_to_int(y));
+		handle_mouse_move(ruisapp::inst(), self.cur_pointer_pos, 0);
+	}
+
+	static void wl_pointer_motion(void* data, struct wl_pointer* pointer, uint32_t time, wl_fixed_t x, wl_fixed_t y)
+	{
+		// std::cout << "mouse move: x,y = " << std::dec << x << ", " << y << std::endl;
+		auto& self = *static_cast<pointer_wrapper*>(data);
+		self.cur_pointer_pos = ruis::vector2(wl_fixed_to_int(x), wl_fixed_to_int(y));
+		handle_mouse_move(ruisapp::inst(), self.cur_pointer_pos, 0);
+	}
+
+	static void wl_pointer_button(
+		void* data,
+		struct wl_pointer* pointer,
+		uint32_t serial,
+		uint32_t time,
+		uint32_t button,
+		uint32_t state
+	) //
+	{
+		// std::cout << "mouse button: " << std::hex << "0x" << button << ", state = " << "0x" << state <<
+		// std::endl;
+		auto& self = *static_cast<pointer_wrapper*>(data);
+		handle_mouse_button(
+			ruisapp::inst(),
+			state == WL_POINTER_BUTTON_STATE_PRESSED,
+			self.cur_pointer_pos,
+			button_number_to_enum(button),
+			0
+		);
+	}
+
+	static void wl_pointer_axis(void* data, struct wl_pointer* pointer, uint32_t time, uint32_t axis, wl_fixed_t value)
+	{
+		auto& self = *static_cast<pointer_wrapper*>(data);
+
+		// we get +-10 for each mouse wheel step
+		auto val = wl_fixed_to_int(value);
+
+		// std::cout << "mouse axis: " << std::dec << axis << ", val = " << val << std::endl;
+
+		for (unsigned i = 0; i != 2; ++i) {
+			handle_mouse_button(
+				ruisapp::inst(),
+				i == 0, // pressed/released
+				self.cur_pointer_pos,
+				[axis, val]() {
+					if (axis == WL_POINTER_AXIS_VERTICAL_SCROLL) {
+						if (val >= 0) {
+							return ruis::mouse_button::wheel_down;
+						} else {
+							return ruis::mouse_button::wheel_up;
+						}
+					} else {
+						if (val >= 0) {
+							return ruis::mouse_button::wheel_right;
+						} else {
+							return ruis::mouse_button::wheel_left;
+						}
+					}
+				}(),
+				0 // pointer id
+			);
+		}
+	};
+
+	constexpr static const wl_pointer_listener listener = {
+		.enter = &wl_pointer_enter,
+		.leave =
+			[](void* data, struct wl_pointer* pointer, uint32_t serial, struct wl_surface* surface) {
+				// std::cout << "mouse leave" << std::endl;
+				handle_mouse_hover(ruisapp::inst(), false, 0);
+			},
+		.motion = &wl_pointer_motion,
+		.button = &wl_pointer_button,
+		.axis = &wl_pointer_axis,
+		.frame =
+			[](void* data, struct wl_pointer* pointer) {
+				LOG([](auto& o) {
+					o << "pointer frame" << std::endl;
+				})
+			},
+		.axis_source =
+			[](void* data, struct wl_pointer* pointer, uint32_t source) {
+				LOG([&](auto& o) {
+					o << "axis source: " << std::dec << source << std::endl;
+				})
+			},
+		.axis_stop =
+			[](void* data, struct wl_pointer* pointer, uint32_t time, uint32_t axis) {
+				LOG([&](auto& o) {
+					o << "axis stop: axis = " << std::dec << axis << std::endl;
+				})
+			},
+		.axis_discrete =
+			[](void* data, struct wl_pointer* pointer, uint32_t axis, int32_t discrete) {
+				LOG([&](auto& o) {
+					o << "axis discrete: axis = " << std::dec << axis << ", discrete = " << discrete << std::endl;
+				})
+			}
+	};
+
+	void connect(wl_seat* seat)
+	{
+		++this->num_connected;
+
+		if (this->num_connected > 1) {
+			// already connected
+			ASSERT(this->pointer)
+			return;
+		}
+
+		this->pointer = wl_seat_get_pointer(seat);
+		if (!this->pointer) {
+			this->num_connected = 0;
+			throw std::runtime_error("could not get wayland pointer interface");
+		}
+
+		if (wl_pointer_add_listener(this->pointer, &listener, this) != 0) {
+			wl_pointer_release(this->pointer);
+			this->num_connected = 0;
+			throw std::runtime_error("could not add listener to wayland pointer interface");
+		}
+	}
+
+	void disconnect() noexcept
+	{
+		if (this->num_connected == 0) {
+			// no pointers connected
+			ASSERT(!this->pointer)
+			return;
+		}
+
+		ASSERT(this->pointer)
+
+		--this->num_connected;
+
+		if (this->num_connected == 0) {
+			wl_pointer_release(this->pointer);
+			this->pointer = nullptr;
+		}
+	}
+
+	~pointer_wrapper()
+	{
+		if (this->pointer) {
+			wl_pointer_release(this->pointer);
+		}
+	}
+};
+} // namespace
+
+namespace {
 
 struct window_wrapper;
 
@@ -301,137 +475,14 @@ struct window_wrapper : public utki::destructable {
 		xdg_wm_base* wm_base = nullptr;
 		wl_seat* seat = nullptr;
 
-		wl_pointer* pointer = nullptr;
+		pointer_wrapper pointer;
 		keyboard_wrapper keyboard;
-
-		ruis::vector2 cur_pointer_pos{0, 0};
 
 		constexpr static const xdg_wm_base_listener wm_base_listener = {
 			.ping =
 				[](void* data, xdg_wm_base* wm_base, uint32_t serial) {
 					xdg_wm_base_pong(wm_base, serial);
 				} //
-		};
-
-		static void wl_pointer_enter(
-			void* data,
-			struct wl_pointer* pointer,
-			uint32_t serial,
-			struct wl_surface* surface,
-			wl_fixed_t x,
-			wl_fixed_t y
-		) //
-		{
-			// std::cout << "mouse enter: x,y = " << std::dec << x << ", " << y << std::endl;
-			auto& self = *static_cast<registry_wrapper*>(data);
-			handle_mouse_hover(ruisapp::inst(), true, 0);
-			self.cur_pointer_pos = ruis::vector2(wl_fixed_to_int(x), wl_fixed_to_int(y));
-			handle_mouse_move(ruisapp::inst(), self.cur_pointer_pos, 0);
-		}
-
-		static void wl_pointer_motion(void* data, struct wl_pointer* pointer, uint32_t time, wl_fixed_t x, wl_fixed_t y)
-		{
-			// std::cout << "mouse move: x,y = " << std::dec << x << ", " << y << std::endl;
-			auto& self = *static_cast<registry_wrapper*>(data);
-			self.cur_pointer_pos = ruis::vector2(wl_fixed_to_int(x), wl_fixed_to_int(y));
-			handle_mouse_move(ruisapp::inst(), self.cur_pointer_pos, 0);
-		}
-
-		static void wl_pointer_button(
-			void* data,
-			struct wl_pointer* pointer,
-			uint32_t serial,
-			uint32_t time,
-			uint32_t button,
-			uint32_t state
-		) //
-		{
-			// std::cout << "mouse button: " << std::hex << "0x" << button << ", state = " << "0x" << state <<
-			// std::endl;
-			auto& self = *static_cast<registry_wrapper*>(data);
-			handle_mouse_button(
-				ruisapp::inst(),
-				state == WL_POINTER_BUTTON_STATE_PRESSED,
-				self.cur_pointer_pos,
-				button_number_to_enum(button),
-				0
-			);
-		}
-
-		static void wl_pointer_axis(
-			void* data,
-			struct wl_pointer* pointer,
-			uint32_t time,
-			uint32_t axis,
-			wl_fixed_t value
-		)
-		{
-			auto& self = *static_cast<registry_wrapper*>(data);
-
-			// we get +-10 for each mouse wheel step
-			auto val = wl_fixed_to_int(value);
-
-			// std::cout << "mouse axis: " << std::dec << axis << ", val = " << val << std::endl;
-
-			for (unsigned i = 0; i != 2; ++i) {
-				handle_mouse_button(
-					ruisapp::inst(),
-					i == 0, // pressed/released
-					self.cur_pointer_pos,
-					[axis, val]() {
-						if (axis == WL_POINTER_AXIS_VERTICAL_SCROLL) {
-							if (val >= 0) {
-								return ruis::mouse_button::wheel_down;
-							} else {
-								return ruis::mouse_button::wheel_up;
-							}
-						} else {
-							if (val >= 0) {
-								return ruis::mouse_button::wheel_right;
-							} else {
-								return ruis::mouse_button::wheel_left;
-							}
-						}
-					}(),
-					0 // pointer id
-				);
-			}
-		};
-
-		constexpr static const wl_pointer_listener pointer_listener = {
-			.enter = &wl_pointer_enter,
-			.leave =
-				[](void* data, struct wl_pointer* pointer, uint32_t serial, struct wl_surface* surface) {
-					// std::cout << "mouse leave" << std::endl;
-					handle_mouse_hover(ruisapp::inst(), false, 0);
-				},
-			.motion = &wl_pointer_motion,
-			.button = &wl_pointer_button,
-			.axis = &wl_pointer_axis,
-			.frame =
-				[](void* data, struct wl_pointer* pointer) {
-					LOG([](auto& o) {
-						o << "pointer frame" << std::endl;
-					})
-				},
-			.axis_source =
-				[](void* data, struct wl_pointer* pointer, uint32_t source) {
-					LOG([&](auto& o) {
-						o << "axis source: " << std::dec << source << std::endl;
-					})
-				},
-			.axis_stop =
-				[](void* data, struct wl_pointer* pointer, uint32_t time, uint32_t axis) {
-					LOG([&](auto& o) {
-						o << "axis stop: axis = " << std::dec << axis << std::endl;
-					})
-				},
-			.axis_discrete =
-				[](void* data, struct wl_pointer* pointer, uint32_t axis, int32_t discrete) {
-					LOG([&](auto& o) {
-						o << "axis discrete: axis = " << std::dec << axis << ", discrete = " << discrete << std::endl;
-					})
-				}
 		};
 
 		static void wl_seat_capabilities(void* data, struct wl_seat* wl_seat, uint32_t capabilities)
@@ -444,13 +495,10 @@ struct window_wrapper : public utki::destructable {
 
 			bool have_pointer = capabilities & WL_SEAT_CAPABILITY_POINTER;
 
-			if (have_pointer && !self.pointer) {
-				self.pointer = wl_seat_get_pointer(self.seat);
-				wl_pointer_add_listener(self.pointer, &pointer_listener, &self);
-			} else if (!have_pointer && self.pointer) {
-				// pointer device was disconnected
-				wl_pointer_release(self.pointer);
-				self.pointer = nullptr;
+			if (have_pointer) {
+				self.pointer.connect(self.seat);
+			} else {
+				self.pointer.disconnect();
 			}
 
 			bool have_keyboard = capabilities & WL_SEAT_CAPABILITY_KEYBOARD;
@@ -561,9 +609,6 @@ struct window_wrapper : public utki::destructable {
 	private:
 		void destroy()
 		{
-			if (this->pointer) {
-				wl_pointer_release(this->pointer);
-			}
 			if (this->seat) {
 				wl_seat_destroy(this->seat);
 			}
