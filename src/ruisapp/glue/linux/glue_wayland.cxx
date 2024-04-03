@@ -64,7 +64,7 @@ namespace {
 ruis::mouse_button button_number_to_enum(uint32_t number)
 {
 	// from wayland's comments:
-	// The button is a button code as defined in the Linux kernel's
+	// The number is a button code as defined in the Linux kernel's
 	// linux/input-event-codes.h header file, e.g. BTN_LEFT.
 
 	switch (number) {
@@ -75,14 +75,16 @@ ruis::mouse_button button_number_to_enum(uint32_t number)
 			return ruis::mouse_button::middle;
 		case 0x111: // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 			return ruis::mouse_button::right;
-
-			// TODO: handle
-
-			// #define BTN_SIDE		0x113
-			// #define BTN_EXTRA		0x114
-			// #define BTN_FORWARD		0x115
-			// #define BTN_BACK		0x116
-			// #define BTN_TASK		0x117
+		case 0x113: // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+			return ruis::mouse_button::side;
+		case 0x114: // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+			return ruis::mouse_button::extra;
+		case 0x115: // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+			return ruis::mouse_button::forward;
+		case 0x116: // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+			return ruis::mouse_button::back;
+		case 0x117: // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+			return ruis::mouse_button::task;
 	}
 }
 } // namespace
