@@ -24,28 +24,42 @@ Build-Depends:
 Build-Depends-Indep: doxygen
 Standards-Version: 3.9.5
 
-Package: libruisapp-opengl$(soname)
+Package: libruisapp-opengl-xorg$(soname)
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: cross-platform C++ GUI library.
- GUI library using OpenGL 2 rendering backend.
+ GUI library using OpenGL rendering backend and xorg server.
 
-Package: libruisapp-opengles$(soname)
+Package: libruisapp-opengles-xorg$(soname)
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: cross-platform C++ GUI library.
- GUI library using OpenGL 2 rendering backend.
+ GUI library using OpenGL ES rendering backend and xorg server.
+
+Package: libruisapp-opengl-wayland$(soname)
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: cross-platform C++ GUI library.
+ GUI library using OpenGL rendering backend and wayland server.
+
+Package: libruisapp-opengles-wayland$(soname)
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: cross-platform C++ GUI library.
+ GUI library using OpenGL ES rendering backend and wayland server.
 
 Package: libruisapp-dev
 Section: libdevel
 Architecture: any
 Depends:
-		libruisapp-opengl$(soname) (= ${binary:Version}),
-		libruisapp-opengl$(soname)-dbg (= ${binary:Version}),
-		libruisapp-opengles$(soname) (= ${binary:Version}),
-		libruisapp-opengles$(soname)-dbg (= ${binary:Version}),
+		libruisapp-opengl-xorg$(soname) (= ${binary:Version}),
+		libruisapp-opengles-xorg$(soname) (= ${binary:Version}),
+		libruisapp-opengl-wayland$(soname) (= ${binary:Version}),
+		libruisapp-opengles-wayland$(soname) (= ${binary:Version}),
 		${misc:Depends},
 		libutki-dev,
 		libruis-dev,

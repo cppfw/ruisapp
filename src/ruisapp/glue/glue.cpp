@@ -32,6 +32,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #		include "linux/glue_wayland.cxx"
 #	else
 // NOLINTNEXTLINE(bugprone-suspicious-include)
-#		include "linux/glue_x11.cxx"
+#		include "linux/glue_xorg.cxx"
 #	endif
 #endif

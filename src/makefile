@@ -116,8 +116,8 @@ $(.RECIPEPREFIX)$(a)$(this_cc) -ObjC++ -c -o "$$$$@" $$(this_cxxflags) $$(OBJCXX
 endef
 
 ifeq ($(os), linux)
-    $(eval $(call ruisapp_rules,opengl,x11))
-    $(eval $(call ruisapp_rules,opengles,x11))
+    $(eval $(call ruisapp_rules,opengl,xorg))
+    $(eval $(call ruisapp_rules,opengles,xorg))
     # $(eval $(call ruisapp_rules,opengl,wayland))
     $(eval $(call ruisapp_rules,opengles,wayland))
 else
