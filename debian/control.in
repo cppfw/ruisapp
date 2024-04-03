@@ -38,12 +38,12 @@ Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: cross-platform C++ GUI library.
  GUI library using OpenGL ES rendering backend and xorg server.
 
-Package: libruisapp-opengl-wayland$(soname)
-Section: libs
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: cross-platform C++ GUI library.
- GUI library using OpenGL rendering backend and wayland server.
+# Package: libruisapp-opengl-wayland$(soname)
+# Section: libs
+# Architecture: any
+# Depends: ${shlibs:Depends}, ${misc:Depends}
+# Description: cross-platform C++ GUI library.
+#  GUI library using OpenGL rendering backend and wayland server.
 
 Package: libruisapp-opengles-wayland$(soname)
 Section: libs
@@ -58,7 +58,7 @@ Architecture: any
 Depends:
 		libruisapp-opengl-xorg$(soname) (= ${binary:Version}),
 		libruisapp-opengles-xorg$(soname) (= ${binary:Version}),
-		libruisapp-opengl-wayland$(soname) (= ${binary:Version}),
+#		libruisapp-opengl-wayland$(soname) (= ${binary:Version}),
 		libruisapp-opengles-wayland$(soname) (= ${binary:Version}),
 		${misc:Depends},
 		libutki-dev,
