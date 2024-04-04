@@ -20,6 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 /* ================ LICENSE END ================ */
 
 #include <atomic>
+#include <optional>
 
 #include <nitki/queue.hpp>
 #include <opros/wait_set.hpp>
@@ -952,10 +953,63 @@ private:
 } // namespace
 
 namespace {
+struct wm_base_wrapper {
+	xdg_wm_base* const wm_base;
+
+	wm_base_wrapper(xdg_wm_base& wm_base) :
+		wm_base(&wm_base)
+	{
+		xdg_wm_base_add_listener(this->wm_base, &listener, nullptr);
+	}
+
+	wm_base_wrapper(const wm_base_wrapper&) = delete;
+	wm_base_wrapper& operator=(const wm_base_wrapper&) = delete;
+
+	wm_base_wrapper(wm_base_wrapper&&) = delete;
+	wm_base_wrapper& operator=(wm_base_wrapper&&) = delete;
+
+	~wm_base_wrapper()
+	{
+		xdg_wm_base_destroy(this->wm_base);
+	}
+
+private:
+	constexpr static const xdg_wm_base_listener listener = {
+		.ping =
+			[](void* data, xdg_wm_base* wm_base, uint32_t serial) {
+				xdg_wm_base_pong(wm_base, serial);
+			} //
+	};
+};
+} // namespace
+
+namespace {
+struct seat_wrapper {
+	wl_seat* const seat;
+
+	seat_wrapper(wl_seat& seat) :
+		seat(&seat)
+	{}
+
+	seat_wrapper(const seat_wrapper&) = delete;
+	seat_wrapper& operator=(const seat_wrapper&) = delete;
+
+	seat_wrapper(seat_wrapper&&) = delete;
+	seat_wrapper& operator=(seat_wrapper&&) = delete;
+
+	~seat_wrapper()
+	{
+		wl_seat_destroy(this->seat);
+	}
+};
+} // namespace
+
+namespace {
 struct registry_wrapper {
 	wl_registry* reg;
 
-	wl_compositor* compositor = nullptr;
+	std::optional<uint32_t> compositor_id;
+
 	xdg_wm_base* wm_base = nullptr;
 	wl_seat* seat = nullptr;
 	wl_shm* shm = nullptr;
@@ -1031,10 +1085,11 @@ struct registry_wrapper {
 		LOG([&](auto& o) {
 			o << "got a registry event for: " << interface << ", id = " << id << std::endl;
 		});
-		if (std::string_view(interface) == "wl_compositor"sv && !self.compositor) {
-			void* compositor = wl_registry_bind(registry, id, &wl_compositor_interface, 1);
-			ASSERT(compositor)
-			self.compositor = static_cast<wl_compositor*>(compositor);
+		if (std::string_view(interface) == "wl_compositor"sv) {
+			// void* compositor = wl_registry_bind(registry, id, &wl_compositor_interface, 1);
+			// ASSERT(compositor)
+			// self.compositor = static_cast<wl_compositor*>(compositor);
+			self.compositor_id = id;
 		} else if (std::string_view(interface) == xdg_wm_base_interface.name && !self.wm_base) {
 			void* wm_base = wl_registry_bind(registry, id, &xdg_wm_base_interface, 1);
 			ASSERT(wm_base)
@@ -1061,7 +1116,7 @@ struct registry_wrapper {
 				LOG([&](auto& o) {
 					o << "got a registry losing event, id = " << id << std::endl;
 				});
-				// we assume that compositor and shell objects will never be removed
+				// we assume that needed objects will never be removed
 			} //
 	};
 
@@ -1084,7 +1139,7 @@ struct registry_wrapper {
 
 		// at this point we should have compositor and shell set by global_registry_handler
 
-		if (!this->compositor) {
+		if (!this->compositor_id.has_value()) {
 			throw std::runtime_error("could not find wayland compositor");
 		}
 
@@ -1126,10 +1181,33 @@ private:
 		if (this->wm_base) {
 			xdg_wm_base_destroy(this->wm_base);
 		}
-		if (this->compositor) {
-			wl_compositor_destroy(this->compositor);
-		}
 		wl_registry_destroy(this->reg);
+	}
+};
+} // namespace
+
+namespace {
+struct compositor_wrapper {
+	wl_compositor* const comp;
+
+	compositor_wrapper(registry_wrapper& registry) :
+		comp([&]() {
+			ASSERT(registry.compositor_id.has_value())
+			void* compositor = wl_registry_bind(registry.reg, registry.compositor_id.value(), &wl_compositor_interface, 1);
+			ASSERT(compositor)
+			return static_cast<wl_compositor*>(compositor);
+		}())
+	{}
+
+	compositor_wrapper(const compositor_wrapper&) = delete;
+	compositor_wrapper& operator=(const compositor_wrapper&) = delete;
+
+	compositor_wrapper(compositor_wrapper&&) = delete;
+	compositor_wrapper& operator=(compositor_wrapper&&) = delete;
+
+	~compositor_wrapper()
+	{
+		wl_compositor_destroy(this->comp);
 	}
 };
 } // namespace
@@ -1162,11 +1240,13 @@ struct window_wrapper : public utki::destructable {
 
 	registry_wrapper registry;
 
+	compositor_wrapper compositor;
+
 	struct region_wrapper {
 		wl_region* reg;
 
-		region_wrapper(registry_wrapper& registry) :
-			reg(wl_compositor_create_region(registry.compositor))
+		region_wrapper(compositor_wrapper& compositor) :
+			reg(wl_compositor_create_region(compositor.comp))
 		{
 			if (!this->reg) {
 				throw std::runtime_error("could not create wayland region");
@@ -1193,8 +1273,8 @@ struct window_wrapper : public utki::destructable {
 	struct surface_wrapper {
 		wl_surface* sur;
 
-		surface_wrapper(registry_wrapper& registry) :
-			sur(wl_compositor_create_surface(registry.compositor))
+		surface_wrapper(compositor_wrapper& compositor) :
+			sur(wl_compositor_create_surface(compositor.comp))
 		{
 			if (!this->sur) {
 				throw std::runtime_error("could not create wayland surface");
@@ -1566,11 +1646,12 @@ struct window_wrapper : public utki::destructable {
 	window_wrapper(const window_params& wp) :
 		waitable(this->display),
 		registry(this->display),
-		surface(this->registry),
-		cursor_surface(this->registry),
+		compositor(this->registry),
+		surface(this->compositor),
+		cursor_surface(this->compositor),
 		xdg_surface(this->surface, this->registry),
 		toplevel(this->surface, this->xdg_surface),
-		region(this->registry),
+		region(this->compositor),
 		egl_window(this->surface, this->region, wp.dims),
 		egl_context(this->display, this->egl_window, wp)
 	{
