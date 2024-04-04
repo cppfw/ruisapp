@@ -652,7 +652,46 @@ struct keyboard_wrapper {
 		}
 	}
 };
+} // namespace
 
+namespace {
+struct cursor_theme_wrapper {
+	wl_cursor_theme* theme = nullptr;
+
+	void load(wl_shm& shm)
+	{
+		this->theme = wl_cursor_theme_load(nullptr, 32, &shm);
+		if (!this->theme) {
+			// no default theme
+			return;
+		}
+
+		this->arrow = wl_cursor_theme_get_cursor(this->theme, "left_ptr");
+	}
+
+	cursor_theme_wrapper() = default;
+
+	cursor_theme_wrapper(const cursor_theme_wrapper&) = delete;
+	cursor_theme_wrapper& operator=(const cursor_theme_wrapper&) = delete;
+
+	cursor_theme_wrapper(cursor_theme_wrapper&&) = delete;
+	cursor_theme_wrapper& operator=(cursor_theme_wrapper&&) = delete;
+
+	~cursor_theme_wrapper()
+	{
+		if (this->theme) {
+			wl_cursor_theme_destroy(this->theme);
+		}
+	}
+
+	wl_cursor* get_cursor(ruis::mouse_cursor cursor){
+		// TODO:
+		return this->arrow;
+	}
+
+private:
+	wl_cursor* arrow = nullptr;
+};
 } // namespace
 
 namespace {
@@ -660,6 +699,8 @@ struct pointer_wrapper {
 	unsigned num_connected = 0;
 
 	wl_pointer* pointer = nullptr;
+
+	cursor_theme_wrapper cursor_theme;
 
 	ruis::vector2 cur_pointer_pos{0, 0};
 
@@ -674,6 +715,10 @@ struct pointer_wrapper {
 	{
 		// std::cout << "mouse enter: x,y = " << std::dec << x << ", " << y << std::endl;
 		auto& self = *static_cast<pointer_wrapper*>(data);
+		self.last_enter_serial = serial;
+
+		self.set_cursor();
+
 		handle_mouse_hover(ruisapp::inst(), true, 0);
 		self.cur_pointer_pos = ruis::vector2(wl_fixed_to_int(x), wl_fixed_to_int(y));
 		handle_mouse_move(ruisapp::inst(), self.cur_pointer_pos, 0);
@@ -819,6 +864,34 @@ struct pointer_wrapper {
 		}
 	}
 
+	void set_cursor(){
+		if (this->cursor_visible) {
+			this->apply_cursor(this->current_cursor);
+		}
+	}
+
+	void set_cursor(ruis::mouse_cursor c)
+	{
+		this->current_cursor = this->cursor_theme.get_cursor(c);
+
+		this->set_cursor();
+	}
+
+	void set_cursor_visible(bool visible)
+	{
+		this->cursor_visible = visible;
+
+		if (!this->pointer) {
+			return;
+		}
+
+		if (visible) {
+			this->apply_cursor(this->current_cursor);
+		} else {
+			wl_pointer_set_cursor(this->pointer, this->last_enter_serial, nullptr, 0, 0);
+		}
+	}
+
 	pointer_wrapper() = default;
 
 	pointer_wrapper(const pointer_wrapper&) = delete;
@@ -833,38 +906,45 @@ struct pointer_wrapper {
 			wl_pointer_release(this->pointer);
 		}
 	}
-};
-} // namespace
 
-namespace {
-struct cursor_theme_wrapper {
-	wl_cursor_theme* theme = nullptr;
-	wl_cursor* arrow = nullptr;
+private:
+	bool cursor_visible = true;
 
-	void load(wl_shm& shm)
+	wl_cursor* current_cursor = nullptr;
+
+	uint32_t last_enter_serial = 0;
+
+	void apply_cursor(wl_cursor* cursor)
 	{
-		this->theme = wl_cursor_theme_load(nullptr, 32, &shm);
-		if (!this->theme) {
-			// no default theme
+		utki::scope_exit scope_exit_empty_cursor([this](){
+			wl_pointer_set_cursor(this->pointer, this->last_enter_serial, nullptr, 0, 0);
+		});
+
+		if(!cursor || cursor->image_count < 1){
 			return;
 		}
 
-		this->arrow = wl_cursor_theme_get_cursor(this->theme, "left_ptr");
-	}
-
-	cursor_theme_wrapper() = default;
-
-	cursor_theme_wrapper(const cursor_theme_wrapper&) = delete;
-	cursor_theme_wrapper& operator=(const cursor_theme_wrapper&) = delete;
-
-	cursor_theme_wrapper(cursor_theme_wrapper&&) = delete;
-	cursor_theme_wrapper& operator=(cursor_theme_wrapper&&) = delete;
-
-	~cursor_theme_wrapper()
-	{
-		if (this->theme) {
-			wl_cursor_theme_destroy(this->theme);
+		wl_cursor_image* image = cursor->images[0];
+		if(!image){
+			return;
 		}
+
+		wl_buffer* buffer = wl_cursor_image_get_buffer(image);
+		if(!buffer){
+			return;
+		}
+		
+		// TODO:
+		// wl_pointer_set_cursor(this->pointer, this->last_enter_serial,
+		// 		      display->cursor_surface,
+		// 		      image->hotspot_x,
+		// 		      image->hotspot_y);
+		// wl_surface_attach(display->cursor_surface, buffer, 0, 0);
+		// wl_surface_damage(display->cursor_surface, 0, 0,
+		// 		  image->width, image->height);
+		// wl_surface_commit(display->cursor_surface);
+
+		scope_exit_empty_cursor.release();
 	}
 };
 } // namespace
@@ -880,7 +960,6 @@ struct registry_wrapper {
 
 	pointer_wrapper pointer;
 	keyboard_wrapper keyboard;
-	cursor_theme_wrapper cursor_theme;
 
 	constexpr static const xdg_wm_base_listener wm_base_listener = {
 		.ping =
@@ -957,7 +1036,7 @@ struct registry_wrapper {
 			ASSERT(shm)
 			self.shm = static_cast<wl_shm*>(shm);
 
-			self.cursor_theme.load(*self.shm);
+			self.pointer.cursor_theme.load(*self.shm);
 		}
 	}
 
@@ -1593,10 +1672,9 @@ application::application(std::string name, const window_params& wp) :
 		[this](std::function<void()> proc) {
 			get_impl(*this).ui_queue.push_back(std::move(proc));
 		},
-		[](ruis::mouse_cursor c) {
-			// TODO:
-			// auto& ww = get_impl(*this);
-			// ww.set_cursor(c);
+		[this](ruis::mouse_cursor c) {
+			auto& ww = get_impl(*this);
+			ww.registry.pointer.set_cursor(c);
 		},
 		get_impl(this->window_pimpl).get_dots_per_inch(),
 		get_impl(this->window_pimpl).get_dots_per_pp()
@@ -1616,7 +1694,8 @@ void application::swap_frame_buffers()
 
 void application::set_mouse_cursor_visible(bool visible)
 {
-	// TODO:
+	auto& ww = get_impl(this->window_pimpl);
+	ww.registry.pointer.set_cursor_visible(visible);
 }
 
 void application::set_fullscreen(bool fullscreen)
