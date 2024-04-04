@@ -684,7 +684,8 @@ struct cursor_theme_wrapper {
 		}
 	}
 
-	wl_cursor* get_cursor(ruis::mouse_cursor cursor){
+	wl_cursor* get_cursor(ruis::mouse_cursor cursor)
+	{
 		// TODO:
 		return this->arrow;
 	}
@@ -864,7 +865,8 @@ struct pointer_wrapper {
 		}
 	}
 
-	void set_cursor(){
+	void set_cursor()
+	{
 		if (this->cursor_visible) {
 			this->apply_cursor(this->current_cursor);
 		}
@@ -916,24 +918,24 @@ private:
 
 	void apply_cursor(wl_cursor* cursor)
 	{
-		utki::scope_exit scope_exit_empty_cursor([this](){
+		utki::scope_exit scope_exit_empty_cursor([this]() {
 			wl_pointer_set_cursor(this->pointer, this->last_enter_serial, nullptr, 0, 0);
 		});
 
-		if(!cursor || cursor->image_count < 1){
+		if (!cursor || cursor->image_count < 1) {
 			return;
 		}
 
 		wl_cursor_image* image = cursor->images[0];
-		if(!image){
+		if (!image) {
 			return;
 		}
 
 		wl_buffer* buffer = wl_cursor_image_get_buffer(image);
-		if(!buffer){
+		if (!buffer) {
 			return;
 		}
-		
+
 		// TODO:
 		// wl_pointer_set_cursor(this->pointer, this->last_enter_serial,
 		// 		      display->cursor_surface,
@@ -979,16 +981,28 @@ struct registry_wrapper {
 		bool have_pointer = capabilities & WL_SEAT_CAPABILITY_POINTER;
 
 		if (have_pointer) {
+			LOG([&](auto& o) {
+				o << "  pointer connected " << std::endl;
+			})
 			self.pointer.connect(self.seat);
 		} else {
+			LOG([&](auto& o) {
+				o << "  pointer disconnected " << std::endl;
+			})
 			self.pointer.disconnect();
 		}
 
 		bool have_keyboard = capabilities & WL_SEAT_CAPABILITY_KEYBOARD;
 
 		if (have_keyboard) {
+			LOG([&](auto& o) {
+				o << "  keyboard connected " << std::endl;
+			})
 			self.keyboard.connect(self.seat);
 		} else {
+			LOG([&](auto& o) {
+				o << "  keyboard disconnected " << std::endl;
+			})
 			self.keyboard.disconnect();
 		}
 	}
