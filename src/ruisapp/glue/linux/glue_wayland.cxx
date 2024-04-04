@@ -61,6 +61,7 @@ struct registry_wrapper;
 } // namespace
 
 namespace {
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 bool application_constructed = false;
 } // namespace
 
@@ -1145,54 +1146,43 @@ struct window_wrapper : public utki::destructable {
 
 			bool fullscreen = false;
 
+			LOG([&](auto& o) {
+				o << "  states:" << std::endl;
+			})
 			ASSERT(states)
 			ASSERT(states->size % sizeof(uint32_t) == 0)
 			for (uint32_t s : utki::make_span(static_cast<uint32_t*>(states->data), states->size / sizeof(uint32_t))) {
 				switch (s) {
-					case XDG_TOPLEVEL_STATE_MAXIMIZED:
-						LOG([](auto& o) {
-							o << "  maximized" << std::endl;
-						})
-						break;
 					case XDG_TOPLEVEL_STATE_FULLSCREEN:
 						LOG([](auto& o) {
-							o << "  fullscreen" << std::endl;
+							o << "    fullscreen" << std::endl;
 						})
 						fullscreen = true;
 						break;
-					case XDG_TOPLEVEL_STATE_RESIZING:
-						LOG([](auto& o) {
-							o << "  resizing" << std::endl;
-						})
-						break;
-					case XDG_TOPLEVEL_STATE_ACTIVATED:
-						LOG([](auto& o) {
-							o << "  activated" << std::endl;
-						})
-						break;
-					case XDG_TOPLEVEL_STATE_TILED_LEFT:
-						LOG([](auto& o) {
-							o << "  tiled left" << std::endl;
-						})
-						break;
-					case XDG_TOPLEVEL_STATE_TILED_RIGHT:
-						LOG([](auto& o) {
-							o << "  tiled right" << std::endl;
-						})
-						break;
-					case XDG_TOPLEVEL_STATE_TILED_TOP:
-						LOG([](auto& o) {
-							o << "  tiled top" << std::endl;
-						})
-						break;
-					case XDG_TOPLEVEL_STATE_TILED_BOTTOM:
-						LOG([](auto& o) {
-							o << "  tiled bottom" << std::endl;
-						})
-						break;
 					default:
 						LOG([&](auto& o) {
-							o << "  state = " << std::dec << s << std::endl;
+							o << "    " <<
+								[&s]() {
+									switch (s) {
+										case XDG_TOPLEVEL_STATE_MAXIMIZED:
+											return "maximized";
+										case XDG_TOPLEVEL_STATE_RESIZING:
+											return "resizing";
+										case XDG_TOPLEVEL_STATE_ACTIVATED:
+											return "activated";
+										case XDG_TOPLEVEL_STATE_TILED_LEFT:
+											return "tiled left";
+										case XDG_TOPLEVEL_STATE_TILED_RIGHT:
+											return "tiled right";
+										case XDG_TOPLEVEL_STATE_TILED_TOP:
+											return "tiled top";
+										case XDG_TOPLEVEL_STATE_TILED_BOTTOM:
+											return "tiled bottom";
+										default:
+											return "unknown";
+									}
+								}()
+							  << std::endl;
 						})
 						break;
 				}
