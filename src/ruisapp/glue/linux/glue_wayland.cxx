@@ -61,6 +61,10 @@ struct registry_wrapper;
 } // namespace
 
 namespace {
+bool application_constructed = false;
+} // namespace
+
+namespace {
 ruis::mouse_button button_number_to_enum(uint32_t number)
 {
 	// from wayland's comments:
@@ -479,7 +483,9 @@ struct keyboard_wrapper {
 		})
 
 		// notify ruis about pressed keys
-		for (auto key : utki::make_span(static_cast<uint32_t*>(keys->data), keys->size)) {
+		ASSERT(keys)
+		ASSERT(keys->size % sizeof(uint32_t) == 0)
+		for (auto key : utki::make_span(static_cast<uint32_t*>(keys->data), keys->size / sizeof(uint32_t))) {
 			// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
 			ruis::key ruis_key = key_code_map[std::uint8_t(key)];
 			handle_key_event(ruisapp::inst(), true, ruis_key);
@@ -1133,33 +1139,91 @@ struct window_wrapper : public utki::destructable {
 				o << "window configure" << std::endl;
 			})
 
+			LOG([&](auto& o) {
+				o << "  width = " << std::dec << width << ", height = " << height << std::endl;
+			})
+
+			bool fullscreen = false;
+
 			ASSERT(states)
-			for (uint32_t s : utki::make_span(static_cast<uint32_t*>(states->data), states->size)) {
+			ASSERT(states->size % sizeof(uint32_t) == 0)
+			for (uint32_t s : utki::make_span(static_cast<uint32_t*>(states->data), states->size / sizeof(uint32_t))) {
 				switch (s) {
-					case XDG_TOPLEVEL_STATE_FULLSCREEN:
-						LOG([](auto& o) {
-							o << "  fullscreen" << std::endl;
-						})
-						break;
 					case XDG_TOPLEVEL_STATE_MAXIMIZED:
 						LOG([](auto& o) {
 							o << "  maximized" << std::endl;
 						})
 						break;
+					case XDG_TOPLEVEL_STATE_FULLSCREEN:
+						LOG([](auto& o) {
+							o << "  fullscreen" << std::endl;
+						})
+						fullscreen = true;
+						break;
+					case XDG_TOPLEVEL_STATE_RESIZING:
+						LOG([](auto& o) {
+							o << "  resizing" << std::endl;
+						})
+						break;
+					case XDG_TOPLEVEL_STATE_ACTIVATED:
+						LOG([](auto& o) {
+							o << "  activated" << std::endl;
+						})
+						break;
+					case XDG_TOPLEVEL_STATE_TILED_LEFT:
+						LOG([](auto& o) {
+							o << "  tiled left" << std::endl;
+						})
+						break;
+					case XDG_TOPLEVEL_STATE_TILED_RIGHT:
+						LOG([](auto& o) {
+							o << "  tiled right" << std::endl;
+						})
+						break;
+					case XDG_TOPLEVEL_STATE_TILED_TOP:
+						LOG([](auto& o) {
+							o << "  tiled top" << std::endl;
+						})
+						break;
+					case XDG_TOPLEVEL_STATE_TILED_BOTTOM:
+						LOG([](auto& o) {
+							o << "  tiled bottom" << std::endl;
+						})
+						break;
 					default:
+						LOG([&](auto& o) {
+							o << "  state = " << std::dec << s << std::endl;
+						})
 						break;
 				}
 			}
 
-			// not a window geometry event, ignore
+			if (!application_constructed) {
+				// unable to obtain window_wrapper object before application is constructed,
+				// cannot do more without window_wrapper object
+				LOG([](auto& o) {
+					o << "  called within application constructor" << std::endl;
+				})
+				return;
+			}
+
+			auto& ww = get_impl(ruisapp::inst());
+
 			if (width == 0 && height == 0) {
+				if (ww.fullscreen != fullscreen) {
+					if (!fullscreen) {
+						// exited fullscreen mode
+						ww.resize(ww.pre_fullscreen_win_dims);
+					}
+				}
+				ww.fullscreen = fullscreen;
 				return;
 			}
 
 			ASSERT(width >= 0)
 			ASSERT(height >= 0)
 
-			auto& ww = get_impl(ruisapp::inst());
+			ww.fullscreen = fullscreen;
 
 			ww.resize({width, height});
 		}
@@ -1451,6 +1515,7 @@ struct window_wrapper : public utki::destructable {
 		// return application::get_pixels_per_pp(resolution, screen_size_mm);
 	}
 
+	bool fullscreen = false;
 	r4::vector2<int> pre_fullscreen_win_dims;
 
 	void resize(r4::vector2<int> dims)
@@ -1468,6 +1533,7 @@ struct window_wrapper : public utki::destructable {
 
 window_wrapper& get_impl(const std::unique_ptr<utki::destructable>& pimpl)
 {
+	ASSERT(pimpl)
 	ASSERT(dynamic_cast<window_wrapper*>(pimpl.get()))
 	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast)
 	return static_cast<window_wrapper&>(*pimpl);
@@ -1506,6 +1572,8 @@ application::application(std::string name, const window_params& wp) :
 	storage_dir(initialize_storage_dir(this->name))
 {
 	this->update_window_rect(ruis::rect(0, 0, ruis::real(wp.dims.x()), ruis::real(wp.dims.y())));
+
+	application_constructed = true;
 }
 
 void application::swap_frame_buffers()
@@ -1545,15 +1613,6 @@ void application::set_fullscreen(bool fullscreen)
 		xdg_toplevel_set_fullscreen(ww.toplevel.toplev, nullptr);
 	} else {
 		xdg_toplevel_unset_fullscreen(ww.toplevel.toplev);
-		// TODO: unsetting the fullscreen does not restore previous window dimensions.
-		// Trying to do it like the following commented code does not work reliably and
-		// sometimes causes
-		// "xdg_wm_base@7: error 4: xdg_surface geometry (1024 x 800) is larger than the configured fullscreen state
-		// (1504 x 667)" error.
-
-		// ww.ui_queue.push_back([&ww]() {
-		// 	ww.resize(ww.pre_fullscreen_win_dims);
-		// });
 	}
 }
 
