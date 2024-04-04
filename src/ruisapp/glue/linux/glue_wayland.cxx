@@ -29,6 +29,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <utki/unicode.hpp>
 #include <wayland-client-core.h>
 #include <wayland-client-protocol.h>
+#include <wayland-cursor.h>
 #include <wayland-egl.h> // Wayland EGL MUST be included before EGL headers
 #include <xkbcommon/xkbcommon.h>
 
@@ -836,6 +837,39 @@ struct pointer_wrapper {
 } // namespace
 
 namespace {
+struct cursor_theme_wrapper {
+	wl_cursor_theme* theme = nullptr;
+	wl_cursor* arrow = nullptr;
+
+	void load(wl_shm& shm)
+	{
+		this->theme = wl_cursor_theme_load(nullptr, 32, &shm);
+		if (!this->theme) {
+			// no default theme
+			return;
+		}
+
+		this->arrow = wl_cursor_theme_get_cursor(this->theme, "left_ptr");
+	}
+
+	cursor_theme_wrapper() = default;
+
+	cursor_theme_wrapper(const cursor_theme_wrapper&) = delete;
+	cursor_theme_wrapper& operator=(const cursor_theme_wrapper&) = delete;
+
+	cursor_theme_wrapper(cursor_theme_wrapper&&) = delete;
+	cursor_theme_wrapper& operator=(cursor_theme_wrapper&&) = delete;
+
+	~cursor_theme_wrapper()
+	{
+		if (this->theme) {
+			wl_cursor_theme_destroy(this->theme);
+		}
+	}
+};
+} // namespace
+
+namespace {
 struct registry_wrapper {
 	wl_registry* reg;
 
@@ -846,6 +880,7 @@ struct registry_wrapper {
 
 	pointer_wrapper pointer;
 	keyboard_wrapper keyboard;
+	cursor_theme_wrapper cursor_theme;
 
 	constexpr static const xdg_wm_base_listener wm_base_listener = {
 		.ping =
@@ -921,6 +956,8 @@ struct registry_wrapper {
 			void* shm = wl_registry_bind(registry, id, &wl_shm_interface, 1);
 			ASSERT(shm)
 			self.shm = static_cast<wl_shm*>(shm);
+
+			self.cursor_theme.load(*self.shm);
 		}
 	}
 
@@ -1091,7 +1128,11 @@ struct window_wrapper : public utki::destructable {
 		{
 			wl_surface_set_opaque_region(this->sur, region.reg);
 		}
-	} surface;
+	};
+
+	surface_wrapper surface;
+
+	surface_wrapper cursor_surface;
 
 	struct xdg_surface_wrapper {
 		xdg_surface* xdg_sur;
@@ -1433,6 +1474,7 @@ struct window_wrapper : public utki::destructable {
 		waitable(this->display),
 		registry(this->display),
 		surface(this->registry),
+		cursor_surface(this->registry),
 		xdg_surface(this->surface, this->registry),
 		toplevel(this->surface, this->xdg_surface),
 		region(this->registry),

@@ -63,7 +63,7 @@ define ruisapp_rules
         ifeq ($2,wayland)
             $$(d)ruisapp/glue/glue.cpp: $$(d)$(wayland_shell_protocol_header)
 
-            this_ldlibs += -lwayland-client -lwayland-egl
+            this_ldlibs += -lwayland-client -lwayland-egl -lwayland-cursor
             this_ldlibs += $(wayland_shell_protocol_lib)
             this_ldlibs += -lxkbcommon
             this_cxxflags += -isystem $(dir $(wayland_shell_protocol_header))
