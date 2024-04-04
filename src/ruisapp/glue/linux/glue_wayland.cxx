@@ -1133,6 +1133,24 @@ struct window_wrapper : public utki::destructable {
 				o << "window configure" << std::endl;
 			})
 
+			ASSERT(states)
+			for (uint32_t s : utki::make_span(static_cast<uint32_t*>(states->data), states->size)) {
+				switch (s) {
+					case XDG_TOPLEVEL_STATE_FULLSCREEN:
+						LOG([](auto& o) {
+							o << "  fullscreen" << std::endl;
+						})
+						break;
+					case XDG_TOPLEVEL_STATE_MAXIMIZED:
+						LOG([](auto& o) {
+							o << "  maximized" << std::endl;
+						})
+						break;
+					default:
+						break;
+				}
+			}
+
 			// not a window geometry event, ignore
 			if (width == 0 && height == 0) {
 				return;
@@ -1141,18 +1159,9 @@ struct window_wrapper : public utki::destructable {
 			ASSERT(width >= 0)
 			ASSERT(height >= 0)
 
-			// window resized
-
-			LOG([](auto& o) {
-				o << "window resized" << std::endl;
-			})
-
 			auto& ww = get_impl(ruisapp::inst());
 
-			wl_egl_window_resize(ww.egl_window.win, width, height, 0, 0);
-			ww.surface.commit();
-
-			update_window_rect(ruisapp::inst(), ruis::rect(0, {ruis::real(width), ruis::real(height)}));
+			ww.resize({width, height});
 		}
 
 		static void xdg_toplevel_close(void* data, struct xdg_toplevel* xdg_toplevel)
@@ -1441,6 +1450,20 @@ struct window_wrapper : public utki::destructable {
 
 		// return application::get_pixels_per_pp(resolution, screen_size_mm);
 	}
+
+	r4::vector2<int> pre_fullscreen_win_dims;
+
+	void resize(r4::vector2<int> dims)
+	{
+		LOG([&](auto& o) {
+			o << "resize window to " << std::dec << dims << std::endl;
+		})
+
+		wl_egl_window_resize(this->egl_window.win, dims.x(), dims.y(), 0, 0);
+		this->surface.commit();
+
+		update_window_rect(ruisapp::inst(), ruis::rect(0, {ruis::real(dims.x()), ruis::real(dims.y())}));
+	}
 };
 
 window_wrapper& get_impl(const std::unique_ptr<utki::destructable>& pimpl)
@@ -1498,7 +1521,40 @@ void application::set_mouse_cursor_visible(bool visible)
 
 void application::set_fullscreen(bool fullscreen)
 {
-	// TODO:
+	if (fullscreen == this->is_fullscreen_v) {
+		return;
+	}
+
+	this->is_fullscreen_v = fullscreen;
+
+	auto& ww = get_impl(this->window_pimpl);
+
+	LOG([&](auto& o) {
+		o << "set_fullscreen(" << fullscreen << ")" << std::endl;
+	})
+
+	if (fullscreen) {
+		wl_egl_window_get_attached_size(
+			ww.egl_window.win,
+			&ww.pre_fullscreen_win_dims.x(),
+			&ww.pre_fullscreen_win_dims.y()
+		);
+		LOG([&](auto& o) {
+			o << " old win dims = " << std::dec << ww.pre_fullscreen_win_dims << std::endl;
+		})
+		xdg_toplevel_set_fullscreen(ww.toplevel.toplev, nullptr);
+	} else {
+		xdg_toplevel_unset_fullscreen(ww.toplevel.toplev);
+		// TODO: unsetting the fullscreen does not restore previous window dimensions.
+		// Trying to do it like the following commented code does not work reliably and
+		// sometimes causes
+		// "xdg_wm_base@7: error 4: xdg_surface geometry (1024 x 800) is larger than the configured fullscreen state
+		// (1504 x 667)" error.
+
+		// ww.ui_queue.push_back([&ww]() {
+		// 	ww.resize(ww.pre_fullscreen_win_dims);
+		// });
+	}
 }
 
 void ruisapp::application::quit() noexcept
