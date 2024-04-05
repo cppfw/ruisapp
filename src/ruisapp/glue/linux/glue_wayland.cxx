@@ -692,7 +692,7 @@ struct registry_wrapper {
 	constexpr static const wl_registry_listener listener = {
 		.global = &wl_registry_global,
 		.global_remove =
-			[](void* data, struct wl_registry* registry, uint32_t id) {
+			[](void* data, wl_registry* registry, uint32_t id) {
 				LOG([&](auto& o) {
 					o << "got a registry losing event, id = " << id << std::endl;
 				});
@@ -1073,9 +1073,9 @@ struct pointer_wrapper {
 private:
 	static void wl_pointer_enter(
 		void* data,
-		struct wl_pointer* pointer,
+		wl_pointer* pointer,
 		uint32_t serial,
-		struct wl_surface* surface,
+		wl_surface* surface,
 		wl_fixed_t x,
 		wl_fixed_t y
 	) //
@@ -1091,7 +1091,7 @@ private:
 		handle_mouse_move(ruisapp::inst(), self.cur_pointer_pos, 0);
 	}
 
-	static void wl_pointer_motion(void* data, struct wl_pointer* pointer, uint32_t time, wl_fixed_t x, wl_fixed_t y)
+	static void wl_pointer_motion(void* data, wl_pointer* pointer, uint32_t time, wl_fixed_t x, wl_fixed_t y)
 	{
 		// std::cout << "mouse move: x,y = " << std::dec << x << ", " << y << std::endl;
 		auto& self = *static_cast<pointer_wrapper*>(data);
@@ -1101,7 +1101,7 @@ private:
 
 	static void wl_pointer_button(
 		void* data,
-		struct wl_pointer* pointer,
+		wl_pointer* pointer,
 		uint32_t serial,
 		uint32_t time,
 		uint32_t button,
@@ -1120,7 +1120,7 @@ private:
 		);
 	}
 
-	static void wl_pointer_axis(void* data, struct wl_pointer* pointer, uint32_t time, uint32_t axis, wl_fixed_t value)
+	static void wl_pointer_axis(void* data, wl_pointer* pointer, uint32_t time, uint32_t axis, wl_fixed_t value)
 	{
 		auto& self = *static_cast<pointer_wrapper*>(data);
 
@@ -1157,7 +1157,7 @@ private:
 	constexpr static const wl_pointer_listener listener = {
 		.enter = &wl_pointer_enter,
 		.leave =
-			[](void* data, struct wl_pointer* pointer, uint32_t serial, struct wl_surface* surface) {
+			[](void* data, wl_pointer* pointer, uint32_t serial, wl_surface* surface) {
 				// std::cout << "mouse leave" << std::endl;
 				handle_mouse_hover(ruisapp::inst(), false, 0);
 			},
@@ -1165,25 +1165,25 @@ private:
 		.button = &wl_pointer_button,
 		.axis = &wl_pointer_axis,
 		.frame =
-			[](void* data, struct wl_pointer* pointer) {
+			[](void* data, wl_pointer* pointer) {
 				LOG([](auto& o) {
 					o << "pointer frame" << std::endl;
 				})
 			},
 		.axis_source =
-			[](void* data, struct wl_pointer* pointer, uint32_t source) {
+			[](void* data, wl_pointer* pointer, uint32_t source) {
 				LOG([&](auto& o) {
 					o << "axis source: " << std::dec << source << std::endl;
 				})
 			},
 		.axis_stop =
-			[](void* data, struct wl_pointer* pointer, uint32_t time, uint32_t axis) {
+			[](void* data, wl_pointer* pointer, uint32_t time, uint32_t axis) {
 				LOG([&](auto& o) {
 					o << "axis stop: axis = " << std::dec << axis << std::endl;
 				})
 			},
 		.axis_discrete =
-			[](void* data, struct wl_pointer* pointer, uint32_t axis, int32_t discrete) {
+			[](void* data, wl_pointer* pointer, uint32_t axis, int32_t discrete) {
 				LOG([&](auto& o) {
 					o << "axis discrete: axis = " << std::dec << axis << ", discrete = " << discrete << std::endl;
 				})
@@ -1279,7 +1279,7 @@ public:
 private:
 	wl_seat* const seat;
 
-	static void wl_seat_capabilities(void* data, struct wl_seat* wl_seat, uint32_t capabilities)
+	static void wl_seat_capabilities(void* data, wl_seat* wl_seat, uint32_t capabilities)
 	{
 		LOG([&](auto& o) {
 			o << "seat capabilities: " << std::hex << "0x" << capabilities << std::endl;
@@ -1319,7 +1319,7 @@ private:
 	constexpr static const wl_seat_listener listener = {
 		.capabilities = &wl_seat_capabilities,
 		.name =
-			[](void* data, struct wl_seat* seat, const char* name) {
+			[](void* data, wl_seat* seat, const char* name) {
 				LOG([&](auto& o) {
 					o << "seat name: " << name << std::endl;
 				})
@@ -1368,7 +1368,7 @@ struct window_wrapper : public utki::destructable {
 
 		constexpr static const xdg_surface_listener listener = {
 			.configure =
-				[](void* data, struct xdg_surface* xdg_surface, uint32_t serial) {
+				[](void* data, xdg_surface* xdg_surface, uint32_t serial) {
 					xdg_surface_ack_configure(xdg_surface, serial);
 				}, //
 		};
@@ -1400,10 +1400,10 @@ struct window_wrapper : public utki::destructable {
 
 		static void xdg_toplevel_configure(
 			void* data,
-			struct xdg_toplevel* xdg_toplevel,
+			xdg_toplevel* xdg_toplevel,
 			int32_t width,
 			int32_t height,
-			struct wl_array* states
+			wl_array* states
 		)
 		{
 			LOG([](auto& o) {
@@ -1488,7 +1488,7 @@ struct window_wrapper : public utki::destructable {
 			ww.resize({width, height});
 		}
 
-		static void xdg_toplevel_close(void* data, struct xdg_toplevel* xdg_toplevel)
+		static void xdg_toplevel_close(void* data, xdg_toplevel* xdg_toplevel)
 		{
 			// window closed
 			auto& ww = get_impl(ruisapp::inst());
