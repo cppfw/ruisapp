@@ -1000,6 +1000,8 @@ struct pointer_wrapper {
 	{
 		if (this->cursor_visible) {
 			this->apply_cursor(this->current_cursor);
+		}else{
+			wl_pointer_set_cursor(this->pointer, this->last_enter_serial, nullptr, 0, 0);
 		}
 	}
 
