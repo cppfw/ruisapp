@@ -918,7 +918,22 @@ struct cursor_theme_wrapper {
 			return;
 		}
 
-		this->arrow = wl_cursor_theme_get_cursor(this->theme, "left_ptr");
+		this->cursors[size_t(ruis::mouse_cursor::arrow)] = wl_cursor_theme_get_cursor(this->theme, "left_ptr");
+		this->cursors[size_t(ruis::mouse_cursor::top_left_corner)] =
+			wl_cursor_theme_get_cursor(this->theme, "top_left_corner");
+		this->cursors[size_t(ruis::mouse_cursor::top_right_corner)] =
+			wl_cursor_theme_get_cursor(this->theme, "top_right_corner");
+		this->cursors[size_t(ruis::mouse_cursor::bottom_left_corner)] =
+			wl_cursor_theme_get_cursor(this->theme, "bottom_left_corner");
+		this->cursors[size_t(ruis::mouse_cursor::bottom_right_corner)] =
+			wl_cursor_theme_get_cursor(this->theme, "bottom_right_corner");
+		this->cursors[size_t(ruis::mouse_cursor::top_side)] = wl_cursor_theme_get_cursor(this->theme, "top_side");
+		this->cursors[size_t(ruis::mouse_cursor::bottom_side)] = wl_cursor_theme_get_cursor(this->theme, "bottom_side");
+		this->cursors[size_t(ruis::mouse_cursor::left_side)] = wl_cursor_theme_get_cursor(this->theme, "left_side");
+		this->cursors[size_t(ruis::mouse_cursor::right_side)] = wl_cursor_theme_get_cursor(this->theme, "right_side");
+		this->cursors[size_t(ruis::mouse_cursor::grab)] = wl_cursor_theme_get_cursor(this->theme, "grabbing");
+		this->cursors[size_t(ruis::mouse_cursor::index_finger)] = wl_cursor_theme_get_cursor(this->theme, "hand1");
+		this->cursors[size_t(ruis::mouse_cursor::caret)] = wl_cursor_theme_get_cursor(this->theme, "xterm");
 	}
 
 	cursor_theme_wrapper(const cursor_theme_wrapper&) = delete;
@@ -934,16 +949,17 @@ struct cursor_theme_wrapper {
 		}
 	}
 
-	wl_cursor* get_cursor(ruis::mouse_cursor cursor)
+	wl_cursor* get(ruis::mouse_cursor cursor)
 	{
-		// TODO:
-		return this->arrow;
+		size_t index = size_t(cursor);
+		ASSERT(index < this->cursors.size())
+		return this->cursors[index];
 	}
 
 private:
 	wl_cursor_theme* const theme;
 
-	wl_cursor* arrow = nullptr;
+	std::array<wl_cursor*, size_t(ruis::mouse_cursor::enum_size)> cursors = {nullptr};
 };
 } // namespace
 
@@ -1000,14 +1016,14 @@ struct pointer_wrapper {
 	{
 		if (this->cursor_visible) {
 			this->apply_cursor(this->current_cursor);
-		}else{
+		} else {
 			wl_pointer_set_cursor(this->pointer, this->last_enter_serial, nullptr, 0, 0);
 		}
 	}
 
 	void set_cursor(ruis::mouse_cursor c)
 	{
-		this->current_cursor = this->cursor_theme.get_cursor(c);
+		this->current_cursor = this->cursor_theme.get(c);
 
 		this->set_cursor();
 	}
@@ -1029,7 +1045,8 @@ struct pointer_wrapper {
 
 	pointer_wrapper(const compositor_wrapper& compositor, const shm_wrapper& shm) :
 		cursor_theme(shm),
-		cursor_surface(compositor)
+		cursor_surface(compositor),
+		current_cursor(this->cursor_theme.get(ruis::mouse_cursor::arrow))
 	{}
 
 	pointer_wrapper(const pointer_wrapper&) = delete;
@@ -1171,7 +1188,7 @@ private:
 
 	bool cursor_visible = true;
 
-	wl_cursor* current_cursor = nullptr;
+	wl_cursor* current_cursor;
 
 	uint32_t last_enter_serial = 0;
 
