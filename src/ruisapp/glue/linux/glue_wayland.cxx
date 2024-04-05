@@ -800,6 +800,12 @@ struct shm_wrapper {
 		}())
 	{}
 
+	shm_wrapper(const shm_wrapper&) = delete;
+	shm_wrapper& operator=(const shm_wrapper&) = delete;
+
+	shm_wrapper(shm_wrapper&&) = delete;
+	shm_wrapper& operator=(shm_wrapper&&) = delete;
+
 	~shm_wrapper()
 	{
 		wl_shm_destroy(this->shm);
@@ -910,8 +916,10 @@ struct surface_wrapper {
 
 namespace {
 struct cursor_theme_wrapper {
+	constexpr static auto cursor_size = 32;
+
 	cursor_theme_wrapper(const shm_wrapper& shm) :
-		theme(wl_cursor_theme_load(nullptr, 32, shm.shm))
+		theme(wl_cursor_theme_load(nullptr, cursor_size, shm.shm))
 	{
 		if (!this->theme) {
 			// no default theme
@@ -951,7 +959,7 @@ struct cursor_theme_wrapper {
 
 	wl_cursor* get(ruis::mouse_cursor cursor)
 	{
-		size_t index = size_t(cursor);
+		auto index = size_t(cursor);
 		ASSERT(index < this->cursors.size())
 		return this->cursors[index];
 	}
@@ -1207,6 +1215,7 @@ private:
 			return;
 		}
 
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic, "using C api")
 		wl_cursor_image* image = cursor->images[0];
 		if (!image) {
 			return;
@@ -1221,13 +1230,13 @@ private:
 			this->pointer,
 			this->last_enter_serial,
 			this->cursor_surface.sur,
-			image->hotspot_x,
-			image->hotspot_y
+			int32_t(image->hotspot_x),
+			int32_t(image->hotspot_y)
 		);
 
 		wl_surface_attach(this->cursor_surface.sur, buffer, 0, 0);
 
-		wl_surface_damage(this->cursor_surface.sur, 0, 0, image->width, image->height);
+		wl_surface_damage(this->cursor_surface.sur, 0, 0, int32_t(image->width), int32_t(image->height));
 
 		this->cursor_surface.commit();
 
