@@ -844,6 +844,71 @@ private:
 } // namespace
 
 namespace {
+struct region_wrapper {
+	wl_region* reg;
+
+	region_wrapper(compositor_wrapper& compositor) :
+		reg(wl_compositor_create_region(compositor.comp))
+	{
+		if (!this->reg) {
+			throw std::runtime_error("could not create wayland region");
+		}
+	}
+
+	region_wrapper(const region_wrapper&) = delete;
+	region_wrapper& operator=(const region_wrapper&) = delete;
+
+	region_wrapper(region_wrapper&&) = delete;
+	region_wrapper& operator=(region_wrapper&&) = delete;
+
+	~region_wrapper()
+	{
+		wl_region_destroy(this->reg);
+	}
+
+	void add(r4::rectangle<int32_t> rect)
+	{
+		wl_region_add(this->reg, rect.p.x(), rect.p.y(), rect.d.x(), rect.d.y());
+	}
+};
+} // namespace
+
+namespace {
+struct surface_wrapper {
+	wl_surface* const sur;
+
+	surface_wrapper(const compositor_wrapper& compositor) :
+		sur(wl_compositor_create_surface(compositor.comp))
+	{
+		if (!this->sur) {
+			throw std::runtime_error("could not create wayland surface");
+		}
+	}
+
+	surface_wrapper(const surface_wrapper&) = delete;
+	surface_wrapper& operator=(const surface_wrapper&) = delete;
+
+	surface_wrapper(surface_wrapper&&) = delete;
+	surface_wrapper& operator=(surface_wrapper&&) = delete;
+
+	~surface_wrapper()
+	{
+		wl_surface_destroy(this->sur);
+	}
+
+	void commit()
+	{
+		wl_surface_commit(this->sur);
+	}
+
+	void set_opaque_region(const region_wrapper& region)
+	{
+		wl_surface_set_opaque_region(this->sur, region.reg);
+	}
+};
+} // namespace
+
+namespace {
 struct cursor_theme_wrapper {
 	cursor_theme_wrapper(const shm_wrapper& shm) :
 		theme(wl_cursor_theme_load(nullptr, 32, shm.shm))
@@ -885,6 +950,8 @@ private:
 namespace {
 struct pointer_wrapper {
 	cursor_theme_wrapper cursor_theme;
+
+	surface_wrapper cursor_surface;
 
 	ruis::vector2 cur_pointer_pos{0, 0};
 
@@ -958,8 +1025,9 @@ struct pointer_wrapper {
 		}
 	}
 
-	pointer_wrapper(const shm_wrapper& shm) :
-		cursor_theme(shm)
+	pointer_wrapper(const compositor_wrapper& compositor, const shm_wrapper& shm) :
+		cursor_theme(shm),
+		cursor_surface(compositor)
 	{}
 
 	pointer_wrapper(const pointer_wrapper&) = delete;
@@ -1130,15 +1198,19 @@ private:
 			return;
 		}
 
-		// TODO:
-		// wl_pointer_set_cursor(this->pointer, this->last_enter_serial,
-		// 		      display->cursor_surface,
-		// 		      image->hotspot_x,
-		// 		      image->hotspot_y);
-		// wl_surface_attach(display->cursor_surface, buffer, 0, 0);
-		// wl_surface_damage(display->cursor_surface, 0, 0,
-		// 		  image->width, image->height);
-		// wl_surface_commit(display->cursor_surface);
+		wl_pointer_set_cursor(
+			this->pointer,
+			this->last_enter_serial,
+			this->cursor_surface.sur,
+			image->hotspot_x,
+			image->hotspot_y
+		);
+
+		wl_surface_attach(this->cursor_surface.sur, buffer, 0, 0);
+
+		wl_surface_damage(this->cursor_surface.sur, 0, 0, image->width, image->height);
+
+		this->cursor_surface.commit();
 
 		scope_exit_empty_cursor.release();
 	}
@@ -1152,8 +1224,8 @@ public:
 	pointer_wrapper pointer;
 	keyboard_wrapper keyboard;
 
-	seat_wrapper(const registry_wrapper& registry, const shm_wrapper& shm) :
-		pointer(shm),
+	seat_wrapper(const registry_wrapper& registry, const compositor_wrapper& compositor, const shm_wrapper& shm) :
+		pointer(compositor, shm),
 		seat([&]() {
 			ASSERT(registry.seat_id.has_value())
 			void* seat = wl_registry_bind(registry.reg, registry.seat_id.value(), &wl_seat_interface, 1);
@@ -1261,70 +1333,7 @@ struct window_wrapper : public utki::destructable {
 	wm_base_wrapper wm_base;
 	seat_wrapper seat;
 
-	struct region_wrapper {
-		wl_region* reg;
-
-		region_wrapper(compositor_wrapper& compositor) :
-			reg(wl_compositor_create_region(compositor.comp))
-		{
-			if (!this->reg) {
-				throw std::runtime_error("could not create wayland region");
-			}
-		}
-
-		region_wrapper(const region_wrapper&) = delete;
-		region_wrapper& operator=(const region_wrapper&) = delete;
-
-		region_wrapper(region_wrapper&&) = delete;
-		region_wrapper& operator=(region_wrapper&&) = delete;
-
-		~region_wrapper()
-		{
-			wl_region_destroy(this->reg);
-		}
-
-		void add(r4::rectangle<int32_t> rect)
-		{
-			wl_region_add(this->reg, rect.p.x(), rect.p.y(), rect.d.x(), rect.d.y());
-		}
-	};
-
-	struct surface_wrapper {
-		wl_surface* sur;
-
-		surface_wrapper(compositor_wrapper& compositor) :
-			sur(wl_compositor_create_surface(compositor.comp))
-		{
-			if (!this->sur) {
-				throw std::runtime_error("could not create wayland surface");
-			}
-		}
-
-		surface_wrapper(const surface_wrapper&) = delete;
-		surface_wrapper& operator=(const surface_wrapper&) = delete;
-
-		surface_wrapper(surface_wrapper&&) = delete;
-		surface_wrapper& operator=(surface_wrapper&&) = delete;
-
-		~surface_wrapper()
-		{
-			wl_surface_destroy(this->sur);
-		}
-
-		void commit()
-		{
-			wl_surface_commit(this->sur);
-		}
-
-		void set_opaque_region(const region_wrapper& region)
-		{
-			wl_surface_set_opaque_region(this->sur, region.reg);
-		}
-	};
-
 	surface_wrapper surface;
-
-	surface_wrapper cursor_surface;
 
 	struct xdg_surface_wrapper {
 		xdg_surface* xdg_sur;
@@ -1668,9 +1677,8 @@ struct window_wrapper : public utki::destructable {
 		compositor(this->registry),
 		shm(this->registry),
 		wm_base(this->registry),
-		seat(this->registry, this->shm),
+		seat(this->registry, this->compositor, this->shm),
 		surface(this->compositor),
-		cursor_surface(this->compositor),
 		xdg_surface(this->surface, this->wm_base),
 		toplevel(this->surface, this->xdg_surface),
 		region(this->compositor),
