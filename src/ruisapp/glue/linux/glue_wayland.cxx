@@ -681,8 +681,39 @@ class output_wrapper
 		self.physical_size_mm = {ruis::real(physical_width), ruis::real(physical_height)};
 
 		LOG([&](auto& o) {
-			o << "output(" << self.id << ")" << "\n" //
-			  << " physical_size_mm = " << self.physical_size_mm << std::endl;
+			o << "output(" << self.id << ")" << '\n' //
+			  << "  physical_size_mm = " << self.physical_size_mm << '\n' //
+			  << "  make = " << make << '\n' //
+			  << "  model = " << model << std::endl;
+		})
+	}
+
+	static void wl_output_mode(
+		void* data,
+		struct wl_output* wl_output,
+		uint32_t flags,
+		int32_t width,
+		int32_t height,
+		int32_t refresh
+	)
+	{
+		ASSERT(data)
+		auto& self = *static_cast<output_wrapper*>(data);
+
+		self.resolution = {ruis::real(width), ruis::real(height)};
+
+		LOG([&](auto& o) {
+			o << "output(" << self.id << ") resolution = " << self.resolution << std::endl;
+		})
+	}
+
+	static void wl_output_done(void* data, struct wl_output* wl_output)
+	{
+		ASSERT(data)
+		auto& self = *static_cast<output_wrapper*>(data);
+
+		LOG([&](auto& o) {
+			o << "output(" << self.id << ") done" << std::endl;
 		})
 	}
 
@@ -698,20 +729,39 @@ class output_wrapper
 		})
 	}
 
+	static void wl_output_name(void* data, struct wl_output* wl_output, const char* name)
+	{
+		ASSERT(data)
+		auto& self = *static_cast<output_wrapper*>(data);
+
+		LOG([&](auto& o) {
+			o << "output(" << self.id << ") name = " << name << std::endl;
+		})
+	}
+
+	static void wl_output_description(void* data, struct wl_output* wl_output, const char* description)
+	{
+		ASSERT(data)
+		auto& self = *static_cast<output_wrapper*>(data);
+
+		LOG([&](auto& o) {
+			o << "output(" << self.id << ") description = " << description << std::endl;
+		})
+	}
+
 	constexpr static const wl_output_listener listener = {
 		.geometry = &wl_output_geometry,
-		.mode =
-			[](void* data, struct wl_output* wl_output, uint32_t flags, int32_t width, int32_t height, int32_t refresh
-			) {},
-		.done = [](void* data, struct wl_output* wl_output) {},
+		.mode = &wl_output_mode,
+		.done = &wl_output_done,
 		.scale = &wl_output_scale,
-		.name = [](void* data, struct wl_output* wl_output, const char* name) {},
-		.description = [](void* data, struct wl_output* wl_output, const char* description) {}
+		.name = &wl_output_name,
+		.description = &wl_output_description
 	};
 
 public:
 	const uint32_t id;
 
+	ruis::vec2 resolution = {0, 0};
 	ruis::vec2 physical_size_mm = {0, 0};
 	ruis::real scale = 1;
 
