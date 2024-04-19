@@ -647,7 +647,97 @@ public:
 	~keyboard_wrapper()
 	{
 		if (this->keyboard) {
-			wl_keyboard_release(this->keyboard);
+			if (wl_keyboard_get_version(this->keyboard) >= WL_KEYBOARD_RELEASE_SINCE_VERSION) {
+				wl_keyboard_release(this->keyboard);
+			} else {
+				wl_keyboard_destroy(this->keyboard);
+			}
+		}
+	}
+};
+} // namespace
+
+namespace {
+class output_wrapper
+{
+	wl_output* output;
+
+	static void wl_output_geometry(
+		void* data,
+		struct wl_output* wl_output,
+		int32_t x,
+		int32_t y,
+		int32_t physical_width,
+		int32_t physical_height,
+		int32_t subpixel,
+		const char* make,
+		const char* model,
+		int32_t transform
+	)
+	{
+		ASSERT(data)
+		auto& self = *static_cast<output_wrapper*>(data);
+
+		self.physical_size_mm = {ruis::real(physical_width), ruis::real(physical_height)};
+
+		LOG([&](auto& o) {
+			o << "output(" << self.id << ")" << "\n" //
+			  << " physical_size_mm = " << self.physical_size_mm << std::endl;
+		})
+	}
+
+	static void wl_output_scale(void* data, struct wl_output* wl_output, int32_t factor)
+	{
+		ASSERT(data)
+		auto& self = *static_cast<output_wrapper*>(data);
+
+		self.scale = ruis::real(factor);
+
+		LOG([&](auto& o) {
+			o << "output(" << self.id << ") scale = " << self.scale << std::endl;
+		})
+	}
+
+	constexpr static const wl_output_listener listener = {
+		.geometry = &wl_output_geometry,
+		.mode =
+			[](void* data, struct wl_output* wl_output, uint32_t flags, int32_t width, int32_t height, int32_t refresh
+			) {},
+		.done = [](void* data, struct wl_output* wl_output) {},
+		.scale = &wl_output_scale,
+		.name = [](void* data, struct wl_output* wl_output, const char* name) {},
+		.description = [](void* data, struct wl_output* wl_output, const char* description) {}
+	};
+
+public:
+	const uint32_t id;
+
+	ruis::vec2 physical_size_mm = {0, 0};
+	ruis::real scale = 1;
+
+	output_wrapper(wl_registry& registry, uint32_t id) :
+		output([&]() {
+			void* output = wl_registry_bind(&registry, id, &wl_output_interface, 1);
+			ASSERT(output)
+			return static_cast<wl_output*>(output);
+		}()),
+		id(id)
+	{
+		wl_output_add_listener(this->output, &listener, this);
+	}
+
+	output_wrapper(const output_wrapper&) = delete;
+	output_wrapper& operator=(const output_wrapper&) = delete;
+
+	output_wrapper(output_wrapper&&) = delete;
+	output_wrapper& operator=(output_wrapper&&) = delete;
+
+	~output_wrapper()
+	{
+		if (wl_output_get_version(this->output) >= WL_OUTPUT_RELEASE_SINCE_VERSION) {
+			wl_output_release(this->output);
+		} else {
+			wl_output_destroy(this->output);
 		}
 	}
 };
@@ -661,6 +751,8 @@ struct registry_wrapper {
 	std::optional<uint32_t> wm_base_id;
 	std::optional<uint32_t> shm_id;
 	std::optional<uint32_t> seat_id;
+
+	std::list<output_wrapper> outputs;
 
 	static void wl_registry_global(
 		void* data,
@@ -684,20 +776,38 @@ struct registry_wrapper {
 			self.seat_id = id;
 		} else if (std::string_view(interface) == "wl_shm"sv) {
 			self.shm_id = id;
+		} else if (std::string_view(interface) == "wl_output"sv) {
+			ASSERT(self.reg)
+			self.outputs.emplace_back(*self.reg, id);
 		}
 
 		// std::cout << "exit from registry event" << std::endl;
 	}
 
+	static void wl_registry_global_remove(void* data, wl_registry* registry, uint32_t id)
+	{
+		LOG([&](auto& o) {
+			o << "got a registry losing event, id = " << id << std::endl;
+		});
+
+		ASSERT(data)
+		auto& self = *static_cast<registry_wrapper*>(data);
+
+		// check if removed object is a wl_output
+		for (auto i = self.outputs.begin(); i != self.outputs.end(); ++i) {
+			if (i->id == id) {
+				LOG([&](auto& o) {
+					o << "output removed, id = " << id << std::endl;
+				});
+				self.outputs.erase(i);
+				return;
+			}
+		}
+	}
+
 	constexpr static const wl_registry_listener listener = {
 		.global = &wl_registry_global,
-		.global_remove =
-			[](void* data, wl_registry* registry, uint32_t id) {
-				LOG([&](auto& o) {
-					o << "got a registry losing event, id = " << id << std::endl;
-				});
-				// we assume that needed objects will never be removed
-			} //
+		.global_remove = wl_registry_global_remove
 	};
 
 	registry_wrapper(display_wrapper& display) :
@@ -1066,7 +1176,11 @@ struct pointer_wrapper {
 	~pointer_wrapper()
 	{
 		if (this->pointer) {
-			wl_pointer_release(this->pointer);
+			if (wl_pointer_get_version(this->pointer) >= WL_POINTER_RELEASE_SINCE_VERSION) {
+				wl_pointer_release(this->pointer);
+			} else {
+				wl_pointer_destroy(this->pointer);
+			}
 		}
 	}
 
@@ -1273,7 +1387,11 @@ public:
 
 	~seat_wrapper()
 	{
-		wl_seat_destroy(this->seat);
+		if (wl_seat_get_version(this->seat) >= WL_SEAT_RELEASE_SINCE_VERSION) {
+			wl_seat_release(this->seat);
+		} else {
+			wl_seat_destroy(this->seat);
+		}
 	}
 
 private:
