@@ -710,7 +710,9 @@ class output_wrapper
 	static void wl_output_done(void* data, struct wl_output* wl_output)
 	{
 		ASSERT(data)
+#ifdef DEBUG
 		auto& self = *static_cast<output_wrapper*>(data);
+#endif
 
 		LOG([&](auto& o) {
 			o << "output(" << self.id << ") done" << std::endl;
@@ -732,7 +734,9 @@ class output_wrapper
 	static void wl_output_name(void* data, struct wl_output* wl_output, const char* name)
 	{
 		ASSERT(data)
+#ifdef DEBUG
 		auto& self = *static_cast<output_wrapper*>(data);
+#endif
 
 		LOG([&](auto& o) {
 			o << "output(" << self.id << ") name = " << name << std::endl;
@@ -742,7 +746,9 @@ class output_wrapper
 	static void wl_output_description(void* data, struct wl_output* wl_output, const char* description)
 	{
 		ASSERT(data)
+#ifdef DEBUG
 		auto& self = *static_cast<output_wrapper*>(data);
+#endif
 
 		LOG([&](auto& o) {
 			o << "output(" << self.id << ") description = " << description << std::endl;
