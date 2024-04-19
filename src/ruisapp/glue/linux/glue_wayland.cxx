@@ -760,8 +760,11 @@ class output_wrapper
 		.mode = &wl_output_mode,
 		.done = &wl_output_done,
 		.scale = &wl_output_scale,
-		.name = &wl_output_name,
-		.description = &wl_output_description
+
+		// TODO: wayland version included in debian bullseye does not support these fields,
+		//       uncomment them when debian bullseye support can be dropped
+		// .name = &wl_output_name,
+		// .description = &wl_output_description
 	};
 
 public:
