@@ -68,6 +68,14 @@ Suggests: libruisapp-doc
 Description: cross-platform C++ GUI library.
  GUI library development files.
 
+Package: libruisapp$(soname)-dbgsrc
+Section: debug
+Architecture: all
+Depends:
+	libruisapp$(soname)-dbgsym (= ${binary:Version}),
+	${misc:Depends}
+Description: debugging sources for libruisapp$(soname) package.
+
 Package: libruisapp-doc
 Architecture: all
 Section: doc

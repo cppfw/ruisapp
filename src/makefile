@@ -2,6 +2,7 @@ include prorab.mk
 include prorab-license.mk
 include prorab-linux.mk
 include prorab-clang-format.mk
+include prorab-install-dbgsrc.mk
 
 # === wayland shell client protocol ===
 
@@ -132,3 +133,7 @@ this_src_dir := ruisapp
 $(eval $(prorab-license))
 
 $(eval $(prorab-clang-format))
+
+this_name := ruisapp
+this_soname := $(shell cat $(d)soname.txt)
+$(eval $(prorab-install-dbgsrc))
