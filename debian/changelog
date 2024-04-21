@@ -1,3 +1,9 @@
+libruisapp (0.2.96) unstable; urgency=medium
+
+  * add dbgsrc package
+
+ -- Ivan Gagis <igagis@gmail.com>  Sun, 21 Apr 2024 23:32:06 +0300
+
 libruisapp (0.2.95) unstable; urgency=medium
 
   * basic wayland support
