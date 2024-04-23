@@ -1,3 +1,9 @@
+libruisapp (0.2.97) unstable; urgency=medium
+
+  * update
+
+ -- Ivan Gagis <igagis@gmail.com>  Tue, 23 Apr 2024 22:10:51 +0300
+
 libruisapp (0.2.96) unstable; urgency=medium
 
   * add dbgsrc package
