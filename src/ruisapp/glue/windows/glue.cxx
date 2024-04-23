@@ -692,7 +692,7 @@ application::application(std::string name, const window_params& wp) :
 	name(std::move(name)),
 	window_pimpl(std::make_unique<window_wrapper>(wp)),
 	gui(utki::make_shared<ruis::context>(
-		utki::make_shared<ruis::render_opengl::renderer>(),
+		utki::make_shared<ruis::render::opengl::renderer>(),
 		utki::make_shared<ruis::updater>(),
 		[](std::function<void()> procedure) {
 			auto& ww = get_impl(get_window_pimpl(ruisapp::inst()));

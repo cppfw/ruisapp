@@ -326,7 +326,7 @@ application::application(std::string name, const window_params& wp) :
 		name(name),
 		window_pimpl(std::make_unique<WindowWrapper>(wp)),
 		gui(utki::make_shared<ruis::context>(
-				utki::make_shared<ruis::render_opengles::renderer>(),
+				utki::make_shared<ruis::render::opengles::renderer>(),
 				utki::make_shared<ruis::updater>(),
 				[this](std::function<void()> a){
 					auto p = reinterpret_cast<NSInteger>(new std::function<void()>(std::move(a)));

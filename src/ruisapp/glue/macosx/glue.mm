@@ -808,7 +808,7 @@ application::application(std::string name, const window_params& wp) :
 		window_pimpl(std::make_unique<WindowWrapper>(wp)),
 		gui(
 			utki::make_shared<ruis::context>(
-			utki::make_shared<ruis::render_opengl::renderer>(),
+			utki::make_shared<ruis::render::opengl::renderer>(),
 			utki::make_shared<ruis::updater>(),
 			[this](std::function<void()> a){
 				auto& ww = get_impl(get_window_pimpl(*this));

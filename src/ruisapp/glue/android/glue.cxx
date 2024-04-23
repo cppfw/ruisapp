@@ -1120,7 +1120,7 @@ ruisapp::application::application(std::string name, const window_params& wp) :
 	name(name),
 	window_pimpl(std::make_unique<window_wrapper>(wp)),
 	gui(utki::make_shared<ruis::context>(
-		utki::make_shared<ruis::render_opengles::renderer>(),
+		utki::make_shared<ruis::render::opengles::renderer>(),
 		utki::make_shared<ruis::updater>(),
 		[this](std::function<void()> a) {
 			get_impl(*this).ui_queue.push_back(std::move(a));
