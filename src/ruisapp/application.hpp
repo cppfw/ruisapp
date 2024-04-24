@@ -121,6 +121,9 @@ public:
 	const std::string storage_dir;
 
 private:
+	// TODO: make it window rectangle and track vieport separately,
+	//       use top-left coordinate system
+
 	// this is a viewport rectangle in coordinates that are as follows: x grows
 	// right, y grows up.
 	ruis::rect cur_window_rect = {0, 0, 0, 0};
