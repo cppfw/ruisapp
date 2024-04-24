@@ -52,11 +52,11 @@ void application::update_window_rect(const ruis::rect& rect)
 	LOG([&](auto& o) {
 		o << "application::update_window_rect(): this->cur_window_rect = " << this->cur_window_rect << std::endl;
 	})
-	this->gui.context.get().renderer.get().set_viewport(r4::rectangle<int>(
-		int(this->cur_window_rect.p.x()),
-		int(this->cur_window_rect.p.y()),
-		int(this->cur_window_rect.d.x()),
-		int(this->cur_window_rect.d.y())
+	this->gui.context.get().renderer.get().set_viewport(r4::rectangle<uint32_t>(
+		uint32_t(this->cur_window_rect.p.x()),
+		uint32_t(this->cur_window_rect.p.y()),
+		uint32_t(this->cur_window_rect.d.x()),
+		uint32_t(this->cur_window_rect.d.y())
 	));
 
 	this->gui.set_viewport(this->cur_window_rect.d);
