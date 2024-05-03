@@ -34,7 +34,9 @@ application::instance_type application::instance;
 void application::render()
 {
 	// TODO: render only if needed?
-	this->gui.context.get().renderer.get().clear_framebuffer();
+	this->gui.context.get().renderer.get().clear_framebuffer_color();
+
+	// no clear of depth and stencil buffers, it will be done by individual widgets if needed
 
 	this->gui.render(this->gui.context.get().renderer.get().initial_matrix);
 
