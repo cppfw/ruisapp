@@ -217,7 +217,16 @@ struct window_wrapper : public utki::destructable {
 			EGL_SURFACE_TYPE,
 			EGL_WINDOW_BIT,
 			EGL_RENDERABLE_TYPE,
-			EGL_OPENGL_ES2_BIT | EGL_OPENGL_ES3_BIT,
+			// We cannot set bits for all OpenGL ES versions because on platforms which do not
+			// support later versions the matching config will not be found by eglChooseConfig().
+			// So, set bits according to requested OpenGL ES version.
+			[&ver = wp.graphics_api_version]() {
+				EGLint ret = EGL_OPENGL_ES2_BIT; // OpenGL ES 2 is the minimum
+				if (ver.major >= 3) {
+					ret |= EGL_OPENGL_ES3_BIT;
+				}
+				return ret;
+			}(),
 			EGL_BLUE_SIZE,
 			8,
 			EGL_GREEN_SIZE,
