@@ -36,8 +36,6 @@ this_ldlibs += -ltml -lruis -lutki -lpapki -lm
 
 $(eval $(prorab-build-app))
 
-$(eval $(call prorab-depend, $(prorab_this_name), $(this_libruisapp)))
-
 this_run_name := app
 this_test_cmd := $(prorab_this_name)
 this_test_deps := $(prorab_this_name)
