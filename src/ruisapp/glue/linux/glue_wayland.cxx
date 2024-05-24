@@ -1084,19 +1084,39 @@ struct surface_wrapper {
 	}
 
 private:
+	std::set<wl_output*> outputs;
+
+	static void wl_surface_enter(void* data, wl_surface* surface, wl_output* output)
+	{
+		LOG([](auto& o) {
+			o << "surface enters output" << std::endl;
+		})
+
+		ASSERT(data)
+		auto& self = *reinterpret_cast<surface_wrapper*>(data);
+
+		ASSERT(self.outputs.find(output) == self.outputs.end())
+
+		self.outputs.insert(output);
+	}
+
+	static void wl_surface_leave(void* data, wl_surface* surface, wl_output* output)
+	{
+		LOG([](auto& o) {
+			o << "surface leaves output" << std::endl;
+		})
+
+		ASSERT(data)
+		auto& self = *reinterpret_cast<surface_wrapper*>(data);
+
+		ASSERT(self.outputs.find(output) != self.outputs.end())
+
+		self.outputs.erase(output);
+	}
+
 	constexpr static const wl_surface_listener listener = {
-		.enter =
-			[](void* data, wl_surface* surface, wl_output* output) {
-				LOG([](auto& o) {
-					o << "surface enters output" << std::endl;
-				})
-			},
-		.leave =
-			[](void* data, wl_surface* surface, wl_output* output) {
-				LOG([](auto& o) {
-					o << "surface leaves output" << std::endl;
-				})
-			}
+		.enter = &wl_surface_enter, //
+		.leave = &wl_surface_leave
 	};
 };
 } // namespace
