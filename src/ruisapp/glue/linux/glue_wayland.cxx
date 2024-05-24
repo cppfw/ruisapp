@@ -994,7 +994,7 @@ struct wm_base_wrapper {
 			return static_cast<xdg_wm_base*>(wm_base);
 		}())
 	{
-		xdg_wm_base_add_listener(this->wmb, &listener, nullptr);
+		xdg_wm_base_add_listener(this->wmb, &listener, this);
 	}
 
 	wm_base_wrapper(const wm_base_wrapper&) = delete;
@@ -1058,6 +1058,8 @@ struct surface_wrapper {
 		if (!this->sur) {
 			throw std::runtime_error("could not create wayland surface");
 		}
+
+		wl_surface_add_listener(this->sur, &listener, this);
 	}
 
 	surface_wrapper(const surface_wrapper&) = delete;
@@ -1080,6 +1082,22 @@ struct surface_wrapper {
 	{
 		wl_surface_set_opaque_region(this->sur, region.reg);
 	}
+
+private:
+	constexpr static const wl_surface_listener listener = {
+		.enter =
+			[](void* data, wl_surface* surface, wl_output* output) {
+				LOG([](auto& o) {
+					o << "surface enters output" << std::endl;
+				})
+			},
+		.leave =
+			[](void* data, wl_surface* surface, wl_output* output) {
+				LOG([](auto& o) {
+					o << "surface leaves output" << std::endl;
+				})
+			}
+	};
 };
 } // namespace
 
