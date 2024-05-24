@@ -898,7 +898,9 @@ struct registry_wrapper {
 		}
 
 		if (!this->seat_id.has_value()) {
-			throw std::runtime_error("could not find wl_seat");
+			LOG([](auto& o) {
+				o << "WARNING: wayland system has no seat" << std::endl;
+			})
 		}
 
 		if (!this->shm_id.has_value()) {
@@ -1465,14 +1467,20 @@ public:
 
 	seat_wrapper(const registry_wrapper& registry, const compositor_wrapper& compositor, const shm_wrapper& shm) :
 		pointer(compositor, shm),
-		seat([&]() {
-			ASSERT(registry.seat_id.has_value())
+		seat([&]() -> wl_seat* {
+			if (!registry.seat_id.has_value()) {
+				return nullptr;
+			}
+
 			void* seat = wl_registry_bind(registry.reg, registry.seat_id.value(), &wl_seat_interface, 1);
 			ASSERT(seat)
 			return static_cast<wl_seat*>(seat);
 		}())
 	{
-		// std::cout << "seat constructor" << std::endl;
+		// std::cout << "seat_wrapper constructor" << std::endl;
+		if (!this->seat) {
+			return;
+		}
 		wl_seat_add_listener(this->seat, &listener, this);
 	}
 
@@ -1484,6 +1492,10 @@ public:
 
 	~seat_wrapper()
 	{
+		if (!this->seat) {
+			return;
+		}
+
 		if (wl_seat_get_version(this->seat) >= WL_SEAT_RELEASE_SINCE_VERSION) {
 			wl_seat_release(this->seat);
 		} else {
