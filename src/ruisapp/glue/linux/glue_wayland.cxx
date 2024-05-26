@@ -774,9 +774,9 @@ public:
 	ruis::vec2 physical_size_mm = {0, 0};
 	ruis::real scale = 1;
 
-	output_wrapper(wl_registry& registry, uint32_t id) :
+	output_wrapper(wl_registry& registry, uint32_t id, uint32_t interface_version) :
 		output([&]() {
-			void* output = wl_registry_bind(&registry, id, &wl_output_interface, 1);
+			void* output = wl_registry_bind(&registry, id, &wl_output_interface, std::min(interface_version, 2u));
 			ASSERT(output)
 			return static_cast<wl_output*>(output);
 		}()),
@@ -806,10 +806,15 @@ namespace {
 struct registry_wrapper {
 	wl_registry* reg;
 
-	std::optional<uint32_t> compositor_id;
-	std::optional<uint32_t> wm_base_id;
-	std::optional<uint32_t> shm_id;
-	std::optional<uint32_t> seat_id;
+	struct interface_id {
+		uint32_t id;
+		uint32_t version;
+	};
+
+	std::optional<interface_id> compositor_id;
+	std::optional<interface_id> wm_base_id;
+	std::optional<interface_id> shm_id;
+	std::optional<interface_id> seat_id;
 
 	std::list<output_wrapper> outputs;
 
@@ -828,16 +833,28 @@ struct registry_wrapper {
 			o << "got a registry event for: " << interface << ", id = " << id << std::endl;
 		});
 		if (std::string_view(interface) == "wl_compositor"sv) {
-			self.compositor_id = id;
+			self.compositor_id = {
+				.id = id, //
+				.version = version
+			};
 		} else if (std::string_view(interface) == xdg_wm_base_interface.name) {
-			self.wm_base_id = id;
+			self.wm_base_id = {
+				.id = id, //
+				.version = version
+			};
 		} else if (std::string_view(interface) == "wl_seat"sv) {
-			self.seat_id = id;
+			self.seat_id = {
+				.id = id, //
+				.version = version
+			};
 		} else if (std::string_view(interface) == "wl_shm"sv) {
-			self.shm_id = id;
+			self.shm_id = {
+				.id = id, //
+				.version = version
+			};
 		} else if (std::string_view(interface) == "wl_output"sv) {
 			ASSERT(self.reg)
-			self.outputs.emplace_back(*self.reg, id);
+			self.outputs.emplace_back(*self.reg, id, version);
 		}
 
 		// std::cout << "exit from registry event" << std::endl;
@@ -938,8 +955,12 @@ struct compositor_wrapper {
 	compositor_wrapper(const registry_wrapper& registry) :
 		comp([&]() {
 			ASSERT(registry.compositor_id.has_value())
-			void* compositor =
-				wl_registry_bind(registry.reg, registry.compositor_id.value(), &wl_compositor_interface, 1);
+			void* compositor = wl_registry_bind(
+				registry.reg,
+				registry.compositor_id.value().id,
+				&wl_compositor_interface,
+				std::min(registry.compositor_id.value().version, 4u)
+			);
 			ASSERT(compositor)
 			return static_cast<wl_compositor*>(compositor);
 		}())
@@ -965,7 +986,12 @@ struct shm_wrapper {
 	shm_wrapper(const registry_wrapper& registry) :
 		shm([&]() {
 			ASSERT(registry.shm_id.has_value())
-			void* shm = wl_registry_bind(registry.reg, registry.shm_id.value(), &wl_shm_interface, 1);
+			void* shm = wl_registry_bind(
+				registry.reg,
+				registry.shm_id.value().id,
+				&wl_shm_interface,
+				std::min(registry.shm_id.value().version, 1u)
+			);
 			ASSERT(shm)
 			return static_cast<wl_shm*>(shm);
 		}())
@@ -991,7 +1017,12 @@ struct wm_base_wrapper {
 	wm_base_wrapper(const registry_wrapper& registry) :
 		wmb([&]() {
 			ASSERT(registry.wm_base_id.has_value())
-			void* wm_base = wl_registry_bind(registry.reg, registry.wm_base_id.value(), &xdg_wm_base_interface, 1);
+			void* wm_base = wl_registry_bind(
+				registry.reg,
+				registry.wm_base_id.value().id,
+				&xdg_wm_base_interface,
+				std::min(registry.wm_base_id.value().version, 2u)
+			);
 			ASSERT(wm_base)
 			return static_cast<xdg_wm_base*>(wm_base);
 		}())
@@ -1095,7 +1126,7 @@ private:
 		})
 
 		ASSERT(data)
-		auto& self = *reinterpret_cast<surface_wrapper*>(data);
+		auto& self = *static_cast<surface_wrapper*>(data);
 
 		ASSERT(self.outputs.find(output) == self.outputs.end())
 
@@ -1109,7 +1140,7 @@ private:
 		})
 
 		ASSERT(data)
-		auto& self = *reinterpret_cast<surface_wrapper*>(data);
+		auto& self = *static_cast<surface_wrapper*>(data);
 
 		ASSERT(self.outputs.find(output) != self.outputs.end())
 
@@ -1472,7 +1503,12 @@ public:
 				return nullptr;
 			}
 
-			void* seat = wl_registry_bind(registry.reg, registry.seat_id.value(), &wl_seat_interface, 1);
+			void* seat = wl_registry_bind(
+				registry.reg,
+				registry.seat_id.value().id,
+				&wl_seat_interface,
+				std::min(registry.seat_id.value().version, 1u)
+			);
 			ASSERT(seat)
 			return static_cast<wl_seat*>(seat);
 		}())
