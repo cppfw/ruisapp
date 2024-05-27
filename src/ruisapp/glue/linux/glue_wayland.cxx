@@ -1055,7 +1055,7 @@ namespace {
 struct region_wrapper {
 	wl_region* reg;
 
-	region_wrapper(compositor_wrapper& compositor) :
+	region_wrapper(const compositor_wrapper& compositor) :
 		reg(wl_compositor_create_region(compositor.comp))
 	{
 		if (!this->reg) {
@@ -1788,16 +1788,11 @@ struct window_wrapper : public utki::destructable {
 		}
 	} toplevel;
 
-	region_wrapper region;
-
 	struct egl_window_wrapper {
 		wl_egl_window* win;
 
-		egl_window_wrapper(surface_wrapper& surface, region_wrapper& region, r4::vector2<unsigned> dims)
+		egl_window_wrapper(surface_wrapper& surface, r4::vector2<unsigned> dims)
 		{
-			region.add(r4::rectangle({0, 0}, dims.to<int32_t>()));
-			surface.set_opaque_region(region);
-
 			auto int_dims = dims.to<int>();
 
 			// NOLINTNEXTLINE(cppcoreguidelines-prefer-member-initializer)
@@ -1981,8 +1976,7 @@ struct window_wrapper : public utki::destructable {
 		surface(this->compositor),
 		xdg_surface(this->surface, this->wm_base),
 		toplevel(this->surface, this->xdg_surface),
-		region(this->compositor),
-		egl_window(this->surface, this->region, wp.dims),
+		egl_window(this->surface, wp.dims),
 		egl_context(this->display, this->egl_window, wp)
 	{
 		// WORKAROUND: the following calls are figured out by trial and error. Without those the wayland main loop
@@ -2061,6 +2055,11 @@ struct window_wrapper : public utki::destructable {
 		})
 
 		wl_egl_window_resize(this->egl_window.win, dims.x(), dims.y(), 0, 0);
+
+		region_wrapper region(this->compositor);
+		region.add(r4::rectangle({0, 0}, dims.to<int32_t>()));
+		this->surface.set_opaque_region(region);
+
 		this->surface.commit();
 
 		update_window_rect(ruisapp::inst(), ruis::rect(0, {ruis::real(dims.x()), ruis::real(dims.y())}));
