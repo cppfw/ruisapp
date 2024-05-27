@@ -1124,6 +1124,7 @@ struct surface_wrapper {
 
 		// go through outputs which the serface has entered
 		for (auto wlo : this->outputs) {
+			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
 			auto id = wl_proxy_get_id(reinterpret_cast<wl_proxy*>(wlo));
 
 			auto i = outputs.find(id);
