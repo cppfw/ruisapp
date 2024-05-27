@@ -97,6 +97,14 @@ ruis::mouse_button button_number_to_enum(uint32_t number)
 } // namespace
 
 namespace {
+uint32_t get_output_id(wl_output* output)
+{
+	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+	return wl_proxy_get_id(reinterpret_cast<wl_proxy*>(output));
+}
+} // namespace
+
+namespace {
 struct display_wrapper {
 	wl_display* disp;
 
@@ -1113,6 +1121,13 @@ struct surface_wrapper {
 		wl_surface_commit(this->sur);
 	}
 
+	void set_buffer_scale(uint32_t scale)
+	{
+		if (wl_surface_get_version(this->sur) >= WL_SURFACE_SET_BUFFER_SCALE_SINCE_VERSION) {
+			wl_surface_set_buffer_scale(this->sur, int32_t(scale));
+		}
+	}
+
 	void set_opaque_region(const region_wrapper& region)
 	{
 		wl_surface_set_opaque_region(this->sur, region.reg);
@@ -1120,21 +1135,33 @@ struct surface_wrapper {
 
 	uint32_t find_max_scale(const std::map<uint32_t, output_wrapper>& outputs)
 	{
+		std::cout << "looking for max scale" << std::endl;
+
+		// if surface did not enter any outputs yet, then just take scale of first available output
+		if (this->outputs.empty()) {
+			std::cout << "  surface has not entered any outputs yet" << std::endl;
+			return 1;
+		}
+
 		uint32_t max_scale = 1;
 
 		// go through outputs which the serface has entered
 		for (auto wlo : this->outputs) {
-			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-			auto id = wl_proxy_get_id(reinterpret_cast<wl_proxy*>(wlo));
+			auto id = get_output_id(wlo);
+
+			std::cout << "  check output id = " << id << std::endl;
 
 			auto i = outputs.find(id);
 			if (i == outputs.end()) {
 				LOG([&](auto& o) {
-					o << "WARNING: waland surface entered output with id = " << id
+					o << "WARNING: wayland surface entered output with id = " << id
 					  << ", but no output with such id is reported";
 				})
 				continue;
 			}
+
+			std::cout << "  output found, scale = " << i->second.scale << std::endl;
+
 			max_scale = std::max(i->second.scale, max_scale);
 		}
 
@@ -1146,8 +1173,8 @@ private:
 
 	static void wl_surface_enter(void* data, wl_surface* surface, wl_output* output)
 	{
-		LOG([](auto& o) {
-			o << "surface enters output" << std::endl;
+		LOG([&](auto& o) {
+			o << "surface enters output(" << get_output_id(output) << ")" << std::endl;
 		})
 
 		ASSERT(data)
@@ -1160,8 +1187,8 @@ private:
 
 	static void wl_surface_leave(void* data, wl_surface* surface, wl_output* output)
 	{
-		LOG([](auto& o) {
-			o << "surface leaves output" << std::endl;
+		LOG([&](auto& o) {
+			o << "surface leaves output(" << get_output_id(output) << ")" << std::endl;
 		})
 
 		ASSERT(data)
@@ -2079,20 +2106,27 @@ struct window_wrapper : public utki::destructable {
 			o << "resize window to " << std::dec << dims << std::endl;
 		})
 
+		auto scale = this->surface.find_max_scale(this->registry.outputs);
+
+		dims *= scale;
+
 		wl_egl_window_resize(this->egl_window.win, dims.x(), dims.y(), 0, 0);
 
 		region_wrapper region(this->compositor);
 		region.add(r4::rectangle({0, 0}, dims.to<int32_t>()));
 		this->surface.set_opaque_region(region);
 
+		this->surface.set_buffer_scale(scale);
+
 		this->surface.commit();
 
-		auto scale = this->surface.find_max_scale(this->registry.outputs);
+		LOG([&](auto& o) {
+			o << "final window scale = " << scale << std::endl;
+		})
 
 		// TODO: update scale in ruis::context
 
 		ruis::vec2 win_rect_dims{ruis::real(dims.x()), ruis::real(dims.y())};
-		win_rect_dims *= ruis::real(scale);
 
 		update_window_rect(ruisapp::inst(), ruis::rect(0, win_rect_dims));
 	}
