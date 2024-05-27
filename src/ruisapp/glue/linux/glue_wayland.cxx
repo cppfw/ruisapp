@@ -724,7 +724,7 @@ class output_wrapper
 		ASSERT(data)
 		auto& self = *static_cast<output_wrapper*>(data);
 
-		self.scale = ruis::real(factor);
+		self.scale = uint32_t(std::max(factor, 1));
 
 		LOG([&](auto& o) {
 			o << "output(" << self.id << ") scale = " << self.scale << std::endl;
@@ -772,7 +772,7 @@ public:
 
 	ruis::vec2 resolution = {0, 0};
 	ruis::vec2 physical_size_mm = {0, 0};
-	ruis::real scale = 1;
+	uint32_t scale = 1;
 
 	output_wrapper(wl_registry& registry, uint32_t id, uint32_t interface_version) :
 		output([&]() {
@@ -816,7 +816,7 @@ struct registry_wrapper {
 	std::optional<interface_id> shm_id;
 	std::optional<interface_id> seat_id;
 
-	std::list<output_wrapper> outputs;
+	std::map<uint32_t, output_wrapper> outputs;
 
 	static void wl_registry_global(
 		void* data,
@@ -854,7 +854,11 @@ struct registry_wrapper {
 			};
 		} else if (std::string_view(interface) == "wl_output"sv) {
 			ASSERT(self.reg)
-			self.outputs.emplace_back(*self.reg, id, version);
+			self.outputs.emplace(
+				std::piecewise_construct,
+				std::forward_as_tuple(id),
+				std::forward_as_tuple(*self.reg, id, version)
+			);
 		}
 
 		// std::cout << "exit from registry event" << std::endl;
@@ -870,14 +874,12 @@ struct registry_wrapper {
 		auto& self = *static_cast<registry_wrapper*>(data);
 
 		// check if removed object is a wl_output
-		for (auto i = self.outputs.begin(); i != self.outputs.end(); ++i) {
-			if (i->id == id) {
-				LOG([&](auto& o) {
-					o << "output removed, id = " << id << std::endl;
-				});
-				self.outputs.erase(i);
-				return;
-			}
+		if (auto i = self.outputs.find(id); i != self.outputs.end()) {
+			self.outputs.erase(i);
+			LOG([&](auto& o) {
+				o << "output removed, id = " << id << std::endl;
+			});
+			return;
 		}
 	}
 
@@ -1114,6 +1116,28 @@ struct surface_wrapper {
 	void set_opaque_region(const region_wrapper& region)
 	{
 		wl_surface_set_opaque_region(this->sur, region.reg);
+	}
+
+	uint32_t find_max_scale(const std::map<uint32_t, output_wrapper>& outputs)
+	{
+		uint32_t max_scale = 1;
+
+		// go through outputs which the serface has entered
+		for (auto wlo : this->outputs) {
+			auto id = wl_proxy_get_id(static_cast<wl_proxy*>(static_cast<void*>(wlo)));
+
+			auto i = outputs.find(id);
+			if (i == outputs.end()) {
+				LOG([&](auto& o) {
+					o << "WARNING: waland surface entered output with id = " << id
+					  << ", but no output with such id is reported";
+				})
+				continue;
+			}
+			max_scale = std::max(i->second.scale, max_scale);
+		}
+
+		return max_scale;
 	}
 
 private:
@@ -2062,7 +2086,14 @@ struct window_wrapper : public utki::destructable {
 
 		this->surface.commit();
 
-		update_window_rect(ruisapp::inst(), ruis::rect(0, {ruis::real(dims.x()), ruis::real(dims.y())}));
+		auto scale = this->surface.find_max_scale(this->registry.outputs);
+
+		// TODO: update scale in ruis::context
+
+		ruis::vec2 win_rect_dims{ruis::real(dims.x()), ruis::real(dims.y())};
+		win_rect_dims *= ruis::real(scale);
+
+		update_window_rect(ruisapp::inst(), ruis::rect(0, win_rect_dims));
 	}
 };
 
