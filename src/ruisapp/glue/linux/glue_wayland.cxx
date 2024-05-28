@@ -1784,6 +1784,7 @@ struct window_wrapper : public utki::destructable {
 
 			auto& ww = get_impl(ruisapp::inst());
 
+			// if both width and height are zero, then it is one of states checked above
 			if (width == 0 && height == 0) {
 				if (ww.fullscreen != fullscreen) {
 					if (!fullscreen) {
@@ -1864,6 +1865,19 @@ struct window_wrapper : public utki::destructable {
 		~egl_window_wrapper()
 		{
 			wl_egl_window_destroy(this->win);
+		}
+
+		r4::vector2<int> get_buffer_dims() const
+		{
+			r4::vector2<int> ret;
+
+			wl_egl_window_get_attached_size( //
+				this->win,
+				&ret.x(),
+				&ret.y()
+			);
+
+			return ret;
 		}
 	} egl_window;
 
@@ -2203,11 +2217,7 @@ void application::set_fullscreen(bool fullscreen)
 	})
 
 	if (fullscreen) {
-		wl_egl_window_get_attached_size(
-			ww.egl_window.win,
-			&ww.pre_fullscreen_win_dims.x(),
-			&ww.pre_fullscreen_win_dims.y()
-		);
+		ww.pre_fullscreen_win_dims = ww.egl_window.get_buffer_dims();
 		LOG([&](auto& o) {
 			o << " old win dims = " << std::dec << ww.pre_fullscreen_win_dims << std::endl;
 		})
