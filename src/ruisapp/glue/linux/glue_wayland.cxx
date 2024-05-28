@@ -1145,7 +1145,7 @@ struct surface_wrapper {
 
 		uint32_t max_scale = 1;
 
-		// go through outputs which the serface has entered
+		// go through outputs which the surface has entered
 		for (auto wlo : this->outputs) {
 			auto id = get_output_id(wlo);
 
