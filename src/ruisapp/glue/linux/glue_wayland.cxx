@@ -2124,7 +2124,7 @@ struct window_wrapper : public utki::destructable {
 
 		dims *= scale;
 
-		wl_egl_window_resize(this->egl_window.win, dims.x(), dims.y(), 0, 0);
+		wl_egl_window_resize(this->egl_window.win, int(dims.x()), int(dims.y()), 0, 0);
 
 		region_wrapper region(this->compositor);
 		region.add(r4::rectangle({0, 0}, dims.to<int32_t>()));
