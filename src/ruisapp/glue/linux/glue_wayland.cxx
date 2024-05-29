@@ -1801,7 +1801,7 @@ struct window_wrapper : public utki::destructable {
 
 			ww.fullscreen = fullscreen;
 
-			ww.resize({width, height});
+			ww.resize({uint32_t(width), uint32_t(height)});
 		}
 
 		static void xdg_toplevel_close(void* data, xdg_toplevel* xdg_toplevel)
@@ -1867,7 +1867,7 @@ struct window_wrapper : public utki::destructable {
 			wl_egl_window_destroy(this->win);
 		}
 
-		r4::vector2<int> get_buffer_dims() const
+		r4::vector2<uint32_t> get_buffer_dims() const
 		{
 			r4::vector2<int> ret;
 
@@ -1877,7 +1877,7 @@ struct window_wrapper : public utki::destructable {
 				&ret.y()
 			);
 
-			return ret;
+			return ret.to<uint32_t>();
 		}
 	} egl_window;
 
@@ -2112,9 +2112,9 @@ struct window_wrapper : public utki::destructable {
 	}
 
 	bool fullscreen = false;
-	r4::vector2<int> pre_fullscreen_win_dims;
+	r4::vector2<uint32_t> pre_fullscreen_win_dims;
 
-	void resize(r4::vector2<int> dims)
+	void resize(r4::vector2<uint32_t> dims)
 	{
 		LOG([&](auto& o) {
 			o << "resize window to " << std::dec << dims << std::endl;
