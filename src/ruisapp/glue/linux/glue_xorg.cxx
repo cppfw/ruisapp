@@ -869,8 +869,7 @@ struct window_wrapper : public utki::destructable {
 			  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
 			  / (ruis::real(DisplayHeightMM(this->display.display, src_num)) / ruis::real(mm_per_cm)))) /
 			2;
-		constexpr auto cm_per_inch = 2.54;
-		value *= ruis::real(cm_per_inch);
+		value *= ruis::real(utki::cm_per_inch);
 		return value;
 	}
 

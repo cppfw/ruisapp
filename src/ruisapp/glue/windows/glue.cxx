@@ -636,9 +636,7 @@ ruis::real get_dots_per_inch(HDC dc)
 		 ruis::real(GetDeviceCaps(dc, VERTRES)) * std::deci::den / ruis::real(GetDeviceCaps(dc, VERTSIZE))) /
 		ruis::real(num_dimensions);
 
-	constexpr auto cm_per_inch = 2.54f;
-
-	return ruis::real(dots_per_cm) * cm_per_inch;
+	return ruis::real(dots_per_cm) * utki::cm_per_inch;
 }
 } // namespace
 
