@@ -686,7 +686,7 @@ class output_wrapper
 		ASSERT(data)
 		auto& self = *static_cast<output_wrapper*>(data);
 
-		self.pos = {uint32_t(x), uint32_t(y)};
+		self.position = {uint32_t(x), uint32_t(y)};
 		self.physical_size_mm = {uint32_t(physical_width), uint32_t(physical_height)};
 
 		LOG([&](auto& o) {
@@ -716,6 +716,7 @@ class output_wrapper
 		})
 	}
 
+	// NOTE: done event only comes from wl_output_interface version 2 or above.
 	static void wl_output_done(void* data, struct wl_output* wl_output)
 	{
 		ASSERT(data)
@@ -779,7 +780,7 @@ class output_wrapper
 public:
 	const uint32_t id;
 
-	r4::vector2<uint32_t> pos = {0, 0};
+	r4::vector2<uint32_t> position = {0, 0};
 	r4::vector2<uint32_t> resolution = {0, 0};
 	r4::vector2<uint32_t> physical_size_mm = {0, 0};
 	std::string name;
