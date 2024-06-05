@@ -686,7 +686,8 @@ class output_wrapper
 		ASSERT(data)
 		auto& self = *static_cast<output_wrapper*>(data);
 
-		self.physical_size_mm = {ruis::real(physical_width), ruis::real(physical_height)};
+		self.pos = {uint32_t(x), uint32_t(y)};
+		self.physical_size_mm = {uint32_t(physical_width), uint32_t(physical_height)};
 
 		LOG([&](auto& o) {
 			o << "output(" << self.id << ")" << '\n' //
@@ -708,7 +709,7 @@ class output_wrapper
 		ASSERT(data)
 		auto& self = *static_cast<output_wrapper*>(data);
 
-		self.resolution = {ruis::real(width), ruis::real(height)};
+		self.resolution = {uint32_t(width), uint32_t(height)};
 
 		LOG([&](auto& o) {
 			o << "output(" << self.id << ") resolution = " << self.resolution << std::endl;
@@ -742,24 +743,24 @@ class output_wrapper
 	static void wl_output_name(void* data, struct wl_output* wl_output, const char* name)
 	{
 		ASSERT(data)
-#ifdef DEBUG
 		auto& self = *static_cast<output_wrapper*>(data);
-#endif
+
+		self.name = name;
 
 		LOG([&](auto& o) {
-			o << "output(" << self.id << ") name = " << name << std::endl;
+			o << "output(" << self.id << ") name = " << self.name << std::endl;
 		})
 	}
 
 	static void wl_output_description(void* data, struct wl_output* wl_output, const char* description)
 	{
 		ASSERT(data)
-#ifdef DEBUG
 		auto& self = *static_cast<output_wrapper*>(data);
-#endif
+
+		self.description = description;
 
 		LOG([&](auto& o) {
-			o << "output(" << self.id << ") description = " << description << std::endl;
+			o << "output(" << self.id << ") description = " << self.description << std::endl;
 		})
 	}
 
@@ -778,8 +779,11 @@ class output_wrapper
 public:
 	const uint32_t id;
 
-	ruis::vec2 resolution = {0, 0};
-	ruis::vec2 physical_size_mm = {0, 0};
+	r4::vector2<uint32_t> pos = {0, 0};
+	r4::vector2<uint32_t> resolution = {0, 0};
+	r4::vector2<uint32_t> physical_size_mm = {0, 0};
+	std::string name;
+	std::string description;
 	uint32_t scale = 1;
 
 	output_wrapper(wl_registry& registry, uint32_t id, uint32_t interface_version) :
