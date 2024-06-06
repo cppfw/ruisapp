@@ -60,6 +60,10 @@ using namespace ruisapp;
 
 namespace {
 struct registry_wrapper;
+struct window_wrapper;
+
+window_wrapper& get_impl(const std::unique_ptr<utki::destructable>& pimpl);
+window_wrapper& get_impl(application& app);
 } // namespace
 
 namespace {
@@ -681,21 +685,7 @@ class output_wrapper
 		const char* make,
 		const char* model,
 		int32_t transform
-	)
-	{
-		ASSERT(data)
-		auto& self = *static_cast<output_wrapper*>(data);
-
-		self.position = {uint32_t(x), uint32_t(y)};
-		self.physical_size_mm = {uint32_t(physical_width), uint32_t(physical_height)};
-
-		LOG([&](auto& o) {
-			o << "output(" << self.id << ")" << '\n' //
-			  << "  physical_size_mm = " << self.physical_size_mm << '\n' //
-			  << "  make = " << make << '\n' //
-			  << "  model = " << model << std::endl;
-		})
-	}
+	);
 
 	static void wl_output_mode(
 		void* data,
@@ -704,17 +694,7 @@ class output_wrapper
 		int32_t width,
 		int32_t height,
 		int32_t refresh
-	)
-	{
-		ASSERT(data)
-		auto& self = *static_cast<output_wrapper*>(data);
-
-		self.resolution = {uint32_t(width), uint32_t(height)};
-
-		LOG([&](auto& o) {
-			o << "output(" << self.id << ") resolution = " << self.resolution << std::endl;
-		})
-	}
+	);
 
 	// NOTE: done event only comes from wl_output_interface version 2 or above.
 	static void wl_output_done(void* data, struct wl_output* wl_output)
@@ -729,17 +709,7 @@ class output_wrapper
 		})
 	}
 
-	static void wl_output_scale(void* data, struct wl_output* wl_output, int32_t factor)
-	{
-		ASSERT(data)
-		auto& self = *static_cast<output_wrapper*>(data);
-
-		self.scale = uint32_t(std::max(factor, 1));
-
-		LOG([&](auto& o) {
-			o << "output(" << self.id << ") scale = " << self.scale << std::endl;
-		})
-	}
+	static void wl_output_scale(void* data, struct wl_output* wl_output, int32_t factor);
 
 	static void wl_output_name(void* data, struct wl_output* wl_output, const char* name)
 	{
@@ -1160,7 +1130,7 @@ struct surface_wrapper {
 			if (i == outputs.end()) {
 				LOG([&](auto& o) {
 					o << "WARNING: wayland surface entered output with id = " << id
-					  << ", but no output with such id is reported";
+					  << ", but no output with such id is reported" << std::endl;
 				})
 				continue;
 			}
@@ -1176,33 +1146,9 @@ struct surface_wrapper {
 private:
 	std::set<wl_output*> outputs;
 
-	static void wl_surface_enter(void* data, wl_surface* surface, wl_output* output)
-	{
-		LOG([&](auto& o) {
-			o << "surface enters output(" << get_output_id(output) << ")" << std::endl;
-		})
+	static void wl_surface_enter(void* data, wl_surface* surface, wl_output* output);
 
-		ASSERT(data)
-		auto& self = *static_cast<surface_wrapper*>(data);
-
-		ASSERT(self.outputs.find(output) == self.outputs.end())
-
-		self.outputs.insert(output);
-	}
-
-	static void wl_surface_leave(void* data, wl_surface* surface, wl_output* output)
-	{
-		LOG([&](auto& o) {
-			o << "surface leaves output(" << get_output_id(output) << ")" << std::endl;
-		})
-
-		ASSERT(data)
-		auto& self = *static_cast<surface_wrapper*>(data);
-
-		ASSERT(self.outputs.find(output) != self.outputs.end())
-
-		self.outputs.erase(output);
-	}
+	static void wl_surface_leave(void* data, wl_surface* surface, wl_output* output);
 
 	constexpr static const wl_surface_listener listener = {
 		.enter = &wl_surface_enter, //
@@ -1649,12 +1595,6 @@ private:
 } // namespace
 
 namespace {
-
-struct window_wrapper;
-
-window_wrapper& get_impl(const std::unique_ptr<utki::destructable>& pimpl);
-window_wrapper& get_impl(application& app);
-
 struct window_wrapper : public utki::destructable {
 	std::atomic_bool quit_flag = false;
 
@@ -1787,7 +1727,7 @@ struct window_wrapper : public utki::destructable {
 				return;
 			}
 
-			auto& ww = get_impl(ruisapp::inst());
+			auto& ww = get_impl(ruisapp::application::inst());
 
 			// if both width and height are zero, then it is one of states checked above
 			if (width == 0 && height == 0) {
@@ -1872,6 +1812,7 @@ struct window_wrapper : public utki::destructable {
 			wl_egl_window_destroy(this->win);
 		}
 
+		// TODO: not needed, remove?
 		r4::vector2<uint32_t> get_buffer_dims() const
 		{
 			r4::vector2<int> ret;
@@ -2048,7 +1989,8 @@ struct window_wrapper : public utki::destructable {
 		xdg_surface(this->surface, this->wm_base),
 		toplevel(this->surface, this->xdg_surface),
 		egl_window(this->surface, wp.dims),
-		egl_context(this->display, this->egl_window, wp)
+		egl_context(this->display, this->egl_window, wp),
+		cur_window_dims(wp.dims)
 	{
 		// WORKAROUND: the following calls are figured out by trial and error. Without those the wayland main loop
 		//             either gets stuck on waiting for events and no events come and window is not shown, or
@@ -2115,11 +2057,16 @@ struct window_wrapper : public utki::destructable {
 		// return application::get_pixels_per_pp(resolution, screen_size_mm);
 	}
 
+	// keep track of current window dimensions
+	r4::vector2<uint32_t> cur_window_dims;
+
 	bool fullscreen = false;
 	r4::vector2<uint32_t> pre_fullscreen_win_dims;
 
 	void resize(r4::vector2<uint32_t> dims)
 	{
+		this->cur_window_dims = dims;
+
 		LOG([&](auto& o) {
 			o << "resize window to " << std::dec << dims << std::endl;
 		})
@@ -2148,6 +2095,24 @@ struct window_wrapper : public utki::destructable {
 
 		update_window_rect(ruisapp::inst(), ruis::rect(0, win_rect_dims));
 	}
+
+	void notify_outputs_changed()
+	{
+		if (this->outputs_changed_message_pending) {
+			return;
+		}
+
+		this->outputs_changed_message_pending = true;
+
+		this->ui_queue.push_back([this]() {
+			this->outputs_changed_message_pending = false;
+
+			this->resize(this->cur_window_dims);
+		});
+	}
+
+private:
+	bool outputs_changed_message_pending = false;
 };
 
 window_wrapper& get_impl(const std::unique_ptr<utki::destructable>& pimpl)
@@ -2221,7 +2186,7 @@ void application::set_fullscreen(bool fullscreen)
 	})
 
 	if (fullscreen) {
-		ww.pre_fullscreen_win_dims = ww.egl_window.get_buffer_dims();
+		ww.pre_fullscreen_win_dims = ww.cur_window_dims;
 		LOG([&](auto& o) {
 			o << " old win dims = " << std::dec << ww.pre_fullscreen_win_dims << std::endl;
 		})
@@ -2347,4 +2312,132 @@ int main(int argc, const char** argv)
 	}
 
 	return 0;
+}
+
+void output_wrapper::wl_output_geometry(
+	void* data,
+	struct wl_output* wl_output,
+	int32_t x,
+	int32_t y,
+	int32_t physical_width,
+	int32_t physical_height,
+	int32_t subpixel,
+	const char* make,
+	const char* model,
+	int32_t transform
+)
+{
+	ASSERT(data)
+	auto& self = *static_cast<output_wrapper*>(data);
+
+	self.position = {uint32_t(x), uint32_t(y)};
+	self.physical_size_mm = {uint32_t(physical_width), uint32_t(physical_height)};
+
+	LOG([&](auto& o) {
+		o << "output(" << self.id << ")" << '\n' //
+		  << "  physical_size_mm = " << self.physical_size_mm << '\n' //
+		  << "  make = " << make << '\n' //
+		  << "  model = " << model << std::endl;
+	})
+
+	if (!application_constructed) {
+		// unable to obtain window_wrapper object before application is constructed,
+		// cannot do more without window_wrapper object
+		LOG([](auto& o) {
+			o << "  called within application constructor" << std::endl;
+		})
+		return;
+	}
+
+	auto& ww = get_impl(ruisapp::application::inst());
+	ww.notify_outputs_changed();
+}
+
+void output_wrapper::wl_output_mode(
+	void* data,
+	struct wl_output* wl_output,
+	uint32_t flags,
+	int32_t width,
+	int32_t height,
+	int32_t refresh
+)
+{
+	ASSERT(data)
+	auto& self = *static_cast<output_wrapper*>(data);
+
+	self.resolution = {uint32_t(width), uint32_t(height)};
+
+	LOG([&](auto& o) {
+		o << "output(" << self.id << ") resolution = " << self.resolution << std::endl;
+	})
+
+	if (!application_constructed) {
+		// unable to obtain window_wrapper object before application is constructed,
+		// cannot do more without window_wrapper object
+		LOG([](auto& o) {
+			o << "  called within application constructor" << std::endl;
+		})
+		return;
+	}
+
+	auto& ww = get_impl(ruisapp::application::inst());
+	ww.notify_outputs_changed();
+}
+
+void output_wrapper::wl_output_scale(void* data, struct wl_output* wl_output, int32_t factor)
+{
+	ASSERT(data)
+	auto& self = *static_cast<output_wrapper*>(data);
+
+	self.scale = uint32_t(std::max(factor, 1));
+
+	LOG([&](auto& o) {
+		o << "output(" << self.id << ") scale = " << self.scale << std::endl;
+	})
+
+	if (!application_constructed) {
+		// unable to obtain window_wrapper object before application is constructed,
+		// cannot do more without window_wrapper object
+		LOG([](auto& o) {
+			o << "  called within application constructor" << std::endl;
+		})
+		return;
+	}
+
+	auto& ww = get_impl(ruisapp::application::inst());
+	ww.notify_outputs_changed();
+}
+
+void surface_wrapper::wl_surface_enter(void* data, wl_surface* surface, wl_output* output)
+{
+	LOG([&](auto& o) {
+		o << "surface enters output(" << get_output_id(output) << ")" << std::endl;
+	})
+
+	ASSERT(data)
+	auto& self = *static_cast<surface_wrapper*>(data);
+
+	ASSERT(self.outputs.find(output) == self.outputs.end())
+
+	self.outputs.insert(output);
+
+	auto& ww = get_impl(ruisapp::application::inst());
+	ww.notify_outputs_changed();
+}
+
+void surface_wrapper::wl_surface_leave(void* data, wl_surface* surface, wl_output* output)
+{
+	LOG([&](auto& o) {
+		o << "surface leaves output(" << get_output_id(output) << ")" << std::endl;
+	})
+
+	ASSERT(data)
+	auto& self = *static_cast<surface_wrapper*>(data);
+
+	ASSERT(self.outputs.find(output) != self.outputs.end())
+
+	self.outputs.erase(output);
+
+	auto& ww = get_impl(ruisapp::application::inst());
+	ww.notify_outputs_changed();
 }
