@@ -1338,13 +1338,7 @@ private:
 		handle_mouse_move(ruisapp::inst(), self.cur_pointer_pos, 0);
 	}
 
-	static void wl_pointer_motion(void* data, wl_pointer* pointer, uint32_t time, wl_fixed_t x, wl_fixed_t y)
-	{
-		// std::cout << "mouse move: x,y = " << std::dec << x << ", " << y << std::endl;
-		auto& self = *static_cast<pointer_wrapper*>(data);
-		self.cur_pointer_pos = ruis::vector2(wl_fixed_to_int(x), wl_fixed_to_int(y));
-		handle_mouse_move(ruisapp::inst(), self.cur_pointer_pos, 0);
-	}
+	static void wl_pointer_motion(void* data, wl_pointer* pointer, uint32_t time, wl_fixed_t x, wl_fixed_t y);
 
 	static void wl_pointer_button(
 		void* data,
@@ -2005,63 +1999,13 @@ struct window_wrapper : public utki::destructable {
 		})
 	}
 
-	ruis::real get_dots_per_inch()
-	{
-		// TODO:
-		return 96; // NOLINT
-
-		// int src_num = 0;
-
-		// constexpr auto mm_per_cm = 10;
-
-		// ruis::real value =
-		// 	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-		// 	((ruis::real(DisplayWidth(this->display.display, src_num))
-		// 	  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-		// 	  / (ruis::real(DisplayWidthMM(this->display.display, src_num)) / ruis::real(mm_per_cm)))
-		// 	 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-		// 	 +
-		// 	 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-		// 	 (ruis::real(DisplayHeight(this->display.display, src_num))
-		// 	  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-		// 	  / (ruis::real(DisplayHeightMM(this->display.display, src_num)) / ruis::real(mm_per_cm)))) /
-		// 	2;
-		// value *= ruis::real(utki::cm_per_inch);
-		// return value;
-	}
-
-	ruis::real get_dots_per_pp()
-	{
-		// TODO:
-		return 1;
-
-		// // TODO: use scale factor only for desktop monitors
-		// if (this->scale_factor != ruis::real(1)) {
-		// 	return this->scale_factor;
-		// }
-
-		// int src_num = 0;
-		// r4::vector2<unsigned> resolution(
-		// 	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-		// 	DisplayWidth(this->display.display, src_num),
-		// 	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-		// 	DisplayHeight(this->display.display, src_num)
-		// );
-		// r4::vector2<unsigned> screen_size_mm(
-		// 	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-		// 	DisplayWidthMM(this->display.display, src_num),
-		// 	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-		// 	DisplayHeightMM(this->display.display, src_num)
-		// );
-
-		// return application::get_pixels_per_pp(resolution, screen_size_mm);
-	}
-
 	// keep track of current window dimensions
 	r4::vector2<uint32_t> cur_window_dims;
 
 	bool fullscreen = false;
 	r4::vector2<uint32_t> pre_fullscreen_win_dims;
+
+	ruis::real scale = 1;
 
 	void resize(r4::vector2<uint32_t> dims)
 	{
@@ -2089,11 +2033,15 @@ struct window_wrapper : public utki::destructable {
 			o << "final window scale = " << scale << std::endl;
 		})
 
-		// TODO: update scale in ruis::context
+		this->scale = ruis::real(scale);
 
-		ruis::vec2 win_rect_dims{ruis::real(dims.x()), ruis::real(dims.y())};
+		auto& app = ruisapp::inst();
 
-		update_window_rect(ruisapp::inst(), ruis::rect(0, win_rect_dims));
+		// update ruis::context::units
+		app.gui.context.get().units.set_dots_per_pp(this->scale);
+		// TODO: update dots_per_inch
+
+		update_window_rect(app, ruis::rect(0, dims.to<ruis::real>()));
 	}
 
 	void notify_outputs_changed()
@@ -2148,9 +2096,7 @@ application::application(std::string name, const window_params& wp) :
 		[this](ruis::mouse_cursor c) {
 			auto& ww = get_impl(*this);
 			ww.seat.pointer.set_cursor(c);
-		},
-		get_impl(this->window_pimpl).get_dots_per_inch(),
-		get_impl(this->window_pimpl).get_dots_per_pp()
+		}
 	)),
 	storage_dir(initialize_storage_dir(this->name))
 {
@@ -2440,4 +2386,22 @@ void surface_wrapper::wl_surface_leave(void* data, wl_surface* surface, wl_outpu
 
 	auto& ww = get_impl(ruisapp::application::inst());
 	ww.notify_outputs_changed();
+}
+
+void pointer_wrapper::wl_pointer_motion(void* data, wl_pointer* pointer, uint32_t time, wl_fixed_t x, wl_fixed_t y)
+{
+	ASSERT(data)
+	auto& self = *static_cast<pointer_wrapper*>(data);
+
+	auto& ww = get_impl(ruisapp::application::inst());
+
+	ruis::vector2 pos( //
+		ruis::real(wl_fixed_to_double(x)),
+		ruis::real(wl_fixed_to_double(y))
+	);
+	pos *= ww.scale;
+	self.cur_pointer_pos = round(pos);
+
+	// std::cout << "mouse move: x,y = " << std::dec << self.cur_pointer_pos << std::endl;
+	handle_mouse_move(ruisapp::inst(), self.cur_pointer_pos, 0);
 }
