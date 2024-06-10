@@ -25,6 +25,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <nitki/queue.hpp>
 #include <opros/wait_set.hpp>
 #include <papki/fs_file.hpp>
+#include <ruis/widgets/widget.hpp>
 #include <sys/mman.h>
 #include <utki/destructable.hpp>
 #include <utki/unicode.hpp>
@@ -2055,7 +2056,13 @@ struct window_wrapper : public utki::destructable {
 		this->ui_queue.push_back([this]() {
 			this->outputs_changed_message_pending = false;
 
+			// this call will update ruis::context::units values
 			this->resize(this->cur_window_dims);
+
+			// reload widgets herarchy due to possible update of ruis::context::units values
+			auto& app = ruisapp::application::inst();
+			auto& root_widget = app.gui.get_root();
+			root_widget.reload();
 		});
 	}
 
