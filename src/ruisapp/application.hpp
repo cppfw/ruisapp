@@ -287,7 +287,7 @@ class application_factory
 {
 public:
 	using factory_type =
-		std::function<std::unique_ptr<application>(std::string_view executable, utki::span<const char*>)>;
+		std::function<std::unique_ptr<application>(std::string_view executable, utki::span<const char*> args)>;
 
 	/**
 	 * @brief Constructor.
