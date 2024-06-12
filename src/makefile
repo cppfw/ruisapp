@@ -4,6 +4,7 @@ include prorab-linux.mk
 include prorab-clang-format.mk
 include prorab-install-dbgsrc.mk
 
+# =====================================
 # === wayland shell client protocol ===
 
 ifeq ($(os), linux)
@@ -39,10 +40,10 @@ $(.RECIPEPREFIX)$(a)wayland-scanner client-header $$< $$@
 
 endif
 
+# ===============
 # === ruisapp ===
-$(eval $(prorab-clear-this-vars))
-
 define ruisapp_rules
+    $$(eval $$(prorab-clear-this-vars))
 
     $$(eval $$(call prorab-config, ../config))
 
@@ -112,8 +113,6 @@ $(.RECIPEPREFIX)$(a)$(this_cc) -ObjC++ -c -o "$$$$@" $$(this_cxxflags) $$(OBJCXX
             $$(prorab_this_name): $(wayland_shell_protocol_lib)
         endif
     endif
-
-    $$(eval $$(prorab-clear-this-vars))
 endef
 
 ifeq ($(os), linux)
@@ -127,6 +126,12 @@ endif
 
 # clear variable
 ruisapp_rules :=
+
+# ===============================
+# === license, format, dbgsrc ===
+$(eval $(prorab-clear-this-vars))
+
+$(eval $(call prorab-config, ../config))
 
 this_license_file := ../LICENSE
 this_src_dir := ruisapp
