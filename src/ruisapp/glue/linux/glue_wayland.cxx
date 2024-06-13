@@ -758,6 +758,12 @@ public:
 	std::string description;
 	uint32_t scale = 1;
 
+	uint32_t get_dpi() const noexcept
+	{
+		auto dpi = (this->resolution * utki::mm_per_inch).comp_div(this->physical_size_mm);
+		return (dpi.x() + dpi.y()) / 2;
+	}
+
 	output_wrapper(wl_registry& registry, uint32_t id, uint32_t interface_version) :
 		output([&]() {
 			void* output = wl_registry_bind(&registry, id, &wl_output_interface, std::min(interface_version, 2u));
@@ -1109,23 +1115,35 @@ struct surface_wrapper {
 		wl_surface_set_opaque_region(this->sur, region.reg);
 	}
 
-	uint32_t find_max_scale(const std::map<uint32_t, output_wrapper>& outputs)
+	struct scale_and_dpi {
+		uint32_t scale = 1;
+		uint32_t dpi = 96;
+	};
+
+	scale_and_dpi find_scale_and_dpi(const std::map<uint32_t, output_wrapper>& outputs)
 	{
-		std::cout << "looking for max scale" << std::endl;
+		LOG([](auto& o) {
+			o << "looking for max scale" << std::endl;
+		})
 
 		// if surface did not enter any outputs yet, then just take scale of first available output
 		if (this->outputs.empty()) {
-			std::cout << "  surface has not entered any outputs yet" << std::endl;
-			return 1;
+			LOG([](auto& o) {
+				o << "  surface has not entered any outputs yet" << std::endl;
+			})
+			return {};
 		}
 
-		uint32_t max_scale = 1;
+		uint32_t max_scale;
+		uint32_t dpi;
 
 		// go through outputs which the surface has entered
 		for (auto wlo : this->outputs) {
 			auto id = get_output_id(wlo);
 
-			std::cout << "  check output id = " << id << std::endl;
+			LOG([&](auto& o) {
+				o << "  check output id = " << id << std::endl;
+			})
 
 			auto i = outputs.find(id);
 			if (i == outputs.end()) {
@@ -1136,12 +1154,20 @@ struct surface_wrapper {
 				continue;
 			}
 
-			std::cout << "  output found, scale = " << i->second.scale << std::endl;
+			auto& output = i->second;
 
-			max_scale = std::max(i->second.scale, max_scale);
+			LOG([&](auto& o) {
+				o << "  output found, scale = " << output.scale << std::endl;
+			})
+
+			max_scale = std::max(output.scale, max_scale);
+			dpi = output.get_dpi();
 		}
 
-		return max_scale;
+		return {
+			.scale = max_scale, //
+			.dpi = dpi
+		};
 	}
 
 private:
@@ -2016,9 +2042,9 @@ struct window_wrapper : public utki::destructable {
 			o << "resize window to " << std::dec << dims << std::endl;
 		})
 
-		auto scale = this->surface.find_max_scale(this->registry.outputs);
+		auto sd = this->surface.find_scale_and_dpi(this->registry.outputs);
 
-		dims *= scale;
+		dims *= sd.scale;
 
 		wl_egl_window_resize(this->egl_window.win, int(dims.x()), int(dims.y()), 0, 0);
 
@@ -2031,16 +2057,17 @@ struct window_wrapper : public utki::destructable {
 		this->surface.commit();
 
 		LOG([&](auto& o) {
-			o << "final window scale = " << scale << std::endl;
+			o << "final window scale = " << sd.scale << std::endl;
 		})
 
-		this->scale = ruis::real(scale);
+		this->scale = ruis::real(sd.scale);
 
 		auto& app = ruisapp::inst();
 
 		// update ruis::context::units
-		app.gui.context.get().units.set_dots_per_pp(this->scale);
-		// TODO: update dots_per_inch
+		auto& units = app.gui.context.get().units;
+		units.set_dots_per_pp(this->scale);
+		units.set_dots_per_inch(ruis::real(sd.dpi));
 
 		update_window_rect(app, ruis::rect(0, dims.to<ruis::real>()));
 	}
