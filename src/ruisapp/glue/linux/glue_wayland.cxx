@@ -1134,8 +1134,7 @@ struct surface_wrapper {
 			return {};
 		}
 
-		uint32_t max_scale;
-		float dpi;
+		scale_and_dpi max_sd;
 
 		// go through outputs which the surface has entered
 		for (auto wlo : this->outputs) {
@@ -1160,14 +1159,11 @@ struct surface_wrapper {
 				o << "  output found, scale = " << output.scale << std::endl;
 			})
 
-			max_scale = std::max(output.scale, max_scale);
-			dpi = output.get_dpi();
+			max_sd.scale = std::max(output.scale, max_sd.scale);
+			max_sd.dpi = output.get_dpi();
 		}
 
-		return {
-			.scale = max_scale, //
-			.dpi = dpi
-		};
+		return max_sd;
 	}
 
 private:
