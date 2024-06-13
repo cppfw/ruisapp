@@ -1117,7 +1117,9 @@ struct surface_wrapper {
 
 	struct scale_and_dpi {
 		uint32_t scale = 1;
-		float dpi = 96;
+
+		constexpr static const float default_dpi = 96;
+		float dpi = default_dpi;
 	};
 
 	scale_and_dpi find_scale_and_dpi(const std::map<uint32_t, output_wrapper>& outputs)
