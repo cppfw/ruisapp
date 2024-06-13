@@ -758,9 +758,9 @@ public:
 	std::string description;
 	uint32_t scale = 1;
 
-	uint32_t get_dpi() const noexcept
+	float get_dpi() const noexcept
 	{
-		auto dpi = (this->resolution * utki::mm_per_inch).comp_div(this->physical_size_mm);
+		auto dpi = (this->resolution.to<float>() * utki::mm_per_inch).comp_div(this->physical_size_mm.to<float>());
 		return (dpi.x() + dpi.y()) / 2;
 	}
 
@@ -1117,7 +1117,7 @@ struct surface_wrapper {
 
 	struct scale_and_dpi {
 		uint32_t scale = 1;
-		uint32_t dpi = 96;
+		float dpi = 96;
 	};
 
 	scale_and_dpi find_scale_and_dpi(const std::map<uint32_t, output_wrapper>& outputs)
@@ -1135,7 +1135,7 @@ struct surface_wrapper {
 		}
 
 		uint32_t max_scale;
-		uint32_t dpi;
+		float dpi;
 
 		// go through outputs which the surface has entered
 		for (auto wlo : this->outputs) {
