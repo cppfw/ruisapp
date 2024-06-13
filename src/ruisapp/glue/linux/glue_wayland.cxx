@@ -2048,7 +2048,7 @@ struct window_wrapper : public utki::destructable {
 		region.add(r4::rectangle({0, 0}, dims.to<int32_t>()));
 		this->surface.set_opaque_region(region);
 
-		this->surface.set_buffer_scale(scale);
+		this->surface.set_buffer_scale(sd.scale);
 
 		this->surface.commit();
 
