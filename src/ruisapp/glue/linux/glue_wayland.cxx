@@ -1264,7 +1264,7 @@ struct pointer_wrapper {
 		}
 
 		if (wl_pointer_add_listener(this->pointer, &listener, this) != 0) {
-			wl_pointer_release(this->pointer);
+			this->release();
 			this->num_connected = 0;
 			throw std::runtime_error("could not add listener to wayland pointer interface");
 		}
@@ -1283,7 +1283,7 @@ struct pointer_wrapper {
 		--this->num_connected;
 
 		if (this->num_connected == 0) {
-			wl_pointer_release(this->pointer);
+			this->release();
 			this->pointer = nullptr;
 		}
 	}
@@ -1334,15 +1334,20 @@ struct pointer_wrapper {
 	~pointer_wrapper()
 	{
 		if (this->pointer) {
-			if (wl_pointer_get_version(this->pointer) >= WL_POINTER_RELEASE_SINCE_VERSION) {
-				wl_pointer_release(this->pointer);
-			} else {
-				wl_pointer_destroy(this->pointer);
-			}
+			this->release();
 		}
 	}
 
 private:
+	void release()
+	{
+		if (wl_pointer_get_version(this->pointer) >= WL_POINTER_RELEASE_SINCE_VERSION) {
+			wl_pointer_release(this->pointer);
+		} else {
+			wl_pointer_destroy(this->pointer);
+		}
+	}
+
 	static void wl_pointer_enter(
 		void* data,
 		wl_pointer* pointer,
@@ -1512,11 +1517,116 @@ private:
 } // namespace
 
 namespace {
+class touch_wrapper
+{
+	wl_touch* touch = nullptr;
+
+	unsigned num_connected = 0;
+
+	void release()
+	{
+		ASSERT(this->touch)
+		if (wl_touch_get_version(this->touch) >= WL_TOUCH_RELEASE_SINCE_VERSION) {
+			wl_touch_release(this->touch);
+		} else {
+			wl_touch_destroy(this->touch);
+		}
+	}
+
+	static void wl_touch_down(
+		void* data,
+		wl_touch* touch,
+		uint32_t serial,
+		uint32_t time,
+		wl_surface* surface,
+		int32_t id,
+		wl_fixed_t x,
+		wl_fixed_t y
+	)
+	{}
+
+	static void wl_touch_up(void* data, wl_touch* touch, uint32_t serial, uint32_t time, int32_t id) {}
+
+	static void wl_touch_motion(void* data, wl_touch* touch, uint32_t time, int32_t id, wl_fixed_t x, wl_fixed_t y) {}
+
+	static void wl_touch_frame(void* data, wl_touch* touch) {}
+
+	static void wl_touch_cancel(void* data, wl_touch* touch) {}
+
+	static void wl_touch_shape(void* data, wl_touch* touch, int32_t id, wl_fixed_t major, wl_fixed_t minor) {}
+
+	static void wl_touch_orientation(void* data, wl_touch* touch, int32_t id, wl_fixed_t orientation) {}
+
+	constexpr static const wl_touch_listener listener = {
+		.down = &wl_touch_down,
+		.up = &wl_touch_up,
+		.motion = &wl_touch_motion,
+		.frame = &wl_touch_frame,
+		.cancel = &wl_touch_cancel,
+		.shape = &wl_touch_shape,
+		.orientation = &wl_touch_orientation
+	};
+
+public:
+	touch_wrapper() {}
+
+	~touch_wrapper()
+	{
+		if (this->touch) {
+			this->release();
+		}
+	}
+
+	void connect(wl_seat* seat)
+	{
+		++this->num_connected;
+
+		if (this->num_connected > 1) {
+			// already connected
+			ASSERT(this->touch)
+			return;
+		}
+
+		this->touch = wl_seat_get_touch(seat);
+		if (!this->touch) {
+			this->num_connected = 0;
+			throw std::runtime_error("could not get wayland touch interface");
+		}
+
+		if (wl_touch_add_listener(this->touch, &listener, this) != 0) {
+			this->release();
+			this->num_connected = 0;
+			throw std::runtime_error("could not add listener to wayland touch interface");
+		}
+	}
+
+	void disconnect() noexcept
+	{
+		if (this->num_connected == 0) {
+			// no pointers connected
+			ASSERT(!this->touch)
+			return;
+		}
+
+		ASSERT(this->touch)
+
+		--this->num_connected;
+
+		if (this->num_connected == 0) {
+			this->release();
+			this->touch = nullptr;
+		}
+	}
+};
+} // namespace
+
+namespace {
 class seat_wrapper
 {
 public:
 	pointer_wrapper pointer;
 	keyboard_wrapper keyboard;
+	touch_wrapper touch;
 
 	seat_wrapper(const registry_wrapper& registry, const compositor_wrapper& compositor, const shm_wrapper& shm) :
 		pointer(compositor, shm),
@@ -1576,12 +1686,12 @@ private:
 
 		if (have_pointer) {
 			LOG([&](auto& o) {
-				o << "  pointer connected " << std::endl;
+				o << "  pointer connected" << std::endl;
 			})
 			self.pointer.connect(self.seat);
 		} else {
 			LOG([&](auto& o) {
-				o << "  pointer disconnected " << std::endl;
+				o << "  pointer disconnected" << std::endl;
 			})
 			self.pointer.disconnect();
 		}
@@ -1590,14 +1700,28 @@ private:
 
 		if (have_keyboard) {
 			LOG([&](auto& o) {
-				o << "  keyboard connected " << std::endl;
+				o << "  keyboard connected" << std::endl;
 			})
 			self.keyboard.connect(self.seat);
 		} else {
 			LOG([&](auto& o) {
-				o << "  keyboard disconnected " << std::endl;
+				o << "  keyboard disconnected" << std::endl;
 			})
 			self.keyboard.disconnect();
+		}
+
+		bool have_touch = capabilities & WL_SEAT_CAPABILITY_TOUCH;
+
+		if (have_touch) {
+			LOG([&](auto& o) {
+				o << "  touch connected" << std::endl;
+			})
+			self.touch.connect(self.seat);
+		} else {
+			LOG([&](auto& o) {
+				o << "  touch disconnected" << std::endl;
+			})
+			self.touch.disconnect();
 		}
 	}
 
