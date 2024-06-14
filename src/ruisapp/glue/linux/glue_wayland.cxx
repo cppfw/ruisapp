@@ -1619,7 +1619,13 @@ class touch_wrapper
 	};
 
 public:
-	touch_wrapper() {}
+	touch_wrapper() = default;
+
+	touch_wrapper(const touch_wrapper&) = delete;
+	touch_wrapper& operator=(const touch_wrapper&) = delete;
+
+	touch_wrapper(touch_wrapper&&) = delete;
+	touch_wrapper& operator=(touch_wrapper&&) = delete;
 
 	~touch_wrapper()
 	{
