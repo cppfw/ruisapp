@@ -1523,6 +1523,13 @@ class touch_wrapper
 
 	unsigned num_connected = 0;
 
+	struct touch_point {
+		unsigned ruis_id;
+		ruis::vec2 pos;
+	};
+
+	std::map<int32_t, touch_point> touch_points;
+
 	void release()
 	{
 		ASSERT(this->touch)
@@ -1533,7 +1540,7 @@ class touch_wrapper
 		}
 	}
 
-	static void wl_touch_down(
+	static void wl_touch_down( //
 		void* data,
 		wl_touch* touch,
 		uint32_t serial,
@@ -1542,20 +1549,64 @@ class touch_wrapper
 		int32_t id,
 		wl_fixed_t x,
 		wl_fixed_t y
+	);
+
+	static void wl_touch_up( //
+		void* data,
+		wl_touch* touch,
+		uint32_t serial,
+		uint32_t time,
+		int32_t id
+	);
+
+	static void wl_touch_motion( //
+		void* data,
+		wl_touch* touch,
+		uint32_t time,
+		int32_t id,
+		wl_fixed_t x,
+		wl_fixed_t y
+	);
+
+	static void wl_touch_frame( //
+		void* data,
+		wl_touch* touch
 	)
-	{}
+	{
+		LOG([](auto& o) {
+			o << "wayland: touch frame event" << std::endl;
+		})
+	}
 
-	static void wl_touch_up(void* data, wl_touch* touch, uint32_t serial, uint32_t time, int32_t id) {}
+	static void wl_touch_cancel( //
+		void* data,
+		wl_touch* touch
+	);
 
-	static void wl_touch_motion(void* data, wl_touch* touch, uint32_t time, int32_t id, wl_fixed_t x, wl_fixed_t y) {}
+	static void wl_touch_shape( //
+		void* data,
+		wl_touch* touch,
+		int32_t id,
+		wl_fixed_t major,
+		wl_fixed_t minor
+	)
+	{
+		LOG([](auto& o) {
+			o << "wayland: touch shape event" << std::endl;
+		})
+	}
 
-	static void wl_touch_frame(void* data, wl_touch* touch) {}
-
-	static void wl_touch_cancel(void* data, wl_touch* touch) {}
-
-	static void wl_touch_shape(void* data, wl_touch* touch, int32_t id, wl_fixed_t major, wl_fixed_t minor) {}
-
-	static void wl_touch_orientation(void* data, wl_touch* touch, int32_t id, wl_fixed_t orientation) {}
+	static void wl_touch_orientation( //
+		void* data,
+		wl_touch* touch,
+		int32_t id,
+		wl_fixed_t orientation
+	)
+	{
+		LOG([](auto& o) {
+			o << "wayland: touch orientation event" << std::endl;
+		})
+	}
 
 	constexpr static const wl_touch_listener listener = {
 		.down = &wl_touch_down,
@@ -2559,5 +2610,168 @@ void pointer_wrapper::wl_pointer_motion(void* data, wl_pointer* pointer, uint32_
 	self.cur_pointer_pos = round(pos);
 
 	// std::cout << "mouse move: x,y = " << std::dec << self.cur_pointer_pos << std::endl;
-	handle_mouse_move(ruisapp::inst(), self.cur_pointer_pos, 0);
+	handle_mouse_move( //
+		ruisapp::application::inst(),
+		self.cur_pointer_pos,
+		0
+	);
+}
+
+void touch_wrapper::wl_touch_down( //
+	void* data,
+	wl_touch* touch,
+	uint32_t serial,
+	uint32_t time,
+	wl_surface* surface,
+	int32_t id,
+	wl_fixed_t x,
+	wl_fixed_t y
+)
+{
+	LOG([](auto& o) {
+		o << "wayland: touch down event" << std::endl;
+	})
+
+	auto& ww = get_impl(ruisapp::application::inst());
+
+	if (ww.surface.sur != surface) {
+		LOG([](auto& o) {
+			o << "  non-window surface touched, ignore" << std::endl;
+		})
+		return;
+	}
+
+	ASSERT(data)
+	auto& self = *static_cast<touch_wrapper*>(data);
+	ASSERT(self.touch == touch)
+
+	ASSERT(!utki::contains(self.touch_points, id))
+
+	ruis::vector2 pos( //
+		ruis::real(wl_fixed_to_double(x)),
+		ruis::real(wl_fixed_to_double(y))
+	);
+	pos = round(pos * ww.scale);
+
+	auto insert_result = self.touch_points.insert(std::make_pair(
+		id,
+		touch_point{
+			.ruis_id = unsigned(id) + 1, // id = 0 reserved for mouse
+			.pos = pos
+		}
+	));
+	ASSERT(insert_result.second) // pair successfully inserted
+
+	const touch_point& tp = insert_result.first->second;
+
+	handle_mouse_button(
+		ruisapp::application::inst(),
+		true, // is_down
+		tp.pos,
+		ruis::mouse_button::left,
+		tp.ruis_id
+	);
+}
+
+void touch_wrapper::wl_touch_up( //
+	void* data,
+	wl_touch* touch,
+	uint32_t serial,
+	uint32_t time,
+	int32_t id
+)
+{
+	LOG([](auto& o) {
+		o << "wayland: touch up event" << std::endl;
+	})
+
+	ASSERT(data)
+	auto& self = *static_cast<touch_wrapper*>(data);
+	ASSERT(self.touch == touch)
+
+	auto i = self.touch_points.find(id);
+	ASSERT(i != self.touch_points.end())
+
+	const touch_point& tp = i->second;
+
+	handle_mouse_button(
+		ruisapp::application::inst(),
+		false, // is_down
+		tp.pos,
+		ruis::mouse_button::left,
+		tp.ruis_id
+	);
+
+	self.touch_points.erase(i);
+}
+
+void touch_wrapper::wl_touch_motion( //
+	void* data,
+	wl_touch* touch,
+	uint32_t time,
+	int32_t id,
+	wl_fixed_t x,
+	wl_fixed_t y
+)
+{
+	LOG([](auto& o) {
+		o << "wayland: touch motion event" << std::endl;
+	})
+
+	auto& ww = get_impl(ruisapp::application::inst());
+
+	ASSERT(data)
+	auto& self = *static_cast<touch_wrapper*>(data);
+	ASSERT(self.touch == touch)
+
+	auto i = self.touch_points.find(id);
+	ASSERT(i != self.touch_points.end())
+
+	touch_point& tp = i->second;
+
+	ruis::vector2 pos( //
+		ruis::real(wl_fixed_to_double(x)),
+		ruis::real(wl_fixed_to_double(y))
+	);
+	pos = round(pos * ww.scale);
+
+	tp.pos = pos;
+
+	handle_mouse_move( //
+		ruisapp::application::inst(),
+		tp.pos,
+		tp.ruis_id
+	);
+}
+
+// sent when compositor desides that touch gesture is in going on, so
+// all touch points become invalid and must be cancelled. No further
+// events will be sent by wayland for current touch points.
+void touch_wrapper::wl_touch_cancel( //
+	void* data,
+	wl_touch* touch
+)
+{
+	LOG([](auto& o) {
+		o << "wayland: touch cancel event" << std::endl;
+	})
+
+	ASSERT(data)
+	auto& self = *static_cast<touch_wrapper*>(data);
+	ASSERT(self.touch == touch)
+
+	// send out-of-window button-up events fro all touch points
+	for (const auto& pair : self.touch_points) {
+		const auto& tp = pair.second;
+
+		handle_mouse_button(
+			ruisapp::application::inst(),
+			false, // is_down
+			{-1, -1},
+			ruis::mouse_button::left,
+			tp.ruis_id
+		);
+	}
+
+	self.touch_points.clear();
 }
