@@ -1,3 +1,9 @@
+libruisapp (0.2.103) unstable; urgency=medium
+
+  * wyaland: touch events, untested
+
+ -- Ivan Gagis <igagis@gmail.com>  Fri, 14 Jun 2024 16:13:20 +0300
+
 libruisapp (0.2.102) unstable; urgency=medium
 
   * update
