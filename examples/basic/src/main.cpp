@@ -1,7 +1,7 @@
 #include <ruisapp/application.hpp>
 
-#include <ruis/widgets/label/TextLabel.hpp>
-#include <ruis/widgets/button/Button.hpp>
+#include <ruis/widget/label/TextLabel.hpp>
+#include <ruis/widget/button/Button.hpp>
 
 
 class Application : public ruisapp::application{

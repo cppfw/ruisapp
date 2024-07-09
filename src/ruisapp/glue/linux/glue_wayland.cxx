@@ -25,7 +25,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <nitki/queue.hpp>
 #include <opros/wait_set.hpp>
 #include <papki/fs_file.hpp>
-#include <ruis/widgets/widget.hpp>
+#include <ruis/widget/widget.hpp>
 #include <sys/mman.h>
 #include <utki/destructable.hpp>
 #include <utki/unicode.hpp>
