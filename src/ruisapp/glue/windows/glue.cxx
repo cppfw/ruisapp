@@ -738,9 +738,12 @@ void winmain(int argc, const char** argv)
 	ShowWindow(ww.hwnd, SW_SHOW);
 
 	while (!ww.quitFlag) {
+		// sequence:
+		// - update updateables
+		// - render
+		// - wait for events/next cycle
 		uint32_t timeout = app->gui.update();
-		//		TRACE(<< "timeout = " << timeout << std::endl)
-
+		render(*app);
 		DWORD status = MsgWaitForMultipleObjectsEx(0, nullptr, timeout, QS_ALLINPUT, MWMO_INPUTAVAILABLE);
 
 		//		TRACE(<< "msg" << std::endl)
@@ -758,8 +761,6 @@ void winmain(int argc, const char** argv)
 				DispatchMessage(&msg);
 			}
 		}
-
-		render(*app);
 		//		TRACE(<< "loop" << std::endl)
 	}
 }

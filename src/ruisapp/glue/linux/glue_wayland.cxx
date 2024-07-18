@@ -2385,8 +2385,10 @@ int main(int argc, const char** argv)
 	while (!ww.quit_flag.load()) {
 		// std::cout << "loop" << std::endl;
 
+		// prepare wayland queue for waiting for events
 		while (wl_display_prepare_read(ww.display.disp) != 0) {
-			// there are events in wayland queue
+			// there are events in wayland queue, dispatch them, as we need empty queue
+			// when we start waiting for events on the queue
 			if (wl_display_dispatch_pending(ww.display.disp) < 0) {
 				throw std::runtime_error(utki::cat("wl_display_dispatch_pending() failed: ", strerror(errno)));
 			}
@@ -2410,7 +2412,13 @@ int main(int argc, const char** argv)
 				wait_set.change(ww.waitable, {opros::ready::read}, &ww.waitable);
 			}
 
-			wait_set.wait(app.gui.update());
+			// sequence:
+			// - update updateables
+			// - render
+			// - wait for events/next cycle
+			auto to_wait_ms = app.gui.update();
+			render(app);
+			wait_set.wait(to_wait_ms);
 
 			// std::cout << "waited" << std::endl;
 
@@ -2467,7 +2475,6 @@ int main(int argc, const char** argv)
 				}
 			}
 		}
-		render(app);
 	}
 
 	return 0;

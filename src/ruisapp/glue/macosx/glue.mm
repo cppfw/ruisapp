@@ -729,10 +729,12 @@ int main(int argc, const char** argv){
 	}
 
 	do{
-		render(ruisapp::inst());
-
+		// sequence:
+		// - update updateables
+		// - render
+		// - wait for events/next cycle
 		uint32_t millis = ruisapp::inst().gui.update();
-
+		render(ruisapp::inst());
 		NSEvent *event = [ww.applicationObjectId
 				nextEventMatchingMask:NSEventMaskAny
 				untilDate:[NSDate dateWithTimeIntervalSinceNow:(double(millis) / 1000.0)]
