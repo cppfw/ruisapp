@@ -2608,10 +2608,11 @@ void pointer_wrapper::wl_pointer_motion(void* data, wl_pointer* pointer, uint32_
 
 	auto& ww = get_impl(ruisapp::application::inst());
 
-	ruis::vector2 pos( //
-		ruis::real(wl_fixed_to_double(x)),
-		ruis::real(wl_fixed_to_double(y))
-	);
+	ruis::vector2
+		pos( //
+			ruis::real(wl_fixed_to_double(x)),
+			ruis::real(wl_fixed_to_double(y))
+		);
 	pos *= ww.scale;
 	self.cur_pointer_pos = round(pos);
 
@@ -2653,19 +2654,22 @@ void touch_wrapper::wl_touch_down( //
 
 	ASSERT(!utki::contains(self.touch_points, id))
 
-	ruis::vector2 pos( //
-		ruis::real(wl_fixed_to_double(x)),
-		ruis::real(wl_fixed_to_double(y))
-	);
+	ruis::vector2
+		pos( //
+			ruis::real(wl_fixed_to_double(x)),
+			ruis::real(wl_fixed_to_double(y))
+		);
 	pos = round(pos * ww.scale);
 
-	auto insert_result = self.touch_points.insert(std::make_pair(
-		id,
-		touch_point{
-			.ruis_id = unsigned(id) + 1, // id = 0 reserved for mouse
-			.pos = pos
-		}
-	));
+	auto insert_result = self.touch_points.insert(
+		std::make_pair(
+			id,
+			touch_point{
+				.ruis_id = unsigned(id) + 1, // id = 0 reserved for mouse
+				.pos = pos
+			}
+		)
+	);
 	ASSERT(insert_result.second) // pair successfully inserted
 
 	const touch_point& tp = insert_result.first->second;
@@ -2735,10 +2739,11 @@ void touch_wrapper::wl_touch_motion( //
 
 	touch_point& tp = i->second;
 
-	ruis::vector2 pos( //
-		ruis::real(wl_fixed_to_double(x)),
-		ruis::real(wl_fixed_to_double(y))
-	);
+	ruis::vector2
+		pos( //
+			ruis::real(wl_fixed_to_double(x)),
+			ruis::real(wl_fixed_to_double(y))
+		);
 	pos = round(pos * ww.scale);
 
 	tp.pos = pos;
