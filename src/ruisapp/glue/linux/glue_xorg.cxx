@@ -1339,7 +1339,13 @@ int main(int argc, const char** argv)
 	render(*app);
 
 	while (!ww.quit_flag.load()) {
-		wait_set.wait(app->gui.update());
+		// sequence:
+		// - update updateables
+		// - render
+		// - wait for events/next cycle
+		auto to_wait_ms = app->gui.update();
+		render(*app);
+		wait_set.wait(to_wait_ms);
 
 		auto triggered_events = wait_set.get_triggered();
 
@@ -1492,8 +1498,6 @@ int main(int argc, const char** argv)
 		if (new_win_dims.is_positive_or_zero()) {
 			update_window_rect(*app, ruis::rect(0, new_win_dims));
 		}
-
-		render(*app);
 	}
 
 	wait_set.remove(ww.ui_queue);
