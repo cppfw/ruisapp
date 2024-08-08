@@ -2174,7 +2174,9 @@ struct window_wrapper : public utki::destructable {
 
 		void swap_frame_buffers()
 		{
+			// std::cout << "eglSwapBuffers" << std::endl;
 			eglSwapBuffers(this->egl_display, this->egl_surface);
+			// std::cout << "eglSwapBuffers done" << std::endl;
 		}
 	} egl_context;
 
@@ -2321,7 +2323,10 @@ application::application(std::string name, const window_params& wp) :
 void application::swap_frame_buffers()
 {
 	auto& ww = get_impl(this->window_pimpl);
+
+	// std::cout << "swap framebuffers" << std::endl;
 	ww.egl_context.swap_frame_buffers();
+	// std::cout << "framebuffers swapped" << std::endl;
 }
 
 void application::set_mouse_cursor_visible(bool visible)
@@ -2385,6 +2390,13 @@ int main(int argc, const char** argv)
 	while (!ww.quit_flag.load()) {
 		// std::cout << "loop" << std::endl;
 
+		// sequence:
+		// - update updateables
+		// - render
+		// - wait for events/next cycle
+		auto to_wait_ms = app.gui.update();
+		render(app);
+
 		// prepare wayland queue for waiting for events
 		while (wl_display_prepare_read(ww.display.disp) != 0) {
 			// there are events in wayland queue, dispatch them, as we need empty queue
@@ -2412,12 +2424,8 @@ int main(int argc, const char** argv)
 				wait_set.change(ww.waitable, {opros::ready::read}, &ww.waitable);
 			}
 
-			// sequence:
-			// - update updateables
-			// - render
-			// - wait for events/next cycle
-			auto to_wait_ms = app.gui.update();
-			render(app);
+			// std::cout << "wait for " << to_wait_ms << "ms" << std::endl;
+
 			wait_set.wait(to_wait_ms);
 
 			// std::cout << "waited" << std::endl;
