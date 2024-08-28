@@ -120,6 +120,19 @@ public:
 	 */
 	const std::string storage_dir;
 
+	struct directories {
+		std::string config;
+		std::string state;
+
+		// constructor to make it obligatory to explicitly initialize fields
+		directories(std::string config, std::string state) :
+			config(std::move(config)),
+			state(std::move(state))
+		{}
+	};
+
+	const directories directory;
+
 private:
 	// TODO: make it window rectangle and track vieport separately,
 	//       use top-left coordinate system

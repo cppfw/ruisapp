@@ -49,8 +49,8 @@ jobs:
         run: make config=asan
       - name: test
         run: make config=asan test
-##### linux #####
-  linux:
+##### deb linux #####
+  deb:
     strategy:
       fail-fast: false
       matrix:
