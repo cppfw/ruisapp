@@ -2313,7 +2313,7 @@ application::application(std::string name, const window_params& wp) :
 			ww.seat.pointer.set_cursor(c);
 		}
 	)),
-	storage_dir(initialize_storage_dir(this->name))
+	directory(get_application_directories(this->name))
 {
 	this->update_window_rect(ruis::rect(0, 0, ruis::real(wp.dims.x()), ruis::real(wp.dims.y())));
 

@@ -21,6 +21,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "../application.hpp"
 
+using namespace std::string_view_literals;
+
 namespace {
 
 std::unique_ptr<ruisapp::application> create_app_unix(int argc, const char** argv)
@@ -28,28 +30,50 @@ std::unique_ptr<ruisapp::application> create_app_unix(int argc, const char** arg
 	return ruisapp::application_factory::create_application(argc, argv);
 }
 
-std::string initialize_storage_dir(const std::string& app_name)
+std::string get_xdg_dir_home(
+	const char* xdg_env_var, //
+	std::string_view default_subdir,
+	std::string_view app_name
+)
 {
+	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
+	if (auto xdg_dir = getenv(xdg_env_var)) {
+		// the directory is explicitly set via XDG_*_HOME environment variable, return the value
+		return utki::cat(
+			papki::as_dir(xdg_dir), //
+			app_name,
+			'/'
+		);
+	}
+
 	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
 	auto home_dir = getenv("HOME");
 	if (!home_dir) {
 		throw std::runtime_error("failed to get user home directory. Is HOME environment variable set?");
 	}
 
-	std::string home_dir_str(home_dir);
+	ASSERT(papki::is_dir(default_subdir))
+	return utki::cat(
+		papki::as_dir(home_dir), //
+		default_subdir,
+		app_name,
+		'/'
+	);
+}
 
-	if (*home_dir_str.rend() != '/') {
-		home_dir_str.append(1, '/');
-	}
+ruisapp::application::directories get_application_directories(std::string_view app_name)
+{
+	ruisapp::application::directories dirs;
 
-	home_dir_str.append(1, '.').append(app_name).append(1, '/');
+	dirs.cache = get_xdg_dir_home("XDG_CACHE_HOME", ".cache/"sv, app_name);
+	dirs.config = get_xdg_dir_home("XDG_CONFIG_HOME", ".config/"sv, app_name);
+	dirs.state = get_xdg_dir_home("XDG_STATE_HOME", ".local/state/"sv, app_name);
 
-	papki::fs_file dir(home_dir_str);
-	if (!dir.exists()) {
-		dir.make_dir();
-	}
+	// std::cout << "cache dir = " << dirs.cache << std::endl;
+	// std::cout << "config dir = " << dirs.config << std::endl;
+	// std::cout << "state dir = " << dirs.state << std::endl;
 
-	return home_dir_str;
+	return dirs;
 }
 
 } // namespace

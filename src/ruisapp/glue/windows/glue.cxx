@@ -651,7 +651,7 @@ ruis::real get_dots_per_pp(HDC dc)
 } // namespace
 
 namespace {
-std::string initialize_storage_dir(const std::string& app_name)
+ruisapp::application::directories get_application_directories(std::string_view app_name)
 {
 	// the variable is initialized via output argument, so no need
 	// to initialize it here
@@ -663,26 +663,27 @@ std::string initialize_storage_dir(const std::string& app_name)
 
 	path.back() = '\0'; // null-terminate the string just in case
 
-	std::string home_dir_str(path.data(), strlen(path.data()));
+	std::string home_dir(path.data(), strlen(path.data()));
+	ASSERT(!home_dir.empty())
 
-	ASSERT(home_dir_str.size() != 0)
+	std::replace(
+		home_dir.begin(), //
+		home_dir.end(),
+		'\\',
+		'/'
+	);
 
-	if (home_dir_str[home_dir_str.size() - 1] == '\\') {
-		home_dir_str[home_dir_str.size() - 1] = '/';
-	}
+	home_dir = papki::as_dir(home_dir);
 
-	if (home_dir_str[home_dir_str.size() - 1] != '/') {
-		home_dir_str.append(1, '/');
-	}
+	home_dir.append(1, '.').append(app_name).append(1, '/');
 
-	home_dir_str.append(1, '.').append(app_name).append(1, '/');
+	ruisapp::application::directories dirs;
 
-	papki::fs_file dir(home_dir_str);
-	if (!dir.exists()) {
-		dir.make_dir();
-	}
+	dirs.cache = utki::cat(home_dir, "cache/");
+	dirs.config = utki::cat(home_dir, "config/");
+	dirs.state = utki::cat(home_dir, "state/");
 
-	return home_dir_str;
+	return dirs;
 }
 } // namespace
 
@@ -711,7 +712,7 @@ application::application(std::string name, const window_params& wp) :
 		get_dots_per_inch(get_impl(this->window_pimpl).hdc),
 		get_dots_per_pp(get_impl(this->window_pimpl).hdc)
 	)),
-	storage_dir(initialize_storage_dir(this->name)),
+	directory(get_application_directories(this->name)),
 	cur_window_rect(0, 0, -1, -1)
 {
 	this->update_window_rect(ruis::rect(0, 0, ruis::real(wp.dims.x()), ruis::real(wp.dims.y())));

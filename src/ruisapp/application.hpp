@@ -112,25 +112,27 @@ public:
 
 public:
 	/**
-	 * @brief Storage directory path.
-	 * Path to the application's storage directory. This is the directory
-	 * where application generated files are to be stored, like configurations,
-	 * saved states, etc.
-	 * The path is always ended with '/' character.
+	 * @brief Aggregation of application directory locations.
+	 * See https://www.freedesktop.org/software/systemd/man/file-hierarchy.html#Home%20Directory
 	 */
-	const std::string storage_dir;
-
 	struct directories {
+		std::string cache;
 		std::string config;
 		std::string state;
 
-		// constructor to make it obligatory to explicitly initialize fields
-		directories(std::string config, std::string state) :
-			config(std::move(config)),
-			state(std::move(state))
-		{}
+		// default constructor is explicit to avoid forgetting to initizlize the structure fields
+		explicit directories() = default;
 	};
 
+	/**
+	 * @brief Application directory locations.
+	 * The directories are typical paths for the application use.
+	 *
+	 * See https://www.freedesktop.org/software/systemd/man/file-hierarchy.html#Home%20Directory for more info.
+	 *
+	 * The directories are not necessarily existing, before creating any files in those
+	 * locations, make sure to create them, e.g. with std::filesystem::create_directories().
+	 */
 	const directories directory;
 
 private:

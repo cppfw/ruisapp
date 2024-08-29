@@ -1108,16 +1108,19 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 }
 
 namespace {
-std::string initialize_storage_dir(const std::string& appName)
+ruisapp::application::directories get_application_directories(std::string_view app_name)
 {
 	ASSERT(java_functions)
 
-	auto dir = java_functions->get_storage_dir();
+	auto storage_dir = papki::as_dir(java_functions->get_storage_dir());
 
-	if (*dir.rend() != '/') {
-		dir.append(1, '/');
-	}
-	return dir;
+	ruisapp::application::directories dirs;
+
+	dirs.cache = utki::cat(storage_dir, "cache/");
+	dirs.config = utki::cat(storage_dir, "config/");
+	dirs.state = utki::cat(storage_dir, "state/");
+
+	return dirs;
 }
 } // namespace
 
@@ -1142,7 +1145,7 @@ ruisapp::application::application(std::string name, const window_params& wp) :
 			return application::get_pixels_per_pp(res, dim.to<unsigned>());
 		}()
 	)),
-	storage_dir(initialize_storage_dir(this->name))
+	directory(get_application_directories(this->name))
 {
 	auto win_size = get_impl(*this).get_window_size();
 	this->update_window_rect(ruis::rect(ruis::vector2(0), win_size.to<ruis::real>()));

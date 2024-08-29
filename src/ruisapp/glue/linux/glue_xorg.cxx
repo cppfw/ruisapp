@@ -934,7 +934,7 @@ application::application(std::string name, const window_params& wp) :
 		get_impl(window_pimpl).get_dots_per_inch(),
 		get_impl(window_pimpl).get_dots_per_pp()
 	)),
-	storage_dir(initialize_storage_dir(this->name))
+	directory(get_application_directories(this->name))
 {
 #ifdef RUISAPP_RASPBERRYPI
 	this->set_fullscreen(true);
