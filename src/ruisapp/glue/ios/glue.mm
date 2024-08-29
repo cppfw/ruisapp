@@ -340,7 +340,7 @@ application::application(std::string name, const window_params& wp) :
 				getDotsPerInch(),
 				getDotsPerDp()
 			)),
-		storage_dir("") //TODO: initialize to proper value
+		directory{} //TODO: initialize to proper value
 {
 	this->set_fullscreen(false);//this will intialize the viewport
 }

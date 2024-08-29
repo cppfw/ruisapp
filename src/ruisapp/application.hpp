@@ -119,9 +119,6 @@ public:
 		std::string cache;
 		std::string config;
 		std::string state;
-
-		// default constructor is explicit to avoid forgetting to initizlize the structure fields
-		explicit directories() = default;
 	};
 
 	/**
