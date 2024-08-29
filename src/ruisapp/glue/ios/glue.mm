@@ -346,7 +346,7 @@ application::application(std::string name, const window_params& wp) :
 }
 
 void application::swap_frame_buffers(){
-	// do nothing
+	// do nothing, ios swaps frame buffers automatically
 }
 
 void application::show_virtual_keyboard()noexcept{
