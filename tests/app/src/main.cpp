@@ -12,7 +12,7 @@
 #include <ruis/widget/container.hpp>
 #include <ruis/widget/proxy/key_proxy.hpp>
 
-#include <ruis/widget/button/base/push_button.hpp>
+#include <ruis/widget/button/push_button.hpp>
 #include <ruis/widget/label/text.hpp>
 
 #include <ruis/res/texture_2d.hpp>
@@ -29,7 +29,7 @@
 #include <ruis/widget/label/image.hpp>
 #include <ruis/widget/input/text_input_line.hpp>
 
-#include <ruis/widget/button/drop_down_box.hpp>
+#include <ruis/widget/button/impl/drop_down_box.hpp>
 
 #include <ruis/layout/linear_layout.hpp>
 
