@@ -1,3 +1,9 @@
+libruisapp (0.2.108) unstable; urgency=medium
+
+  * rebuild
+
+ -- Ivan Gagis <igagis@gmail.com>  Wed, 04 Sep 2024 16:02:18 +0300
+
 libruisapp (0.2.107) unstable; urgency=medium
 
   * application directories 2
