@@ -1853,7 +1853,7 @@ struct window_wrapper : public utki::destructable {
 		{
 			xdg_surface_destroy(this->xdg_sur);
 		}
-	} xdg_surface;
+	} xdg_surface_wrp;
 
 	struct toplevel_wrapper {
 		xdg_toplevel* toplev;
@@ -2188,8 +2188,8 @@ struct window_wrapper : public utki::destructable {
 		wm_base(this->registry),
 		seat(this->registry, this->compositor, this->shm),
 		surface(this->compositor),
-		xdg_surface(this->surface, this->wm_base),
-		toplevel(this->surface, this->xdg_surface),
+		xdg_surface_wrp(this->surface, this->wm_base),
+		toplevel(this->surface, this->xdg_surface_wrp),
 		egl_window(this->surface, wp.dims),
 		egl_context(this->display, this->egl_window, wp),
 		cur_window_dims(wp.dims)
