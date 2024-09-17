@@ -63,10 +63,12 @@ struct window_params {
 	utki::flags<buffer> buffers = false;
 
 	// version 0.0 means default version
-	utki::version_duplet graphics_api_version = { //
+	// clang-format off
+	utki::version_duplet graphics_api_version = {
 		.major = 0,
 		.minor = 0
 	};
+	// clang-format on
 
 	window_params(r4::vector2<unsigned> dims) :
 		dims(dims)
