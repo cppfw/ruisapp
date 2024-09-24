@@ -1035,10 +1035,9 @@ struct wm_base_wrapper {
 
 private:
 	constexpr static const xdg_wm_base_listener listener = {
-		.ping =
-			[](void* data, xdg_wm_base* wm_base, uint32_t serial) {
-				xdg_wm_base_pong(wm_base, serial);
-			} //
+		.ping = [](void* data, xdg_wm_base* wm_base, uint32_t serial) {
+			xdg_wm_base_pong(wm_base, serial);
+		} //
 	};
 };
 } // namespace
@@ -1784,12 +1783,11 @@ private:
 
 	constexpr static const wl_seat_listener listener = {
 		.capabilities = &wl_seat_capabilities,
-		.name =
-			[](void* data, wl_seat* seat, const char* name) {
-				LOG([&](auto& o) {
-					o << "seat name: " << name << std::endl;
-				})
-			} //
+		.name = [](void* data, wl_seat* seat, const char* name) {
+			LOG([&](auto& o) {
+				o << "seat name: " << name << std::endl;
+			})
+		} //
 	};
 };
 } // namespace
@@ -1827,10 +1825,9 @@ struct window_wrapper : public utki::destructable {
 		xdg_surface* xdg_sur;
 
 		constexpr static const xdg_surface_listener listener = {
-			.configure =
-				[](void* data, xdg_surface* xdg_surface, uint32_t serial) {
-					xdg_surface_ack_configure(xdg_surface, serial);
-				}, //
+			.configure = [](void* data, xdg_surface* xdg_surface, uint32_t serial) {
+				xdg_surface_ack_configure(xdg_surface, serial);
+			}, //
 		};
 
 		xdg_surface_wrapper(surface_wrapper& surface, wm_base_wrapper& wm_base) :
