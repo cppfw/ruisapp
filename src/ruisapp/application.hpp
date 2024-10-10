@@ -94,7 +94,7 @@ public:
 private:
 	std::unique_ptr<utki::destructable> window_pimpl;
 
-	friend const decltype(window_pimpl)& get_window_pimpl(application& app);
+	friend const decltype(window_pimpl) & get_window_pimpl(application& app);
 
 private:
 	void swap_frame_buffers();

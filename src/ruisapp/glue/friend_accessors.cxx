@@ -21,7 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 namespace ruisapp {
 
-const decltype(application::window_pimpl)& get_window_pimpl(application& app)
+const decltype(application::window_pimpl) & get_window_pimpl(application& app)
 {
 	return app.window_pimpl;
 }
