@@ -18,9 +18,9 @@ nuget{
 		title: Intrusive C++ GUI library;
 		authors: {Ivan Gagis};
 		owners: {Ivan Gagis};
-		licenseUrl: "https://raw.githubusercontent.com/cppfw/ruisapp/master/LICENSE";
+		licenseUrl: "https://raw.githubusercontent.com/cppfw/ruisapp/main/LICENSE";
 		projectUrl: "https://github.com/cppfw/ruisapp";
-		iconUrl: "https://github.com/cppfw/ruisapp/blob/master/logo.svg";
+		iconUrl: "https://github.com/cppfw/ruisapp/blob/main/logo.svg";
 		requireLicenseAcceptance:false;
 		summary: C++ GUI library;
 
