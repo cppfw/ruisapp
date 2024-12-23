@@ -82,11 +82,7 @@ define ruisapp_rules
     else ifeq ($(os), macosx)
         this_ldlibs += -lGLEW
         this_ldlibs += -framework Cocoa -framework OpenGL -ldl
-    endif
 
-    this_ldlibs += -lruis -lpapki -ltml -lutki
-
-    ifeq ($(os), macosx)
         this_mm_obj := $$(d)$$(this_out_dir)obj_$$(this_name)/objc/ruisapp/glue/macosx/glue.mm.o
 
         define this_subrules
@@ -98,6 +94,8 @@ $(.RECIPEPREFIX)$(a)$(this_cc) -ObjC++ -c -o "$$$$@" $$(this_cxxflags) $$(OBJCXX
         $$(eval $$(this_subrules))
     endif
 
+    this_ldlibs += -lruis -lpapki -ltml -lutki
+
     this_cxxflags += -D RUISAPP_RENDER_$(shell echo $1 | tr '[:lower:]' '[:upper:]')
     this_ldlibs += -lruis-render-$1
 
@@ -107,7 +105,8 @@ $(.RECIPEPREFIX)$(a)$(this_cc) -ObjC++ -c -o "$$$$@" $$(this_cxxflags) $$(OBJCXX
 
     $$(eval $$(prorab-build-lib))
 
-    ifeq ($(os), macosx)
+    ifeq ($2,sdl)
+    else ifeq ($(os), macosx)
         $$(prorab_this_staticlib): $$(this_mm_obj)
         $$(prorab_this_name): $$(this_mm_obj)
     
