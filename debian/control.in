@@ -21,7 +21,8 @@ Build-Depends:
 		libgles2-mesa-dev,
 		libgtk-3-dev,
 		libwayland-dev,
-		libxkbcommon-dev
+		libxkbcommon-dev,
+		libsdl2-dev
 Build-Depends-Indep: doxygen
 Standards-Version: 3.9.5
 

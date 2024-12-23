@@ -21,7 +21,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include <utki/config.hpp>
 
-#if CFG_OS == CFG_OS_WINDOWS
+#ifdef RUISAPP_SDL
+#   include "sdl/glue.cxx"
+#elif CFG_OS == CFG_OS_WINDOWS
 // NOLINTNEXTLINE(bugprone-suspicious-include)
 #	include "windows/glue.cxx"
 #elif CFG_OS == CFG_OS_LINUX && CFG_OS_NAME == CFG_OS_NAME_ANDROID
