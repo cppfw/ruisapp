@@ -22,6 +22,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <utki/config.hpp>
 
 #ifdef RUISAPP_SDL
+// NOLINTNEXTLINE(bugprone-suspicious-include)
 #   include "sdl/glue.cxx"
 #elif CFG_OS == CFG_OS_WINDOWS
 // NOLINTNEXTLINE(bugprone-suspicious-include)
