@@ -732,7 +732,7 @@ int main(int argc, const char** argv){
 		// sequence:
 		// - update updateables
 		// - render
-		// - wait for events/next cycle
+		// - wait for events and handle them/next cycle
 		uint32_t millis = ruisapp::inst().gui.update();
 		render(ruisapp::inst());
 		NSEvent *event = [ww.applicationObjectId

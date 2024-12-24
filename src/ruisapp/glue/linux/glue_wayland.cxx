@@ -2390,7 +2390,7 @@ int main(int argc, const char** argv)
 		// sequence:
 		// - update updateables
 		// - render
-		// - wait for events/next cycle
+		// - wait for events and handle them/next cycle
 		auto to_wait_ms = app.gui.update();
 		render(app);
 
