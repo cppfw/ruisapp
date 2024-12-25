@@ -457,12 +457,16 @@ public:
 namespace {
 ruisapp::application::directories get_application_directories(std::string_view app_name)
 {
+	char* base_dir = SDL_GetPrefPath("", std::string(app_name).c_str());
+	utki::scope_exit base_dir_scope_exit([&]() {
+		SDL_free(base_dir);
+	});
+
 	ruisapp::application::directories dirs;
 
-	// TODO:
-	dirs.cache = utki::cat(".cache/"sv, app_name);
-	dirs.config = utki::cat(".config/"sv, app_name);
-	dirs.state = utki::cat(".local/state/"sv, app_name);
+	dirs.cache = utki::cat(base_dir, "cache/"sv);
+	dirs.config = utki::cat(base_dir, "config/"sv);
+	dirs.state = utki::cat(base_dir, "state/"sv);
 
 	// std::cout << "cache dir = " << dirs.cache << std::endl;
 	// std::cout << "config dir = " << dirs.config << std::endl;
