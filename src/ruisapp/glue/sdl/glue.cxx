@@ -323,7 +323,7 @@ ruis::key sdl_scan_code_to_ruis_key(SDL_Scancode sc)
 namespace {
 ruis::real get_dpi(int display_index = 0)
 {
-	float dpi;
+	float dpi = ruis::context::default_dots_per_inch;
 	if (SDL_GetDisplayDPI(display_index, &dpi, nullptr, nullptr) != 0) {
 		throw std::runtime_error(utki::cat("Could not get SDL display DPI, SDL Error: ", SDL_GetError()));
 	}
@@ -387,7 +387,7 @@ public:
 					SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, ver.minor);
 				}
 
-				auto dims = wp.dims * get_display_scaling_factor();
+				auto dims = wp.dims.to<ruis::real>() * get_display_scaling_factor();
 
 				SDL_Window* window = SDL_CreateWindow(
 					"TODO: window title",
@@ -617,10 +617,12 @@ int main(int argc, const char** argv)
 		// - wait for events and handle them/next cycle
 
 		auto to_wait_ms = app->gui.update();
+		// clamp to_wait_ms to max of int as SDL_WaitEventTimeout() accepts int type
+		to_wait_ms = std::min(to_wait_ms, uint32_t(std::numeric_limits<int32_t>::max()));
 
 		render(*app);
 
-		if (SDL_WaitEventTimeout(nullptr, to_wait_ms) == 0) {
+		if (SDL_WaitEventTimeout(nullptr, int(to_wait_ms)) == 0) {
 			// No events or error. In case of error not much we can do, just ignore it.
 			continue;
 		}
@@ -694,7 +696,7 @@ int main(int argc, const char** argv)
 							struct sdl_dummy_input_string_provider : public ruis::gui::input_string_provider {
 								std::u32string get() const override
 								{
-									return std::u32string();
+									return {};
 								}
 							};
 
@@ -717,7 +719,7 @@ int main(int argc, const char** argv)
 							}
 						} sdl_input_string_provider(
 							// save pointer to text, the ownership of text buffer is not taken!
-							e.text.text
+							&(e.text.text[0])
 						);
 
 						handle_character_input(*app, sdl_input_string_provider, ruis::key::unknown);
@@ -726,6 +728,7 @@ int main(int argc, const char** argv)
 				default:
 					if (e.type == ww.user_event_type) {
 						std::unique_ptr<std::function<void()>> f(
+							// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
 							reinterpret_cast<std::function<void()>*>(e.user.data1)
 						);
 						f->operator()();
