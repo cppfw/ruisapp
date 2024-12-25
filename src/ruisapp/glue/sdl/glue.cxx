@@ -22,6 +22,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <atomic>
 
 #include <utki/config.hpp>
+#include <utki/unicode.hpp>
 
 #include "../../application.hpp"
 
@@ -48,6 +49,278 @@ using namespace std::string_view_literals;
 using namespace ruisapp;
 
 namespace {
+std::array<ruis::key, 0x100> keyMap = {
+	{
+     ruis::key::unknown, // 0
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::a,
+     ruis::key::b, // x5
+		ruis::key::c,
+     ruis::key::d,
+     ruis::key::e,
+     ruis::key::f,
+     ruis::key::g, // 10
+		ruis::key::h,
+     ruis::key::i,
+     ruis::key::j,
+     ruis::key::k,
+     ruis::key::l, // x5
+		ruis::key::m,
+     ruis::key::n,
+     ruis::key::o,
+     ruis::key::p,
+     ruis::key::q, // 20
+		ruis::key::r,
+     ruis::key::s,
+     ruis::key::t,
+     ruis::key::u,
+     ruis::key::v, // x5
+		ruis::key::w,
+     ruis::key::x,
+     ruis::key::y,
+     ruis::key::z,
+     ruis::key::one, // 30
+		ruis::key::two,
+     ruis::key::three,
+     ruis::key::four,
+     ruis::key::five,
+     ruis::key::six, // x5
+		ruis::key::seven,
+     ruis::key::eight,
+     ruis::key::nine,
+     ruis::key::zero,
+     ruis::key::enter, // 40
+		ruis::key::escape,
+     ruis::key::backspace,
+     ruis::key::tabulator,
+     ruis::key::space,
+     ruis::key::minus, // x5
+		ruis::key::equals,
+     ruis::key::left_square_bracket,
+     ruis::key::right_square_bracket,
+     ruis::key::backslash,
+     ruis::key::backslash, // 50
+		ruis::key::semicolon,
+     ruis::key::apostrophe,
+     ruis::key::grave,
+     ruis::key::comma,
+     ruis::key::period, // x5
+		ruis::key::slash,
+     ruis::key::capslock,
+     ruis::key::f1,
+     ruis::key::f2,
+     ruis::key::f3, // 60
+		ruis::key::f4,
+     ruis::key::f5,
+     ruis::key::f6,
+     ruis::key::f7,
+     ruis::key::f8, // x5
+		ruis::key::f9,
+     ruis::key::f10,
+     ruis::key::f11,
+     ruis::key::f12,
+     ruis::key::print_screen, // 70
+		ruis::key::unknown,
+     ruis::key::pause,
+     ruis::key::insert,
+     ruis::key::home,
+     ruis::key::page_up, // x5
+		ruis::key::deletion,
+     ruis::key::end,
+     ruis::key::page_down,
+     ruis::key::arrow_right,
+     ruis::key::arrow_left, // 80
+		ruis::key::arrow_down,
+     ruis::key::arrow_up,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown, // x5
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown, // 90
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown, // x5
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown, // 100
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::f13,
+     ruis::key::f14, // x5
+		ruis::key::f15,
+     ruis::key::f16,
+     ruis::key::f17,
+     ruis::key::f18,
+     ruis::key::f19, // 110
+		ruis::key::f20,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown, // x5
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown, // 120
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown, // x5
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown, // 130
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown, // x5
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown, // 140
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown, // x5
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown, // 150
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown, // x5
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown, // 160
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown, // x5
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown, // 170
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown, // x5
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown, // 180
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown, // x5
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown, // 190
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown, // x5
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown, // 200
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown, // x5
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown, // 210
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown, // x5
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown, // 220
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::left_control,
+     ruis::key::left_shift, // x5
+		ruis::key::left_alt,
+     ruis::key::unknown,
+     ruis::key::right_control,
+     ruis::key::right_shift,
+     ruis::key::right_alt, // 230
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown, // x5
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown, // 240
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown, // x5
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown, // 250
+		ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown,
+     ruis::key::unknown // 255
+	}
+};
+
+ruis::key sdl_scan_code_to_ruis_key(SDL_Scancode sc)
+{
+	if (size_t(sc) >= keyMap.size()) {
+		return ruis::key::unknown;
+	}
+
+	return keyMap[sc];
+}
+} // namespace
+
+namespace {
 class window_wrapper : public utki::destructable
 {
 	class sdl_wrapper
@@ -65,10 +338,10 @@ class window_wrapper : public utki::destructable
 			SDL_Quit();
 		}
 
-        sdl_wrapper(const sdl_wrapper&) = delete;
-        sdl_wrapper& operator=(const sdl_wrapper&) = delete;
-        sdl_wrapper(sdl_wrapper&&) = delete;
-        sdl_wrapper& operator=(sdl_wrapper&&) = delete;
+		sdl_wrapper(const sdl_wrapper&) = delete;
+		sdl_wrapper& operator=(const sdl_wrapper&) = delete;
+		sdl_wrapper(sdl_wrapper&&) = delete;
+		sdl_wrapper& operator=(sdl_wrapper&&) = delete;
 	} sdl;
 
 public:
@@ -117,10 +390,10 @@ public:
 			SDL_DestroyWindow(this->window);
 		}
 
-        sdl_window_wrapper(const sdl_window_wrapper&) = delete;
-        sdl_window_wrapper& operator=(const sdl_window_wrapper&) = delete;
-        sdl_window_wrapper(sdl_window_wrapper&&) = delete;
-        sdl_window_wrapper& operator=(sdl_window_wrapper&&) = delete;
+		sdl_window_wrapper(const sdl_window_wrapper&) = delete;
+		sdl_window_wrapper& operator=(const sdl_window_wrapper&) = delete;
+		sdl_window_wrapper(sdl_window_wrapper&&) = delete;
+		sdl_window_wrapper& operator=(sdl_window_wrapper&&) = delete;
 	} window;
 
 	class gl_context_wrapper
@@ -174,10 +447,10 @@ public:
 		SDL_StopTextInput();
 	}
 
-    window_wrapper(const window_wrapper&) = delete;
-    window_wrapper& operator=(const window_wrapper&) = delete;
-    window_wrapper(window_wrapper&&) = delete;
-    window_wrapper& operator=(window_wrapper&&) = delete;
+	window_wrapper(const window_wrapper&) = delete;
+	window_wrapper& operator=(const window_wrapper&) = delete;
+	window_wrapper(window_wrapper&&) = delete;
+	window_wrapper& operator=(window_wrapper&&) = delete;
 };
 } // namespace
 
@@ -379,43 +652,47 @@ int main(int argc, const char** argv)
 				case SDL_KEYDOWN:
 					[[fallthrough]];
 				case SDL_KEYUP:
-					// if (e.key.repeat == 0) {
-					// 	gui.send_key(e.key.type == SDL_KEYDOWN, sdl_scan_code_to_ruis_key(e.key.keysym.scancode));
-					// }
-					// if (e.type == SDL_KEYDOWN) {
-					// 	struct SDLUnicodeDummyProvider : public ruis::gui::input_string_provider {
-					// 		std::u32string get() const override
-					// 		{
-					// 			return std::u32string();
-					// 		}
-					// 	};
+					{
+						auto key = sdl_scan_code_to_ruis_key(e.key.keysym.scancode);
+						if (e.key.repeat == 0) {
+							handle_key_event(
+								*app, //
+								e.key.type == SDL_KEYDOWN,
+								key
+							);
+						}
+						if (e.type == SDL_KEYDOWN) {
+							struct sdl_dummy_input_string_provider : public ruis::gui::input_string_provider {
+								std::u32string get() const override
+								{
+									return std::u32string();
+								}
+							};
 
-					// 	gui.send_character_input(
-					// 		SDLUnicodeDummyProvider(),
-					// 		sdl_scan_code_to_ruis_key(e.key.keysym.scancode)
-					// 	);
-					// }
+							handle_character_input(*app, sdl_dummy_input_string_provider(), key);
+						}
+					}
 					break;
 				case SDL_TEXTINPUT:
-					// {
-					// 	struct SDLUnicodeProvider : public ruis::gui::input_string_provider {
-					// 		const char* text;
+					{
+						struct sdl_input_string_provider : public ruis::gui::input_string_provider {
+							const char* text;
 
-					// 		SDLUnicodeProvider(const char* text) :
-					// 			text(text)
-					// 		{}
+							sdl_input_string_provider(const char* text) :
+								text(text)
+							{}
 
-					// 		std::u32string get() const override
-					// 		{
-					// 			return utki::to_utf32(this->text);
-					// 		}
-					// 	} sdlUnicodeProvider(
-					// 		// save pointer to text, the ownership of text buffer is not taken!
-					// 		e.text.text
-					// 	);
+							std::u32string get() const override
+							{
+								return utki::to_utf32(this->text);
+							}
+						} sdl_input_string_provider(
+							// save pointer to text, the ownership of text buffer is not taken!
+							e.text.text
+						);
 
-					// 	gui.send_character_input(sdlUnicodeProvider, ruis::key::unknown);
-					// }
+						handle_character_input(*app, sdl_input_string_provider, ruis::key::unknown);
+					}
 					break;
 				default:
 					if (e.type == ww.user_event_type) {
