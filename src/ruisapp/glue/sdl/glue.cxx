@@ -49,7 +49,7 @@ using namespace std::string_view_literals;
 using namespace ruisapp;
 
 namespace {
-std::array<ruis::key, 0x100> keyMap = {
+const std::array<ruis::key, utki::byte_mask + 1> key_map = {
 	{
      ruis::key::unknown, // 0
 		ruis::key::unknown,
@@ -312,11 +312,28 @@ std::array<ruis::key, 0x100> keyMap = {
 
 ruis::key sdl_scan_code_to_ruis_key(SDL_Scancode sc)
 {
-	if (size_t(sc) >= keyMap.size()) {
+	if (size_t(sc) >= key_map.size()) {
 		return ruis::key::unknown;
 	}
 
-	return keyMap[sc];
+	return key_map[sc];
+}
+} // namespace
+
+namespace {
+ruis::real get_dpi(int display_index = 0)
+{
+	float dpi;
+	if (SDL_GetDisplayDPI(display_index, &dpi, nullptr, nullptr) != 0) {
+		throw std::runtime_error(utki::cat("Could not get SDL display DPI, SDL Error: ", SDL_GetError()));
+	}
+	return ruis::real(dpi);
+}
+
+ruis::real get_display_scaling_factor(int display_index = 0)
+{
+	using std::round;
+	return round(get_dpi(display_index) / ruis::context::default_dots_per_inch);
 }
 } // namespace
 
@@ -370,12 +387,14 @@ public:
 					SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, ver.minor);
 				}
 
+				auto dims = wp.dims * get_display_scaling_factor();
+
 				SDL_Window* window = SDL_CreateWindow(
-					"SDL Tutorial",
+					"TODO: window title",
 					SDL_WINDOWPOS_UNDEFINED,
 					SDL_WINDOWPOS_UNDEFINED,
-					wp.dims.x(),
-					wp.dims.y(),
+					int(dims.x()),
+					int(dims.y()),
 					SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
 				);
 				if (!window) {
@@ -415,6 +434,11 @@ public:
 		{
 			SDL_GL_DeleteContext(this->context);
 		}
+
+		gl_context_wrapper(const gl_context_wrapper&) = delete;
+		gl_context_wrapper& operator=(const gl_context_wrapper&) = delete;
+		gl_context_wrapper(gl_context_wrapper&&) = delete;
+		gl_context_wrapper& operator=(gl_context_wrapper&&) = delete;
 	} gl_context;
 
 	Uint32 user_event_type;
@@ -442,7 +466,7 @@ public:
 		SDL_StartTextInput();
 	}
 
-	~window_wrapper()
+	~window_wrapper() override
 	{
 		SDL_StopTextInput();
 	}
@@ -528,26 +552,27 @@ application::application(std::string name, const window_params& wp) :
 			SDL_memset(&e, 0, sizeof(e));
 			e.type = ww.user_event_type;
 			e.user.code = 0;
+			// NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
 			e.user.data1 = new std::function<void()>(std::move(procedure));
-			e.user.data2 = 0;
+			e.user.data2 = nullptr;
 			SDL_PushEvent(&e);
 		},
-		[this](ruis::mouse_cursor c) {
+		[](ruis::mouse_cursor c) {
 			// TODO:
 			// auto& ww = get_impl(*this);
 			// ww.set_cursor(c);
 		},
-		// TODO:
-		96, // get_impl(window_pimpl).get_dots_per_inch(),
-		1 // get_impl(window_pimpl).get_dots_per_pp()
+		get_dpi(),
+		get_display_scaling_factor()
 	)),
 	directory(get_application_directories(this->name))
 {
-#ifdef RUISAPP_RASPBERRYPI
-	this->set_fullscreen(true);
-#else
-	this->update_window_rect(ruis::rect(0, 0, ruis::real(wp.dims.x()), ruis::real(wp.dims.y())));
-#endif
+	this->update_window_rect(
+		ruis::rect(
+			{0, 0}, //
+			ruis::vec2(ruis::real(wp.dims.x()), ruis::real(wp.dims.y())) * get_display_scaling_factor()
+		)
+	);
 }
 
 void application::quit() noexcept
