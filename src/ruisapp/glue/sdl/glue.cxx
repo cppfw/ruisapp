@@ -64,6 +64,11 @@ class window_wrapper : public utki::destructable
 		{
 			SDL_Quit();
 		}
+
+        sdl_wrapper(const sdl_wrapper&) = delete;
+        sdl_wrapper& operator=(const sdl_wrapper&) = delete;
+        sdl_wrapper(sdl_wrapper&&) = delete;
+        sdl_wrapper& operator=(sdl_wrapper&&) = delete;
 	} sdl;
 
 public:
@@ -111,6 +116,11 @@ public:
 		{
 			SDL_DestroyWindow(this->window);
 		}
+
+        sdl_window_wrapper(const sdl_window_wrapper&) = delete;
+        sdl_window_wrapper& operator=(const sdl_window_wrapper&) = delete;
+        sdl_window_wrapper(sdl_window_wrapper&&) = delete;
+        sdl_window_wrapper& operator=(sdl_window_wrapper&&) = delete;
 	} window;
 
 	class gl_context_wrapper
@@ -163,6 +173,11 @@ public:
 	{
 		SDL_StopTextInput();
 	}
+
+    window_wrapper(const window_wrapper&) = delete;
+    window_wrapper& operator=(const window_wrapper&) = delete;
+    window_wrapper(window_wrapper&&) = delete;
+    window_wrapper& operator=(window_wrapper&&) = delete;
 };
 } // namespace
 
