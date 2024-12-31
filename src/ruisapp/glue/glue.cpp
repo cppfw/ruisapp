@@ -21,7 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include <utki/config.hpp>
 
-#ifdef RUISAPP_SDL
+#ifdef RUISAPP_BACKEND_SDL
 // NOLINTNEXTLINE(bugprone-suspicious-include)
 #	include "sdl/glue.cxx"
 #elif CFG_OS == CFG_OS_WINDOWS
@@ -30,7 +30,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #elif CFG_OS == CFG_OS_LINUX && CFG_OS_NAME == CFG_OS_NAME_ANDROID
 #	include "android/glue.cxx"
 #elif CFG_OS == CFG_OS_LINUX
-#	ifdef RUISAPP_WAYLAND
+#	ifdef RUISAPP_BACKEND_WAYLAND
 // NOLINTNEXTLINE(bugprone-suspicious-include)
 #		include "linux/glue_wayland.cxx"
 #	else

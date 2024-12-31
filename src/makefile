@@ -57,7 +57,7 @@ define ruisapp_rules
 
     ifeq ($2,sdl)
         this_ldlibs += -lSDL2
-        this_cxxflags += -D RUISAPP_SDL
+        this_cxxflags += -D RUISAPP_BACKEND_SDL
     else ifeq ($(os), linux)
         # use -isystem instead of -I to prevent clang-tidy follow the includes from these locations
         this_cxxflags += $$(patsubst -I%,-isystem%,$$(shell pkg-config --cflags gdk-3.0))
@@ -72,7 +72,7 @@ define ruisapp_rules
             this_ldlibs += $(wayland_shell_protocol_lib)
             this_ldlibs += -lxkbcommon
             this_cxxflags += -isystem $(dir $(wayland_shell_protocol_header))
-            this_cxxflags += -D RUISAPP_WAYLAND
+            this_cxxflags += -D RUISAPP_BACKEND_WAYLAND
         else ifeq ($2,xorg)
             this_ldlibs += -lX11
         else
