@@ -68,6 +68,7 @@ struct WindowWrapper : public utki::destructable{
 	CocoaWindow* windowObjectId;
 	NSOpenGLContext* openglContextId;
 
+	// TODO: use atomic
 	bool quitFlag = false;
 
 	bool mouseCursorIsCurrentlyVisible = true;
