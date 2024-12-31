@@ -605,7 +605,7 @@ const std::array<ruis::key, std::uint8_t(-1) + 1> keyCodeMap = {{
 	return NO;
 }
 
--(BOOL)canBecomeKeyWindow{return YES;} //This is needed for window without title bar to be able to get key events
+-(BOOL)canBecomeKeyWindow{return YES;} // This is needed for window without title bar to be able to get key events
 -(BOOL)canBecomeMainWindow{return YES;}
 -(BOOL)acceptsFirstResponder{return YES;}
 
@@ -641,7 +641,7 @@ WindowWrapper::WindowWrapper(const window_params& wp){
 		[this->windowObjectId release];
 	});
 
-	[this->windowObjectId setTitle:[[NSProcessInfo processInfo] processName]];
+	[this->windowObjectId setTitle:wp.title.c_str()];
 
 	{
 		std::vector<NSOpenGLPixelFormatAttribute> attributes;

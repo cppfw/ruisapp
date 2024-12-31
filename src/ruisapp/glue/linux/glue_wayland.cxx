@@ -1958,14 +1958,18 @@ struct window_wrapper : public utki::destructable {
 			.close = &xdg_toplevel_close,
 		};
 
-		toplevel_wrapper(surface_wrapper& surface, xdg_surface_wrapper& xdg_surface) :
+		toplevel_wrapper(
+			const ruisapp::window_params& wp,
+			surface_wrapper& surface, //
+			xdg_surface_wrapper& xdg_surface
+		) :
 			toplev(xdg_surface_get_toplevel(xdg_surface.xdg_sur))
 		{
 			if (!this->toplev) {
 				throw std::runtime_error("could not get wayland xdg toplevel");
 			}
 
-			xdg_toplevel_set_title(this->toplev, "ruisapp wayland");
+			xdg_toplevel_set_title(this->toplev, wp.title.c_str());
 			xdg_toplevel_add_listener(this->toplev, &listener, nullptr);
 
 			surface.commit();
@@ -2186,7 +2190,7 @@ struct window_wrapper : public utki::destructable {
 		seat(this->registry, this->compositor, this->shm),
 		surface(this->compositor),
 		xdg_surface_wrp(this->surface, this->wm_base),
-		toplevel(this->surface, this->xdg_surface_wrp),
+		toplevel(wp, this->surface, this->xdg_surface_wrp),
 		egl_window(this->surface, wp.dims),
 		egl_context(this->display, this->egl_window, wp),
 		cur_window_dims(wp.dims)

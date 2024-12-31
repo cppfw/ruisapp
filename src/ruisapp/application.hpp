@@ -47,8 +47,15 @@ struct window_params {
 	 */
 	r4::vector2<unsigned> dims;
 
-	// TODO: add window title string
+	/**
+	 * @brief Window title.
+	 */
+	std::string title = "ruisapp";
 
+	/**
+	 * @brief Graphics buffer kind.
+	 * Color buffer is always present, so no enum entry for color buffer is needed.
+	 */
 	enum class buffer {
 		depth,
 		stencil,

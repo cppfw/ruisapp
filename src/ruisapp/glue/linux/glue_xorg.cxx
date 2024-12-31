@@ -536,6 +536,9 @@ struct window_wrapper : public utki::destructable {
 
 		XFlush(this->display.display);
 
+		// set window title
+		XStoreName(this->display.display, this->window, wp.title.c_str());
+
 		//====================
 		// create GLX context
 

@@ -390,7 +390,7 @@ public:
 				auto dims = wp.dims.to<ruis::real>() * get_display_scaling_factor();
 
 				SDL_Window* window = SDL_CreateWindow(
-					"TODO: window title",
+					wp.title.c_str(),
 					SDL_WINDOWPOS_UNDEFINED,
 					SDL_WINDOWPOS_UNDEFINED,
 					int(dims.x()),

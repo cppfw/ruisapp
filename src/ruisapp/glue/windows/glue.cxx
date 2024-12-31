@@ -905,7 +905,7 @@ window_wrapper::window_wrapper(const window_params& wp)
 	this->hwnd = CreateWindowEx(
 		WS_EX_APPWINDOW | WS_EX_WINDOWEDGE, // extended style
 		window_class_name,
-		"ruis app",
+		wp.title.c_str(),
 		WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
 		0, // x
 		0, // y
