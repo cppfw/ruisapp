@@ -599,9 +599,11 @@ void application::set_mouse_cursor_visible(bool visible)
 	// TODO:
 }
 
-namespace{
-void main_loop_iteration(void* user_data){
+namespace {
+void main_loop_iteration(void* user_data)
+{
 	ASSERT(user_data)
+	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
 	auto app = reinterpret_cast<ruisapp::application*>(user_data);
 
 	auto& ww = get_impl(*app);
@@ -736,7 +738,7 @@ void main_loop_iteration(void* user_data){
 		update_window_rect(*app, ruis::rect(0, new_win_dims));
 	}
 }
-}
+} // namespace
 
 int main(int argc, const char** argv)
 {
