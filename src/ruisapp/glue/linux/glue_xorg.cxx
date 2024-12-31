@@ -1342,7 +1342,7 @@ int main(int argc, const char** argv)
 		// sequence:
 		// - update updateables
 		// - render
-		// - wait for events/next cycle
+		// - wait for events and handle them/next cycle
 		auto to_wait_ms = app->gui.update();
 		render(*app);
 		wait_set.wait(to_wait_ms);
@@ -1387,8 +1387,6 @@ int main(int argc, const char** argv)
 					render(*app);
 					break;
 				case ConfigureNotify:
-					//						TRACE(<<
-					//"ConfigureNotify X event got" << std::endl)
 					// squash all window resize events into one, for that store the new
 					// window dimensions and update the viewport later only once
 					new_win_dims.x() = ruis::real(event.xconfigure.width);

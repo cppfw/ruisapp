@@ -10,7 +10,15 @@ this_srcs += $(call prorab-src-dir, src)
 this_cxxflags += -I ../../src
 
 ifeq ($(os),linux)
-    this__cfg_suffix := $(if $(ogles2),opengles,opengl)-$(if $(wayland),wayland,xorg)
+    ifeq ($(wayland),true)
+        this__backend := wayland
+    else ifeq ($(sdl),true)
+        this__backend := sdl
+    else
+        this__backend := xorg
+    endif
+
+    this__cfg_suffix := $(if $(ogles2),opengles,opengl)-$(this__backend)
     this_libruisapp := libruisapp-$(this__cfg_suffix)
 else
     this__cfg_suffix := $(if $(ogles2),opengles,opengl)

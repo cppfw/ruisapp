@@ -742,7 +742,7 @@ void winmain(int argc, const char** argv)
 		// sequence:
 		// - update updateables
 		// - render
-		// - wait for events/next cycle
+		// - wait for events and handle them/next cycle
 		uint32_t timeout = app->gui.update();
 		render(*app);
 		DWORD status = MsgWaitForMultipleObjectsEx(0, nullptr, timeout, QS_ALLINPUT, MWMO_INPUTAVAILABLE);

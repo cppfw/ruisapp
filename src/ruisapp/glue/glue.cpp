@@ -21,13 +21,16 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include <utki/config.hpp>
 
-#if CFG_OS == CFG_OS_WINDOWS
+#ifdef RUISAPP_BACKEND_SDL
+// NOLINTNEXTLINE(bugprone-suspicious-include)
+#	include "sdl/glue.cxx"
+#elif CFG_OS == CFG_OS_WINDOWS
 // NOLINTNEXTLINE(bugprone-suspicious-include)
 #	include "windows/glue.cxx"
 #elif CFG_OS == CFG_OS_LINUX && CFG_OS_NAME == CFG_OS_NAME_ANDROID
 #	include "android/glue.cxx"
 #elif CFG_OS == CFG_OS_LINUX
-#	ifdef RUISAPP_WAYLAND
+#	ifdef RUISAPP_BACKEND_WAYLAND
 // NOLINTNEXTLINE(bugprone-suspicious-include)
 #		include "linux/glue_wayland.cxx"
 #	else

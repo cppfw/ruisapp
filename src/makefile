@@ -55,7 +55,10 @@ define ruisapp_rules
 
     this_name := ruisapp-$1$(if $2,-$2)
 
-    ifeq ($(os), linux)
+    ifeq ($2,sdl)
+        this_ldlibs += -lSDL2
+        this_cxxflags += -D RUISAPP_BACKEND_SDL
+    else ifeq ($(os), linux)
         # use -isystem instead of -I to prevent clang-tidy follow the includes from these locations
         this_cxxflags += $$(patsubst -I%,-isystem%,$$(shell pkg-config --cflags gdk-3.0))
         this_ldlibs += $$(shell pkg-config --libs gdk-3.0)
@@ -69,20 +72,17 @@ define ruisapp_rules
             this_ldlibs += $(wayland_shell_protocol_lib)
             this_ldlibs += -lxkbcommon
             this_cxxflags += -isystem $(dir $(wayland_shell_protocol_header))
-            this_cxxflags += -D RUISAPP_WAYLAND
-        else
+            this_cxxflags += -D RUISAPP_BACKEND_WAYLAND
+        else ifeq ($2,xorg)
             this_ldlibs += -lX11
+        else
         endif
     else ifeq ($(os), windows)
         this_ldlibs += -lgdi32 -lopengl32 -lglew32
     else ifeq ($(os), macosx)
         this_ldlibs += -lGLEW
         this_ldlibs += -framework Cocoa -framework OpenGL -ldl
-    endif
 
-    this_ldlibs += -lruis -lpapki -ltml -lutki
-
-    ifeq ($(os), macosx)
         this_mm_obj := $$(d)$$(this_out_dir)obj_$$(this_name)/objc/ruisapp/glue/macosx/glue.mm.o
 
         define this_subrules
@@ -94,6 +94,8 @@ $(.RECIPEPREFIX)$(a)$(this_cc) -ObjC++ -c -o "$$$$@" $$(this_cxxflags) $$(OBJCXX
         $$(eval $$(this_subrules))
     endif
 
+    this_ldlibs += -lruis -lpapki -ltml -lutki
+
     this_cxxflags += -D RUISAPP_RENDER_$(shell echo $1 | tr '[:lower:]' '[:upper:]')
     this_ldlibs += -lruis-render-$1
 
@@ -103,7 +105,8 @@ $(.RECIPEPREFIX)$(a)$(this_cc) -ObjC++ -c -o "$$$$@" $$(this_cxxflags) $$(OBJCXX
 
     $$(eval $$(prorab-build-lib))
 
-    ifeq ($(os), macosx)
+    ifeq ($2,sdl)
+    else ifeq ($(os), macosx)
         $$(prorab_this_staticlib): $$(this_mm_obj)
         $$(prorab_this_name): $$(this_mm_obj)
     
@@ -120,6 +123,8 @@ ifeq ($(os), linux)
     $(eval $(call ruisapp_rules,opengles,xorg))
     # $(eval $(call ruisapp_rules,opengl,wayland))
     $(eval $(call ruisapp_rules,opengles,wayland))
+    $(eval $(call ruisapp_rules,opengl,sdl))
+    $(eval $(call ruisapp_rules,opengles,sdl))
 else
     $(eval $(call ruisapp_rules,opengl,))
 endif
