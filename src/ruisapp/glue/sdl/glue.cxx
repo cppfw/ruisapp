@@ -599,6 +599,145 @@ void application::set_mouse_cursor_visible(bool visible)
 	// TODO:
 }
 
+namespace{
+void main_loop_iteration(void* user_data){
+	ASSERT(user_data)
+	auto app = reinterpret_cast<ruisapp::application*>(user_data);
+
+	auto& ww = get_impl(*app);
+
+	// loop iteration sequence:
+	// - update updateables
+	// - render
+	// - wait for events and handle them/next cycle
+
+	auto to_wait_ms = app->gui.update();
+	// clamp to_wait_ms to max of int as SDL_WaitEventTimeout() accepts int type
+	to_wait_ms = std::min(to_wait_ms, uint32_t(std::numeric_limits<int32_t>::max()));
+
+	render(*app);
+
+	if (SDL_WaitEventTimeout(nullptr, int(to_wait_ms)) == 0) {
+		// No events or error. In case of error not much we can do, just ignore it.
+		return;
+	}
+
+	ruis::vector2 new_win_dims(-1, -1);
+
+	SDL_Event e;
+	while (SDL_PollEvent(&e) != 0) {
+		switch (e.type) {
+			case SDL_QUIT:
+				ww.quit_flag.store(true);
+				break;
+			case SDL_WINDOWEVENT:
+				switch (e.window.event) {
+					default:
+						break;
+					case SDL_WINDOWEVENT_RESIZED:
+					case SDL_WINDOWEVENT_SIZE_CHANGED:
+						// squash all window resize events into one, for that store the new
+						// window dimensions and update the viewport later only once
+						new_win_dims.x() = ruis::real(e.window.data1);
+						new_win_dims.y() = ruis::real(e.window.data2);
+						break;
+					case SDL_WINDOWEVENT_ENTER:
+						handle_mouse_hover(*app, true, 0);
+						break;
+					case SDL_WINDOWEVENT_LEAVE:
+						handle_mouse_hover(*app, false, 0);
+						break;
+				}
+				break;
+			case SDL_MOUSEMOTION:
+				{
+					int x = 0;
+					int y = 0;
+					SDL_GetMouseState(&x, &y);
+
+					handle_mouse_move(*app, ruis::vector2(x, y), 0);
+				}
+				break;
+			case SDL_MOUSEBUTTONDOWN:
+				[[fallthrough]];
+			case SDL_MOUSEBUTTONUP:
+				{
+					int x = 0;
+					int y = 0;
+					SDL_GetMouseState(&x, &y);
+
+					handle_mouse_button(
+						*app,
+						e.button.type == SDL_MOUSEBUTTONDOWN,
+						ruis::vector2(x, y),
+						button_number_to_enum(e.button.button),
+						0 // pointer id
+					);
+				}
+				break;
+			case SDL_KEYDOWN:
+				[[fallthrough]];
+			case SDL_KEYUP:
+				{
+					auto key = sdl_scan_code_to_ruis_key(e.key.keysym.scancode);
+					if (e.key.repeat == 0) {
+						handle_key_event(
+							*app, //
+							e.key.type == SDL_KEYDOWN,
+							key
+						);
+					}
+					if (e.type == SDL_KEYDOWN) {
+						struct sdl_dummy_input_string_provider : public ruis::gui::input_string_provider {
+							std::u32string get() const override
+							{
+								return {};
+							}
+						};
+
+						handle_character_input(*app, sdl_dummy_input_string_provider(), key);
+					}
+				}
+				break;
+			case SDL_TEXTINPUT:
+				{
+					struct sdl_input_string_provider : public ruis::gui::input_string_provider {
+						const char* text;
+
+						sdl_input_string_provider(const char* text) :
+							text(text)
+						{}
+
+						std::u32string get() const override
+						{
+							return utki::to_utf32(this->text);
+						}
+					} sdl_input_string_provider(
+						// save pointer to text, the ownership of text buffer is not taken!
+						&(e.text.text[0])
+					);
+
+					handle_character_input(*app, sdl_input_string_provider, ruis::key::unknown);
+				}
+				break;
+			default:
+				if (e.type == ww.user_event_type) {
+					std::unique_ptr<std::function<void()>> f(
+						// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+						reinterpret_cast<std::function<void()>*>(e.user.data1)
+					);
+					f->operator()();
+				}
+				break;
+		}
+	}
+
+	if (new_win_dims.is_positive_or_zero()) {
+		update_window_rect(*app, ruis::rect(0, new_win_dims));
+	}
+}
+}
+
 int main(int argc, const char** argv)
 {
 	std::unique_ptr<ruisapp::application> app = ruisapp::application_factory::create_application(argc, argv);
@@ -606,140 +745,8 @@ int main(int argc, const char** argv)
 		return 1;
 	}
 
-	ASSERT(app)
-
-	auto& ww = get_impl(*app);
-
-	while (!ww.quit_flag.load()) {
-		// sequence:
-		// - update updateables
-		// - render
-		// - wait for events and handle them/next cycle
-
-		auto to_wait_ms = app->gui.update();
-		// clamp to_wait_ms to max of int as SDL_WaitEventTimeout() accepts int type
-		to_wait_ms = std::min(to_wait_ms, uint32_t(std::numeric_limits<int32_t>::max()));
-
-		render(*app);
-
-		if (SDL_WaitEventTimeout(nullptr, int(to_wait_ms)) == 0) {
-			// No events or error. In case of error not much we can do, just ignore it.
-			continue;
-		}
-
-		ruis::vector2 new_win_dims(-1, -1);
-
-		SDL_Event e;
-		while (SDL_PollEvent(&e) != 0) {
-			switch (e.type) {
-				case SDL_QUIT:
-					ww.quit_flag.store(true);
-					break;
-				case SDL_WINDOWEVENT:
-					switch (e.window.event) {
-						default:
-							break;
-						case SDL_WINDOWEVENT_RESIZED:
-						case SDL_WINDOWEVENT_SIZE_CHANGED:
-							// squash all window resize events into one, for that store the new
-							// window dimensions and update the viewport later only once
-							new_win_dims.x() = ruis::real(e.window.data1);
-							new_win_dims.y() = ruis::real(e.window.data2);
-							break;
-						case SDL_WINDOWEVENT_ENTER:
-							handle_mouse_hover(*app, true, 0);
-							break;
-						case SDL_WINDOWEVENT_LEAVE:
-							handle_mouse_hover(*app, false, 0);
-							break;
-					}
-					break;
-				case SDL_MOUSEMOTION:
-					{
-						int x = 0;
-						int y = 0;
-						SDL_GetMouseState(&x, &y);
-
-						handle_mouse_move(*app, ruis::vector2(x, y), 0);
-					}
-					break;
-				case SDL_MOUSEBUTTONDOWN:
-					[[fallthrough]];
-				case SDL_MOUSEBUTTONUP:
-					{
-						int x = 0;
-						int y = 0;
-						SDL_GetMouseState(&x, &y);
-
-						handle_mouse_button(
-							*app,
-							e.button.type == SDL_MOUSEBUTTONDOWN,
-							ruis::vector2(x, y),
-							button_number_to_enum(e.button.button),
-							0 // pointer id
-						);
-					}
-					break;
-				case SDL_KEYDOWN:
-					[[fallthrough]];
-				case SDL_KEYUP:
-					{
-						auto key = sdl_scan_code_to_ruis_key(e.key.keysym.scancode);
-						if (e.key.repeat == 0) {
-							handle_key_event(
-								*app, //
-								e.key.type == SDL_KEYDOWN,
-								key
-							);
-						}
-						if (e.type == SDL_KEYDOWN) {
-							struct sdl_dummy_input_string_provider : public ruis::gui::input_string_provider {
-								std::u32string get() const override
-								{
-									return {};
-								}
-							};
-
-							handle_character_input(*app, sdl_dummy_input_string_provider(), key);
-						}
-					}
-					break;
-				case SDL_TEXTINPUT:
-					{
-						struct sdl_input_string_provider : public ruis::gui::input_string_provider {
-							const char* text;
-
-							sdl_input_string_provider(const char* text) :
-								text(text)
-							{}
-
-							std::u32string get() const override
-							{
-								return utki::to_utf32(this->text);
-							}
-						} sdl_input_string_provider(
-							// save pointer to text, the ownership of text buffer is not taken!
-							&(e.text.text[0])
-						);
-
-						handle_character_input(*app, sdl_input_string_provider, ruis::key::unknown);
-					}
-					break;
-				default:
-					if (e.type == ww.user_event_type) {
-						std::unique_ptr<std::function<void()>> f(
-							// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-							reinterpret_cast<std::function<void()>*>(e.user.data1)
-						);
-						f->operator()();
-					}
-					break;
-			}
-		}
-
-		if (new_win_dims.is_positive_or_zero()) {
-			update_window_rect(*app, ruis::rect(0, new_win_dims));
-		}
+	while (!get_impl(*app).quit_flag.load()) {
+		main_loop_iteration(app.get());
 	}
 
 	return 0;
