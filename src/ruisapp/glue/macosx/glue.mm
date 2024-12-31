@@ -642,7 +642,7 @@ WindowWrapper::WindowWrapper(const window_params& wp){
 		[this->windowObjectId release];
 	});
 
-	[this->windowObjectId setTitle:wp.title.c_str()];
+	[this->windowObjectId setTitle:[NSString stringWithUTF8String:wp.title.c_str()]];
 
 	{
 		std::vector<NSOpenGLPixelFormatAttribute> attributes;
