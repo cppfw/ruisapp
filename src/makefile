@@ -56,32 +56,40 @@ define ruisapp_rules
     this_name := ruisapp-$1$(if $2,-$2)
 
     ifeq ($2,sdl)
-        this_ldlibs += -lSDL2
+        this_ldlibs += -l SDL2
         this_cxxflags += -D RUISAPP_BACKEND_SDL
     else ifeq ($(os), linux)
         # use -isystem instead of -I to prevent clang-tidy follow the includes from these locations
         this_cxxflags += $$(patsubst -I%,-isystem%,$$(shell pkg-config --cflags gdk-3.0))
         this_ldlibs += $$(shell pkg-config --libs gdk-3.0)
 
-        this_ldlibs += -lGLEW -lnitki -lopros
+        this_ldlibs += -l GLEW
+        this_ldlibs += -l nitki
+        this_ldlibs += -l opros
 
         ifeq ($2,wayland)
             $$(d)ruisapp/glue/glue.cpp: $$(d)$(wayland_shell_protocol_header)
 
-            this_ldlibs += -lwayland-client -lwayland-egl -lwayland-cursor
+            this_ldlibs += -l wayland-client
+            this_ldlibs += -l wayland-egl
+            this_ldlibs += -l wayland-cursor
             this_ldlibs += $(wayland_shell_protocol_lib)
-            this_ldlibs += -lxkbcommon
+            this_ldlibs += -l xkbcommon
             this_cxxflags += -isystem $(dir $(wayland_shell_protocol_header))
             this_cxxflags += -D RUISAPP_BACKEND_WAYLAND
         else ifeq ($2,xorg)
-            this_ldlibs += -lX11
+            this_ldlibs += -l X11
         else
         endif
     else ifeq ($(os), windows)
-        this_ldlibs += -lgdi32 -lopengl32 -lglew32
+        this_ldlibs += -l gdi32
+        this_ldlibs += -l opengl32
+        this_ldlibs += -l glew32
     else ifeq ($(os), macosx)
-        this_ldlibs += -lGLEW
-        this_ldlibs += -framework Cocoa -framework OpenGL -ldl
+        this_ldlibs += -l GLEW
+        this_ldlibs += -framework Cocoa
+        this_ldlibs += -framework OpenGL
+        this_ldlibs += -l dl
 
         this_mm_obj := $$(d)$$(this_out_dir)obj_$$(this_name)/objc/ruisapp/glue/macosx/glue.mm.o
 
@@ -94,13 +102,16 @@ $(.RECIPEPREFIX)$(a)$(this_cc) -ObjC++ -c -o "$$$$@" $$(this_cxxflags) $$(OBJCXX
         $$(eval $$(this_subrules))
     endif
 
-    this_ldlibs += -lruis -lpapki -ltml -lutki
+    this_ldlibs += -l ruis
+    this_ldlibs += -l papki
+    this_ldlibs += -l tml
+    this_ldlibs += -l utki
 
     this_cxxflags += -D RUISAPP_RENDER_$(shell echo $1 | tr '[:lower:]' '[:upper:]')
-    this_ldlibs += -lruis-render-$1
+    this_ldlibs += -l ruis-render-$1
 
     ifeq ($1,opengles)
-        this_ldlibs += -lEGL
+        this_ldlibs += -l EGL
     endif
 
     $$(eval $$(prorab-build-lib))
