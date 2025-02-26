@@ -31,6 +31,8 @@ using namespace ruisapp;
 {
 	self->app = create_app_unix(0, nullptr).release();
 
+	// TODO: check if app == nullptr
+
 	return YES;
 }
 

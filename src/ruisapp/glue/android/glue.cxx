@@ -1575,6 +1575,8 @@ void on_native_window_created(ANativeActivity* activity, ANativeWindow* window)
 
 			application* app = ruisapp::application_factory::create_application(0, nullptr).release();
 
+			// TODO: check if app == nullptr
+
 			activity->instance = app;
 
 			// save current configuration in global variable

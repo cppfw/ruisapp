@@ -1322,7 +1322,8 @@ int main(int argc, const char** argv)
 
 	std::unique_ptr<ruisapp::application> app = create_app_unix(argc, argv);
 	if (!app) {
-		return 1;
+		// Not an error. The app just did not show any GUI to the user.
+		return 0;
 	}
 
 	ASSERT(app)

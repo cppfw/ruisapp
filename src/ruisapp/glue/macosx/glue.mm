@@ -707,6 +707,7 @@ int main(int argc, const char** argv){
 	LOG([&](auto&o){o << "main(): enter" << std::endl;})
 	auto app = create_app_unix(argc, argv);
 	if(!app){
+		// Not an error. The app just did not show any GUI to the user.
 		return 0;
 	}
 

@@ -2372,7 +2372,8 @@ int main(int argc, const char** argv)
 {
 	std::unique_ptr<ruisapp::application> application = create_app_unix(argc, argv);
 	if (!application) {
-		return 1;
+		// Not an error. The app just did not show any GUI to the user.
+		return 0;
 	}
 
 	auto& app = *application;

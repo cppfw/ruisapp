@@ -725,10 +725,11 @@ void application::quit() noexcept
 }
 
 namespace ruisapp {
-void winmain(int argc, const char** argv)
+int winmain(int argc, const char** argv)
 {
 	auto app = ruisapp::application_factory::create_application(argc, argv);
 	if (!app) {
+		// Not an error. The application just did not show any GUI to the user.
 		return;
 	}
 
@@ -775,9 +776,7 @@ int WINAPI WinMain(
 )
 {
 	// TODO: pass argc and argv
-	ruisapp::winmain(0, nullptr);
-
-	return 0;
+	return ruisapp::winmain(0, nullptr);
 }
 
 void application::set_fullscreen(bool enable)
