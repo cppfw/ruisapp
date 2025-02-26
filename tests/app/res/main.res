@@ -1,5 +1,10 @@
+include_subdirs
+
 tex_sample{
 	file {texture.jpg}
+	min_filter{linear}
+	mag_filter{linear}
+	mipmap{nearest}
 }
 
 tex_lattice{
@@ -40,19 +45,8 @@ img_camera{
 	file{camera.svg}
 }
 
-npt_sample{
-	tex{ruis_tex_ui}
-//	rect{0 0 13 13}
-	borders{6 6 6 6}
-}
-
-npt_sample2{
-	file{a.svg}
-	borders{6 6 6 6}
-}
-
 grd_sample{
-	vertical{true}
+	vertical{false}
 
 	stop{ pos{0.3} color{0x0} }
 	stop{ pos{0.7} color{0xff00ffff} }
