@@ -68,81 +68,33 @@ utki::shared_ref<ruis::window> make_text_input_window(
             .title = U"TextInput"s
         },
         {
-            m::tab_group(c,
+            m::row(c,
                 {
                     .layout_params{
-                        .dims{ruis::dim::max, ruis::dim::min}
+                        .align{ruis::align::front, ruis::align::front}
                     }
                 },
                 {
-                    m::tab(c,
+                    m::push_button(c,
                         {
                             .widget_params{
-                                .id = "tab1"s
+                                .id = "showhide_mousecursor_button"s
                             }
                         },
                         {
-                            m::text(c, {}, U"tab1"s)
+                            m::text(c, {}, U"show/hide mouse"s)
                         }
                     ),
-                    m::tab(c, {}, {m::text(c, {}, U"tab2"s)}),
-                    m::tab(c, {}, {m::text(c, {}, U"tab 3"s)}),
-                    m::tab(c, {}, {m::text(c, {}, U"tab four"s)})
-                }
-            ),
-            m::nine_patch(c,
-                {
-                    .layout_params{
-                        .dims{ruis::dim::max, ruis::dim::min}
-                    },
-                    .nine_patch_params{
-                        .nine_patch = c.get().loader.load<ruis::res::nine_patch>("ruis_npt_frame"s)
-                    }
-                },
-                {
-                    m::collapse_area(c,
+                    m::push_button(c,
                         {
-                            .layout_params{
-                                .dims{ruis::dim::max, ruis::dim::min}
-                            },
-                            .title = U"Hi!"s
+                            .widget_params{
+                                .id = "fullscreen_button"s
+                            }
                         },
                         {
-                            m::text(c, {}, U"Hello!"s),
-                            m::row(c,
-                                {},
-                                {
-                                    m::push_button(c,
-                                        {},
-                                        {
-                                            m::text(c, {}, U"button!!!"s)
-                                        }
-                                    ),
-                                    m::image_push_button(c,
-                                        {
-                                            .layout_params{
-                                                .dims{50_pp, 50_pp}
-                                            },
-                                            .widget_params{
-                                                .id = "image_push_button"s
-                                            },
-                                            .image_button_params{
-                                                .unpressed_image = c.get().loader.load<ruis::res::image>("img_button_unpressed"sv),
-                                                .pressed_image = c.get().loader.load<ruis::res::image>("img_button_pressed"sv)
-                                            }
-                                        }
-                                    )
-                                }
-                            )
+                            m::text(c, {}, U"toggle fullscreen"s)
                         }
                     )
-                }
-            ),
-            m::gap(c,
-                {
-                    .layout_params{
-                        .dims{0_pp, 5_pp}
-                    }
                 }
             ),
             m::nine_patch(c,

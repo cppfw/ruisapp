@@ -4,7 +4,6 @@
 #include <ruis/widget/group/overlay.hpp>
 #include <ruis/widget/label/image_mouse_cursor.hpp>
 
-#include "window0.hpp"
 #include "window1.hpp"
 #include "sliders_window.hpp"
 #include "spinning_cube_window.hpp"
@@ -47,7 +46,6 @@ utki::shared_ref<ruis::widget> make_root_widget(utki::shared_ref<ruis::context> 
                             }
                         },
                         {
-                            make_window0(c, {0, 0}),
                             make_window1(c, {300_pp, 10_pp}),
                             make_sliders_window(c, {0_pp, 250_pp}),
                             make_spinning_cube_window(c, {10_pp, 500_pp}),

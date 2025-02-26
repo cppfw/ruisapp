@@ -31,7 +31,6 @@
 #include "root_widget.hpp"
 #include "cube_widget.hpp"
 
-#include "window0.hpp"
 #include "window1.hpp"
 #include "sliders_window.hpp"
 #include "spinning_cube_window.hpp"
@@ -312,13 +311,6 @@ public:
 				this->set_fullscreen(!this->is_fullscreen());
 			};
 		}
-		{
-			auto b = c.get().try_get_widget_as<ruis::push_button>("image_push_button");
-			ASSERT(b)
-			b->click_handler = [this](ruis::push_button&) {
-				this->set_fullscreen(true);
-			};
-		}
 
 		// mouse cursor
 		{
@@ -328,22 +320,6 @@ public:
 			b->click_handler = [visible, this](ruis::push_button&) mutable{
 				visible = !visible;
 				this->set_mouse_cursor_visible(visible);
-			};
-		}
-
-		// dropdown
-		{
-			auto& dds = c.get().get_widget_as<ruis::selection_box>("dropdownselector");
-			auto ddst = c.get().try_get_widget_as<ruis::text>("dropdownselector_selection");
-			auto ddstw = utki::make_weak(ddst);
-
-			dds.selection_handler = [ddstw](ruis::selection_box& dds){
-				if(auto t = ddstw.lock()){
-					std::stringstream ss;
-					ss << "index_" << dds.get_selection();
-
-					t->set_text(ss.str());
-				}
 			};
 		}
 	}
