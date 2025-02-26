@@ -17,6 +17,8 @@ else
 	exit 1
 fi
 
+CXX=clang++
+
 packageName=ruisapp
 
 pkgname="${pkgPrefix}${packageName}"
@@ -29,10 +31,18 @@ url="http://github.com/cppfw/${packageName}"
 license=('MIT')
 groups=()
 
-depends=("${pkgPrefix}ruis" "${pkgPrefix}ruis-render-opengl")
+depends=(
+	"${pkgPrefix}ruis"
+	"${pkgPrefix}ruis-render-opengl"
+)
 
-# 'clang-tools-extra' for clang-tidy
-makedepends=('myci' 'prorab' 'prorab-extra' 'doxygen' "${pkgPrefix}clang-tools-extra")
+makedepends=(
+	'myci'
+	'prorab'
+	'prorab-extra'
+	'doxygen'
+	"${pkgPrefix}clang-tools-extra" # for clang-tidy
+)
 checkdepends=('myci')
 optdepends=()
 provides=()
