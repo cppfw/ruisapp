@@ -1130,20 +1130,25 @@ ruisapp::application::application(std::string name, const window_params& wp) :
 	gui(utki::make_shared<ruis::context>(
 		utki::make_shared<ruis::render::opengles::renderer>(),
 		utki::make_shared<ruis::updater>(),
-		[this](std::function<void()> a) {
-			get_impl(*this).ui_queue.push_back(std::move(a));
-		},
-		[this](ruis::mouse_cursor) {},
-		[]() -> float {
-			ASSERT(java_functions)
+		ruis::context::parameters{
+			.post_to_ui_thread_function =
+				[this](std::function<void()> a) {
+					get_impl(*this).ui_queue.push_back(std::move(a));
+				},
+			.set_mouse_cursor_function = [this](ruis::mouse_cursor) {},
+			.units = ruis::units(
+				[]() -> float {
+					ASSERT(java_functions)
 
-			return java_functions->get_dots_per_inch();
-		}(),
-		[this]() -> float {
-			auto res = get_impl(*this).get_window_size();
-			auto dim = (res.to<float>() / java_functions->get_dots_per_inch()) * float(utki::mm_per_inch);
-			return application::get_pixels_per_pp(res, dim.to<unsigned>());
-		}()
+					return java_functions->get_dots_per_inch();
+				}(),
+				[this]() -> float {
+					auto res = get_impl(*this).get_window_size();
+					auto dim = (res.to<float>() / java_functions->get_dots_per_inch()) * float(utki::mm_per_inch);
+					return application::get_pixels_per_pp(res, dim.to<unsigned>());
+				}()
+			)
+		}
 	)),
 	directory(get_application_directories(this->name))
 {

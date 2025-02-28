@@ -323,7 +323,7 @@ ruis::key sdl_scan_code_to_ruis_key(SDL_Scancode sc)
 namespace {
 ruis::real get_dpi(int display_index = 0)
 {
-	float dpi = ruis::context::default_dots_per_inch;
+	float dpi = ruis::units::default_dots_per_inch;
 	if (SDL_GetDisplayDPI(display_index, &dpi, nullptr, nullptr) != 0) {
 		throw std::runtime_error(utki::cat("Could not get SDL display DPI, SDL Error: ", SDL_GetError()));
 	}
@@ -333,7 +333,7 @@ ruis::real get_dpi(int display_index = 0)
 ruis::real get_display_scaling_factor(int display_index = 0)
 {
 	using std::round;
-	return round(get_dpi(display_index) / ruis::context::default_dots_per_inch);
+	return round(get_dpi(display_index) / ruis::units::default_dots_per_inch);
 }
 } // namespace
 
@@ -545,25 +545,31 @@ application::application(std::string name, const window_params& wp) :
 #	error "Unknown graphics API"
 #endif
 		utki::make_shared<ruis::updater>(),
-		[this](std::function<void()> procedure) {
-			auto& ww = get_impl(*this);
+		ruis::context::parameters{
+			.post_to_ui_thread_function =
+				[this](std::function<void()> procedure) {
+					auto& ww = get_impl(*this);
 
-			SDL_Event e;
-			SDL_memset(&e, 0, sizeof(e));
-			e.type = ww.user_event_type;
-			e.user.code = 0;
-			// NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
-			e.user.data1 = new std::function<void()>(std::move(procedure));
-			e.user.data2 = nullptr;
-			SDL_PushEvent(&e);
-		},
-		[](ruis::mouse_cursor c) {
-			// TODO:
-			// auto& ww = get_impl(*this);
-			// ww.set_cursor(c);
-		},
-		get_dpi(),
-		get_display_scaling_factor()
+					SDL_Event e;
+					SDL_memset(&e, 0, sizeof(e));
+					e.type = ww.user_event_type;
+					e.user.code = 0;
+					// NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
+					e.user.data1 = new std::function<void()>(std::move(procedure));
+					e.user.data2 = nullptr;
+					SDL_PushEvent(&e);
+				},
+			.set_mouse_cursor_function =
+				[](ruis::mouse_cursor c) {
+					// TODO:
+					// auto& ww = get_impl(*this);
+					// ww.set_cursor(c);
+				},
+			.units = ruis::units(
+				get_dpi(), //
+				get_display_scaling_factor()
+			)
+		}
 	)),
 	directory(get_application_directories(this->name))
 {

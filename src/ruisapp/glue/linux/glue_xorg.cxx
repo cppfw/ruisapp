@@ -927,15 +927,21 @@ application::application(std::string name, const window_params& wp) :
 #	error "Unknown graphics API"
 #endif
 		utki::make_shared<ruis::updater>(),
-		[this](std::function<void()> a) {
-			get_impl(get_window_pimpl(*this)).ui_queue.push_back(std::move(a));
-		},
-		[this](ruis::mouse_cursor c) {
-			auto& ww = get_impl(*this);
-			ww.set_cursor(c);
-		},
-		get_impl(window_pimpl).get_dots_per_inch(),
-		get_impl(window_pimpl).get_dots_per_pp()
+		ruis::context::parameters{
+			.post_to_ui_thread_function =
+				[this](std::function<void()> proc) {
+					get_impl(get_window_pimpl(*this)).ui_queue.push_back(std::move(proc));
+				},
+			.set_mouse_cursor_function =
+				[this](ruis::mouse_cursor cursor) {
+					auto& ww = get_impl(*this);
+					ww.set_cursor(cursor);
+				},
+			.units = ruis::units(
+				get_impl(window_pimpl).get_dots_per_inch(), //
+				get_impl(window_pimpl).get_dots_per_pp()
+			)
+		}
 	)),
 	directory(get_application_directories(this->name))
 {

@@ -693,24 +693,33 @@ application::application(std::string name, const window_params& wp) :
 	gui(utki::make_shared<ruis::context>(
 		utki::make_shared<ruis::render::opengl::renderer>(),
 		utki::make_shared<ruis::updater>(),
-		[](std::function<void()> procedure) {
-			auto& ww = get_impl(get_window_pimpl(ruisapp::inst()));
-			if (PostMessage(
-					ww.hwnd,
-					WM_USER,
-					0,
-					// NOLINTNEXTLINE(cppcoreguidelines-owning-memory, cppcoreguidelines-pro-type-reinterpret-cast)
-					reinterpret_cast<LPARAM>(new std::remove_reference_t<decltype(procedure)>(std::move(procedure)))
-				) == 0)
-			{
-				throw std::runtime_error("PostMessage(): failed");
-			}
-		},
-		[](ruis::mouse_cursor c) {
-			// TODO:
-		},
-		get_dots_per_inch(get_impl(this->window_pimpl).hdc),
-		get_dots_per_pp(get_impl(this->window_pimpl).hdc)
+		ruis::context::parameters{
+			.post_to_ui_thread_function =
+				[](std::function<void()> procedure) {
+					auto& ww = get_impl(get_window_pimpl(ruisapp::inst()));
+					if (PostMessage(
+							ww.hwnd,
+							WM_USER,
+							0,
+							// NOLINTNEXTLINE(cppcoreguidelines-owning-memory,
+							// cppcoreguidelines-pro-type-reinterpret-cast)
+							reinterpret_cast<LPARAM>(
+								new std::remove_reference_t<decltype(procedure)>(std::move(procedure))
+							)
+						) == 0)
+					{
+						throw std::runtime_error("PostMessage(): failed");
+					}
+				},
+			.set_mouse_cursor_function =
+				[](ruis::mouse_cursor c) {
+					// TODO:
+				},
+			.units = ruis::units(
+				get_dots_per_inch(get_impl(this->window_pimpl).hdc), //
+				get_dots_per_pp(get_impl(this->window_pimpl).hdc)
+			)
+		}
 	)),
 	directory(get_application_directories(this->name)),
 	cur_window_rect(0, 0, -1, -1)

@@ -330,17 +330,21 @@ application::application(std::string name, const window_params& wp) :
 		gui(utki::make_shared<ruis::context>(
 				utki::make_shared<ruis::render::opengles::renderer>(),
 				utki::make_shared<ruis::updater>(),
-				[this](std::function<void()> a){
-					auto p = reinterpret_cast<NSInteger>(new std::function<void()>(std::move(a)));
+				ruis::context::parameters{
+					.post_to_ui_thread_function = [this](std::function<void()> a){
+						auto p = reinterpret_cast<NSInteger>(new std::function<void()>(std::move(a)));
 
-					dispatch_async(dispatch_get_main_queue(), ^{
-						std::unique_ptr<std::function<void()>> m(reinterpret_cast<std::function<void()>*>(p));
-						(*m)();
-					});
-				},
-				[this](ruis::mouse_cursor){},
-				getDotsPerInch(),
-				getDotsPerDp()
+						dispatch_async(dispatch_get_main_queue(), ^{
+							std::unique_ptr<std::function<void()>> m(reinterpret_cast<std::function<void()>*>(p));
+							(*m)();
+						});
+					},
+					.set_mouse_cursor_function = [this](ruis::mouse_cursor){},
+					.units = ruis::units(
+						getDotsPerInch(), //
+						getDotsPerDp()
+					)
+				}
 			)),
 		directory{} //TODO: initialize to proper value
 {
