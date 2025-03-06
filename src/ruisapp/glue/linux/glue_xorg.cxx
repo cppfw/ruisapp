@@ -300,73 +300,59 @@ struct window_wrapper : public utki::destructable {
 
 			visual_attribs.push_back(None);
 
-			int fbcount = 0;
-			GLXFBConfig* fb_config = glXChooseFBConfig(
-				this->display.display,
-				// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
-				DefaultScreen(this->display.display),
-				visual_attribs.data(),
-				&fbcount
-			);
-			if (!fb_config) {
-				throw std::runtime_error("glXChooseFBConfig() returned empty list");
-			}
-			utki::scope_exit scope_exit_fbc([&fb_config]() {
+			utki::span<GLXFBConfig> fb_configs = [&]() {
+				int fbcount = 0;
+				GLXFBConfig* fb_configs = glXChooseFBConfig(
+					this->display.display,
+					// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
+					DefaultScreen(this->display.display),
+					visual_attribs.data(),
+					&fbcount
+				);
+				if (!fb_configs) {
+					throw std::runtime_error("glXChooseFBConfig() returned empty list");
+				}
+				return utki::make_span(fb_configs, fbcount);
+			}();
+
+			utki::scope_exit scope_exit_fbc([&fb_configs]() {
 				// NOLINTNEXTLINE(bugprone-multi-level-implicit-pointer-conversion)
-				XFree(fb_config);
+				XFree(fb_configs.data());
 			});
 
-			int best_fb_config_index = -1;
-			int worst_fbc = -1;
+			GLXFBConfig worst_fb_config = nullptr;
 			int best_num_samp = -1;
 			// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
 			int worst_num_samp = 999;
 
-			for (int i = 0; i < fbcount; ++i) {
-				XVisualInfo* vi = glXGetVisualFromFBConfig(
-					this->display.display,
-					// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-					fb_config[i]
-				);
+			for (auto fb_config : fb_configs) {
+				// for (size_t i = 0; i < fb_config.size(); ++i) {
+				XVisualInfo* vi = glXGetVisualFromFBConfig(this->display.display, fb_config);
 				if (!vi) {
 					continue;
 				}
 
 				// NOLINTNEXTLINE(cppcoreguidelines-init-variables)
 				int samp_buf;
-				glXGetFBConfigAttrib(
-					this->display.display,
-					// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-					fb_config[i],
-					GLX_SAMPLE_BUFFERS,
-					&samp_buf
-				);
+				glXGetFBConfigAttrib(this->display.display, fb_config, GLX_SAMPLE_BUFFERS, &samp_buf);
 
 				// NOLINTNEXTLINE(cppcoreguidelines-init-variables)
 				int samples;
-				glXGetFBConfigAttrib(
-					this->display.display,
-					// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-					fb_config[i],
-					GLX_SAMPLES,
-					&samples
-				);
+				glXGetFBConfigAttrib(this->display.display, fb_config, GLX_SAMPLES, &samples);
 
-				if (best_fb_config_index < 0 || (samp_buf && samples > best_num_samp)) {
-					best_fb_config_index = i;
+				if (!best_fb_config || (samp_buf && samples > best_num_samp)) {
+					best_fb_config = fb_config;
 					best_num_samp = samples;
 				}
-				if (worst_fbc < 0 || !samp_buf || samples < worst_num_samp) {
-					worst_fbc = i;
+				if (!worst_fb_config || !samp_buf || samples < worst_num_samp) {
+					worst_fb_config = fb_config;
 					worst_num_samp = samples;
 				}
 
 				XFree(vi);
 			}
-
-			// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			best_fb_config = fb_config[best_fb_config_index];
 		}
+		ASSERT(best_fb_config)
 #elif defined(RUISAPP_RENDER_OPENGLES)
 		auto graphics_api_version = [&ver = wp.graphics_api_version]() {
 			if (ver.to_uint32_t() == 0) {
