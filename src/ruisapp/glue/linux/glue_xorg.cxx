@@ -47,6 +47,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #	endif
 
 #	include <ruis/render/opengles/renderer.hpp>
+#	include <ruis/render/opengles/context.hpp>
 
 #else
 #	error "Unknown graphics API"
@@ -914,12 +915,12 @@ application::application(std::string name, const window_params& wp) :
 	gui(utki::make_shared<ruis::context>(
 #ifdef RUISAPP_RENDER_OPENGL
 		utki::make_shared<ruis::render::opengl::renderer>(
-			std::make_unique<ruis::render::opengl::factory>(
-				utki::make_shared<ruis::render::opengl::context>()
-			)
+			std::make_unique<ruis::render::opengl::factory>(utki::make_shared<ruis::render::opengl::context>())
 		),
 #elif defined(RUISAPP_RENDER_OPENGLES)
-		utki::make_shared<ruis::render::opengles::renderer>(),
+		utki::make_shared<ruis::render::opengles::renderer>(
+			std::make_unique<ruis::render::opengles::factory>(utki::make_shared<ruis::render::opengles::context>())
+		),
 #else
 #	error "Unknown graphics API"
 #endif
