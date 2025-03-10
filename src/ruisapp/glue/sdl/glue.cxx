@@ -540,13 +540,9 @@ application::application(std::string name, const window_params& wp) :
 	window_pimpl(std::make_unique<window_wrapper>(wp)),
 	gui(utki::make_shared<ruis::context>(
 #ifdef RUISAPP_RENDER_OPENGL
-		utki::make_shared<ruis::render::opengl::renderer>(
-			std::make_unique<ruis::render::opengl::factory>(utki::make_shared<ruis::render::opengl::context>())
-		),
+		utki::make_shared<ruis::render::opengl::renderer>(utki::make_shared<ruis::render::opengl::context>()),
 #elif defined(RUISAPP_RENDER_OPENGLES)
-		utki::make_shared<ruis::render::opengles::renderer>(
-			std::make_unique<ruis::render::opengles::factory>(utki::make_shared<ruis::render::opengles::context>())
-		),
+		utki::make_shared<ruis::render::opengles::renderer>(utki::make_shared<ruis::render::opengles::context>()),
 #else
 #	error "Unknown graphics API"
 #endif
