@@ -37,7 +37,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #ifdef RUISAPP_RENDER_OPENGL
 #	include <GL/glew.h>
-// #	include <GL/glx.h>
 #	include <ruis/render/opengl/renderer.hpp>
 
 #elif defined(RUISAPP_RENDER_OPENGLES)
