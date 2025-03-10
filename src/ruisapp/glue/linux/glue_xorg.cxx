@@ -36,7 +36,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #ifdef RUISAPP_RENDER_OPENGL
 #	include <GL/glew.h>
 #	include <GL/glx.h>
-#	include <ruis/render/opengl/renderer.hpp>
 #	include <ruis/render/opengl/context.hpp>
 
 #elif defined(RUISAPP_RENDER_OPENGLES)
@@ -46,7 +45,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #		include <bcm_host.h>
 #	endif
 
-#	include <ruis/render/opengles/renderer.hpp>
 #	include <ruis/render/opengles/context.hpp>
 
 #else
@@ -914,9 +912,9 @@ application::application(std::string name, const window_params& wp) :
 	window_pimpl(std::make_unique<window_wrapper>(wp)),
 	gui(utki::make_shared<ruis::context>(
 #ifdef RUISAPP_RENDER_OPENGL
-		utki::make_shared<ruis::render::opengl::renderer>(utki::make_shared<ruis::render::opengl::context>()),
+		utki::make_shared<ruis::render::renderer>(utki::make_shared<ruis::render::opengl::context>()),
 #elif defined(RUISAPP_RENDER_OPENGLES)
-		utki::make_shared<ruis::render::opengles::renderer>(utki::make_shared<ruis::render::opengles::context>()),
+		utki::make_shared<ruis::render::renderer>(utki::make_shared<ruis::render::opengles::context>()),
 #else
 #	error "Unknown graphics API"
 #endif
