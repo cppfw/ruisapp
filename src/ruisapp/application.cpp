@@ -34,11 +34,11 @@ application::instance_type application::instance;
 void application::render()
 {
 	// TODO: render only if needed?
-	this->gui.context.get().renderer.get().clear_framebuffer_color();
+	this->gui.context.get().renderer.get().render_context.get().clear_framebuffer_color();
 
 	// no clear of depth and stencil buffers, it will be done by individual widgets if needed
 
-	this->gui.render(this->gui.context.get().renderer.get().initial_matrix);
+	this->gui.render(this->gui.context.get().renderer.get().render_context.get().initial_matrix);
 
 	this->swap_frame_buffers();
 }
@@ -54,7 +54,7 @@ void application::update_window_rect(const ruis::rect& rect)
 	LOG([&](auto& o) {
 		o << "application::update_window_rect(): this->cur_window_rect = " << this->cur_window_rect << std::endl;
 	})
-	this->gui.context.get().renderer.get().set_viewport(
+	this->gui.context.get().renderer.get().render_context.get().set_viewport(
 		r4::rectangle<uint32_t>(
 			uint32_t(this->cur_window_rect.p.x()),
 			uint32_t(this->cur_window_rect.p.y()),
