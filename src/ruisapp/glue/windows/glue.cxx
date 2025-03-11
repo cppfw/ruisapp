@@ -691,9 +691,7 @@ application::application(std::string name, const window_params& wp) :
 	name(std::move(name)),
 	window_pimpl(std::make_unique<window_wrapper>(wp)),
 	gui(utki::make_shared<ruis::context>(
-		utki::make_shared<ruis::render::renderer>(
-			utki::make_shared<ruis::render::opengl::context>()
-		),
+		utki::make_shared<ruis::render::renderer>(utki::make_shared<ruis::render::opengl::context>()),
 		utki::make_shared<ruis::updater>(),
 		ruis::context::parameters{
 			.post_to_ui_thread_function =
