@@ -24,7 +24,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <Shlobj.h> // needed for SHGetFolderPathA()
 #include <papki/fs_file.hpp>
 #include <ruis/context.hpp>
-#include <ruis/render/opengl/renderer.hpp>
+#include <ruis/render/opengl/context.hpp>
 #include <ruis/util/util.hpp>
 #include <utki/destructable.hpp>
 #include <utki/windows.hpp>
@@ -691,7 +691,9 @@ application::application(std::string name, const window_params& wp) :
 	name(std::move(name)),
 	window_pimpl(std::make_unique<window_wrapper>(wp)),
 	gui(utki::make_shared<ruis::context>(
-		utki::make_shared<ruis::render::opengl::renderer>(),
+		utki::make_shared<ruis::render::renderer>(
+			utki::make_shared<ruis::render::opengl::context>()
+		),
 		utki::make_shared<ruis::updater>(),
 		ruis::context::parameters{
 			.post_to_ui_thread_function =
