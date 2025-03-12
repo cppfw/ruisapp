@@ -106,7 +106,7 @@ utki::shared_ref<ruis::window> make_text_input_window(
                         .id = "text_input"s
                     },
                     .nine_patch_params{
-                        .nine_patch = c.get().loader.load<ruis::res::nine_patch>("ruis_npt_textfield_background"sv)
+                        .nine_patch = c.get().loader().load<ruis::res::nine_patch>("ruis_npt_textfield_background"sv)
                     }
                 },
                 {
