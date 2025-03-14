@@ -127,6 +127,7 @@ struct window_wrapper : public utki::destructable {
 #	error "Unknown graphics API"
 #endif
 	struct cursor_wrapper {
+		// NOLINTNEXTLINE(clang-analyzer-webkit.NoUncountedMemberChecker, "false-positive")
 		window_wrapper& owner;
 		Cursor cursor;
 
@@ -167,6 +168,7 @@ struct window_wrapper : public utki::destructable {
 		}
 	};
 
+	// NOLINTNEXTLINE(clang-analyzer-webkit.NoUncountedMemberChecker, "false-positive")
 	cursor_wrapper* cur_cursor = nullptr;
 	bool cursor_visible = true;
 	std::map<ruis::mouse_cursor, std::unique_ptr<cursor_wrapper>> cursors;
@@ -1241,6 +1243,7 @@ const std::array<ruis::key, size_t(std::numeric_limits<uint8_t>::max()) + 1> key
 class key_event_unicode_provider : public ruis::gui::input_string_provider
 {
 	XIC& xic;
+	// NOLINTNEXTLINE(clang-analyzer-webkit.NoUncountedMemberChecker, "false-positive")
 	XEvent& event;
 
 public:

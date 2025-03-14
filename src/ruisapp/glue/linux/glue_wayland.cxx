@@ -538,6 +538,7 @@ class keyboard_wrapper
 		class unicode_provider : public ruis::gui::input_string_provider
 		{
 			uint32_t key;
+			// NOLINTNEXTLINE(clang-analyzer-webkit.NoUncountedMemberChecker, "false-positive")
 			xkb_wrapper& xkb;
 
 		public:
@@ -1465,6 +1466,7 @@ private:
 
 	bool cursor_visible = true;
 
+	// NOLINTNEXTLINE(clang-analyzer-webkit.NoUncountedMemberChecker, "false-positive")
 	wl_cursor* current_cursor;
 
 	uint32_t last_enter_serial = 0;
