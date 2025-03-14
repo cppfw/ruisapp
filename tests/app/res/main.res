@@ -37,7 +37,8 @@ tex_images{
 }
 
 img_sample{
-	tex{tex_sample}
+	file {texture.jpg}
+//	tex{tex_sample}
 //	rect{0 0 120 90}
 }
 
