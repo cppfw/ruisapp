@@ -12,7 +12,7 @@
 #import <UIKit/UIKit.h>
 #import <GLKit/GLKit.h>
 
-#include <ruis/render/opengles/renderer.hpp>
+#include <ruis/render/opengles/context.hpp>
 
 using namespace ruisapp;
 
@@ -328,7 +328,11 @@ application::application(std::string name, const window_params& wp) :
 		name(name),
 		window_pimpl(std::make_unique<WindowWrapper>(wp)),
 		gui(utki::make_shared<ruis::context>(
-				utki::make_shared<ruis::render::opengles::renderer>(),
+				utki::make_shared<ruis::resource_loader>(
+					utki::make_shared<ruis::render::renderer>(
+						utki::make_shared<ruis::render::opengles::context>()
+					)
+				),
 				utki::make_shared<ruis::updater>(),
 				ruis::context::parameters{
 					.post_to_ui_thread_function = [this](std::function<void()> a){
