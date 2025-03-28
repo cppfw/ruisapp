@@ -1618,9 +1618,11 @@ void on_native_window_created(ANativeActivity* activity, ANativeWindow* window)
 				throw std::runtime_error("failed to add UI message queue descriptor to looper");
 			}
 
-			fd_flag.set(); // this is to call the update() for the first time if there
-						   // were any updateables started during creating application
-						   // object
+			// Set the fd_flag to call the update() for the first time if there
+			// were any updateables started during creating application
+			// object.
+			fd_flag.set();
+
 		} catch (std::exception& e) {
 			LOG([&](auto& o) {
 				o << "std::exception uncaught while creating application instance: " << e.what() << std::endl;

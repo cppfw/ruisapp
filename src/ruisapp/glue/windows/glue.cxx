@@ -596,16 +596,18 @@ LRESULT CALLBACK window_procedure(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_
 		case WM_PAINT:
 			// we will redraw anyway on every cycle
 			// app.Render();
-			ValidateRect(
-				hwnd,
-				nullptr
-			); // This is to tell Windows that we have redrawn contents
-			   // and WM_PAINT should go away from message queue.
+
+			// Tell Windows that we have redrawn contents
+			// and WM_PAINT message should go away from message queue.
+			ValidateRect(hwnd, nullptr);
 			return 0;
 
 		case WM_SIZE:
-			// resize GL, LoWord=Width, HiWord=Height
-			update_window_rect(ruisapp::inst(), ruis::rect(0, 0, float(LOWORD(l_param)), float(HIWORD(l_param))));
+			// LoWord=Width, HiWord=Height
+			update_window_rect(
+				ruisapp::inst(), //
+				ruis::rect(0, 0, ruis::real(LOWORD(l_param)), ruis::real(HIWORD(l_param)))
+			);
 			return 0;
 
 		case WM_USER:
