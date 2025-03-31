@@ -1124,12 +1124,19 @@ ruisapp::application::directories get_application_directories(std::string_view a
 }
 } // namespace
 
-ruisapp::application::application(std::string name, const window_params& wp) :
+ruisapp::application::application(
+	std::string name, //
+	const window_params& wp
+) :
 	name(name),
 	window_pimpl(std::make_unique<window_wrapper>(wp)),
 	gui(utki::make_shared<ruis::context>(
-		utki::make_shared<ruis::resource_loader>(
-			utki::make_shared<ruis::render::renderer>(utki::make_shared<ruis::render::opengles::context>())
+		utki::make_shared<ruis::style_provider>( //
+			utki::make_shared<ruis::resource_loader>( //
+				utki::make_shared<ruis::render::renderer>( //
+					utki::make_shared<ruis::render::opengles::context>()
+				)
+			)
 		),
 		utki::make_shared<ruis::updater>(),
 		ruis::context::parameters{

@@ -324,32 +324,37 @@ ruis::real getDotsPerDp(){
 }
 }
 
-application::application(std::string name, const window_params& wp) :
+application::application(
+	std::string name,
+	const window_params& wp
+) :
 		name(name),
 		window_pimpl(std::make_unique<WindowWrapper>(wp)),
 		gui(utki::make_shared<ruis::context>(
+			utki::make_shared<ruis::style_provider>(
 				utki::make_shared<ruis::resource_loader>(
 					utki::make_shared<ruis::render::renderer>(
 						utki::make_shared<ruis::render::opengles::context>()
 					)
-				),
-				utki::make_shared<ruis::updater>(),
-				ruis::context::parameters{
-					.post_to_ui_thread_function = [this](std::function<void()> a){
-						auto p = reinterpret_cast<NSInteger>(new std::function<void()>(std::move(a)));
+				)
+			),
+			utki::make_shared<ruis::updater>(),
+			ruis::context::parameters{
+				.post_to_ui_thread_function = [this](std::function<void()> a){
+					auto p = reinterpret_cast<NSInteger>(new std::function<void()>(std::move(a)));
 
-						dispatch_async(dispatch_get_main_queue(), ^{
-							std::unique_ptr<std::function<void()>> m(reinterpret_cast<std::function<void()>*>(p));
-							(*m)();
-						});
-					},
-					.set_mouse_cursor_function = [this](ruis::mouse_cursor){},
-					.units = ruis::units(
-						getDotsPerInch(), //
-						getDotsPerDp()
-					)
-				}
-			)),
+					dispatch_async(dispatch_get_main_queue(), ^{
+						std::unique_ptr<std::function<void()>> m(reinterpret_cast<std::function<void()>*>(p));
+						(*m)();
+					});
+				},
+				.set_mouse_cursor_function = [this](ruis::mouse_cursor){},
+				.units = ruis::units(
+					getDotsPerInch(), //
+					getDotsPerDp()
+				)
+			}
+		)),
 		directory{} //TODO: initialize to proper value
 {
 	this->set_fullscreen(false);//this will intialize the viewport

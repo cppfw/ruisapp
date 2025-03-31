@@ -807,44 +807,49 @@ ruis::real getDotsPerPt(){
 }
 }
 
-application::application(std::string name, const window_params& wp) :
-		name(name),
-		window_pimpl(std::make_unique<WindowWrapper>(wp)),
-		gui(utki::make_shared<ruis::context>(
+application::application(
+	std::string name,
+	const window_params& wp
+) :
+	name(name),
+	window_pimpl(std::make_unique<WindowWrapper>(wp)),
+	gui(utki::make_shared<ruis::context>(
+		utki::make_shared<ruis::style_provider>(
 			utki::make_shared<ruis::resource_loader>(
 				utki::make_shared<ruis::render::renderer>(
 					utki::make_shared<ruis::render::opengl::context>()
 				)
-			),
-			utki::make_shared<ruis::updater>(),
-			ruis::context::parameters{
-				.post_to_ui_thread_function = [this](std::function<void()> a){
-					auto& ww = get_impl(get_window_pimpl(*this));
+			)
+		),
+		utki::make_shared<ruis::updater>(),
+		ruis::context::parameters{
+			.post_to_ui_thread_function = [this](std::function<void()> a){
+				auto& ww = get_impl(get_window_pimpl(*this));
 
-					NSEvent* e = [NSEvent
-							otherEventWithType: NSEventTypeApplicationDefined
-							location: NSMakePoint(0, 0)
-							modifierFlags:0
-							timestamp:0
-							windowNumber:0
-							context: nil
-							subtype: 0
-							data1: reinterpret_cast<NSInteger>(new std::function<void()>(std::move(a)))
-							data2: 0
-						];
+				NSEvent* e = [NSEvent
+						otherEventWithType: NSEventTypeApplicationDefined
+						location: NSMakePoint(0, 0)
+						modifierFlags:0
+						timestamp:0
+						windowNumber:0
+						context: nil
+						subtype: 0
+						data1: reinterpret_cast<NSInteger>(new std::function<void()>(std::move(a)))
+						data2: 0
+					];
 
-					[ww.applicationObjectId postEvent:e atStart:NO];
-				},
-				.set_mouse_cursor_function = [](ruis::mouse_cursor c){
-					// TODO:
-				},
-				.units = ruis::units(
-					getDotsPerInch(), //
-					getDotsPerPt()
-				)
-			}
-		)),
-		directory(get_application_directories(this->name))
+				[ww.applicationObjectId postEvent:e atStart:NO];
+			},
+			.set_mouse_cursor_function = [](ruis::mouse_cursor c){
+				// TODO:
+			},
+			.units = ruis::units(
+				getDotsPerInch(), //
+				getDotsPerPt()
+			)
+		}
+	)),
+	directory(get_application_directories(this->name))
 {
 	LOG([&](auto&o){o << "application::application(): enter" << std::endl;})
 	this->update_window_rect(
