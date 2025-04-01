@@ -74,7 +74,10 @@ Package: libruisapp$(soname)-dbgsrc
 Section: debug
 Architecture: all
 Depends:
-	libruisapp$(soname)-dbgsym (= ${binary:Version}),
+	libruisapp-opengl-xorg$(soname)-dbgsym (= ${binary:Version}),
+	libruisapp-opengles-xorg$(soname)-dbgsym (= ${binary:Version}),
+#	libruisapp-opengl-wayland$(soname)-dbgsym (= ${binary:Version}),
+	libruisapp-opengles-wayland$(soname)-dbgsym (= ${binary:Version}),
 	${misc:Depends}
 Description: debugging sources for libruisapp$(soname) package.
 
