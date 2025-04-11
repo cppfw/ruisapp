@@ -85,8 +85,8 @@ struct window_params {
 /**
  * @brief Base singleton class of application.
  * An application should subclass this class and return an instance from the
- * application factory function create_application(), see application.hpp for
- * details. When instance of this class is created it also creates a window and
+ * application_factory, see application_factory for details.
+ * When instance of this class is created it also creates a window and
  * initializes rendering API (e.g. OpenGL or OpenGL ES).
  */
 class application : public utki::intrusive_singleton<application>
@@ -307,8 +307,10 @@ inline application& inst()
 class application_factory
 {
 public:
-	using factory_type =
-		std::function<std::unique_ptr<application>(std::string_view executable, utki::span<const char*> args)>;
+	using factory_type = std::function<std::unique_ptr<application>(
+		std::string_view executable, //
+		utki::span<std::string_view> args
+	)>;
 
 	/**
 	 * @brief Constructor.
@@ -319,6 +321,11 @@ public:
 	 */
 	application_factory(factory_type factory);
 
+	/**
+	 * @brief Get registered factory function.
+	 * @return Registered factory function.
+	 * @throw std::logic_error if no factory function was registered, i.e. application_factory instance is not created.
+	 */
 	static const factory_type& get_factory();
 
 	/**
@@ -327,7 +334,10 @@ public:
 	 * @param argv - array of command line arguments. First argument is the
 	 *               executable filename.
 	 */
-	static std::unique_ptr<application> create_application(int argc, const char** argv);
+	static std::unique_ptr<application> make_application(
+		int argc, //
+		const char** argv
+	);
 
 private:
 	static factory_type& get_factory_internal();

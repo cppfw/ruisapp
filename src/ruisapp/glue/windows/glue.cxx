@@ -745,11 +745,14 @@ void application::quit() noexcept
 }
 
 namespace ruisapp {
-void winmain(int argc, const char** argv)
+void winmain(
+	int argc, //
+	const char** argv
+)
 {
-	auto app = ruisapp::application_factory::create_application(argc, argv);
+	auto app = ruisapp::application_factory::make_application(argc, argv);
 	if (!app) {
-		// Not an error. The application just did not show any GUI to the user.
+		// Not an error. The application just did not show any GUI to the user and exited normally.
 		return;
 	}
 

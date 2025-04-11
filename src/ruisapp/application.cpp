@@ -149,15 +149,25 @@ const application_factory::factory_type& application_factory::get_factory()
 	return f;
 }
 
-std::unique_ptr<application> application_factory::create_application(int argc, const char** argv)
+std::unique_ptr<application> application_factory::make_application(
+	int argc, //
+	const char** argv
+)
 {
-	auto args = utki::make_span(argv, argc);
+	auto cli_args = utki::make_span(argv, argc);
 
-	if (args.empty()) {
+	if (cli_args.empty()) {
 		return get_factory()(std::string_view(), {});
 	}
 
-	return get_factory()(args.front(), args.subspan(1));
+	std::string_view executable = cli_args.front();
+
+	std::vector<std::string_view> args;
+	for (const auto& a : cli_args.subspan(1)) {
+		args.emplace_back(a);
+	}
+
+	return get_factory()(executable, args);
 }
 
 application_factory::application_factory(factory_type factory)

@@ -1587,7 +1587,7 @@ void on_native_window_created(ANativeActivity* activity, ANativeWindow* window)
 			// retrieve current configuration
 			AConfiguration_fromAssetManager(cfg->android_configuration, native_activity->assetManager);
 
-			application* app = ruisapp::application_factory::create_application(0, nullptr).release();
+			application* app = ruisapp::application_factory::make_application(0, nullptr).release();
 
 			// TODO: check if app == nullptr
 

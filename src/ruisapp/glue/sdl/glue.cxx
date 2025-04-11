@@ -754,7 +754,7 @@ void main_loop_iteration(void* user_data)
 
 int main(int argc, const char** argv)
 {
-	std::unique_ptr<ruisapp::application> app = ruisapp::application_factory::create_application(argc, argv);
+	std::unique_ptr<ruisapp::application> app = ruisapp::application_factory::make_application(argc, argv);
 	if (!app) {
 		// Not an error. The application just did not show any GUI to the user.
 		return 0;

@@ -27,7 +27,7 @@ namespace {
 
 std::unique_ptr<ruisapp::application> create_app_unix(int argc, const char** argv)
 {
-	return ruisapp::application_factory::create_application(argc, argv);
+	return ruisapp::application_factory::make_application(argc, argv);
 }
 
 std::string get_xdg_dir_home(
