@@ -22,10 +22,14 @@ class RuisappConan(ConanFile):
 		self.requires("papki/[>=0.0.0]@cppfw/main", transitive_headers=True, transitive_libs=True)
 
 	def build_requirements(self):
-		if self.settings.os != "Emscripten":
-			self.requires("tst/[>=0.3.29]@cppfw/main", visible=False)
 		self.tool_requires("prorab/[>=2.0.27]@cppfw/main")
 		self.tool_requires("prorab-extra/[>=0.2.57]@cppfw/main")
+
+		if self.settings.os != "Emscripten":
+			self.requires("tst/[>=0.3.29]@cppfw/main", visible=False)
+
+		if self.settings.os == "Linux":
+			self.requires("wayland-protocols", visible=False)
 
 	def config_options(self):
 		if self.settings.os == "Windows":
