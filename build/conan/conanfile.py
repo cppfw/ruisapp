@@ -19,6 +19,7 @@ class RuisappConan(ConanFile):
 
 	def requirements(self):
 		self.requires("ruis/[>=0.5.270]@cppfw/main", transitive_headers=True, transitive_libs=True)
+		self.requires("papki/[>=0.0.0]@cppfw/main", transitive_headers=True, transitive_libs=True)
 
 	def build_requirements(self):
 		if self.settings.os != "Emscripten":
