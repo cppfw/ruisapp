@@ -97,7 +97,7 @@ define ruisapp_rules
             $$(this_mm_obj): $$(d)ruisapp/glue/macosx/glue.mm
 $(.RECIPEPREFIX)@echo compile $$$$<
 $(.RECIPEPREFIX)$(a)mkdir -p $$$$(dir $$$$@)
-$(.RECIPEPREFIX)$(a)$(this_cc) -ObjC++ -c -o "$$$$@" $$(this_cxxflags) $$(OBJCXXFLAGS) $$ $$$$<
+$(.RECIPEPREFIX)$(a)$(this_cc) -ObjC++ -c -o "$$$$@" $$(this_cxxflags) $$(OBJCXXFLAGS) $$(CXXFLAGS) $$ $$$$<
         endef
         $$(eval $$(this_subrules))
     endif
