@@ -57,16 +57,16 @@
             "group": "build"
         },
         {
-            "label": "run-app-dbg-ogles2",
+            "label": "run-app-dbg-ogles",
             "type": "shell",
-            "command": "make run-app config=dbg ogles2=true",
+            "command": "make run-app config=dbg ogles=true",
             "problemMatcher": [],
             "group": "build"
         },
         {
-            "label": "run-app-dbg-ogles2-wayland",
+            "label": "run-app-dbg-ogles-wayland",
             "type": "shell",
-            "command": "WAYLAND_DISPLAY=$(ls /run/user/$UID/ | grep wayland-[0-9]$) make run-app config=dbg ogles2=true wayland=true",
+            "command": "WAYLAND_DISPLAY=$(ls /run/user/$UID/ | grep wayland-[0-9]$) make run-app config=dbg ogles=true wayland=true",
             "problemMatcher": [],
             "group": "build"
         },
