@@ -17,3 +17,5 @@ this_ldflags += -fwasm-exceptions
 
 this_cxxflags += -pthread
 this_ldflags += -pthread
+
+this_cxxflags += --use-port=sdl2
