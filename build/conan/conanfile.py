@@ -29,7 +29,7 @@ class RuisappConan(ConanFile):
 			self.requires("tst/[>=0.3.29]@cppfw/main", visible=False)
 
 		if self.settings.os == "Linux":
-			self.requires("wayland-protocols", visible=False)
+			self.requires("wayland-protocols/[>=1.42]", visible=False)
 
 	def config_options(self):
 		if self.settings.os == "Windows":
