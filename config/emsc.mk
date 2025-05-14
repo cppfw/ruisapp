@@ -20,3 +20,6 @@ this_ldflags += -pthread
 
 this_cxxflags += --use-port=sdl2
 this_ldflags += --use-port=sdl2
+
+sdl := true
+ogles := true
