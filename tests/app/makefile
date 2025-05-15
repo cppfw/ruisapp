@@ -59,6 +59,7 @@ this_ldlibs += -l m
 ifeq ($(config), emsc)
     this_ldflags += -sWASM=1
     this_ldflags += -sSINGLE_FILE
+    this_ldflags += --embed-file $(d)res@res
 endif
 
 $(eval $(prorab-build-app))
@@ -76,6 +77,6 @@ $(eval $(call prorab-include, ../../src/makefile))
 define this__rules
 conan_install:
 $(.RECIPEPREFIX)@echo install conan dependencies
-$(.RECIPEPREFIX)$(a)conan install $(d)../../build/emscripten --update --profile:host $(d)../../build/emscripten/conan.profile --build=missing --output-folder=$(d)out/emsc
+$(.RECIPEPREFIX)$(a)conan install $(d)../../build/emscripten --update --profile:host $(d)../../build/emscripten/conan.profile --build=missing --output-folder=$(d)out/emsc --deployer-package="*"
 endef
 $(eval $(this__rules))
