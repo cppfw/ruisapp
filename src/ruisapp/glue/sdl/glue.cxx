@@ -761,9 +761,15 @@ int main(int argc, const char** argv)
 			return 0;
 		}
 
+#if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
+		// TODO: set main loop
+		std::cout << "App created" << std::endl;
+		main_loop_iteration(app.get());
+#else
 		while (!get_impl(*app).quit_flag.load()) {
 			main_loop_iteration(app.get());
 		}
+#endif
 	} catch (std::exception& e) {
 #if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
 		std::cout << "uncaught " << utki::to_string(e) << std::endl;
