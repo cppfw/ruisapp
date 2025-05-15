@@ -1,9 +1,13 @@
 include prorab.mk
 include prorab-test.mk
 
+$(eval $(call prorab-config, ../../config))
+
 this_name := ruisapp-test
 
-$(eval $(call prorab-config, ../../config))
+ifeq ($(config), emsc)
+    this_name := $(this_name).html
+endif
 
 this_srcs += $(call prorab-src-dir, src)
 
@@ -46,7 +50,16 @@ else ifeq ($(os),linux)
     this_ldflags += -rdynamic
 endif
 
-this_ldlibs += -ltml -lruis -lutki -lpapki -lm
+this_ldlibs += -l tml
+this_ldlibs += -l ruis
+this_ldlibs += -l utki
+this_ldlibs += -l papki
+this_ldlibs += -l m
+
+ifeq ($(config), emsc)
+    this_ldflags += -sWASM=1
+    this_ldflags += -sSINGLE_FILE
+endif
 
 $(eval $(prorab-build-app))
 
