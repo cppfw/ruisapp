@@ -13,7 +13,9 @@ this_static_lib_only := true
 this_cxxflags += -Wno-version-check
 
 this_cxxflags += -fwasm-exceptions
+this_cxxflags += -sSUPPORT_LONGJMP=wasm
 this_ldflags += -fwasm-exceptions
+this_ldflags += -sSUPPORT_LONGJMP=wasm
 
 this_cxxflags += -pthread
 this_ldflags += -pthread
