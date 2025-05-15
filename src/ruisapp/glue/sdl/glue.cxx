@@ -754,14 +754,21 @@ void main_loop_iteration(void* user_data)
 
 int main(int argc, const char** argv)
 {
-	std::unique_ptr<ruisapp::application> app = ruisapp::application_factory::make_application(argc, argv);
-	if (!app) {
-		// Not an error. The application just did not show any GUI to the user.
-		return 0;
-	}
+	try {
+		std::unique_ptr<ruisapp::application> app = ruisapp::application_factory::make_application(argc, argv);
+		if (!app) {
+			// Not an error. The application just did not show any GUI to the user.
+			return 0;
+		}
 
-	while (!get_impl(*app).quit_flag.load()) {
-		main_loop_iteration(app.get());
+		while (!get_impl(*app).quit_flag.load()) {
+			main_loop_iteration(app.get());
+		}
+	} catch (std::exception& e) {
+#if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
+		std::cout << "uncaught " << utki::to_string(e) << std::endl;
+#endif
+		throw;
 	}
 
 	return 0;
