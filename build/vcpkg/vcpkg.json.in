@@ -1,0 +1,24 @@
+{
+    "name": "ruisapp",
+    "version": "$(version)",
+    "homepage": "https://github.com/cppfw/ruisapp",
+    "description": "ruis platform abstraction layer",
+    "license": "MIT",
+    "dependencies": [
+      {
+        "name" : "vcpkg-cmake",
+        "host" : true
+      },
+      {
+        "name" : "vcpkg-cmake-config",
+        "host" : true
+      },
+      {
+        "name" : "myci",
+        "host" : true
+      },
+      "utki",
+      "ruis",
+      "ruis-render-opengl"
+    ]
+  }

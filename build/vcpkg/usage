@@ -1,0 +1,24 @@
+ruisapp provides CMake targets:
+
+find_package(utki CONFIG REQUIRED)
+find_package(papki CONFIG REQUIRED)
+find_package(rasterimage CONFIG REQUIRED)
+find_package(r4 CONFIG REQUIRED)
+find_package(tml CONFIG REQUIRED)
+find_package(agg CONFIG REQUIRED)
+find_package(veg CONFIG REQUIRED)
+find_package(mikroxml CONFIG REQUIRED)
+find_package(cssom CONFIG REQUIRED)
+find_package(svgdom CONFIG REQUIRED)
+find_package(svgren CONFIG REQUIRED)
+find_package(ruis CONFIG REQUIRED)
+find_package(ruis-render-opengl CONFIG REQUIRED)
+
+find_package(Freetype CONFIG REQUIRED)
+find_package(ZLIB REQUIRED)
+find_package(JPEG REQUIRED)
+find_package(GLEW REQUIRED)
+
+find_package(ruisapp CONFIG REQUIRED)
+
+target_link_libraries(main PRIVATE ruisapp::ruisapp)
