@@ -7,6 +7,9 @@ project(${name})
 # Otherwise VCPKG does not set the CMAKE_PREFIX_PATH to find packages.
 find_package(myci CONFIG REQUIRED)
 
+find_package(JPEG REQUIRED)
+find_package(GLEW REQUIRED)
+
 set(srcs)
 myci_add_source_files(srcs
     DIRECTORY
@@ -37,6 +40,6 @@ myci_declare_library(${name}-opengl
         ruis-render-opengl
         Freetype
     EXTERNAL_DEPENDENCIES
-        JPEG
-        GLEW
+        JPEG::JPEG
+        GLEW::GLEW
 )
