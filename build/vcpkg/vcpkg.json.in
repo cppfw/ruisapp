@@ -19,6 +19,7 @@
       },
       "utki",
       "ruis",
-      "ruis-render-opengl"
+      "ruis-render-opengl",
+      "ruis-render-opengles"
     ]
   }

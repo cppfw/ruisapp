@@ -23,6 +23,14 @@ find_package(ZLIB REQUIRED)
 find_package(JPEG REQUIRED)
 find_package(GLEW REQUIRED)
 
+if(LINUX)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(GDK3 REQUIRED IMPORTED_TARGET "gdk-3.0")
+    pkg_check_modules(X11 REQUIRED IMPORTED_TARGET "x11")
+    pkg_check_modules(EGL REQUIRED IMPORTED_TARGET "egl")
+    pkg_check_modules(GLES2 REQUIRED IMPORTED_TARGET "glesv2")
+endif()
+
 find_package(ruisapp CONFIG REQUIRED)
 
 add_executable(test main.cpp)
