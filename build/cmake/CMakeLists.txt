@@ -54,6 +54,8 @@ myci_declare_library(${name}-opengl
         cssom
         svgdom
         svgren
+        opros
+        nitki
         ruis
         ruis-render-opengl
         Freetype
