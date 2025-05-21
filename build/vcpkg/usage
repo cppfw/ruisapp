@@ -11,6 +11,8 @@ find_package(mikroxml CONFIG REQUIRED)
 find_package(cssom CONFIG REQUIRED)
 find_package(svgdom CONFIG REQUIRED)
 find_package(svgren CONFIG REQUIRED)
+find_package(opros CONFIG REQUIRED)
+find_package(nitki CONFIG REQUIRED)
 find_package(ruis CONFIG REQUIRED)
 find_package(ruis-render-opengl CONFIG REQUIRED)
 

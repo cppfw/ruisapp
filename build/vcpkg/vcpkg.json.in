@@ -18,6 +18,7 @@
         "host" : true
       },
       "utki",
+      "nitki",
       "ruis",
       "ruis-render-opengl",
       "ruis-render-opengles"
