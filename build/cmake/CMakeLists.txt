@@ -119,6 +119,7 @@ myci_add_resource_files(rsrs
 )
 
 myci_declare_application(${name}-opengl-test
+    GUI
     SOURCES
         ${app_srcs}
         ${app_rsrs}
@@ -129,6 +130,7 @@ myci_declare_application(${name}-opengl-test
 )
 
 myci_declare_application(${name}-opengles-test
+    GUI
     SOURCES
         ${app_srcs}
         ${app_rsrs}
