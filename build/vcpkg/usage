@@ -31,4 +31,5 @@ endif()
 
 find_package(ruisapp CONFIG REQUIRED)
 
-target_link_libraries(main PRIVATE ruisapp::ruisapp)
+target_link_libraries(app-opengl PRIVATE ruisapp::ruisapp-opengl)
+target_link_libraries(app-opengles PRIVATE ruisapp::ruisapp-opengles)
