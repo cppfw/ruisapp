@@ -8,6 +8,7 @@ project(${name})
 find_package(myci CONFIG REQUIRED)
 
 find_package(JPEG REQUIRED)
+find_package(PNG REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(Freetype CONFIG REQUIRED)
 
