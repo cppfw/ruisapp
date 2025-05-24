@@ -57,9 +57,9 @@ struct window_wrapper : public utki::destructable {
 #ifdef RUISAPP_RENDER_OPENGL
 	HGLRC hrc;
 #elif defined(RUISAPP_RENDER_OPENGLES)
-	EGLDisplay eglDisplay;
-	EGLSurface eglSurface;
-	EGLContext eglContext;
+	EGLDisplay egl_display;
+	EGLSurface egl_surface;
+	EGLContext egl_context;
 #else
 #	error "Unknown graphics API"
 #endif
@@ -915,7 +915,7 @@ void application::swap_frame_buffers()
 #ifdef RUISAPP_RENDER_OPENGL
 	SwapBuffers(ww.hdc);
 #elif defined(RUISAPP_RENDER_OPENGLES)
-	eglSwapBuffers(ww.eglDisplay, ww.eglSurface);
+	eglSwapBuffers(ww.egl_display, ww.egl_surface);
 #else
 #	error "Unknown graphics API"
 #endif
@@ -1077,71 +1077,112 @@ window_wrapper::window_wrapper(const window_params& wp)
 
 #elif defined(RUISAPP_RENDER_OPENGLES)
 
-	static const EGLint configAttribs[] = {
-		EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-		EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-		EGL_RED_SIZE, 8,
-		EGL_GREEN_SIZE, 8,
-		EGL_BLUE_SIZE, 8,
-		EGL_ALPHA_SIZE, 8,
-		EGL_NONE,
-	};
+	auto graphics_api_version = [&ver = wp.graphics_api_version]() {
+		if (ver.to_uint32_t() == 0) {
+			// default OpenGL ES version is 2.0
+			return utki::version_duplet{
+				.major = 2, //
+				.minor = 0
+			};
+		}
+		return ver;
+	}();
 
-	static const EGLint contextAttribs[] = {
-		EGL_CONTEXT_CLIENT_VERSION, 2,
-		EGL_NONE,
-	};
-
-	this->eglDisplay = eglGetDisplay(this->hdc);
-	if (this->eglDisplay == EGL_NO_DISPLAY) {
+	this->egl_display = eglGetDisplay(this->hdc);
+	if (this->egl_display == EGL_NO_DISPLAY) {
 		throw std::runtime_error("Failed to get EGL display");
 	}
 
-	if (!eglInitialize(this->eglDisplay, nullptr, nullptr)) {
+	if (!eglInitialize(this->egl_display, nullptr, nullptr)) {
 		throw std::runtime_error("Failed to initialize EGL");
 	}
 
 	utki::scope_exit scope_exit_display([this]() {
-		if (!eglTerminate(this->eglDisplay)) {
+		if (!eglTerminate(this->egl_display)) {
 			ASSERT(false, [&](auto& o) {
 				o << "Terminating EGL failed";
 			})
 		}
 	});
 
-	EGLConfig config;
-	EGLint numConfigs;
-	if (!eglChooseConfig(this->eglDisplay, configAttribs, &config, 1, &numConfigs)) {
-		throw std::runtime_error("Failed to choose EGL config");
+	EGLConfig config = nullptr;
+	{
+		const std::array<EGLint, 15> config_attribs = {
+			EGL_SURFACE_TYPE,
+			EGL_WINDOW_BIT,
+			EGL_RENDERABLE_TYPE,
+			// We cannot set bits for all OpenGL ES versions because on platforms which do not
+			// support later versions the matching config will not be found by eglChooseConfig().
+			// So, set bits according to requested OpenGL ES version.
+			[&ver = wp.graphics_api_version]() {
+				EGLint ret = EGL_OPENGL_ES2_BIT; // OpenGL ES 2 is the minimum
+				if (ver.major >= 3) {
+					ret |= EGL_OPENGL_ES3_BIT;
+				}
+				return ret;
+			}(),
+			EGL_RED_SIZE,
+			8,
+			EGL_GREEN_SIZE,
+			8,
+			EGL_BLUE_SIZE,
+			8,
+			EGL_DEPTH_SIZE,
+			wp.buffers.get(window_params::buffer::depth) ? int(utki::byte_bits * sizeof(uint16_t)) : 0,
+			EGL_STENCIL_SIZE,
+			wp.buffers.get(window_params::buffer::stencil) ? utki::byte_bits : 0,
+			EGL_NONE
+		};
+
+		EGLint num_configs = 0;
+		if (!eglChooseConfig(this->egl_display, config_attribs.data(), &config, 1, &num_configs)) {
+			throw std::runtime_error("Failed to choose EGL config");
+		}
 	}
 
-	this->eglSurface = eglCreateWindowSurface(this->eglDisplay, config, (EGLNativeWindowType)this->hwnd, nullptr);
-	if (this->eglSurface == EGL_NO_SURFACE) {
+	this->egl_surface = eglCreateWindowSurface(
+		this->egl_display, //
+		config,
+		EGLNativeWindowType(this->hwnd),
+		nullptr
+	);
+	if (this->egl_surface == EGL_NO_SURFACE) {
 		throw std::runtime_error("Failed to create EGL surface");
 	}
 
 	utki::scope_exit scope_exit_surface([this]() {
-		if (!eglDestroySurface(this->eglDisplay, this->eglSurface)) {
+		if (!eglDestroySurface(this->egl_display, this->egl_surface)) {
 			ASSERT(false, [&](auto& o) {
 				o << "Destroying EGL surface failed";
 			})
 		}
 	});
 
-	this->eglContext = eglCreateContext(this->eglDisplay, config, EGL_NO_CONTEXT, contextAttribs);
-	if (this->eglContext == EGL_NO_CONTEXT) {
-		throw std::runtime_error("Failed to create EGL context");
+	{
+		constexpr auto attrs_array_size = 5;
+		std::array<EGLint, attrs_array_size> context_attrs = {
+			EGL_CONTEXT_MAJOR_VERSION,
+			graphics_api_version.major,
+			EGL_CONTEXT_MINOR_VERSION,
+			graphics_api_version.minor,
+			EGL_NONE
+		};
+
+		this->egl_context = eglCreateContext(this->egl_display, config, EGL_NO_CONTEXT, context_attrs.data());
+		if (this->egl_context == EGL_NO_CONTEXT) {
+			throw std::runtime_error("Failed to create EGL context");
+		}
 	}
 
 	utki::scope_exit scope_exit_context([this]() {
-		if (!eglDestroyContext(this->eglDisplay, this->eglContext)) {
+		if (!eglDestroyContext(this->egl_display, this->egl_context)) {
 			ASSERT(false, [&](auto& o) {
 				o << "Destroying EGL context failed";
 			})
 		}
 	});
 
-	if (!eglMakeCurrent(this->eglDisplay, this->eglSurface, this->eglSurface, this->eglContext)) {
+	if (!eglMakeCurrent(this->egl_display, this->egl_surface, this->egl_surface, this->egl_context)) {
 		throw std::runtime_error("Failed to make EGL context current");
 	}
 
@@ -1175,25 +1216,25 @@ window_wrapper::~window_wrapper()
 
 #elif defined(RUISAPP_RENDER_OPENGLES)
 
-	if (!eglMakeCurrent(this->eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT)) {
+	if (!eglMakeCurrent(this->egl_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT)) {
 		ASSERT(false, [&](auto& o) {
 			o << "Deactivating EGL context failed";
 		})
 	}
 
-	if (!eglDestroyContext(this->eglDisplay, this->eglContext)) {
+	if (!eglDestroyContext(this->egl_display, this->egl_context)) {
 		ASSERT(false, [&](auto& o) {
 			o << "Destroying EGL context failed";
 		})
 	}
 
-	if (!eglDestroySurface(this->eglDisplay, this->eglSurface)) {
+	if (!eglDestroySurface(this->egl_display, this->egl_surface)) {
 		ASSERT(false, [&](auto& o) {
 			o << "Destroying EGL surface failed";
 		})
 	}
 
-	if (!eglTerminate(this->eglDisplay)) {
+	if (!eglTerminate(this->egl_display)) {
 		ASSERT(false, [&](auto& o) {
 			o << "Terminating EGL failed";
 		})
