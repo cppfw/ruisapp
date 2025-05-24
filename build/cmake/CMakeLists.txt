@@ -23,8 +23,17 @@ if(LINUX)
         PkgConfig::EGL
         PkgConfig::GLES2
     )
+    set(windows_deps)
+elseif(WIN32)
+    find_package(unofficial-angle CONFIG REQUIRED)
+    set(linux_deps)
+    set(windows_deps
+        unofficial::angle::libGLESv2
+        unofficial::angle::libEGL
+    )
 else()
     set(linux_deps)
+    set(windows_deps)
 endif()
 
 set(srcs)
@@ -64,6 +73,7 @@ myci_declare_library(${name}-opengl
         GLEW::GLEW
         Freetype::Freetype
         ${linux_deps}
+        ${windows_deps}
     NO_EXPORT
 )
 
@@ -96,6 +106,7 @@ myci_declare_library(${name}-opengles
         JPEG::JPEG
         Freetype::Freetype
         ${linux_deps}
+        ${windows_deps}
     NO_EXPORT
 )
 
@@ -138,4 +149,6 @@ myci_declare_application(${name}-opengles-test
         ruis
         nitki
         ruisapp::ruisapp-opengles
+    EXTERNAL_DEPENDENCIES
+        ${windows_deps}
 )

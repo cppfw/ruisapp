@@ -24,11 +24,19 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <Shlobj.h> // needed for SHGetFolderPathA()
 #include <papki/fs_file.hpp>
 #include <ruis/context.hpp>
-#include <ruis/render/opengl/context.hpp>
 #include <ruis/util/util.hpp>
 #include <utki/destructable.hpp>
 #include <utki/windows.hpp>
 #include <windowsx.h> // needed for GET_X_LPARAM macro and other similar macros
+
+#ifdef RUISAPP_RENDER_OPENGL
+#	include <ruis/render/opengl/context.hpp>
+#elif defined(RUISAPP_RENDER_OPENGLES)
+#	include <EGL/egl.h>
+#	include <ruis/render/opengles/context.hpp>
+#else
+#	error "Unknown graphics API"
+#endif
 
 #include "../../application.hpp"
 
@@ -45,7 +53,16 @@ namespace {
 struct window_wrapper : public utki::destructable {
 	HWND hwnd;
 	HDC hdc;
+
+#ifdef RUISAPP_RENDER_OPENGL
 	HGLRC hrc;
+#elif defined(RUISAPP_RENDER_OPENGLES)
+	EGLDisplay eglDisplay;
+	EGLSurface eglSurface;
+	EGLContext eglContext;
+#else
+#	error "Unknown graphics API"
+#endif
 
 	bool quitFlag = false;
 
@@ -699,7 +716,13 @@ application::application(
 		utki::make_shared<ruis::style_provider>( //
 			utki::make_shared<ruis::resource_loader>( //
 				utki::make_shared<ruis::render::renderer>( //
+#ifdef RUISAPP_RENDER_OPENGL
 					utki::make_shared<ruis::render::opengl::context>()
+#elif defined(RUISAPP_RENDER_OPENGLES)
+					utki::make_shared<ruis::render::opengles::context>()
+#else
+#	error "Unknown graphics API"
+#endif
 				)
 			)
 		),
@@ -889,7 +912,13 @@ void application::set_mouse_cursor_visible(bool visible)
 void application::swap_frame_buffers()
 {
 	auto& ww = get_impl(this->window_pimpl);
+#ifdef RUISAPP_RENDER_OPENGL
 	SwapBuffers(ww.hdc);
+#elif defined(RUISAPP_RENDER_OPENGLES)
+	eglSwapBuffers(ww.eglDisplay, ww.eglSurface);
+#else
+#	error "Unknown graphics API"
+#endif
 }
 
 namespace {
@@ -969,10 +998,7 @@ window_wrapper::window_wrapper(const window_params& wp)
 		}
 	});
 
-	//	TRACE_AND_LOG(<<
-	//"application::DeviceContextWrapper::DeviceContextWrapper(): DC created" <<
-	// std::endl)
-
+#ifdef RUISAPP_RENDER_OPENGL
 	{
 		static PIXELFORMATDESCRIPTOR pfd = {
 			sizeof(PIXELFORMATDESCRIPTOR),
@@ -1048,6 +1074,84 @@ window_wrapper::window_wrapper(const window_params& wp)
 	}
 
 	scope_exit_hrc.release();
+
+#elif defined(RUISAPP_RENDER_OPENGLES)
+
+	static const EGLint configAttribs[] = {
+		EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+		EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+		EGL_RED_SIZE, 8,
+		EGL_GREEN_SIZE, 8,
+		EGL_BLUE_SIZE, 8,
+		EGL_ALPHA_SIZE, 8,
+		EGL_NONE,
+	};
+
+	static const EGLint contextAttribs[] = {
+		EGL_CONTEXT_CLIENT_VERSION, 2,
+		EGL_NONE,
+	};
+
+	this->eglDisplay = eglGetDisplay(this->hdc);
+	if (this->eglDisplay == EGL_NO_DISPLAY) {
+		throw std::runtime_error("Failed to get EGL display");
+	}
+
+	if (!eglInitialize(this->eglDisplay, nullptr, nullptr)) {
+		throw std::runtime_error("Failed to initialize EGL");
+	}
+
+	utki::scope_exit scope_exit_display([this]() {
+		if (!eglTerminate(this->eglDisplay)) {
+			ASSERT(false, [&](auto& o) {
+				o << "Terminating EGL failed";
+			})
+		}
+	});
+
+	EGLConfig config;
+	EGLint numConfigs;
+	if (!eglChooseConfig(this->eglDisplay, configAttribs, &config, 1, &numConfigs)) {
+		throw std::runtime_error("Failed to choose EGL config");
+	}
+
+	this->eglSurface = eglCreateWindowSurface(this->eglDisplay, config, (EGLNativeWindowType)this->hwnd, nullptr);
+	if (this->eglSurface == EGL_NO_SURFACE) {
+		throw std::runtime_error("Failed to create EGL surface");
+	}
+
+	utki::scope_exit scope_exit_surface([this]() {
+		if (!eglDestroySurface(this->eglDisplay, this->eglSurface)) {
+			ASSERT(false, [&](auto& o) {
+				o << "Destroying EGL surface failed";
+			})
+		}
+	});
+
+	this->eglContext = eglCreateContext(this->eglDisplay, config, EGL_NO_CONTEXT, contextAttribs);
+	if (this->eglContext == EGL_NO_CONTEXT) {
+		throw std::runtime_error("Failed to create EGL context");
+	}
+
+	utki::scope_exit scope_exit_context([this]() {
+		if (!eglDestroyContext(this->eglDisplay, this->eglContext)) {
+			ASSERT(false, [&](auto& o) {
+				o << "Destroying EGL context failed";
+			})
+		}
+	});
+
+	if (!eglMakeCurrent(this->eglDisplay, this->eglSurface, this->eglSurface, this->eglContext)) {
+		throw std::runtime_error("Failed to make EGL context current");
+	}
+
+	scope_exit_context.release();
+	scope_exit_surface.release();
+	scope_exit_display.release();
+#else
+#	error "Unknown graphics API"
+#endif
+
 	scope_exit_hdc.release();
 	scope_exit_hwnd.release();
 	scope_exit_window_class.release();
@@ -1055,6 +1159,8 @@ window_wrapper::window_wrapper(const window_params& wp)
 
 window_wrapper::~window_wrapper()
 {
+#ifdef RUISAPP_RENDER_OPENGL
+
 	if (!wglMakeCurrent(nullptr, nullptr)) {
 		ASSERT(false, [&](auto& o) {
 			o << "Deactivating OpenGL rendering context failed";
@@ -1066,6 +1172,37 @@ window_wrapper::~window_wrapper()
 			o << "Releasing OpenGL rendering context failed";
 		})
 	}
+
+#elif defined(RUISAPP_RENDER_OPENGLES)
+
+	if (!eglMakeCurrent(this->eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT)) {
+		ASSERT(false, [&](auto& o) {
+			o << "Deactivating EGL context failed";
+		})
+	}
+
+	if (!eglDestroyContext(this->eglDisplay, this->eglContext)) {
+		ASSERT(false, [&](auto& o) {
+			o << "Destroying EGL context failed";
+		})
+	}
+
+	if (!eglDestroySurface(this->eglDisplay, this->eglSurface)) {
+		ASSERT(false, [&](auto& o) {
+			o << "Destroying EGL surface failed";
+		})
+	}
+
+	if (!eglTerminate(this->eglDisplay)) {
+		ASSERT(false, [&](auto& o) {
+			o << "Terminating EGL failed";
+		})
+	}
+
+#else
+#	error "Unknown graphics API"
+#endif
+
 	if (!ReleaseDC(this->hwnd, this->hdc)) {
 		ASSERT(false, [&](auto& o) {
 			o << "Failed to release device context";
