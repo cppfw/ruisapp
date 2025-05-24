@@ -9,6 +9,7 @@ find_package(myci CONFIG REQUIRED)
 
 find_package(JPEG REQUIRED)
 find_package(GLEW REQUIRED)
+find_package(Freetype CONFIG REQUIRED)
 
 if(LINUX)
     find_package(PkgConfig REQUIRED)
@@ -58,11 +59,12 @@ myci_declare_library(${name}-opengl
         nitki
         ruis
         ruis-render-opengl
-        Freetype
     EXTERNAL_DEPENDENCIES
         JPEG::JPEG
         GLEW::GLEW
+        Freetype::Freetype
         ${linux_deps}
+    NO_EXPORT
 )
 
 myci_declare_library(${name}-opengles
@@ -70,8 +72,9 @@ myci_declare_library(${name}-opengles
         ${srcs}
     PUBLIC_INCLUDE_DIRECTORIES
         ../../src
-    INSTALL_INCLUDE_DIRECTORIES
-        ../../src/${name}
+    # header files are installed by ${name}-opengl target
+    # INSTALL_INCLUDE_DIRECTORIES
+    #     ../../src/${name}
     PUBLIC_COMPILE_DEFINITIONS
         "RUISAPP_RENDER_OPENGLES"
     DEPENDENCIES
@@ -86,12 +89,20 @@ myci_declare_library(${name}-opengles
         cssom
         svgdom
         svgren
+        nitki
         ruis
         ruis-render-opengles
-        Freetype
     EXTERNAL_DEPENDENCIES
         JPEG::JPEG
+        Freetype::Freetype
         ${linux_deps}
+    NO_EXPORT
+)
+
+myci_export(
+    TARGETS
+        ${name}-opengl
+        ${name}-opengles
 )
 
 set(app_srcs)
@@ -102,10 +113,10 @@ myci_add_source_files(app_srcs
 )
 
 set(app_rsrs)
-# TODO:
-# add_resource_directory(app_rsrs
-#     "${CMAKE_CURRENT_SOURCE_DIR}/../../tests/app/res"
-#     )
+myci_add_resource_files(rsrs
+    DIRECTORY
+        ../../tests/app/res
+)
 
 myci_declare_application(${name}-opengl-test
     SOURCES
@@ -114,8 +125,7 @@ myci_declare_application(${name}-opengl-test
     DEPENDENCIES
         ruis
         nitki
-    LINK_LIBRARIES
-        ruisapp-opengl
+        ruisapp::ruisapp-opengl
 )
 
 myci_declare_application(${name}-opengles-test
@@ -125,6 +135,5 @@ myci_declare_application(${name}-opengles-test
     DEPENDENCIES
         ruis
         nitki
-    LINK_LIBRARIES
-        ruisapp-opengles
+        ruisapp::ruisapp-opengles
 )
