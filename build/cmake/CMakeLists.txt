@@ -70,6 +70,7 @@ myci_declare_library(${name}-opengl
         ruis-render-opengl
     EXTERNAL_DEPENDENCIES
         JPEG::JPEG
+        PNG::PNG
         GLEW::GLEW
         Freetype::Freetype
         ${linux_deps}
@@ -104,6 +105,7 @@ myci_declare_library(${name}-opengles
         ruis-render-opengles
     EXTERNAL_DEPENDENCIES
         JPEG::JPEG
+        PNG::PNG
         Freetype::Freetype
         ${linux_deps}
         ${windows_deps}
