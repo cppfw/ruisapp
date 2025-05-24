@@ -221,6 +221,8 @@ struct window_wrapper : public utki::destructable {
 	{
 		// set scale factor
 		{
+			gdk_init(nullptr, nullptr);
+
 			// GDK-4 version commented out because GDK-4 is not available in Debian 11
 
 			// auto display_name = DisplayString(ww.display.display);
@@ -1323,13 +1325,6 @@ void application::quit() noexcept
 
 int main(int argc, const char** argv)
 {
-	{
-		auto c = argc;
-		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
-		auto p = const_cast<char**>(argv);
-		gdk_init(&c, &p);
-	}
-
 	std::unique_ptr<ruisapp::application> app = create_app_unix(argc, argv);
 	if (!app) {
 		// Not an error. The app just did not show any GUI to the user.
