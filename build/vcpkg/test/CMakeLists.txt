@@ -32,12 +32,14 @@ if(LINUX)
     pkg_check_modules(X11 REQUIRED IMPORTED_TARGET "x11")
     pkg_check_modules(EGL REQUIRED IMPORTED_TARGET "egl")
     pkg_check_modules(GLES2 REQUIRED IMPORTED_TARGET "glesv2")
+    set(win32)
 elseif(WIN32)
     find_package(unofficial-angle CONFIG REQUIRED)
+    set(win32 WIN32)
 endif()
 
 find_package(ruisapp CONFIG REQUIRED)
 
-add_executable(test main.cpp)
+add_executable(test ${win32} main.cpp)
 
 target_link_libraries(test PRIVATE ruisapp::ruisapp-opengl)
