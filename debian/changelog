@@ -1,3 +1,9 @@
+libruisapp (0.2.120) unstable; urgency=medium
+
+  * vcpkg
+
+ -- Ivan Gagis <igagis@gmail.com>  Sun, 25 May 2025 17:53:54 +0300
+
 libruisapp (0.2.119) unstable; urgency=medium
 
   * update
