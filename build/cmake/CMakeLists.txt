@@ -126,17 +126,12 @@ myci_add_source_files(app_srcs
     RECURSIVE
 )
 
-set(app_rsrs)
-myci_add_resource_files(rsrs
-    DIRECTORY
-        ../../tests/app/res
-)
-
 myci_declare_application(${name}-opengl-test
     GUI
     SOURCES
         ${app_srcs}
-        ${app_rsrs}
+    RESOURCE_DIRECTORY
+        ../../tests/app/res
     DEPENDENCIES
         ruis
         nitki
@@ -147,7 +142,8 @@ myci_declare_application(${name}-opengles-test
     GUI
     SOURCES
         ${app_srcs}
-        ${app_rsrs}
+    RESOURCE_DIRECTORY
+        ../../tests/app/res
     DEPENDENCIES
         ruis
         nitki
