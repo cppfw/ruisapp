@@ -821,8 +821,14 @@ int WINAPI WinMain(
 	int n_cmd_show // Window Show State
 )
 {
-	// TODO: pass argc and argv
-	ruisapp::winmain(0, nullptr);
+	ruisapp::winmain(__argc, (const char**)__argv);
+
+	return 0;
+}
+
+int main(int argc, char** argv)
+{
+	ruisapp::winmain(argc, (const char**)argv);
 
 	return 0;
 }
