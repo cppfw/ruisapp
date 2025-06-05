@@ -821,14 +821,14 @@ int WINAPI WinMain(
 	int n_cmd_show // Window Show State
 )
 {
-	ruisapp::winmain(__argc, (const char**)__argv);
+	ruisapp::winmain(__argc, const_cast<const char**>(__argv));
 
 	return 0;
 }
 
-int main(int argc, char** argv)
+int main(int argc, const char** argv)
 {
-	ruisapp::winmain(argc, (const char**)argv);
+	ruisapp::winmain(argc, argv);
 
 	return 0;
 }
