@@ -388,16 +388,16 @@ public:
 		ASSERT(this->manager)
 	}
 
-	virtual void open_internal(mode mode) override
+	virtual void open_internal(papki::mode mode) override
 	{
 		switch (mode) {
-			case papki::file::mode::write:
-			case papki::file::mode::create:
+			case papki::mode::write:
+			case papki::mode::create:
 				throw std::invalid_argument(
 					"'write' and 'create' open modes are not "
 					"supported by Android assets"
 				);
-			case papki::file::mode::read:
+			case papki::mode::read:
 				break;
 			default:
 				throw std::invalid_argument("unknown mode");
