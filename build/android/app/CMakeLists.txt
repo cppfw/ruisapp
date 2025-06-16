@@ -10,7 +10,7 @@ cmake_minimum_required(VERSION 3.4.1)
 # and CMake builds them for you. When you build your app, Gradle
 # automatically packages shared libraries with your APK.
 
-file(GLOB_RECURSE srcs "../../tests/app/*.cpp")
+file(GLOB_RECURSE srcs "../../../tests/app/*.cpp")
 
 set(name ruisapp_application) # this has to be 'ruisapp_application' so that RuisappActivity loads that named .so
 

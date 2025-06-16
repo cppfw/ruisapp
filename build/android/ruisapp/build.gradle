@@ -1,10 +1,11 @@
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
+apply plugin: 'com.ydq.android.gradle.native-aar.export' // must go after android gradle plugin
 apply plugin: 'com.ydq.android.gradle.native-aar.import' // must go after android gradle plugin
 
 android {
     compileSdkVersion 29
+
     defaultConfig {
-        applicationId "io.github.cppfw.ruisapp_test_app"
         minSdkVersion 21
         targetSdkVersion 29
 
@@ -12,11 +13,15 @@ android {
 
         externalNativeBuild {
             cmake {
-                targets "ruisapp_application"
-
-                arguments "-DANDROID_STL=c++_shared", "-DANDROID_TOOLCHAIN=clang"
+                targets "ruisapp"
             }
         }
+    }
+
+    nativeBundleExport {
+        headerDir = "${project.projectDir}/../../../src/"
+        bundleStatic = true
+        includeHeaderFilter.add("**/*.hpp")
     }
 
     buildTypes {
@@ -24,7 +29,7 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
-        debug {}
+        debug{}
     }
 
     // Encapsulates your external native build configurations.
@@ -45,26 +50,24 @@ repositories {
 }
 dependencies {
     implementation 'io.github.cppfw:utki:+'
-    implementation 'io.github.cppfw:r4:+'
     implementation 'io.github.cppfw:papki:+'
-    implementation 'io.github.cppfw:nitki:+'
+    implementation 'io.github.cppfw:r4:+'
     implementation 'io.github.cppfw:ruis:+'
     implementation 'io.github.cppfw:ruis-render-opengles:+'
-    implementation project(path: ':ruisapp', configuration: 'default')
+    implementation 'io.github.cppfw:nitki:+'
 }
 
-
-task copyResToAssets {
-    doLast {
-        copy{
-            from "../../tests/app/res"
-            into "src/main/assets/res"
-            include "**/*"
-        }
+// copy and rename release AAR to unified name
+task copy_aar(type: Copy) {
+    from file("build/outputs/aar/")
+    into file("../")
+    include("*-static-release.aar")
+    rename { String fileName ->
+        fileName.replace("static-release.aar", "\$(version).aar.in")
     }
 }
-tasks.whenTaskAdded { task ->
-    if (task.name.startsWith('package')) {
-        task.dependsOn('copyResToAssets')
-    }
+
+afterEvaluate {
+    copy_aar.dependsOn(assembleRelease)
+	copy_aar.dependsOn(bundleStaticLibRelease)
 }
