@@ -310,7 +310,7 @@ const std::array<ruis::key, utki::byte_mask + 1> key_map = {
 	}
 };
 
-ruis::key sdl_scan_code_to_ruis_key(SDL_Scancode sc)
+ruis::key sdl_scancode_to_ruis_key(SDL_Scancode sc)
 {
 	if (size_t(sc) >= key_map.size()) {
 		return ruis::key::unknown;
@@ -626,10 +626,11 @@ void main_loop_iteration(void* user_data)
 	// - wait for events and handle them/next cycle
 
 	auto to_wait_ms = app->gui.update();
-	// clamp to_wait_ms to max of int as SDL_WaitEventTimeout() accepts int type
-	to_wait_ms = std::min(to_wait_ms, uint32_t(std::numeric_limits<int32_t>::max()));
 
 	render(*app);
+
+	// clamp to_wait_ms to max of int as SDL_WaitEventTimeout() accepts int type
+	to_wait_ms = std::min(to_wait_ms, uint32_t(std::numeric_limits<int32_t>::max()));
 
 	if (SDL_WaitEventTimeout(nullptr, int(to_wait_ms)) == 0) {
 		// No events or error. In case of error not much we can do, just ignore it.
@@ -693,7 +694,7 @@ void main_loop_iteration(void* user_data)
 				[[fallthrough]];
 			case SDL_KEYUP:
 				{
-					auto key = sdl_scan_code_to_ruis_key(e.key.keysym.scancode);
+					auto key = sdl_scancode_to_ruis_key(e.key.keysym.scancode);
 					if (e.key.repeat == 0) {
 						handle_key_event(
 							*app, //
