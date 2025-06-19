@@ -763,9 +763,12 @@ int main(int argc, const char** argv)
 		}
 
 #if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
-		// TODO: set main loop
-		std::cout << "App created" << std::endl;
-		main_loop_iteration(app.get());
+		emscripten_set_main_loop_arg(
+			&main_loop_iteration,
+			app.get(),
+			0,
+			false
+		);
 #else
 		while (!get_impl(*app).quit_flag.load()) {
 			main_loop_iteration(app.get());
