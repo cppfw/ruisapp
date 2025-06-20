@@ -1,0 +1,3 @@
+[requires]
+ruis/[>=0.5.278]@cppfw/main
+ruis-render-opengles/[>=0.0.0]@cppfw/main

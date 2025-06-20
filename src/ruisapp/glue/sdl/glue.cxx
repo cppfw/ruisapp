@@ -26,6 +26,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "../../application.hpp"
 
+#if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
+#	include <emscripten.h>
+#endif
+
 #if CFG_COMPILER == CFG_COMPILER_MSVC
 #	include <SDL.h>
 #else
@@ -632,10 +636,12 @@ void main_loop_iteration(void* user_data)
 	// clamp to_wait_ms to max of int as SDL_WaitEventTimeout() accepts int type
 	to_wait_ms = std::min(to_wait_ms, uint32_t(std::numeric_limits<int32_t>::max()));
 
+#if CFG_OS_NAME != CFG_OS_NAME_EMSCRIPTEN
 	if (SDL_WaitEventTimeout(nullptr, int(to_wait_ms)) == 0) {
 		// No events or error. In case of error not much we can do, just ignore it.
 		return;
 	}
+#endif
 
 	ruis::vector2 new_win_dims(-1, -1);
 
@@ -750,6 +756,13 @@ void main_loop_iteration(void* user_data)
 	if (new_win_dims.is_positive_or_zero()) {
 		update_window_rect(*app, ruis::rect(0, new_win_dims));
 	}
+
+#if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
+	if(ww.quit_flag.load()){
+		std::unique_ptr<ruisapp::application> p(app);
+		emscripten_cancel_main_loop();
+	}
+#endif
 }
 } // namespace
 
@@ -765,10 +778,11 @@ int main(int argc, const char** argv)
 #if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
 		emscripten_set_main_loop_arg(
 			&main_loop_iteration,
-			app.get(),
+			app.release(),
 			0,
 			false
 		);
+		return 0;
 #else
 		while (!get_impl(*app).quit_flag.load()) {
 			main_loop_iteration(app.get());

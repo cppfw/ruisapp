@@ -12,10 +12,14 @@ this_static_lib_only := true
 # Suppress version-check warning due to https://github.com/conan-io/conan-center-index/pull/26247
 this_cxxflags += -Wno-version-check
 
+this_cxxflags += -D RUISAPP_RENDER_OPENGLES
+
 this_cxxflags += -fwasm-exceptions
 this_cxxflags += -sSUPPORT_LONGJMP=wasm
 this_ldflags += -fwasm-exceptions
 this_ldflags += -sSUPPORT_LONGJMP=wasm
+this_ldflags += -sALLOW_MEMORY_GROWTH
+this_ldflags += -sMEMORY_GROWTH_GEOMETRIC_STEP=1.0
 
 this_cxxflags += -pthread
 this_ldflags += -pthread
