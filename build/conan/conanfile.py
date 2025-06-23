@@ -21,11 +21,11 @@ class RuisappConan(ConanFile):
 		self.requires("utki/[>=1.1.202]@cppfw/main", transitive_headers=True, transitive_libs=True)
 		self.requires("papki/[>=0.0.0]@cppfw/main", transitive_headers=True, transitive_libs=True)
 		self.requires("ruis/[>=0.5.278]@cppfw/main", transitive_headers=True, transitive_libs=True)
-		self.requires("ruis-render-opengles/[>=0.1.76]@cppfw/main", transitive_headers=False, transitive_libs=True)
 
-		if self.settings.os != "Emscripten":
+		if self.settings.os == "Emscripten":
+			self.requires("ruis-render-opengles/[>=0.1.76]@cppfw/main", transitive_headers=False, transitive_libs=True)
+		else:
 			self.requires("ruis-render-opengl/[>=0.1.90]@cppfw/main", transitive_headers=False, transitive_libs=True)
-			self.requires("tst/[>=0.3.29]@cppfw/main", visible=False)
 
 	def build_requirements(self):
 		self.tool_requires("prorab/[>=2.0.27]@cppfw/main")
