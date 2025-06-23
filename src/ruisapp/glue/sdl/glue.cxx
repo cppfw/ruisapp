@@ -331,6 +331,7 @@ ruis::real get_dpi(int display_index = 0)
 	if (SDL_GetDisplayDPI(display_index, &dpi, nullptr, nullptr) != 0) {
 		throw std::runtime_error(utki::cat("Could not get SDL display DPI, SDL Error: ", SDL_GetError()));
 	}
+	// std::cout << "get_dpi(): dpi = " << dpi << std::endl;
 	return ruis::real(dpi);
 }
 
