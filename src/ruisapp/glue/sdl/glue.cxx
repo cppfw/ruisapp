@@ -370,9 +370,12 @@ public:
 	class sdl_window_wrapper
 	{
 	public:
+		const ruis::real scale_factor;
+
 		SDL_Window* const window;
 
 		sdl_window_wrapper(const window_params& wp) :
+			scale_factor(get_display_scaling_factor()),
 			window([&]() {
 #ifdef RUISAPP_RENDER_OPENGL
 				SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -392,7 +395,11 @@ public:
 					SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, ver.minor);
 				}
 
-				auto dims = wp.dims.to<ruis::real>() * get_display_scaling_factor();
+				auto dims = wp.dims.to<ruis::real>();
+
+#if CFG_OS_NAME != CFG_OS_NAME_EMSCRIPTEN
+				dims *= this->scale_factor;
+#endif
 
 				SDL_Window* window = SDL_CreateWindow(
 					wp.title.c_str(),
@@ -400,7 +407,7 @@ public:
 					SDL_WINDOWPOS_UNDEFINED,
 					int(dims.x()),
 					int(dims.y()),
-					SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
+					SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI
 				);
 				if (!window) {
 					std::runtime_error(utki::cat("Could not create SDL window, SDL_Error: ", SDL_GetError()));
@@ -578,7 +585,7 @@ application::application(std::string name, const window_params& wp) :
 				},
 			.units = ruis::units(
 				get_dpi(), //
-				get_display_scaling_factor()
+				get_impl(*this).window.scale_factor
 			)
 		}
 	)),
@@ -587,7 +594,7 @@ application::application(std::string name, const window_params& wp) :
 	this->update_window_rect(
 		ruis::rect(
 			{0, 0}, //
-			ruis::vec2(ruis::real(wp.dims.x()), ruis::real(wp.dims.y())) * get_display_scaling_factor()
+			ruis::vec2(ruis::real(wp.dims.x()), ruis::real(wp.dims.y())) * get_impl(*this).window.scale_factor
 		)
 	);
 }
@@ -716,7 +723,17 @@ void main_loop_iteration(void* user_data)
 					int y = 0;
 					SDL_GetMouseState(&x, &y);
 
-					handle_mouse_move(*app, ruis::vector2(x, y), 0);
+					ruis::vector2 pos(x, y);
+
+#if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
+					pos *= ww.window.scale_factor;
+#endif
+
+					handle_mouse_move(
+						*app, //
+						pos,
+						0
+					);
 				}
 				break;
 			case SDL_MOUSEBUTTONDOWN:
@@ -727,10 +744,16 @@ void main_loop_iteration(void* user_data)
 					int y = 0;
 					SDL_GetMouseState(&x, &y);
 
+					ruis::vector2 pos(x, y);
+
+#if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
+					pos *= ww.window.scale_factor;
+#endif
+
 					handle_mouse_button(
-						*app,
+						*app, //
 						e.button.type == SDL_MOUSEBUTTONDOWN,
-						ruis::vector2(x, y),
+						pos,
 						button_number_to_enum(e.button.button),
 						0 // pointer id
 					);
@@ -756,7 +779,11 @@ void main_loop_iteration(void* user_data)
 							}
 						};
 
-						handle_character_input(*app, sdl_dummy_input_string_provider(), key);
+						handle_character_input(
+							*app, //
+							sdl_dummy_input_string_provider(),
+							key
+						);
 					}
 				}
 				break;
@@ -778,7 +805,11 @@ void main_loop_iteration(void* user_data)
 						&(e.text.text[0])
 					);
 
-					handle_character_input(*app, sdl_input_string_provider, ruis::key::unknown);
+					handle_character_input(
+						*app, //
+						sdl_input_string_provider,
+						ruis::key::unknown
+					);
 				}
 				break;
 			default:
