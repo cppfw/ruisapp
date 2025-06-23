@@ -607,12 +607,51 @@ void application::swap_frame_buffers()
 
 void application::set_fullscreen(bool enable)
 {
-	// TODO:
+	auto& ww = get_impl(this->window_pimpl);
+
+	auto flags = [&]() -> uint32_t {
+		if (enable) {
+			return SDL_WINDOW_FULLSCREEN_DESKTOP;
+		} else {
+			return 0;
+		}
+	}();
+
+	auto error = SDL_SetWindowFullscreen(
+		ww.window.window, //
+		flags
+	);
+
+	if (error != 0) {
+		throw std::runtime_error(
+			utki::cat(
+				"application::set_fullscreen(): could not switch fullscreen mode, error: ", //
+				SDL_GetError()
+			)
+		);
+	}
 }
 
 void application::set_mouse_cursor_visible(bool visible)
 {
-	// TODO:
+	int mode = [&]() {
+		if (visible) {
+			return SDL_ENABLE;
+		} else {
+			return SDL_DISABLE;
+		}
+	}();
+
+	int error = SDL_ShowCursor(mode);
+
+	if (error < 0) {
+		throw std::runtime_error(
+			utki::cat(
+				"application::set_mouse_cursor_visible(): could not show/hide mouse cursor, error: ", //
+				SDL_GetError()
+			)
+		);
+	}
 }
 
 namespace {
@@ -758,7 +797,7 @@ void main_loop_iteration(void* user_data)
 	}
 
 #if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
-	if(ww.quit_flag.load()){
+	if (ww.quit_flag.load()) {
 		std::unique_ptr<ruisapp::application> p(app);
 		emscripten_cancel_main_loop();
 	}
@@ -776,12 +815,7 @@ int main(int argc, const char** argv)
 		}
 
 #if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
-		emscripten_set_main_loop_arg(
-			&main_loop_iteration,
-			app.release(),
-			0,
-			false
-		);
+		emscripten_set_main_loop_arg(&main_loop_iteration, app.release(), 0, false);
 		return 0;
 #else
 		while (!get_impl(*app).quit_flag.load()) {
