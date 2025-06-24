@@ -680,10 +680,10 @@ void main_loop_iteration(void* user_data)
 
 	render(*app);
 
+#if CFG_OS_NAME != CFG_OS_NAME_EMSCRIPTEN
 	// clamp to_wait_ms to max of int as SDL_WaitEventTimeout() accepts int type
 	to_wait_ms = std::min(to_wait_ms, uint32_t(std::numeric_limits<int32_t>::max()));
 
-#if CFG_OS_NAME != CFG_OS_NAME_EMSCRIPTEN
 	if (SDL_WaitEventTimeout(nullptr, int(to_wait_ms)) == 0) {
 		// No events or error. In case of error not much we can do, just ignore it.
 		return;
