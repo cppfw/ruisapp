@@ -676,7 +676,10 @@ void main_loop_iteration(void* user_data)
 	// - render
 	// - wait for events and handle them/next cycle
 
-	auto to_wait_ms = app->gui.update();
+#if CFG_OS_NAME != CFG_OS_NAME_EMSCRIPTEN
+	auto to_wait_ms =
+#endif
+		app->gui.update();
 
 	render(*app);
 
