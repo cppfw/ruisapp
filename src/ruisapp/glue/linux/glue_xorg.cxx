@@ -484,7 +484,10 @@ struct window_wrapper : public utki::destructable {
 			visual_info->visual,
 			AllocNone
 		);
-		// TODO: check for error?
+		if (this->color_map == None) {
+			// TODO: use XSetErrorHandler() to get error code
+			throw std::runtime_error("XCreateColormap(): failed");
+		}
 		utki::scope_exit scope_exit_color_map([this]() {
 			XFreeColormap(this->display.display, this->color_map);
 		});
