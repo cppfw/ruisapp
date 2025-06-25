@@ -54,7 +54,7 @@ define ruisapp_rules
 
     this_srcs += $$(call prorab-src-dir, ruisapp)
 
-    this_name := ruisapp-$1$(if $2,-$2)
+    this_name := ruisapp-$1$(if $2,-$2)$$(this_dbg)
 
     ifeq ($2,sdl)
         this_ldlibs += -l SDL2
@@ -67,6 +67,8 @@ define ruisapp_rules
         this_ldlibs += $$(shell pkg-config --libs gdk-3.0)
 
         this_ldlibs += -l GLEW
+
+        # TODO: add linking to dbg versions of all libs
         this_ldlibs += -l nitki
         this_ldlibs += -l opros
 
@@ -108,13 +110,14 @@ $(.RECIPEPREFIX)$(a)$(this_cc) -ObjC++ -c -o "$$$$@" $$(this_cxxflags) $$(OBJCXX
         $$(eval $$(this_subrules))
     endif
 
-    this_ldlibs += -l ruis
+    # TODO: add linking to dbg versions of all libs
+    this_ldlibs += -l ruis$$(this_dbg)
     this_ldlibs += -l papki
     this_ldlibs += -l tml
-    this_ldlibs += -l utki
+    this_ldlibs += -l utki$$(this_dbg)
 
     this_cxxflags += -D RUISAPP_RENDER_$(shell echo $1 | tr '[:lower:]' '[:upper:]')
-    this_ldlibs += -l ruis-render-$1
+    this_ldlibs += -l ruis-render-$1$$(this_dbg)
 
     ifeq ($1,opengles)
         this_ldlibs += -l EGL

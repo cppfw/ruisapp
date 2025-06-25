@@ -28,30 +28,74 @@ Standards-Version: 3.9.5
 Package: libruisapp-opengl-xorg$(soname)
 Section: libs
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends:
+	${shlibs:Depends},
+	${misc:Depends}
 Description: cross-platform C++ GUI library.
- GUI library using OpenGL rendering backend and xorg server.
+	GUI library using OpenGL rendering backend and xorg server.
+
+Package: libruisapp-opengl-xorg-dbg$(soname)
+Section: libs
+Architecture: any
+Depends:
+	${shlibs:Depends},
+	${misc:Depends}
+Description: cross-platform C++ GUI library.
+	Debug version of libruisapp-opengl-xorg.
 
 Package: libruisapp-opengles-xorg$(soname)
 Section: libs
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends:
+	${shlibs:Depends},
+	${misc:Depends}
 Description: cross-platform C++ GUI library.
- GUI library using OpenGL ES rendering backend and xorg server.
+	GUI library using OpenGL ES rendering backend and xorg server.
+
+Package: libruisapp-opengles-xorg-dbg$(soname)
+Section: libs
+Architecture: any
+Depends:
+	${shlibs:Depends},
+	${misc:Depends}
+Description: cross-platform C++ GUI library.
+	Debug version of libruisapp-opengles-xorg.
 
 # Package: libruisapp-opengl-wayland$(soname)
 # Section: libs
 # Architecture: any
-# Depends: ${shlibs:Depends}, ${misc:Depends}
+# Depends:
+#	${shlibs:Depends},
+#	${misc:Depends}
 # Description: cross-platform C++ GUI library.
-#  GUI library using OpenGL rendering backend and wayland server.
+#	GUI library using OpenGL rendering backend and wayland server.
+
+# Package: libruisapp-opengl-wayland-dbg$(soname)
+# Section: libs
+# Architecture: any
+# Depends:
+#	${shlibs:Depends},
+#	${misc:Depends}
+# Description: cross-platform C++ GUI library.
+#	Debug version of libruisapp-opengl-wayland.
 
 Package: libruisapp-opengles-wayland$(soname)
 Section: libs
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends:
+	${shlibs:Depends},
+	${misc:Depends}
 Description: cross-platform C++ GUI library.
- GUI library using OpenGL ES rendering backend and wayland server.
+	GUI library using OpenGL ES rendering backend and wayland server.
+
+Package: libruisapp-opengles-wayland-dbg$(soname)
+Section: libs
+Architecture: any
+Depends:
+	${shlibs:Depends},
+	${misc:Depends}
+Description: cross-platform C++ GUI library.
+	Debug version of libruisapp-opengles-wayland.
 
 Package: libruisapp-dev
 Section: libdevel
@@ -61,6 +105,10 @@ Depends:
 		libruisapp-opengles-xorg$(soname) (= ${binary:Version}),
 #		libruisapp-opengl-wayland$(soname) (= ${binary:Version}),
 		libruisapp-opengles-wayland$(soname) (= ${binary:Version}),
+		libruisapp-opengl-xorg-dbg$(soname) (= ${binary:Version}),
+		libruisapp-opengles-xorg-dbg$(soname) (= ${binary:Version}),
+#		libruisapp-opengl-wayland-dbg$(soname) (= ${binary:Version}),
+		libruisapp-opengles-wayland-dbg$(soname) (= ${binary:Version}),
 		${misc:Depends},
 		libutki-dev,
 		libruis-dev,
@@ -77,6 +125,10 @@ Depends:
 	libruisapp-opengles-xorg$(soname)-dbgsym (= ${binary:Version}),
 #	libruisapp-opengl-wayland$(soname)-dbgsym (= ${binary:Version}),
 	libruisapp-opengles-wayland$(soname)-dbgsym (= ${binary:Version}),
+	libruisapp-opengl-xorg-dbg$(soname)-dbgsym (= ${binary:Version}),
+	libruisapp-opengles-xorg-dbg$(soname)-dbgsym (= ${binary:Version}),
+#	libruisapp-opengl-wayland-dbg$(soname)-dbgsym (= ${binary:Version}),
+	libruisapp-opengles-wayland-dbg$(soname)-dbgsym (= ${binary:Version}),
 	${misc:Depends}
 Description: debugging sources for libruisapp$(soname) package.
 
