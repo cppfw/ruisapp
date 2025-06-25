@@ -3,6 +3,7 @@
 #include <ruis/widget/proxy/key_proxy.hpp>
 #include <ruis/widget/group/overlay.hpp>
 #include <ruis/widget/label/image_mouse_cursor.hpp>
+#include <ruis/widget/label/image.hpp>
 
 #include "window1.hpp"
 #include "sliders_window.hpp"
@@ -36,6 +37,16 @@ utki::shared_ref<ruis::widget> make_root_widget(utki::shared_ref<ruis::context> 
                     },
                 },
                 {
+                    m::image(c,
+                        {
+                            .layout_params{
+                                .dims = {ruis::dim::fill, ruis::dim::fill}
+                            },
+                            .image_params{
+                                .img = c.get().loader().load<ruis::res::image>("img_sample")
+                            }
+                        }
+                    ),
                     m::container(c,
                         {
                             .layout_params{
