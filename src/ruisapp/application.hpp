@@ -35,52 +35,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <utki/util.hpp>
 
 #include "config.hpp"
+#include "window.hpp"
 
 namespace ruisapp {
-
-/**
- * @brief Desired window parameters.
- */
-struct window_params {
-	/**
-	 * @brief Desired dimensions of the window
-	 */
-	r4::vector2<unsigned> dims;
-
-	/**
-	 * @brief Window title.
-	 */
-	std::string title = "ruisapp";
-
-	/**
-	 * @brief Graphics buffer kind.
-	 * Color buffer is always present, so no enum entry for color buffer is needed.
-	 */
-	enum class buffer {
-		depth,
-		stencil,
-
-		enum_size
-	};
-
-	/**
-	 * @brief Flags describing desired buffers for rendering context.
-	 * Color buffer is always there implicitly.
-	 */
-	utki::flags<buffer> buffers = false;
-
-	// version 0.0 means default version
-	// clang-format off
-	utki::version_duplet graphics_api_version = {
-		.major = 0,
-		.minor = 0
-	};
-	// clang-format on
-
-	window_params(r4::vector2<unsigned> dims) :
-		dims(dims)
-	{}
-};
 
 /**
  * @brief Base singleton class of application.
@@ -142,7 +99,7 @@ public:
 	const directories directory;
 
 private:
-	// TODO: make it window rectangle and track vieport separately,
+	// TODO: make it window rectangle and track viewport separately,
 	//       use top-left coordinate system
 
 	// this is a viewport rectangle in coordinates that are as follows: x grows
@@ -162,36 +119,69 @@ private:
 
 	void update_window_rect(const ruis::rect& rect);
 
-	friend void update_window_rect(application& app, const ruis::rect& rect);
+	friend void update_window_rect(
+		application& app, //
+		const ruis::rect& rect
+	);
 
 	// pos is in usual window coordinates, y goes down.
-	void handle_mouse_move(const r4::vector2<float>& pos, unsigned id)
+	void handle_mouse_move(
+		const r4::vector2<float>& pos, //
+		unsigned id
+	)
 	{
-		this->gui.send_mouse_move(pos, id);
+		this->gui.send_mouse_move(
+			pos, //
+			id
+		);
 	}
 
-	friend void handle_mouse_move(application& app, const r4::vector2<float>& pos, unsigned id);
+	friend void handle_mouse_move(
+		application& app, //
+		const r4::vector2<float>& pos,
+		unsigned id
+	);
 
 	// pos is in usual window coordinates, y goes down.
-	void handle_mouse_button(bool is_down, const r4::vector2<float>& pos, ruis::mouse_button button, unsigned id)
+	void handle_mouse_button(
+		bool is_down, //
+		const r4::vector2<float>& pos,
+		ruis::mouse_button button,
+		unsigned id
+	)
 	{
-		this->gui.send_mouse_button(is_down, pos, button, id);
+		this->gui.send_mouse_button(
+			is_down, //
+			pos,
+			button,
+			id
+		);
 	}
 
 	friend void handle_mouse_button(
-		application& app,
+		application& app, //
 		bool is_down,
 		const r4::vector2<float>& pos,
 		ruis::mouse_button button,
 		unsigned id
 	);
 
-	void handle_mouse_hover(bool is_hovered, unsigned id)
+	void handle_mouse_hover(
+		bool is_hovered, //
+		unsigned id
+	)
 	{
-		this->gui.send_mouse_hover(is_hovered, id);
+		this->gui.send_mouse_hover(
+			is_hovered, //
+			id
+		);
 	}
 
-	friend void handle_mouse_hover(application& app, bool is_hovered, unsigned pointer_id);
+	friend void handle_mouse_hover(
+		application& app, //
+		bool is_hovered,
+		unsigned pointer_id
+	);
 
 protected:
 	/**
@@ -199,7 +189,10 @@ protected:
 	 * @param name - name of the application.
 	 * @param requested_window_params - requested window parameters.
 	 */
-	application(std::string name, const window_params& requested_window_params);
+	application(
+		std::string name, //
+		const window_params& requested_window_params
+	);
 
 public:
 	application(const application&) = delete;
@@ -228,20 +221,33 @@ private:
 	// The idea with unicode_resolver parameter is that we don't want to calculate
 	// the unicode unless it is really needed, thus postpone it as much as
 	// possible.
-	void handle_character_input(const ruis::gui::input_string_provider& string_provider, ruis::key key_code)
+	void handle_character_input(
+		const ruis::gui::input_string_provider& string_provider, //
+		ruis::key key_code
+	)
 	{
-		this->gui.send_character_input(string_provider, key_code);
+		this->gui.send_character_input(
+			string_provider, //
+			key_code
+		);
 	}
 
 	friend void handle_character_input(
-		application& app,
+		application& app, //
 		const ruis::gui::input_string_provider& string_provider,
 		ruis::key key_code
 	);
 
-	void handle_key_event(bool is_down, ruis::key key_code);
+	void handle_key_event(
+		bool is_down, //
+		ruis::key key_code
+	);
 
-	friend void handle_key_event(application& app, bool is_down, ruis::key key_code);
+	friend void handle_key_event(
+		application& app, //
+		bool is_down,
+		ruis::key key_code
+	);
 
 public:
 	/**
@@ -290,7 +296,10 @@ public:
 	 * @param screen_size_mm - size of the display in millimeters.
 	 * @return Size of one display density pixel in pixels.
 	 */
-	static ruis::real get_pixels_per_pp(r4::vector2<unsigned> screen_size_pixels, r4::vector2<unsigned> screen_size_mm);
+	static ruis::real get_pixels_per_pp(
+		r4::vector2<unsigned> screen_size_pixels, //
+		r4::vector2<unsigned> screen_size_mm
+	);
 };
 
 inline application& inst()
