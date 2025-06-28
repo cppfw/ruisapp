@@ -1002,14 +1002,17 @@ void main_loop_iteration(void* user_data)
 int main(int argc, const char** argv)
 {
 	try {
+		// std::cout << "main(): enter" << std::endl;
 		std::unique_ptr<ruisapp::application> app = ruisapp::application_factory::make_application(argc, argv);
 		if (!app) {
 			// Not an error. The application just did not show any GUI to the user.
 			return 0;
 		}
+		// std::cout << "main(): app created" << std::endl;
 
 #if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
 		emscripten_set_main_loop_arg(&main_loop_iteration, app.release(), 0, false);
+		// std::cout << "main(): emscripten loop is set up" << std::endl;
 		return 0;
 #else
 		while (!get_impl(*app).quit_flag.load()) {
