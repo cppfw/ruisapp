@@ -28,6 +28,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
 #	include <emscripten.h>
+#	include <emscripten/html5.h>
 #endif
 
 #if CFG_COMPILER == CFG_COMPILER_MSVC
@@ -374,6 +375,37 @@ public:
 
 		SDL_Window* const window;
 
+#if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
+		static bool on_emscripten_canvas_size_changed_callback(int event_type, const void* reserved, void* user_data)
+		{
+			if (!user_data) {
+				std::cout << "emscripten_get_canvas_element_size(#canvas): user_data is nullptr" << std::endl;
+				return false;
+			}
+			auto* ww = reinterpret_cast<sdl_window_wrapper*>(user_data);
+
+			double width;
+			double height;
+
+			if (auto res = emscripten_get_element_css_size("#canvas", &width, &height);
+				res != EMSCRIPTEN_RESULT_SUCCESS)
+			{
+				std::cout << "emscripten_get_canvas_element_size(#canvas): failed, error = " << res << std::endl;
+				return false;
+			}
+
+			// std::cout << "emscripten_get_canvas_element_size(#canvas): new canvas size = " << width << " " << height << std::endl;
+
+			SDL_SetWindowSize(
+				ww->window, //
+				int(width),
+				int(height)
+			);
+
+			return true;
+		}
+#endif
+
 		sdl_window_wrapper(const window_params& wp) :
 			scale_factor(get_display_scaling_factor()),
 			window([&]() {
@@ -395,11 +427,45 @@ public:
 					SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, ver.minor);
 				}
 
-				auto dims = wp.dims.to<ruis::real>();
+#if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
+				// Change to soft fullscreen mode before creating the window to set correct OpenGL viewport initially.
+				{
+					EmscriptenFullscreenStrategy strategy{};
+					strategy = {
+						.scaleMode = EMSCRIPTEN_FULLSCREEN_SCALE_STRETCH,
+						.canvasResolutionScaleMode = EMSCRIPTEN_FULLSCREEN_CANVAS_SCALE_HIDEF,
+						.filteringMode = EMSCRIPTEN_FULLSCREEN_FILTERING_NEAREST,
+						.canvasResizedCallback = &sdl_window_wrapper::on_emscripten_canvas_size_changed_callback,
+						.canvasResizedCallbackUserData = this
+					};
+					emscripten_enter_soft_fullscreen("#canvas", &strategy);
+				}
 
-#if CFG_OS_NAME != CFG_OS_NAME_EMSCRIPTEN
+				auto dims = []() {
+					double width;
+					double height;
+
+					if (auto res = emscripten_get_element_css_size("#canvas", &width, &height);
+						res != EMSCRIPTEN_RESULT_SUCCESS)
+					{
+						throw std::runtime_error(
+							utki::cat(
+								"emscripten_get_canvas_element_size(#canvas): failed, error = ", //
+								res
+							)
+						);
+					}
+					return ruis::vec2(
+						ruis::real(width), //
+						ruis::real(height)
+					);
+				}();
+#else
+				auto dims = wp.dims.to<ruis::real>();
 				dims *= this->scale_factor;
 #endif
+
+				// std::cout << "dims = " << dims << std::endl;
 
 				SDL_Window* window = SDL_CreateWindow(
 					wp.title.c_str(),
@@ -412,6 +478,7 @@ public:
 				if (!window) {
 					std::runtime_error(utki::cat("Could not create SDL window, SDL_Error: ", SDL_GetError()));
 				}
+
 				return window;
 			}())
 		{}
@@ -591,10 +658,25 @@ application::application(std::string name, const window_params& wp) :
 	)),
 	directory(get_application_directories(this->name))
 {
+	auto& ww = get_impl(*this);
+
+	// Get actual window size, as it can differ from requested one.
+	int width;
+	int height;
+	SDL_GetWindowSize(ww.window.window, &width, &height);
+
+	auto dims = ruis::vec2(ruis::real(width), ruis::real(height));
+
+	// std::cout << "actual window size = " << dims << std::endl;
+
+#if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
+	dims *= ww.window.scale_factor;
+#endif
+
 	this->update_window_rect(
 		ruis::rect(
 			{0, 0}, //
-			ruis::vec2(ruis::real(wp.dims.x()), ruis::real(wp.dims.y())) * get_impl(*this).window.scale_factor
+			dims
 		)
 	);
 }
@@ -711,6 +793,10 @@ void main_loop_iteration(void* user_data)
 						// window dimensions and update the viewport later only once
 						new_win_dims.x() = ruis::real(e.window.data1);
 						new_win_dims.y() = ruis::real(e.window.data2);
+#if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
+						new_win_dims *= ww.window.scale_factor;
+#endif
+						// std::cout << "new window dims = " << new_win_dims << std::endl;
 						break;
 					case SDL_WINDOWEVENT_ENTER:
 						handle_mouse_hover(*app, true, 0);
