@@ -375,6 +375,12 @@ class window_wrapper : public utki::destructable
 	public:
 		sdl_cursor_wrapper() = default;
 
+		sdl_cursor_wrapper(const sdl_cursor_wrapper&) = delete;
+		sdl_cursor_wrapper& operator=(const sdl_cursor_wrapper&) = delete;
+
+		sdl_cursor_wrapper(sdl_cursor_wrapper&&) = delete;
+		sdl_cursor_wrapper& operator=(sdl_cursor_wrapper&&) = delete;
+
 		void set(ruis::mouse_cursor cursor)
 		{
 			ASSERT(!this->sdl_cursor)
@@ -452,8 +458,8 @@ public:
 			}
 			auto* ww = reinterpret_cast<sdl_window_wrapper*>(user_data);
 
-			double width;
-			double height;
+			double width = 0;
+			double height = 0;
 
 			if (auto res = emscripten_get_element_css_size("#canvas", &width, &height);
 				res != EMSCRIPTEN_RESULT_SUCCESS)
@@ -728,8 +734,8 @@ application::application(std::string name, const window_params& wp) :
 	auto& ww = get_impl(*this);
 
 	// Get actual window size, as it can differ from requested one.
-	int width;
-	int height;
+	int width = 0;
+	int height = 0;
 	SDL_GetWindowSize(ww.window.window, &width, &height);
 
 	auto dims = ruis::vec2(ruis::real(width), ruis::real(height));
