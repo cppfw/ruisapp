@@ -22,6 +22,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <atomic>
 
 #include <utki/config.hpp>
+#include <utki/enum_array.hpp>
 #include <utki/unicode.hpp>
 
 #include "../../application.hpp"
@@ -367,7 +368,74 @@ class window_wrapper : public utki::destructable
 		sdl_wrapper& operator=(sdl_wrapper&&) = delete;
 	} sdl;
 
+	class sdl_cursor_wrapper
+	{
+		SDL_Cursor* sdl_cursor = nullptr;
+
+	public:
+		sdl_cursor_wrapper() = default;
+
+		void set(ruis::mouse_cursor cursor)
+		{
+			ASSERT(!this->sdl_cursor)
+
+			utki::enum_array<SDL_SystemCursor, ruis::mouse_cursor> cursor_mapping = {
+				SDL_SYSTEM_CURSOR_ARROW, // none
+				SDL_SYSTEM_CURSOR_ARROW, // arrow
+				SDL_SYSTEM_CURSOR_SIZEWE, // left_right_arrow
+				SDL_SYSTEM_CURSOR_SIZENS, // up_down_arrow
+				SDL_SYSTEM_CURSOR_SIZEALL, // all_directions_arrow
+				SDL_SYSTEM_CURSOR_SIZEWE, // left_side
+				SDL_SYSTEM_CURSOR_SIZEWE, // right_side
+				SDL_SYSTEM_CURSOR_SIZENS, // top_side
+				SDL_SYSTEM_CURSOR_SIZENS, // bottom_side
+				SDL_SYSTEM_CURSOR_SIZEALL, // top_left_corner
+				SDL_SYSTEM_CURSOR_SIZEALL, // top_right_corner
+				SDL_SYSTEM_CURSOR_SIZEALL, // bottom_left_corner
+				SDL_SYSTEM_CURSOR_SIZEALL, // bottom_right_corner
+				SDL_SYSTEM_CURSOR_CROSSHAIR, // index_finger
+				SDL_SYSTEM_CURSOR_HAND, // grab
+				SDL_SYSTEM_CURSOR_IBEAM, // caret
+				// TODO:
+				// SDL_SYSTEM_CURSOR_WAIT
+				// SDL_SYSTEM_CURSOR_NO
+			};
+
+			this->sdl_cursor = SDL_CreateSystemCursor(cursor_mapping[cursor]);
+		}
+
+		~sdl_cursor_wrapper()
+		{
+			if (this->sdl_cursor) {
+				SDL_FreeCursor(this->sdl_cursor);
+			}
+		}
+
+		bool empty() const noexcept
+		{
+			return this->sdl_cursor == nullptr;
+		}
+
+		void activate()
+		{
+			ASSERT(!this->empty())
+
+			SDL_SetCursor(this->sdl_cursor);
+		}
+	};
+
+	utki::enum_array<sdl_cursor_wrapper, ruis::mouse_cursor> mouse_cursors;
+
 public:
+	void set_cursor(ruis::mouse_cursor cursor)
+	{
+		auto& c = this->mouse_cursors[cursor];
+		if (c.empty()) {
+			c.set(cursor);
+		}
+		c.activate();
+	}
+
 	class sdl_window_wrapper
 	{
 	public:
@@ -645,10 +713,9 @@ application::application(std::string name, const window_params& wp) :
 					SDL_PushEvent(&e);
 				},
 			.set_mouse_cursor_function =
-				[](ruis::mouse_cursor c) {
-					// TODO:
-					// auto& ww = get_impl(*this);
-					// ww.set_cursor(c);
+				[this](ruis::mouse_cursor c) {
+					auto& ww = get_impl(*this);
+					ww.set_cursor(c);
 				},
 			.units = ruis::units(
 				get_dpi(), //
