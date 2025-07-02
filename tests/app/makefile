@@ -29,7 +29,7 @@ else
     this__libruisapp := libruisapp-opengl
 endif
 
-this__libruisapp := ../../src/out/$(c)/$(this__cfg_suffix)/$(this__libruisapp)
+this__libruisapp := ../../src/out/$(c)/$(this__cfg_suffix)/$(this__libruisapp)$(this_dbg)
 
 ifeq ($(config), emsc)
     this__libruisapp := $(this__libruisapp).a
@@ -50,10 +50,10 @@ else ifeq ($(os),linux)
     this_ldflags += -rdynamic
 endif
 
-this_ldlibs += -l tml
-this_ldlibs += -l ruis
-this_ldlibs += -l utki
-this_ldlibs += -l papki
+this_ldlibs += -l tml$(this_dbg)
+this_ldlibs += -l ruis$(this_dbg)
+this_ldlibs += -l utki$(this_dbg)
+this_ldlibs += -l papki$(this_dbg)
 this_ldlibs += -l m
 
 ifeq ($(config), emsc)

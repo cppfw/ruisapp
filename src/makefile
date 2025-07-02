@@ -68,9 +68,8 @@ define ruisapp_rules
 
         this_ldlibs += -l GLEW
 
-        # TODO: add linking to dbg versions of all libs
-        this_ldlibs += -l nitki
-        this_ldlibs += -l opros
+        this_ldlibs += -l nitki$$(this_dbg)
+        this_ldlibs += -l opros$$(this_dbg)
 
         ifeq ($2,wayland)
             $$(d)ruisapp/glue/glue.cpp: $$(d)$(wayland_shell_protocol_header)
@@ -97,7 +96,7 @@ define ruisapp_rules
         this_ldlibs += -l GLEW
         this_ldlibs += -framework Cocoa
         this_ldlibs += -framework OpenGL
-        this_ldlibs += -l dl
+        this_ldlibs += -l dl # TODO: perhaps not needed anymore?
 
         this_mm_obj := $$(d)$$(this_out_dir)obj_$$(this_name)/objc/ruisapp/glue/macosx/glue.mm.o
 
@@ -110,10 +109,9 @@ $(.RECIPEPREFIX)$(a)$(this_cc) -ObjC++ -c -o "$$$$@" $$(this_cxxflags) $$(OBJCXX
         $$(eval $$(this_subrules))
     endif
 
-    # TODO: add linking to dbg versions of all libs
     this_ldlibs += -l ruis$$(this_dbg)
-    this_ldlibs += -l papki
-    this_ldlibs += -l tml
+    this_ldlibs += -l papki$$(this_dbg)
+    this_ldlibs += -l tml$$(this_dbg)
     this_ldlibs += -l utki$$(this_dbg)
 
     this_cxxflags += -D RUISAPP_RENDER_$(shell echo $1 | tr '[:lower:]' '[:upper:]')
