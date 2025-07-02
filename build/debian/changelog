@@ -1,3 +1,9 @@
+libruisapp (0.2.123) unstable; urgency=medium
+
+  * emsc: initial implementation
+
+ -- Ivan Gagis <igagis@gmail.com>  Wed, 02 Jul 2025 23:56:04 +0300
+
 libruisapp (0.2.122) unstable; urgency=medium
 
   * cmake: config transient deps
