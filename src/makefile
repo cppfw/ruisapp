@@ -148,7 +148,7 @@ ifeq ($(os), linux)
     $(eval $(call ruisapp_rules,opengles,sdl))
 
 else
-    $(eval $(call ruisapp_rules,opengl,))
+    $(eval $(call ruisapp_rules,opengl,windows))
 endif
 
 # clear variable

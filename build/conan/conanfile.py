@@ -91,7 +91,8 @@ class RuisappConan(ConanFile):
 			copy(conanfile=self, pattern="*.a",                    dst=dst_lib_dir,     src=src_rel_dir, keep_path=False)
 
 	def package_info(self):
-		self.cpp_info.libs = [self.name]
+		libruisapp = self.name + "-opengles-sdl"
+		self.cpp_info.libs = [libruisapp]
 
 	def package_id(self):
 		# change package id only when minor or major version changes, i.e. when ABI breaks
