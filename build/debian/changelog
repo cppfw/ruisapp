@@ -1,3 +1,9 @@
+libruisapp (0.2.124) unstable; urgency=medium
+
+  * emscripten: set correct linked library name
+
+ -- Ivan Gagis <igagis@gmail.com>  Fri, 04 Jul 2025 14:47:42 +0300
+
 libruisapp (0.2.123) unstable; urgency=medium
 
   * emsc: initial implementation
