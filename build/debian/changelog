@@ -1,3 +1,9 @@
+libruisapp (0.2.125) unstable; urgency=medium
+
+  * changes to window_parameters struct
+
+ -- Ivan Gagis <igagis@gmail.com>  Mon, 07 Jul 2025 01:11:47 +0300
+
 libruisapp (0.2.124) unstable; urgency=medium
 
   * emscripten: set correct linked library name
