@@ -81,6 +81,12 @@ struct window_parameters {
 	 */
 	ruisapp::orientation orientation = ruisapp::orientation::dynamic;
 
+	/**
+	 * @brief Indicates that the window should be created initially fullscreen.
+	 */
+	// TODO: implement support for all backends
+	bool fullscreen = false;
+
 	// TODO: remove
 	// DEPRECATED: use ruisapp::buffer.
 	using buffer = ruisapp::buffer;
