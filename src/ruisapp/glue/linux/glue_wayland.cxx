@@ -1960,7 +1960,7 @@ struct window_wrapper : public utki::destructable {
 		};
 
 		toplevel_wrapper(
-			const ruisapp::window_params& wp,
+			const ruisapp::window_parameters& wp,
 			surface_wrapper& surface, //
 			xdg_surface_wrapper& xdg_surface
 		) :
@@ -2037,7 +2037,7 @@ struct window_wrapper : public utki::destructable {
 		egl_context_wrapper(
 			const display_wrapper& display,
 			const egl_window_wrapper& egl_window,
-			const window_params& wp
+			const window_parameters& wp
 		) :
 			egl_display(eglGetDisplay(display.disp))
 		{
@@ -2079,9 +2079,9 @@ struct window_wrapper : public utki::destructable {
 					EGL_RED_SIZE,
 					8,
 					EGL_DEPTH_SIZE,
-					wp.buffers.get(window_params::buffer::depth) ? int(utki::byte_bits * sizeof(uint16_t)) : 0,
+					wp.buffers.get(window_parameters::buffer::depth) ? int(utki::byte_bits * sizeof(uint16_t)) : 0,
 					EGL_STENCIL_SIZE,
-					wp.buffers.get(window_params::buffer::stencil) ? utki::byte_bits : 0,
+					wp.buffers.get(window_parameters::buffer::stencil) ? utki::byte_bits : 0,
 					EGL_NONE
 				};
 
@@ -2182,7 +2182,7 @@ struct window_wrapper : public utki::destructable {
 		}
 	} egl_context;
 
-	window_wrapper(const window_params& wp) :
+	window_wrapper(const window_parameters& wp) :
 		waitable(this->display),
 		registry(this->display),
 		compositor(this->registry),
@@ -2295,7 +2295,7 @@ window_wrapper& get_impl(application& app)
 
 } // namespace
 
-application::application(std::string name, const window_params& wp) :
+application::application(std::string name, const window_parameters& wp) :
 	name(std::move(name)),
 	window_pimpl(std::make_unique<window_wrapper>(wp)),
 	gui(utki::make_shared<ruis::context>(

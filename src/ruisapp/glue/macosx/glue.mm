@@ -73,7 +73,7 @@ struct WindowWrapper : public utki::destructable{
 
 	bool mouseCursorIsCurrentlyVisible = true;
 
-	WindowWrapper(const window_params& wp);
+	WindowWrapper(const window_parameters& wp);
 
 	~WindowWrapper()noexcept;
 };
@@ -615,7 +615,7 @@ const std::array<ruis::key, std::uint8_t(-1) + 1> keyCodeMap = {{
 @end
 
 namespace{
-WindowWrapper::WindowWrapper(const window_params& wp){
+WindowWrapper::WindowWrapper(const window_parameters& wp){
 	LOG([&](auto&o){o << "WindowWrapper::WindowWrapper(): enter" << std::endl;})
 	this->applicationObjectId = [NSApplication sharedApplication];
 
@@ -648,10 +648,10 @@ WindowWrapper::WindowWrapper(const window_params& wp){
 		std::vector<NSOpenGLPixelFormatAttribute> attributes;
 		attributes.push_back(NSOpenGLPFAAccelerated);
 		attributes.push_back(NSOpenGLPFAColorSize); attributes.push_back(24);
-		if(wp.buffers.get(window_params::buffer::depth)){
+		if(wp.buffers.get(window_parameters::buffer::depth)){
 			attributes.push_back(NSOpenGLPFADepthSize); attributes.push_back(16);
 		}
-		if(wp.buffers.get(window_params::buffer::stencil)){
+		if(wp.buffers.get(window_parameters::buffer::stencil)){
 			attributes.push_back(NSOpenGLPFAStencilSize); attributes.push_back(8);
 		}
 		attributes.push_back(NSOpenGLPFADoubleBuffer);
@@ -809,7 +809,7 @@ ruis::real getDotsPerPt(){
 
 application::application(
 	std::string name,
-	const window_params& wp
+	const window_parameters& wp
 ) :
 	name(name),
 	window_pimpl(std::make_unique<WindowWrapper>(wp)),

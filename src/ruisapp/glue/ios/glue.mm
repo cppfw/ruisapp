@@ -83,12 +83,12 @@ int main(int argc, char * argv[]){
 @end
 
 namespace{
-	window_params windowParams;
+	window_parameters windowParams;
 
 	struct WindowWrapper : public utki::destructable{
 		UIWindow *window;
 
-		WindowWrapper(const window_params& wp){
+		WindowWrapper(const window_parameters& wp){
 			windowParams = wp;
 
 			this->window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
@@ -128,7 +128,7 @@ namespace{
 - (void)viewDidLoad{
 	[super viewDidLoad];
 
-	// TODO: init requested context version from window_params
+	// TODO: init requested context version from window_parameters
 	self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
 	if (self.context == nil) {
 		self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
@@ -144,13 +144,13 @@ namespace{
 	view.drawableColorFormat = GLKViewDrawableColorFormatRGBA8888;
 
 	{
-		const window_params& wp = windowParams;
-		if(wp.buffers.get(window_params::buffer::depth)){
+		const window_parameters& wp = windowParams;
+		if(wp.buffers.get(window_parameters::buffer::depth)){
 			view.drawableDepthFormat = GLKViewDrawableDepthFormat16;
 		}else{
 			view.drawableDepthFormat = GLKViewDrawableDepthFormatNone;
 		}
-		if(wp.buffers.get(window_params::buffer::stencil)){
+		if(wp.buffers.get(window_parameters::buffer::stencil)){
 			view.drawableStencilFormat = GLKViewDrawableStencilFormat8;
 		}else{
 			view.drawableStencilFormat = GLKViewDrawableStencilFormatNone;
@@ -326,7 +326,7 @@ ruis::real getDotsPerDp(){
 
 application::application(
 	std::string name,
-	const window_params& wp
+	const window_parameters& wp
 ) :
 		name(name),
 		window_pimpl(std::make_unique<WindowWrapper>(wp)),

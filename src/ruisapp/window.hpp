@@ -43,7 +43,9 @@ enum class orientation {
 	/**
 	 * @brief Stay always in portrait orientation.
 	 */
-	portrait
+	portrait,
+
+	enum_size
 };
 
 /**
@@ -60,7 +62,7 @@ enum class buffer {
 /**
  * @brief Desired window parameters.
  */
-struct window_params {
+struct window_parameters {
 	constexpr const static auto default_window_width = 300;
 	constexpr const static auto default_window_height = 150;
 

@@ -184,7 +184,7 @@ struct window_wrapper : public utki::destructable {
 
 	nitki::queue ui_queue;
 
-	window_wrapper(const window_params& wp)
+	window_wrapper(const window_parameters& wp)
 	{
 		this->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 		if (this->display == EGL_NO_DISPLAY) {
@@ -234,9 +234,9 @@ struct window_wrapper : public utki::destructable {
 			EGL_RED_SIZE,
 			8,
 			EGL_DEPTH_SIZE,
-			wp.buffers.get(window_params::buffer::depth) ? int(utki::byte_bits * sizeof(uint16_t)) : 0,
+			wp.buffers.get(window_parameters::buffer::depth) ? int(utki::byte_bits * sizeof(uint16_t)) : 0,
 			EGL_STENCIL_SIZE,
-			wp.buffers.get(window_params::buffer::stencil) ? utki::byte_bits : 0,
+			wp.buffers.get(window_parameters::buffer::stencil) ? utki::byte_bits : 0,
 			EGL_NONE
 		};
 
@@ -1126,7 +1126,7 @@ ruisapp::application::directories get_application_directories(std::string_view a
 
 ruisapp::application::application(
 	std::string name, //
-	const window_params& wp
+	const window_parameters& wp
 ) :
 	name(name),
 	window_pimpl(std::make_unique<window_wrapper>(wp)),

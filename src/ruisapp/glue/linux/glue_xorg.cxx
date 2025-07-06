@@ -217,7 +217,7 @@ struct window_wrapper : public utki::destructable {
 
 	std::atomic_bool quit_flag = false;
 
-	window_wrapper(const window_params& wp)
+	window_wrapper(const window_parameters& wp)
 	{
 		// set scale factor
 		{
@@ -293,11 +293,11 @@ struct window_wrapper : public utki::destructable {
 			visual_attribs.push_back(GLX_ALPHA_SIZE);
 			visual_attribs.push_back(utki::byte_bits);
 
-			if (wp.buffers.get(window_params::buffer::depth)) {
+			if (wp.buffers.get(window_parameters::buffer::depth)) {
 				visual_attribs.push_back(GLX_DEPTH_SIZE);
 				visual_attribs.push_back(utki::byte_bits * 3); // 24 bits per pixel for depth buffer
 			}
-			if (wp.buffers.get(window_params::buffer::stencil)) {
+			if (wp.buffers.get(window_parameters::buffer::stencil)) {
 				visual_attribs.push_back(GLX_STENCIL_SIZE);
 				visual_attribs.push_back(utki::byte_bits);
 			}
@@ -409,9 +409,9 @@ struct window_wrapper : public utki::destructable {
 				EGL_RED_SIZE,
 				8,
 				EGL_DEPTH_SIZE,
-				wp.buffers.get(window_params::buffer::depth) ? int(utki::byte_bits * sizeof(uint16_t)) : 0,
+				wp.buffers.get(window_parameters::buffer::depth) ? int(utki::byte_bits * sizeof(uint16_t)) : 0,
 				EGL_STENCIL_SIZE,
-				wp.buffers.get(window_params::buffer::stencil) ? utki::byte_bits : 0,
+				wp.buffers.get(window_parameters::buffer::stencil) ? utki::byte_bits : 0,
 				EGL_NONE
 			};
 
@@ -920,7 +920,7 @@ window_wrapper& get_impl(application& app)
 
 application::application(
 	std::string name, //
-	const window_params& wp
+	const window_parameters& wp
 ) :
 	name(std::move(name)),
 	window_pimpl(std::make_unique<window_wrapper>(wp)),

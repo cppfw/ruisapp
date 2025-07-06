@@ -7,7 +7,7 @@
 class Application : public ruisapp::application{
 public:
 	Application() :
-			ruisapp::App(ruisapp::window_params(r4::vector2<unsigned>(800, 600)))
+			ruisapp::App(ruisapp::window_parameters(r4::vector2<unsigned>(800, 600)))
 	{
 		ruis::Morda::inst().init_standard_widgets(*this->get_res_file());
 

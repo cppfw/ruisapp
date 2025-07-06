@@ -187,11 +187,11 @@ protected:
 	/**
 	 * @brief Application constructor.
 	 * @param name - name of the application.
-	 * @param requested_window_params - requested window parameters.
+	 * @param window_params - requested window parameters.
 	 */
 	application(
 		std::string name, //
-		const window_params& requested_window_params
+		const window_parameters& window_params
 	);
 
 public:

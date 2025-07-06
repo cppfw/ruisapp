@@ -480,7 +480,7 @@ public:
 		}
 #endif
 
-		sdl_window_wrapper(const window_params& wp) :
+		sdl_window_wrapper(const window_parameters& wp) :
 			scale_factor(get_display_scaling_factor()),
 			window([&]() {
 #ifdef RUISAPP_RENDER_OPENGL
@@ -612,7 +612,7 @@ public:
 
 	std::atomic_bool quit_flag = false;
 
-	window_wrapper(const window_params& wp) :
+	window_wrapper(const window_parameters& wp) :
 		window(wp),
 		gl_context(this->window),
 		user_event_type([]() {
@@ -700,7 +700,7 @@ ruis::mouse_button button_number_to_enum(Uint8 number)
 }
 } // namespace
 
-application::application(std::string name, const window_params& wp) :
+application::application(std::string name, const window_parameters& wp) :
 	name(std::move(name)),
 	window_pimpl(std::make_unique<window_wrapper>(wp)),
 	gui(utki::make_shared<ruis::context>(

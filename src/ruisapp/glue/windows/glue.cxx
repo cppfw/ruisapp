@@ -72,7 +72,7 @@ struct window_wrapper : public utki::destructable {
 
 	bool mouseCursorIsCurrentlyVisible = true;
 
-	window_wrapper(const window_params& wp);
+	window_wrapper(const window_parameters& wp);
 
 	window_wrapper(const window_wrapper&) = delete;
 	window_wrapper& operator=(const window_wrapper&) = delete;
@@ -708,7 +708,7 @@ ruisapp::application::directories get_application_directories(std::string_view a
 
 application::application(
 	std::string name, //
-	const window_params& wp
+	const window_parameters& wp
 ) :
 	name(std::move(name)),
 	window_pimpl(std::make_unique<window_wrapper>(wp)),
@@ -928,7 +928,7 @@ void application::swap_frame_buffers()
 }
 
 namespace {
-window_wrapper::window_wrapper(const window_params& wp)
+window_wrapper::window_wrapper(const window_parameters& wp)
 {
 	{
 		WNDCLASS wc;
@@ -1025,8 +1025,9 @@ window_wrapper::window_wrapper(const window_params& wp)
 			BYTE(0),
 			BYTE(0),
 			BYTE(0), // accumulation bits ignored
-			wp.buffers.get(window_params::buffer::depth) ? BYTE(utki::byte_bits * 2) : BYTE(0), // 16 bit depth buffer
-			wp.buffers.get(window_params::buffer::stencil) ? BYTE(utki::byte_bits) : BYTE(0),
+			wp.buffers.get(window_parameters::buffer::depth) ? BYTE(utki::byte_bits * 2)
+															 : BYTE(0), // 16 bit depth buffer
+			wp.buffers.get(window_parameters::buffer::stencil) ? BYTE(utki::byte_bits) : BYTE(0),
 			BYTE(0), // no auxiliary buffer
 			BYTE(PFD_MAIN_PLANE), // main drawing layer
 			BYTE(0), // reserved
@@ -1134,9 +1135,9 @@ window_wrapper::window_wrapper(const window_params& wp)
 			EGL_BLUE_SIZE,
 			8,
 			EGL_DEPTH_SIZE,
-			wp.buffers.get(window_params::buffer::depth) ? int(utki::byte_bits * sizeof(uint16_t)) : 0,
+			wp.buffers.get(window_parameters::buffer::depth) ? int(utki::byte_bits * sizeof(uint16_t)) : 0,
 			EGL_STENCIL_SIZE,
-			wp.buffers.get(window_params::buffer::stencil) ? utki::byte_bits : 0,
+			wp.buffers.get(window_parameters::buffer::stencil) ? utki::byte_bits : 0,
 			EGL_NONE
 		};
 
