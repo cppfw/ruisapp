@@ -27,13 +27,44 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 namespace ruisapp {
 
 /**
+ * @brief Widnow orientation policy.
+ */
+enum class orientation {
+	/**
+	 * @brief Switch orientation when screen orientation changes.
+	 */
+	dynamic,
+
+	/**
+	 * @brief Stay always in landscape orientation.
+	 */
+	landscape,
+
+	/**
+	 * @brief Stay always in portrait orientation.
+	 */
+	portrait
+};
+
+/**
+ * @brief Graphics buffer kind.
+ * Color buffer is always present, so no enum entry for color buffer is needed.
+ */
+enum class buffer {
+	depth,
+	stencil,
+
+	enum_size
+};
+
+/**
  * @brief Desired window parameters.
  */
 struct window_params {
 	/**
 	 * @brief Desired dimensions of the window
 	 */
-	r4::vector2<unsigned> dims;
+	r4::vector2<unsigned> dims = {300, 150};
 
 	/**
 	 * @brief Window title.
@@ -41,15 +72,13 @@ struct window_params {
 	std::string title = "ruisapp";
 
 	/**
-	 * @brief Graphics buffer kind.
-	 * Color buffer is always present, so no enum entry for color buffer is needed.
+	 * @brief Orientation policy.
 	 */
-	enum class buffer {
-		depth,
-		stencil,
+	ruisapp::orientation orientation = ruisapp::orientation::dynamic;
 
-		enum_size
-	};
+	// TODO: remove
+	// DEPRECATED: use ruisapp::buffer.
+	using buffer = ruisapp::buffer;
 
 	/**
 	 * @brief Flags describing desired buffers for rendering context.
@@ -64,10 +93,6 @@ struct window_params {
 		.minor = 0
 	};
 	// clang-format on
-
-	window_params(r4::vector2<unsigned> dims) :
-		dims(dims)
-	{}
 };
 
 class window

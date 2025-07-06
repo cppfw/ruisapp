@@ -502,6 +502,20 @@ public:
 				}
 
 #if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
+				// Lock orientation if requested
+				if (wp.orientation != ruisapp::orientation::dynamic) {
+					int emsc_orient = [&]() {
+						switch (wp.orientation) {
+							default:
+							case ruisapp::orientation::landscape:
+								return EMSCRIPTEN_ORIENTATION_LANDSCAPE_PRIMARY;
+							case ruisapp::orientation::portrait:
+								return EMSCRIPTEN_ORIENTATION_PORTRAIT_PRIMARY;
+						}
+					}();
+					emscripten_lock_orientation(emsc_orient);
+				}
+
 				// Change to soft fullscreen mode before creating the window to set correct OpenGL viewport initially.
 				{
 					EmscriptenFullscreenStrategy strategy{};
