@@ -61,10 +61,13 @@ enum class buffer {
  * @brief Desired window parameters.
  */
 struct window_params {
+	constexpr const static auto default_window_width = 300;
+	constexpr const static auto default_window_height = 150;
+
 	/**
 	 * @brief Desired dimensions of the window
 	 */
-	r4::vector2<unsigned> dims = {300, 150};
+	r4::vector2<unsigned> dims = {default_window_width, default_window_height};
 
 	/**
 	 * @brief Window title.

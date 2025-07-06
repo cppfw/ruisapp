@@ -83,7 +83,7 @@ int main(int argc, char * argv[]){
 @end
 
 namespace{
-	window_params windowParams(0);
+	window_params windowParams;
 
 	struct WindowWrapper : public utki::destructable{
 		UIWindow *window;
