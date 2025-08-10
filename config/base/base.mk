@@ -8,6 +8,8 @@ this_cxxflags += -std=c++17
 this_cxxflags += -fPIC
 this_cxxflags += -Wno-deprecated-declarations
 
+this_cxxflags += -Wno-unused-command-line-argument
+
 this_ldlibs += -lstdc++
 
 this_no_format_test := true
