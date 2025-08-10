@@ -553,9 +553,9 @@ struct window_wrapper : public utki::destructable {
 
 		auto glx_extensions_string =
 			std::string_view(glXQueryExtensionsString(this->display.display, visual_info->screen));
-		LOG([&](auto& o) {
+		utki::log_debug([&](auto& o) {
 			o << "glx_extensions_string = " << glx_extensions_string << std::endl;
-		})
+		});
 
 		auto glx_extensions = utki::split(glx_extensions_string);
 
@@ -623,9 +623,9 @@ struct window_wrapper : public utki::destructable {
 		// disable v-sync via swap control extension
 
 		if (std::find(glx_extensions.begin(), glx_extensions.end(), "GLX_EXT_swap_control") != glx_extensions.end()) {
-			LOG([](auto& o) {
+			utki::log_debug([](auto& o) {
 				o << "GLX_EXT_swap_control is supported\n";
-			})
+			});
 
 			auto glx_swap_interval_ext = PFNGLXSWAPINTERVALEXTPROC(glXGetProcAddressARB(
 				// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
@@ -644,9 +644,9 @@ struct window_wrapper : public utki::destructable {
 				   ) != glx_extensions.end()
 		)
 		{
-			LOG([](auto& o) {
+			utki::log_debug([](auto& o) {
 				o << "GLX_MESA_swap_control is supported\n";
-			})
+			});
 
 			auto glx_swap_interval_mesa = PFNGLXSWAPINTERVALMESAPROC(glXGetProcAddressARB(
 				// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
@@ -1375,9 +1375,9 @@ int main(int argc, const char** argv)
 
 		if (ui_queue_ready_to_read) {
 			while (auto m = ww.ui_queue.pop_front()) {
-				LOG([](auto& o) {
+				utki::log_debug([](auto& o) {
 					o << "loop message" << std::endl;
-				})
+				});
 				m();
 			}
 		}
@@ -1446,8 +1446,8 @@ int main(int argc, const char** argv)
 					}
 					break;
 				case ButtonPress:
-					// LOG([&](auto&o){o << "ButtonPress X event got, button mask = " <<
-					// event.xbutton.button << std::endl;}) LOG([&](auto&o){o <<
+					// utki::log_debug([&](auto&o){o << "ButtonPress X event got, button mask = " <<
+					// event.xbutton.button << std::endl;}) utki::log_debug([&](auto&o){o <<
 					// "ButtonPress X event got, x, y = " << event.xbutton.x << ", "
 					// << event.xbutton.y << std::endl;})
 					handle_mouse_button(
@@ -1459,7 +1459,7 @@ int main(int argc, const char** argv)
 					);
 					break;
 				case ButtonRelease:
-					// LOG([&](auto&o){o << "ButtonRelease X event got, button mask = " <<
+					// utki::log_debug([&](auto&o){o << "ButtonRelease X event got, button mask = " <<
 					// event.xbutton.button << std::endl;})
 					handle_mouse_button(
 						*app,

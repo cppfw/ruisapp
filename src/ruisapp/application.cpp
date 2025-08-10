@@ -51,9 +51,10 @@ void application::update_window_rect(const ruis::rect& rect)
 
 	this->cur_window_rect = rect;
 
-	LOG([&](auto& o) {
+	utki::log_debug([&](auto& o) {
 		o << "application::update_window_rect(): this->cur_window_rect = " << this->cur_window_rect << std::endl;
-	})
+	});
+
 	this->gui.context.get().renderer.get().render_context.get().set_viewport(r4::rectangle<uint32_t>(
 		uint32_t(this->cur_window_rect.p.x()),
 		uint32_t(this->cur_window_rect.p.y()),
@@ -72,16 +73,17 @@ std::unique_ptr<papki::file> application::get_res_file(std::string_view path) co
 
 void application::show_virtual_keyboard() noexcept
 {
-	LOG([](auto& o) {
+	utki::log_debug([](auto& o) {
 		o << "application::show_virtual_keyboard(): invoked" << std::endl;
-	})
+	});
 	// do nothing
 }
 
-void application::hide_virtual_keyboard() noexcept {
-	LOG([](auto& o) {
+void application::hide_virtual_keyboard() noexcept
+{
+	utki::log_debug([](auto& o) {
 		o << "application::hide_virtual_keyboard(): invoked" << std::endl;
-	})
+	});
 	// do nothing
 }
 #endif

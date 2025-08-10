@@ -293,7 +293,7 @@ void application::set_fullscreen(bool enable){
 }
 
 void application::quit()noexcept{
-	//TODO:
+	// TODO:
 }
 
 namespace{
@@ -309,7 +309,7 @@ ruis::real getDotsPerInch(){
 	} else {
 		value = 160 * scale;
 	}
-	LOG([&](auto&o){o << "dpi = " << value << std::endl;})
+	utki::log_debug([&](auto&o){o << "dpi = " << value << std::endl;});
 	return value;
 }
 }
@@ -318,7 +318,7 @@ namespace{
 ruis::real getDotsPerDp(){
 	float scale = [[UIScreen mainScreen] scale];
 
-	//TODO: use get_pixels_per_pp() function from ruis util
+	// TODO: use get_pixels_per_pp() function from ruis util
 
 	return ruis::real(scale);
 }

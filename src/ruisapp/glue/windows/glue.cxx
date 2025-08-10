@@ -418,9 +418,9 @@ LRESULT CALLBACK window_procedure(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_
 								ShowCursor(FALSE);
 							}
 						} else {
-							LOG([&](auto& o) {
+							utki::log_debug([&](auto& o) {
 								o << "GetCursorInfo(): failed!!!" << std::endl;
-							})
+							});
 						}
 					}
 

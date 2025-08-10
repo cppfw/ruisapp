@@ -491,7 +491,7 @@ const std::array<ruis::key, std::uint8_t(-1) + 1> keyCodeMap = {{
 		mouseButton(e, true, button);
 		mouseButton(e, false, button);
 	}else{
-		LOG([&](auto&o){o << "mouse wheel: precise scrolling deltas, UNIMPLEMENTED!!!!!" << std::endl;})
+		utki::log_debug([&](auto&o){o << "mouse wheel: precise scrolling deltas, UNIMPLEMENTED!!!!!" << std::endl;});
 	}
 }
 
@@ -589,7 +589,7 @@ const std::array<ruis::key, std::uint8_t(-1) + 1> keyCodeMap = {{
 }
 
 -(void)windowDidResize:(NSNotification*)n{
-	LOG([&](auto&o){o << "window resize!!!!" << std::endl;})
+	utki::log_debug([&](auto&o){o << "window resize!!!!" << std::endl;});
 	NSWindow* nsw = [n object];
 	NSRect frame = [nsw frame];
 	NSRect rect = [nsw contentRectForFrameRect:frame];
@@ -601,7 +601,7 @@ const std::array<ruis::key, std::uint8_t(-1) + 1> keyCodeMap = {{
 }
 
 -(BOOL)windowShouldClose:(id)sender{
-	LOG([&](auto&o){o << "window wants to close!!!!" << std::endl;})
+	utki::log_debug([&](auto&o){o << "window wants to close!!!!" << std::endl;});
 	application::inst().quit();
 	return NO;
 }
@@ -616,7 +616,7 @@ const std::array<ruis::key, std::uint8_t(-1) + 1> keyCodeMap = {{
 
 namespace{
 WindowWrapper::WindowWrapper(const window_parameters& wp){
-	LOG([&](auto&o){o << "WindowWrapper::WindowWrapper(): enter" << std::endl;})
+	utki::log_debug([&](auto&o){o << "WindowWrapper::WindowWrapper(): enter" << std::endl;});
 	this->applicationObjectId = [NSApplication sharedApplication];
 
 	if(!this->applicationObjectId){
@@ -686,7 +686,7 @@ WindowWrapper::WindowWrapper(const window_parameters& wp){
 	scopeExitWindow.release();
 	scopeExitApplication.release();
 
-	LOG([&](auto&o){o << "WindowWrapper::WindowWrapper(): exit" << std::endl;})
+	utki::log_debug([&](auto&o){o << "WindowWrapper::WindowWrapper(): exit" << std::endl;});
 }
 }
 
@@ -704,14 +704,14 @@ void application::quit()noexcept{
 }
 
 int main(int argc, const char** argv){
-	LOG([&](auto&o){o << "main(): enter" << std::endl;})
+	utki::log_debug([&](auto&o){o << "main(): enter" << std::endl;});
 	auto app = create_app_unix(argc, argv);
 	if(!app){
 		// Not an error. The app just did not show any GUI to the user.
 		return 0;
 	}
 
-	LOG([&](auto&o){o << "main(): app created" << std::endl;})
+	utki::log_debug([&](auto&o){o << "main(): app created" << std::endl;});
 
 	auto& ww = get_impl(get_window_pimpl(*app));
 
@@ -851,7 +851,7 @@ application::application(
 	)),
 	directory(get_application_directories(this->name))
 {
-	LOG([&](auto&o){o << "application::application(): enter" << std::endl;})
+	utki::log_debug([&](auto&o){o << "application::application(): enter" << std::endl;});
 	this->update_window_rect(
 			ruis::rect(
 					0,

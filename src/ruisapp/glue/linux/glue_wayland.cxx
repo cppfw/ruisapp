@@ -492,13 +492,13 @@ class keyboard_wrapper
 		wl_array* keys
 	)
 	{
-		LOG([](auto& o) {
+		utki::log_debug([](auto& o) {
 			o << "keyboard enter" << std::endl;
-		})
+		});
 
 		// notify ruis about pressed keys
-		ASSERT(keys)
-		ASSERT(keys->size % sizeof(uint32_t) == 0)
+		utki::assert(keys, SL);
+		utki::assert(keys->size % sizeof(uint32_t) == 0, SL);
 		for (auto key : utki::make_span(static_cast<uint32_t*>(keys->data), keys->size / sizeof(uint32_t))) {
 			// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
 			ruis::key ruis_key = key_code_map[std::uint8_t(key)];
@@ -508,9 +508,9 @@ class keyboard_wrapper
 
 	static void wl_keyboard_leave(void* data, wl_keyboard* keyboard, uint32_t serial, wl_surface* surface)
 	{
-		LOG([](auto& o) {
+		utki::log_debug([](auto& o) {
 			o << "keyboard leave" << std::endl;
-		})
+		});
 		// TODO: send key releases
 	}
 
@@ -593,9 +593,9 @@ class keyboard_wrapper
 
 	static void wl_keyboard_repeat_info(void* data, wl_keyboard* keyboard, int32_t rate, int32_t delay)
 	{
-		LOG([](auto& o) {
+		utki::log_debug([](auto& o) {
 			o << "repeat info" << std::endl;
-		})
+		});
 	}
 
 	constexpr static const wl_keyboard_listener listener = {
@@ -701,13 +701,12 @@ class output_wrapper
 	static void wl_output_done(void* data, struct wl_output* wl_output)
 	{
 		ASSERT(data)
-#ifdef DEBUG
-		auto& self = *static_cast<output_wrapper*>(data);
-#endif
 
-		LOG([&](auto& o) {
+		auto& self = *static_cast<output_wrapper*>(data);
+
+		utki::log_debug([&](auto& o) {
 			o << "output(" << self.id << ") done" << std::endl;
-		})
+		});
 	}
 
 	static void wl_output_scale(void* data, struct wl_output* wl_output, int32_t factor);
@@ -719,9 +718,9 @@ class output_wrapper
 
 		self.name = name;
 
-		LOG([&](auto& o) {
+		utki::log_debug([&](auto& o) {
 			o << "output(" << self.id << ") name = " << self.name << std::endl;
-		})
+		});
 	}
 
 	static void wl_output_description(void* data, struct wl_output* wl_output, const char* description)
@@ -731,9 +730,9 @@ class output_wrapper
 
 		self.description = description;
 
-		LOG([&](auto& o) {
+		utki::log_debug([&](auto& o) {
 			o << "output(" << self.id << ") description = " << self.description << std::endl;
-		})
+		});
 	}
 
 	constexpr static const wl_output_listener listener = {
@@ -819,7 +818,7 @@ struct registry_wrapper {
 		ASSERT(data)
 		auto& self = *static_cast<registry_wrapper*>(data);
 
-		LOG([&](auto& o) {
+		utki::log_debug([&](auto& o) {
 			o << "got a registry event for: " << interface << ", id = " << id << std::endl;
 		});
 		if (std::string_view(interface) == "wl_compositor"sv) {
@@ -856,7 +855,7 @@ struct registry_wrapper {
 
 	static void wl_registry_global_remove(void* data, wl_registry* registry, uint32_t id)
 	{
-		LOG([&](auto& o) {
+		utki::log_debug([&](auto& o) {
 			o << "got a registry losing event, id = " << id << std::endl;
 		});
 
@@ -866,7 +865,7 @@ struct registry_wrapper {
 		// check if removed object is a wl_output
 		if (auto i = self.outputs.find(id); i != self.outputs.end()) {
 			self.outputs.erase(i);
-			LOG([&](auto& o) {
+			utki::log_debug([&](auto& o) {
 				o << "output removed, id = " << id << std::endl;
 			});
 			return;
@@ -907,9 +906,9 @@ struct registry_wrapper {
 		}
 
 		if (!this->seat_id.has_value()) {
-			LOG([](auto& o) {
+			utki::log_debug([](auto& o) {
 				o << "WARNING: wayland system has no seat" << std::endl;
-			})
+			});
 		}
 
 		if (!this->shm_id.has_value()) {
@@ -1124,15 +1123,15 @@ struct surface_wrapper {
 
 	scale_and_dpi find_scale_and_dpi(const std::map<uint32_t, output_wrapper>& outputs)
 	{
-		LOG([](auto& o) {
+		utki::log_debug([](auto& o) {
 			o << "looking for max scale" << std::endl;
-		})
+		});
 
 		// if surface did not enter any outputs yet, then just take scale of first available output
 		if (this->outputs.empty()) {
-			LOG([](auto& o) {
+			utki::log_debug([](auto& o) {
 				o << "  surface has not entered any outputs yet" << std::endl;
-			})
+			});
 			return {};
 		}
 
@@ -1142,24 +1141,24 @@ struct surface_wrapper {
 		for (auto wlo : this->outputs) {
 			auto id = get_output_id(wlo);
 
-			LOG([&](auto& o) {
+			utki::log_debug([&](auto& o) {
 				o << "  check output id = " << id << std::endl;
-			})
+			});
 
 			auto i = outputs.find(id);
 			if (i == outputs.end()) {
-				LOG([&](auto& o) {
+				utki::log_debug([&](auto& o) {
 					o << "WARNING: wayland surface entered output with id = " << id
 					  << ", but no output with such id is reported" << std::endl;
-				})
+				});
 				continue;
 			}
 
 			auto& output = i->second;
 
-			LOG([&](auto& o) {
+			utki::log_debug([&](auto& o) {
 				o << "  output found, scale = " << output.scale << std::endl;
-			})
+			});
 
 			max_sd.scale = std::max(output.scale, max_sd.scale);
 			max_sd.dpi = output.get_dpi();
@@ -1437,27 +1436,27 @@ private:
 		.axis = &wl_pointer_axis,
 		.frame =
 			[](void* data, wl_pointer* pointer) {
-				LOG([](auto& o) {
+				utki::log_debug([](auto& o) {
 					o << "pointer frame" << std::endl;
-				})
+				});
 			},
 		.axis_source =
 			[](void* data, wl_pointer* pointer, uint32_t source) {
-				LOG([&](auto& o) {
+				utki::log_debug([&](auto& o) {
 					o << "axis source: " << std::dec << source << std::endl;
-				})
+				});
 			},
 		.axis_stop =
 			[](void* data, wl_pointer* pointer, uint32_t time, uint32_t axis) {
-				LOG([&](auto& o) {
+				utki::log_debug([&](auto& o) {
 					o << "axis stop: axis = " << std::dec << axis << std::endl;
-				})
+				});
 			},
 		.axis_discrete =
 			[](void* data, wl_pointer* pointer, uint32_t axis, int32_t discrete) {
-				LOG([&](auto& o) {
+				utki::log_debug([&](auto& o) {
 					o << "axis discrete: axis = " << std::dec << axis << ", discrete = " << discrete << std::endl;
-				})
+				});
 			}
 	};
 
@@ -1574,9 +1573,9 @@ class touch_wrapper
 		wl_touch* touch
 	)
 	{
-		LOG([](auto& o) {
+		utki::log_debug([](auto& o) {
 			o << "wayland: touch frame event" << std::endl;
-		})
+		});
 	}
 
 	static void wl_touch_cancel( //
@@ -1592,9 +1591,9 @@ class touch_wrapper
 		wl_fixed_t minor
 	)
 	{
-		LOG([](auto& o) {
+		utki::log_debug([](auto& o) {
 			o << "wayland: touch shape event" << std::endl;
-		})
+		});
 	}
 
 	static void wl_touch_orientation( //
@@ -1604,9 +1603,9 @@ class touch_wrapper
 		wl_fixed_t orientation
 	)
 	{
-		LOG([](auto& o) {
+		utki::log_debug([](auto& o) {
 			o << "wayland: touch orientation event" << std::endl;
-		})
+		});
 	}
 
 	constexpr static const wl_touch_listener listener = {
@@ -1734,51 +1733,51 @@ private:
 
 	static void wl_seat_capabilities(void* data, wl_seat* wl_seat, uint32_t capabilities)
 	{
-		LOG([&](auto& o) {
+		utki::log_debug([&](auto& o) {
 			o << "seat capabilities: " << std::hex << "0x" << capabilities << std::endl;
-		})
+		});
 
 		auto& self = *static_cast<seat_wrapper*>(data);
 
 		bool have_pointer = capabilities & WL_SEAT_CAPABILITY_POINTER;
 
 		if (have_pointer) {
-			LOG([&](auto& o) {
+			utki::log_debug([&](auto& o) {
 				o << "  pointer connected" << std::endl;
-			})
+			});
 			self.pointer.connect(self.seat);
 		} else {
-			LOG([&](auto& o) {
+			utki::log_debug([&](auto& o) {
 				o << "  pointer disconnected" << std::endl;
-			})
+			});
 			self.pointer.disconnect();
 		}
 
 		bool have_keyboard = capabilities & WL_SEAT_CAPABILITY_KEYBOARD;
 
 		if (have_keyboard) {
-			LOG([&](auto& o) {
+			utki::log_debug([&](auto& o) {
 				o << "  keyboard connected" << std::endl;
-			})
+			});
 			self.keyboard.connect(self.seat);
 		} else {
-			LOG([&](auto& o) {
+			utki::log_debug([&](auto& o) {
 				o << "  keyboard disconnected" << std::endl;
-			})
+			});
 			self.keyboard.disconnect();
 		}
 
 		bool have_touch = capabilities & WL_SEAT_CAPABILITY_TOUCH;
 
 		if (have_touch) {
-			LOG([&](auto& o) {
+			utki::log_debug([&](auto& o) {
 				o << "  touch connected" << std::endl;
-			})
+			});
 			self.touch.connect(self.seat);
 		} else {
-			LOG([&](auto& o) {
+			utki::log_debug([&](auto& o) {
 				o << "  touch disconnected" << std::endl;
-			})
+			});
 			self.touch.disconnect();
 		}
 	}
@@ -1787,9 +1786,9 @@ private:
 		.capabilities = &wl_seat_capabilities,
 		.name =
 			[](void* data, wl_seat* seat, const char* name) {
-				LOG([&](auto& o) {
+				utki::log_debug([&](auto& o) {
 					o << "seat name: " << name << std::endl;
-				})
+				});
 			} //
 	};
 };
@@ -1867,31 +1866,31 @@ struct window_wrapper : public utki::destructable {
 			wl_array* states
 		)
 		{
-			LOG([](auto& o) {
+			utki::log_debug([](auto& o) {
 				o << "window configure" << std::endl;
-			})
+			});
 
-			LOG([&](auto& o) {
+			utki::log_debug([&](auto& o) {
 				o << "  width = " << std::dec << width << ", height = " << height << std::endl;
-			})
+			});
 
 			bool fullscreen = false;
 
-			LOG([&](auto& o) {
+			utki::log_debug([&](auto& o) {
 				o << "  states:" << std::endl;
-			})
+			});
 			ASSERT(states)
 			ASSERT(states->size % sizeof(uint32_t) == 0)
 			for (uint32_t s : utki::make_span(static_cast<uint32_t*>(states->data), states->size / sizeof(uint32_t))) {
 				switch (s) {
 					case XDG_TOPLEVEL_STATE_FULLSCREEN:
-						LOG([](auto& o) {
+						utki::log_debug([](auto& o) {
 							o << "    fullscreen" << std::endl;
-						})
+						});
 						fullscreen = true;
 						break;
 					default:
-						LOG([&](auto& o) {
+						utki::log_debug([&](auto& o) {
 							o << "    " <<
 								[&s]() {
 									switch (s) {
@@ -1914,7 +1913,7 @@ struct window_wrapper : public utki::destructable {
 									}
 								}()
 							  << std::endl;
-						})
+						});
 						break;
 				}
 			}
@@ -1922,9 +1921,9 @@ struct window_wrapper : public utki::destructable {
 			if (!application_constructed) {
 				// unable to obtain window_wrapper object before application is constructed,
 				// cannot do more without window_wrapper object
-				LOG([](auto& o) {
+				utki::log_debug([](auto& o) {
 					o << "  called within application constructor" << std::endl;
-				})
+				});
 				return;
 			}
 
@@ -2207,9 +2206,9 @@ struct window_wrapper : public utki::destructable {
 		// no idea why initial buffer swap is needed, perhaps it moves the window configure procedure forward somehow
 		this->egl_context.swap_frame_buffers();
 
-		LOG([](auto& o) {
+		utki::log_debug([](auto& o) {
 			o << "window wrapper constructed" << std::endl;
-		})
+		});
 	}
 
 	// keep track of current window dimensions
@@ -2224,9 +2223,9 @@ struct window_wrapper : public utki::destructable {
 	{
 		this->cur_window_dims = dims;
 
-		LOG([&](auto& o) {
+		utki::log_debug([&](auto& o) {
 			o << "resize window to " << std::dec << dims << std::endl;
-		})
+		});
 
 		auto sd = this->surface.find_scale_and_dpi(this->registry.outputs);
 
@@ -2242,9 +2241,9 @@ struct window_wrapper : public utki::destructable {
 
 		this->surface.commit();
 
-		LOG([&](auto& o) {
+		utki::log_debug([&](auto& o) {
 			o << "final window scale = " << sd.scale << std::endl;
-		})
+		});
 
 		this->scale = ruis::real(sd.scale);
 
@@ -2360,15 +2359,15 @@ void application::set_fullscreen(bool fullscreen)
 
 	auto& ww = get_impl(this->window_pimpl);
 
-	LOG([&](auto& o) {
+	utki::log_debug([&](auto& o) {
 		o << "set_fullscreen(" << fullscreen << ")" << std::endl;
-	})
+	});
 
 	if (fullscreen) {
 		ww.pre_fullscreen_win_dims = ww.cur_window_dims;
-		LOG([&](auto& o) {
+		utki::log_debug([&](auto& o) {
 			o << " old win dims = " << std::dec << ww.pre_fullscreen_win_dims << std::endl;
-		})
+		});
 		xdg_toplevel_set_fullscreen(ww.toplevel.toplev, nullptr);
 	} else {
 		xdg_toplevel_unset_fullscreen(ww.toplevel.toplev);
@@ -2478,9 +2477,9 @@ int main(int argc, const char** argv)
 
 			if (ui_queue_ready_to_read) {
 				while (auto m = ww.ui_queue.pop_front()) {
-					LOG([](auto& o) {
+					utki::log_debug([](auto& o) {
 						o << "loop proc" << std::endl;
-					})
+					});
 					m();
 				}
 			}
@@ -2523,19 +2522,19 @@ void output_wrapper::wl_output_geometry(
 	self.position = {uint32_t(x), uint32_t(y)};
 	self.physical_size_mm = {uint32_t(physical_width), uint32_t(physical_height)};
 
-	LOG([&](auto& o) {
+	utki::log_debug([&](auto& o) {
 		o << "output(" << self.id << ")" << '\n' //
 		  << "  physical_size_mm = " << self.physical_size_mm << '\n' //
 		  << "  make = " << make << '\n' //
 		  << "  model = " << model << std::endl;
-	})
+	});
 
 	if (!application_constructed) {
 		// unable to obtain window_wrapper object before application is constructed,
 		// cannot do more without window_wrapper object
-		LOG([](auto& o) {
+		utki::log_debug([](auto& o) {
 			o << "  called within application constructor" << std::endl;
-		})
+		});
 		return;
 	}
 
@@ -2557,16 +2556,16 @@ void output_wrapper::wl_output_mode(
 
 	self.resolution = {uint32_t(width), uint32_t(height)};
 
-	LOG([&](auto& o) {
+	utki::log_debug([&](auto& o) {
 		o << "output(" << self.id << ") resolution = " << self.resolution << std::endl;
-	})
+	});
 
 	if (!application_constructed) {
 		// unable to obtain window_wrapper object before application is constructed,
 		// cannot do more without window_wrapper object
-		LOG([](auto& o) {
+		utki::log_debug([](auto& o) {
 			o << "  called within application constructor" << std::endl;
-		})
+		});
 		return;
 	}
 
@@ -2581,16 +2580,16 @@ void output_wrapper::wl_output_scale(void* data, struct wl_output* wl_output, in
 
 	self.scale = uint32_t(std::max(factor, 1));
 
-	LOG([&](auto& o) {
+	utki::log_debug([&](auto& o) {
 		o << "output(" << self.id << ") scale = " << self.scale << std::endl;
-	})
+	});
 
 	if (!application_constructed) {
 		// unable to obtain window_wrapper object before application is constructed,
 		// cannot do more without window_wrapper object
-		LOG([](auto& o) {
+		utki::log_debug([](auto& o) {
 			o << "  called within application constructor" << std::endl;
-		})
+		});
 		return;
 	}
 
@@ -2600,9 +2599,9 @@ void output_wrapper::wl_output_scale(void* data, struct wl_output* wl_output, in
 
 void surface_wrapper::wl_surface_enter(void* data, wl_surface* surface, wl_output* output)
 {
-	LOG([&](auto& o) {
+	utki::log_debug([&](auto& o) {
 		o << "surface enters output(" << get_output_id(output) << ")" << std::endl;
-	})
+	});
 
 	ASSERT(data)
 	auto& self = *static_cast<surface_wrapper*>(data);
@@ -2617,9 +2616,9 @@ void surface_wrapper::wl_surface_enter(void* data, wl_surface* surface, wl_outpu
 
 void surface_wrapper::wl_surface_leave(void* data, wl_surface* surface, wl_output* output)
 {
-	LOG([&](auto& o) {
+	utki::log_debug([&](auto& o) {
 		o << "surface leaves output(" << get_output_id(output) << ")" << std::endl;
-	})
+	});
 
 	ASSERT(data)
 	auto& self = *static_cast<surface_wrapper*>(data);
@@ -2665,16 +2664,16 @@ void touch_wrapper::wl_touch_down( //
 	wl_fixed_t y
 )
 {
-	LOG([](auto& o) {
+	utki::log_debug([](auto& o) {
 		o << "wayland: touch down event" << std::endl;
-	})
+	});
 
 	auto& ww = get_impl(ruisapp::application::inst());
 
 	if (ww.surface.sur != surface) {
-		LOG([](auto& o) {
+		utki::log_debug([](auto& o) {
 			o << "  non-window surface touched, ignore" << std::endl;
-		})
+		});
 		return;
 	}
 
@@ -2718,9 +2717,9 @@ void touch_wrapper::wl_touch_up( //
 	int32_t id
 )
 {
-	LOG([](auto& o) {
+	utki::log_debug([](auto& o) {
 		o << "wayland: touch up event" << std::endl;
-	})
+	});
 
 	ASSERT(data)
 	auto& self = *static_cast<touch_wrapper*>(data);
@@ -2751,9 +2750,9 @@ void touch_wrapper::wl_touch_motion( //
 	wl_fixed_t y
 )
 {
-	LOG([](auto& o) {
+	utki::log_debug([](auto& o) {
 		o << "wayland: touch motion event" << std::endl;
-	})
+	});
 
 	auto& ww = get_impl(ruisapp::application::inst());
 
@@ -2789,9 +2788,9 @@ void touch_wrapper::wl_touch_cancel( //
 	wl_touch* touch
 )
 {
-	LOG([](auto& o) {
+	utki::log_debug([](auto& o) {
 		o << "wayland: touch cancel event" << std::endl;
-	})
+	});
 
 	ASSERT(data)
 	auto& self = *static_cast<touch_wrapper*>(data);
