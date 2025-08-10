@@ -4,3 +4,5 @@ this_no_install := true
 
 # no lint
 this_lint_cmd :=
+
+this_no_format_test := true
