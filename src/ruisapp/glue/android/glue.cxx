@@ -571,8 +571,8 @@ std::array<ruis::vector2, 10> pointers;
 inline ruis::vector2 android_win_coords_to_ruis_win_rect_coords(const ruis::vector2& winDim, const ruis::vector2& p)
 {
 	ruis::vector2 ret(p.x(), p.y() - (cur_window_dims.y() - winDim.y()));
-	//	LOG([&](auto&o){o << "android_win_coords_to_ruis_win_rect_coords(): ret
-	//= " << ret << std::endl;})
+	//	utki::log_debug([&](auto&o){o << "android_win_coords_to_ruis_win_rect_coords(): ret
+	//= " << ret << std::endl;});
 	using std::round;
 	return round(ret);
 }
@@ -603,15 +603,15 @@ public:
 	std::u32string get() const
 	{
 		ASSERT(java_functions)
-		//		LOG([&](auto&o){o << "key_event_to_unicode_resolver::Resolve():
-		// this->kc = " << this->kc << std::endl;})
+		//		utki::log_debug([&](auto&o){o << "key_event_to_unicode_resolver::Resolve():
+		// this->kc = " << this->kc << std::endl;});
 		char32_t res = java_functions->resolve_key_unicode(this->di, this->ms, this->kc);
 
 		// 0 means that key did not produce any unicode character
 		if (res == 0) {
-			LOG([](auto& o) {
+			utki::log_debug([](auto& o) {
 				o << "key did not produce any unicode character, returning empty string" << std::endl;
-			})
+			});
 			return std::u32string();
 		}
 
@@ -1045,9 +1045,9 @@ namespace {
 JNIEXPORT void JNICALL
 Java_io_github_cppfw_ruisapp_RuisappActivity_handleCharacterStringInput(JNIEnv* env, jclass clazz, jstring chars)
 {
-	LOG([](auto& o) {
+	utki::log_debug([](auto& o) {
 		o << "handleCharacterStringInput(): invoked" << std::endl;
-	})
+	});
 
 	const char* utf8Chars = env->GetStringUTFChars(chars, 0);
 
@@ -1056,15 +1056,15 @@ Java_io_github_cppfw_ruisapp_RuisappActivity_handleCharacterStringInput(JNIEnv* 
 	});
 
 	if (utf8Chars == nullptr || *utf8Chars == 0) {
-		LOG([](auto& o) {
+		utki::log_debug([](auto& o) {
 			o << "handleCharacterStringInput(): empty string passed in" << std::endl;
-		})
+		});
 		return;
 	}
 
-	LOG([&](auto& o) {
+	utki::log_debug([&](auto& o) {
 		o << "handleCharacterStringInput(): utf8Chars = " << utf8Chars << std::endl;
-	})
+	});
 
 	std::vector<char32_t> utf32;
 
@@ -1075,8 +1075,8 @@ Java_io_github_cppfw_ruisapp_RuisappActivity_handleCharacterStringInput(JNIEnv* 
 	input_string_provider provider;
 	provider.chars = std::u32string(utf32.data(), utf32.size());
 
-	//    LOG([&](auto&o){o << "handleCharacterStringInput(): provider.chars = "
-	//    << provider.chars << std::endl;})
+	//    utki::log_debug([&](auto&o){o << "handleCharacterStringInput(): provider.chars = "
+	//    << provider.chars << std::endl;});
 
 	ruisapp::handle_character_input(ruisapp::inst(), provider, ruis::key::unknown);
 }
@@ -1085,9 +1085,9 @@ Java_io_github_cppfw_ruisapp_RuisappActivity_handleCharacterStringInput(JNIEnv* 
 
 jint JNI_OnLoad(JavaVM* vm, void* reserved)
 {
-	LOG([](auto& o) {
+	utki::log_debug([](auto& o) {
 		o << "JNI_OnLoad(): invoked" << std::endl;
-	})
+	});
 
 	JNIEnv* env;
 	if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK) {
@@ -1227,8 +1227,8 @@ void handle_input_events()
 	while (AInputQueue_getEvent(input_queue, &event) >= 0) {
 		ASSERT(event)
 
-		// LOG([&](auto&o){o << "New input event: type = " <<
-		// AInputEvent_getType(event) << std::endl;})
+		// utki::log_debug([&](auto&o){o << "New input event: type = " <<
+		// AInputEvent_getType(event) << std::endl;});
 		if (AInputQueue_preDispatchEvent(input_queue, event)) {
 			continue;
 		}
@@ -1242,7 +1242,7 @@ void handle_input_events()
 			case AINPUT_EVENT_TYPE_MOTION:
 				switch (eventAction & AMOTION_EVENT_ACTION_MASK) {
 					case AMOTION_EVENT_ACTION_POINTER_DOWN:
-						// LOG([&](auto&o){o << "Pointer down" << std::endl;})
+						// utki::log_debug([&](auto&o){o << "Pointer down" << std::endl;});
 					case AMOTION_EVENT_ACTION_DOWN:
 						{
 							unsigned pointerIndex =
@@ -1251,15 +1251,15 @@ void handle_input_events()
 							unsigned pointerId = unsigned(AMotionEvent_getPointerId(event, pointerIndex));
 
 							if (pointerId >= pointers.size()) {
-								LOG([&](auto& o) {
+								utki::log_debug([&](auto& o) {
 									o << "Pointer ID is too big, only " << pointers.size()
 									  << " pointers supported at maximum";
-								})
+								});
 								continue;
 							}
 
-							// LOG([&](auto&o){o << "Action down, ptr id = " << pointerId <<
-							// std::endl;})
+							// utki::log_debug([&](auto&o){o << "Action down, ptr id = " << pointerId <<
+							// std::endl;});
 
 							ruis::vector2 p(
 								AMotionEvent_getX(event, pointerIndex),
@@ -1277,7 +1277,7 @@ void handle_input_events()
 						}
 						break;
 					case AMOTION_EVENT_ACTION_POINTER_UP:
-						// LOG([&](auto&o){o << "Pointer up" << std::endl;})
+						// utki::log_debug([&](auto&o){o << "Pointer up" << std::endl;});
 					case AMOTION_EVENT_ACTION_UP:
 						{
 							unsigned pointerIndex =
@@ -1286,15 +1286,15 @@ void handle_input_events()
 							unsigned pointerId = unsigned(AMotionEvent_getPointerId(event, pointerIndex));
 
 							if (pointerId >= pointers.size()) {
-								LOG([&](auto& o) {
+								utki::log_debug([&](auto& o) {
 									o << "Pointer ID is too big, only " << pointers.size()
 									  << " pointers supported at maximum";
-								})
+								});
 								continue;
 							}
 
-							// LOG([&](auto&o){o << "Action up, ptr id = " << pointerId <<
-							// std::endl;})
+							// utki::log_debug([&](auto&o){o << "Action up, ptr id = " << pointerId <<
+							// std::endl;});
 
 							ruis::vector2 p(
 								AMotionEvent_getX(event, pointerIndex),
@@ -1318,10 +1318,10 @@ void handle_input_events()
 							for (size_t pointerNum = 0; pointerNum < numPointers; ++pointerNum) {
 								unsigned pointerId = unsigned(AMotionEvent_getPointerId(event, pointerNum));
 								if (pointerId >= pointers.size()) {
-									LOG([&](auto& o) {
+									utki::log_debug([&](auto& o) {
 										o << "Pointer ID is too big, only " << pointers.size()
 										  << " pointers supported at maximum";
-									})
+									});
 									continue;
 								}
 
@@ -1335,8 +1335,8 @@ void handle_input_events()
 									continue;
 								}
 
-								// LOG([&](auto&o){o << "Action move, ptr id = " << pointerId <<
-								// std::endl;})
+								// utki::log_debug([&](auto&o){o << "Action move, ptr id = " << pointerId <<
+								// std::endl;});
 
 								pointers[pointerId] = p;
 
@@ -1349,16 +1349,16 @@ void handle_input_events()
 						}
 						break;
 					default:
-						LOG([&](auto& o) {
+						utki::log_debug([&](auto& o) {
 							o << "unknown eventAction = " << eventAction << std::endl;
-						})
+						});
 						break;
 				}
 				consume = true;
 				break;
 			case AINPUT_EVENT_TYPE_KEY:
 				{
-					// LOG([&](auto&o){o << "AINPUT_EVENT_TYPE_KEY" << std::endl;})
+					// utki::log_debug([&](auto&o){o << "AINPUT_EVENT_TYPE_KEY" << std::endl;});
 
 					ASSERT(event)
 					ruis::key key = get_key_from_key_event(*event);
@@ -1367,14 +1367,14 @@ void handle_input_events()
 					key_input_string_resolver.ms = AKeyEvent_getMetaState(event);
 					key_input_string_resolver.di = AInputEvent_getDeviceId(event);
 
-					// LOG([&](auto&o){o << "AINPUT_EVENT_TYPE_KEY:
+					// utki::log_debug([&](auto&o){o << "AINPUT_EVENT_TYPE_KEY:
 					// key_input_string_resolver.kc = " << key_input_string_resolver.kc <<
-					// std::endl;})
+					// std::endl;});
 
 					switch (eventAction) {
 						case AKEY_EVENT_ACTION_DOWN:
-							// LOG([&](auto&o){o << "AKEY_EVENT_ACTION_DOWN, count = " <<
-							// AKeyEvent_getRepeatCount(event) << std::endl;})
+							// utki::log_debug([&](auto&o){o << "AKEY_EVENT_ACTION_DOWN, count = " <<
+							// AKeyEvent_getRepeatCount(event) << std::endl;});
 
 							// detect auto-repeated key events
 							if (AKeyEvent_getRepeatCount(event) == 0) {
@@ -1383,22 +1383,22 @@ void handle_input_events()
 							handle_character_input(app, key_input_string_resolver, key);
 							break;
 						case AKEY_EVENT_ACTION_UP:
-							// LOG([&](auto&o){o << "AKEY_EVENT_ACTION_UP" << std::endl;})
+							// utki::log_debug([&](auto&o){o << "AKEY_EVENT_ACTION_UP" << std::endl;});
 							handle_key_event(app, false, key);
 							break;
 						case AKEY_EVENT_ACTION_MULTIPLE:
-							// LOG([&](auto&o){o << "AKEY_EVENT_ACTION_MULTIPLE"
+							// utki::log_debug([&](auto&o){o << "AKEY_EVENT_ACTION_MULTIPLE"
 							// 		<< " count = " << AKeyEvent_getRepeatCount(event)
 							// 		<< " keyCode = " << AKeyEvent_getKeyCode(event)
-							// 		<< std::endl;})
+							// 		<< std::endl;});
 
 							// ignore, it is handled on Java side
 
 							break;
 						default:
-							LOG([&](auto& o) {
+							utki::log_debug([&](auto& o) {
 								o << "unknown AINPUT_EVENT_TYPE_KEY eventAction: " << eventAction << std::endl;
-							})
+							});
 							break;
 					}
 				}
@@ -1419,9 +1419,9 @@ void handle_input_events()
 namespace {
 void on_destroy(ANativeActivity* activity)
 {
-	LOG([](auto& o) {
+	utki::log_debug([](auto& o) {
 		o << "on_destroy(): invoked" << std::endl;
-	})
+	});
 
 	// TODO: move looper related stuff to window_wrapper?
 	ALooper* looper = ALooper_prepare(0);
@@ -1441,23 +1441,23 @@ void on_destroy(ANativeActivity* activity)
 
 void on_start(ANativeActivity* activity)
 {
-	LOG([](auto& o) {
+	utki::log_debug([](auto& o) {
 		o << "on_start(): invoked" << std::endl;
-	})
+	});
 }
 
 void on_resume(ANativeActivity* activity)
 {
-	LOG([](auto& o) {
+	utki::log_debug([](auto& o) {
 		o << "on_resume(): invoked" << std::endl;
-	})
+	});
 }
 
 void* on_save_instance_state(ANativeActivity* activity, size_t* outSize)
 {
-	LOG([](auto& o) {
+	utki::log_debug([](auto& o) {
 		o << "on_save_instance_state(): invoked" << std::endl;
-	})
+	});
 
 	// Do nothing, we don't use this mechanism of saving state.
 
@@ -1466,23 +1466,23 @@ void* on_save_instance_state(ANativeActivity* activity, size_t* outSize)
 
 void on_pause(ANativeActivity* activity)
 {
-	LOG([](auto& o) {
+	utki::log_debug([](auto& o) {
 		o << "on_pause(): invoked" << std::endl;
-	})
+	});
 }
 
 void on_stop(ANativeActivity* activity)
 {
-	LOG([](auto& o) {
+	utki::log_debug([](auto& o) {
 		o << "on_stop(): invoked" << std::endl;
-	})
+	});
 }
 
 void on_configuration_changed(ANativeActivity* activity)
 {
-	LOG([](auto& o) {
+	utki::log_debug([](auto& o) {
 		o << "on_configuration_changed(): invoked" << std::endl;
-	})
+	});
 
 	// find out what exactly has changed in the configuration
 	int32_t diff;
@@ -1519,22 +1519,22 @@ void on_configuration_changed(ANativeActivity* activity)
 
 void on_low_memory(ANativeActivity* activity)
 {
-	LOG([](auto& o) {
+	utki::log_debug([](auto& o) {
 		o << "on_low_memory(): invoked" << std::endl;
-	})
+	});
 }
 
 void on_window_focus_changed(ANativeActivity* activity, int hasFocus)
 {
-	LOG([](auto& o) {
+	utki::log_debug([](auto& o) {
 		o << "on_window_focus_changed(): invoked" << std::endl;
-	})
+	});
 }
 
 int on_update_timer_expired(int fd, int events, void* data)
 {
-	//	LOG([&](auto&o){o << "on_update_timer_expired(): invoked" <<
-	// std::endl;})
+	//	utki::log_debug([&](auto&o){o << "on_update_timer_expired(): invoked" <<
+	// std::endl;});
 
 	auto& app = application::inst();
 
@@ -1549,8 +1549,8 @@ int on_update_timer_expired(int fd, int events, void* data)
 	// after updating need to re-render everything
 	get_impl(app).render(app);
 
-	//	LOG([&](auto&o){o << "on_update_timer_expired(): armed timer for " << dt
-	//<< std::endl;})
+	//	utki::log_debug([&](auto&o){o << "on_update_timer_expired(): armed timer for " << dt
+	//<< std::endl;});
 
 	return 1; // 1 means do not remove descriptor from looper
 }
@@ -1568,9 +1568,9 @@ int on_queue_has_messages(int fd, int events, void* data)
 
 void on_native_window_created(ANativeActivity* activity, ANativeWindow* window)
 {
-	LOG([](auto& o) {
+	utki::log_debug([](auto& o) {
 		o << "on_native_window_created(): invoked" << std::endl;
-	})
+	});
 
 	// save window in a static var, so it is accessible for OpenGL initializers
 	// from ruis::application class
@@ -1631,14 +1631,14 @@ void on_native_window_created(ANativeActivity* activity, ANativeWindow* window)
 			fd_flag.set();
 
 		} catch (std::exception& e) {
-			LOG([&](auto& o) {
+			utki::log_debug([&](auto& o) {
 				o << "std::exception uncaught while creating application instance: " << e.what() << std::endl;
-			})
+			});
 			throw;
 		} catch (...) {
-			LOG([](auto& o) {
+			utki::log_debug([](auto& o) {
 				o << "unknown exception uncaught while creating application instance!" << std::endl;
-			})
+			});
 			throw;
 		}
 	} else {
@@ -1648,24 +1648,24 @@ void on_native_window_created(ANativeActivity* activity, ANativeWindow* window)
 
 void on_native_window_resized(ANativeActivity* activity, ANativeWindow* window)
 {
-	LOG([](auto& o) {
+	utki::log_debug([](auto& o) {
 		o << "on_native_window_resized(): invoked" << std::endl;
-	})
+	});
 
 	// save window dimensions
 	cur_window_dims.x() = float(ANativeWindow_getWidth(window));
 	cur_window_dims.y() = float(ANativeWindow_getHeight(window));
 
-	LOG([&](auto& o) {
+	utki::log_debug([&](auto& o) {
 		o << "on_native_window_resized(): cur_window_dims = " << cur_window_dims << std::endl;
-	})
+	});
 }
 
 void on_native_window_redraw_needed(ANativeActivity* activity, ANativeWindow* window)
 {
-	LOG([](auto& o) {
+	utki::log_debug([](auto& o) {
 		o << "on_native_window_redraw_needed(): invoked" << std::endl;
-	})
+	});
 
 	auto& app = get_app(activity);
 
@@ -1677,9 +1677,9 @@ void on_native_window_redraw_needed(ANativeActivity* activity, ANativeWindow* wi
 // https://developer.android.com/ndk/reference/struct/a-native-activity-callbacks#onnativewindowdestroyed
 void on_native_window_destroyed(ANativeActivity* activity, ANativeWindow* window)
 {
-	LOG([](auto& o) {
+	utki::log_debug([](auto& o) {
 		o << "on_native_window_destroyed(): invoked" << std::endl;
-	})
+	});
 
 	// destroy EGL drawing surface associated with the window.
 	// the EGL context remains existing and should preserve all resources like
@@ -1694,8 +1694,8 @@ void on_native_window_destroyed(ANativeActivity* activity, ANativeWindow* window
 
 int on_input_events_ready_for_reading_from_queue(int fd, int events, void* data)
 {
-	//	LOG([](auto&o){o << "on_input_events_ready_for_reading_from_queue():
-	// invoked" << std::endl;})
+	//	utki::log_debug([](auto&o){o << "on_input_events_ready_for_reading_from_queue():
+	// invoked" << std::endl;});
 
 	ASSERT(input_queue) // if we get events we should have input queue
 
@@ -1723,9 +1723,9 @@ int on_input_events_ready_for_reading_from_queue(int fd, int events, void* data)
 // NOTE: this callback is called before on_native_window_created()
 void on_input_queue_created(ANativeActivity* activity, AInputQueue* queue)
 {
-	LOG([](auto& o) {
+	utki::log_debug([](auto& o) {
 		o << "on_input_queue_created(): invoked" << std::endl;
-	})
+	});
 	ASSERT(queue);
 	ASSERT(!input_queue)
 	input_queue = queue;
@@ -1742,9 +1742,9 @@ void on_input_queue_created(ANativeActivity* activity, AInputQueue* queue)
 
 void on_input_queue_destroyed(ANativeActivity* activity, AInputQueue* queue)
 {
-	LOG([](auto& o) {
+	utki::log_debug([](auto& o) {
 		o << "on_input_queue_destroyed(): invoked" << std::endl;
-	})
+	});
 	ASSERT(queue)
 	ASSERT(input_queue == queue)
 
@@ -1757,24 +1757,24 @@ void on_input_queue_destroyed(ANativeActivity* activity, AInputQueue* queue)
 // called when, for example, on-screen keyboard has been shown
 void on_content_rect_changed(ANativeActivity* activity, const ARect* rect)
 {
-	LOG([&](auto& o) {
+	utki::log_debug([&](auto& o) {
 		o << "on_content_rect_changed(): invoked, left = " << rect->left << " right = " << rect->right
 		  << " top = " << rect->top << " bottom = " << rect->bottom << std::endl;
-	})
-	LOG([&](auto& o) {
+	});
+	utki::log_debug([&](auto& o) {
 		o << "on_content_rect_changed(): cur_window_dims = " << cur_window_dims << std::endl;
-	})
+	});
 
 	// Sometimes Android calls on_content_rect_changed() even after native window
 	// was destroyed, i.e. on_native_window_destroyed() was called and, thus,
 	// application object was destroyed. So need to check if our application is
 	// still alive.
 	if (!activity->instance) {
-		LOG([&](auto& o) {
+		utki::log_debug([&](auto& o) {
 			o << "on_content_rect_changed(): application is not alive, ignoring "
 				 "content rect change."
 			  << std::endl;
-		})
+		});
 		return;
 	}
 
@@ -1797,9 +1797,9 @@ void on_content_rect_changed(ANativeActivity* activity, const ARect* rect)
 
 void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_t savedStateSize)
 {
-	LOG([&](auto& o) {
+	utki::log_debug([&](auto& o) {
 		o << "ANativeActivity_onCreate(): invoked" << std::endl;
-	})
+	});
 	activity->callbacks->onDestroy = &on_destroy;
 	activity->callbacks->onStart = &on_start;
 	activity->callbacks->onResume = &on_resume;
