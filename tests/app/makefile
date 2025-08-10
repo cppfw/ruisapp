@@ -3,6 +3,8 @@ include prorab-test.mk
 
 $(eval $(call prorab-config, ../../config))
 
+this_cxx := clang++
+
 this_name := ruisapp-test
 
 ifeq ($(config), emsc)
