@@ -13,7 +13,7 @@
             "group": "build"
         },
         {
-            "label": "build_dev",
+            "label": "build-dev",
             "type": "shell",
             "command": "make config=dev",
             "problemMatcher": [
@@ -29,7 +29,7 @@
             "group": "build"
         },
         {
-            "label": "clean_dev",
+            "label": "clean-dev",
             "type": "shell",
             "command": "make clean config=dev",
             "problemMatcher": [],
@@ -83,7 +83,7 @@
             "type": "shell",
             "command": "make test config=dev",
             "problemMatcher": [],
-            "dependsOn": "build_dev",
+            "dependsOn": "build-dev",
             "group": "build"
         },
         {

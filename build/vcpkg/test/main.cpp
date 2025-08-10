@@ -4,6 +4,8 @@
 
 #include <ruisapp/application.hpp>
 
+#include <iostream>
+
 namespace{
 ruisapp::application_factory appfac(
     [](std::string_view executable, utki::span<std::string_view> args) -> std::unique_ptr<ruisapp::application> {

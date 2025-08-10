@@ -65,7 +65,7 @@ utki::shared_ref<ruis::window> make_vertical_list_window(
                             .widget_params{
                                 .id = "list"s
                             },
-                            .providable_params{
+                            .list_params{
                                 .provider = [&c](){
                                     class the_provider : public ruis::list_provider{
                                         std::vector<std::u32string> items;
@@ -131,7 +131,7 @@ utki::shared_ref<ruis::window> make_vertical_list_window(
                                             }
                                         }
                                     };
-                                    return std::make_shared<the_provider>(c);
+                                    return utki::make_shared<the_provider>(c);
                                 }()
                             }
                         }
