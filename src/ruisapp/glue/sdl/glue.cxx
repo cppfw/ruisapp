@@ -536,12 +536,10 @@ public:
 					if (auto res = emscripten_get_element_css_size("#canvas", &width, &height);
 						res != EMSCRIPTEN_RESULT_SUCCESS)
 					{
-						throw std::runtime_error(
-							utki::cat(
-								"emscripten_get_canvas_element_size(#canvas): failed, error = ", //
-								res
-							)
-						);
+						throw std::runtime_error(utki::cat(
+							"emscripten_get_canvas_element_size(#canvas): failed, error = ", //
+							res
+						));
 					}
 					return ruis::vec2(
 						ruis::real(width), //
@@ -618,8 +616,7 @@ public:
 		user_event_type([]() {
 			Uint32 t = SDL_RegisterEvents(1);
 			if (t == (Uint32)(-1)) {
-				throw std::runtime_error(
-					utki::cat("Could not create SDL user event type, SDL Error: ", SDL_GetError())
+				throw std::runtime_error(utki::cat("Could not create SDL user event type, SDL Error: ", SDL_GetError())
 				);
 			}
 			return t;
@@ -760,12 +757,10 @@ application::application(std::string name, const window_parameters& wp) :
 	dims *= ww.window.scale_factor;
 #endif
 
-	this->update_window_rect(
-		ruis::rect(
-			{0, 0}, //
-			dims
-		)
-	);
+	this->update_window_rect(ruis::rect(
+		{0, 0}, //
+		dims
+	));
 }
 
 void application::quit() noexcept
@@ -800,12 +795,10 @@ void application::set_fullscreen(bool enable)
 	);
 
 	if (error != 0) {
-		throw std::runtime_error(
-			utki::cat(
-				"application::set_fullscreen(): could not switch fullscreen mode, error: ", //
-				SDL_GetError()
-			)
-		);
+		throw std::runtime_error(utki::cat(
+			"application::set_fullscreen(): could not switch fullscreen mode, error: ", //
+			SDL_GetError()
+		));
 	}
 }
 
@@ -822,12 +815,10 @@ void application::set_mouse_cursor_visible(bool visible)
 	int error = SDL_ShowCursor(mode);
 
 	if (error < 0) {
-		throw std::runtime_error(
-			utki::cat(
-				"application::set_mouse_cursor_visible(): could not show/hide mouse cursor, error: ", //
-				SDL_GetError()
-			)
-		);
+		throw std::runtime_error(utki::cat(
+			"application::set_mouse_cursor_visible(): could not show/hide mouse cursor, error: ", //
+			SDL_GetError()
+		));
 	}
 }
 

@@ -1035,9 +1035,10 @@ struct wm_base_wrapper {
 
 private:
 	constexpr static const xdg_wm_base_listener listener = {
-		.ping = [](void* data, xdg_wm_base* wm_base, uint32_t serial) {
-			xdg_wm_base_pong(wm_base, serial);
-		} //
+		.ping =
+			[](void* data, xdg_wm_base* wm_base, uint32_t serial) {
+				xdg_wm_base_pong(wm_base, serial);
+			} //
 	};
 };
 } // namespace
@@ -1784,11 +1785,12 @@ private:
 
 	constexpr static const wl_seat_listener listener = {
 		.capabilities = &wl_seat_capabilities,
-		.name = [](void* data, wl_seat* seat, const char* name) {
-			LOG([&](auto& o) {
-				o << "seat name: " << name << std::endl;
-			})
-		} //
+		.name =
+			[](void* data, wl_seat* seat, const char* name) {
+				LOG([&](auto& o) {
+					o << "seat name: " << name << std::endl;
+				})
+			} //
 	};
 };
 } // namespace
@@ -1826,9 +1828,10 @@ struct window_wrapper : public utki::destructable {
 		xdg_surface* xdg_sur;
 
 		constexpr static const xdg_surface_listener listener = {
-			.configure = [](void* data, xdg_surface* xdg_surface, uint32_t serial) {
-				xdg_surface_ack_configure(xdg_surface, serial);
-			}, //
+			.configure =
+				[](void* data, xdg_surface* xdg_surface, uint32_t serial) {
+					xdg_surface_ack_configure(xdg_surface, serial);
+				}, //
 		};
 
 		xdg_surface_wrapper(surface_wrapper& surface, wm_base_wrapper& wm_base) :
@@ -2636,11 +2639,10 @@ void pointer_wrapper::wl_pointer_motion(void* data, wl_pointer* pointer, uint32_
 
 	auto& ww = get_impl(ruisapp::application::inst());
 
-	ruis::vector2
-		pos( //
-			ruis::real(wl_fixed_to_double(x)),
-			ruis::real(wl_fixed_to_double(y))
-		);
+	ruis::vector2 pos( //
+		ruis::real(wl_fixed_to_double(x)),
+		ruis::real(wl_fixed_to_double(y))
+	);
 	pos *= ww.scale;
 	self.cur_pointer_pos = round(pos);
 
@@ -2682,22 +2684,19 @@ void touch_wrapper::wl_touch_down( //
 
 	ASSERT(!utki::contains(self.touch_points, id))
 
-	ruis::vector2
-		pos( //
-			ruis::real(wl_fixed_to_double(x)),
-			ruis::real(wl_fixed_to_double(y))
-		);
+	ruis::vector2 pos( //
+		ruis::real(wl_fixed_to_double(x)),
+		ruis::real(wl_fixed_to_double(y))
+	);
 	pos = round(pos * ww.scale);
 
-	auto insert_result = self.touch_points.insert(
-		std::make_pair(
-			id,
-			touch_point{
-				.ruis_id = unsigned(id) + 1, // id = 0 reserved for mouse
-				.pos = pos
-			}
-		)
-	);
+	auto insert_result = self.touch_points.insert(std::make_pair(
+		id,
+		touch_point{
+			.ruis_id = unsigned(id) + 1, // id = 0 reserved for mouse
+			.pos = pos
+		}
+	));
 	ASSERT(insert_result.second) // pair successfully inserted
 
 	const touch_point& tp = insert_result.first->second;
@@ -2767,11 +2766,10 @@ void touch_wrapper::wl_touch_motion( //
 
 	touch_point& tp = i->second;
 
-	ruis::vector2
-		pos( //
-			ruis::real(wl_fixed_to_double(x)),
-			ruis::real(wl_fixed_to_double(y))
-		);
+	ruis::vector2 pos( //
+		ruis::real(wl_fixed_to_double(x)),
+		ruis::real(wl_fixed_to_double(y))
+	);
 	pos = round(pos * ww.scale);
 
 	tp.pos = pos;
