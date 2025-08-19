@@ -77,6 +77,16 @@ struct window_parameters {
 	std::string title = "ruisapp";
 
 	/**
+	 * @brief Monitor index to place the window on.
+	 * Index of the monitor to initially place the window on.
+	 * The indexing starts from 1.
+	 * Value of 0 means to pick monitor automatically.
+	 * If the index exceeds the number of monitors the system actually has then
+	 * the window is placed to a monitor picked automatically as if the index was 0.
+	 */
+	unsigned monitor = 0;
+
+	/**
 	 * @brief Orientation policy.
 	 */
 	ruisapp::orientation orientation = ruisapp::orientation::dynamic;

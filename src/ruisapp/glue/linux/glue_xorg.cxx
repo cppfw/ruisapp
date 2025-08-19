@@ -217,7 +217,7 @@ struct window_wrapper : public utki::destructable {
 
 	std::atomic_bool quit_flag = false;
 
-	window_wrapper(const window_parameters& wp)
+	window_wrapper(const application::parameters& app_params)
 	{
 		// set scale factor
 		{
@@ -918,12 +918,9 @@ window_wrapper& get_impl(application& app)
 
 } // namespace
 
-application::application(
-	std::string name, //
-	const window_parameters& wp
-) :
-	name(std::move(name)),
-	window_pimpl(std::make_unique<window_wrapper>(wp)),
+application::application(application::parameters params) :
+	name(std::move(params.name)),
+	window_pimpl(std::make_unique<window_wrapper>(params)),
 	gui(utki::make_shared<ruis::context>(
 		utki::make_shared<ruis::style_provider>( //
 			utki::make_shared<ruis::resource_loader>( //

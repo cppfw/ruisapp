@@ -52,6 +52,8 @@ class application : public utki::intrusive_singleton<application>
 	// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 	static instance_type instance;
 
+	std::vector<window> windows_v;
+
 public:
 	const std::string name;
 
@@ -64,6 +66,17 @@ private:
 	void swap_frame_buffers();
 
 public:
+	/**
+	 * @brief Get application windows.
+	 * It is guaranteed that at least one window always exists,
+	 * so the returned span's size is guaranteed to be >= 1.
+	 * @return A span of application windows. Size of the span is always >= 1.
+	 */
+	utki::span<window> windows()
+	{
+		return this->windows_v;
+	}
+
 	ruis::gui gui;
 
 public:
@@ -183,16 +196,52 @@ private:
 		unsigned pointer_id
 	);
 
+public:
+	/**
+	 * @brief Application parameters.
+	 */
+	struct parameters {
+		/**
+		 * @brief Application's name.
+		 * This name is not to be presented to the user, instead it is the name for
+		 * itentifying the application within the system.
+		 * For example, this name will be used to name application's config directories etc.
+		 * So, the name should be picked so that it does not collide with others.
+		 */
+		std::string name;
+
+		/**
+		 * @brief Graphics API version.
+		 * The version of the graphics API to initialize.
+		 * All windows will share the same graphics API.
+		 * A shared graphics API context will be created for each window.
+		 * Version value of 0.0 means to initialize minimal supported version of the graphics API.
+		 * Minimal supported versions of various graphics APIs:
+		 * - OpenGL 2.0
+		 * - OpenGL ES 2.0
+		 * - TODO: add more APIs
+		 */
+		// clang-format off
+		utki::version_duplet graphics_api_version = {
+			.major = 0,
+			.minor = 0
+		};
+		// clang-format on
+
+		/**
+		 * @brief Application windows to create.
+		 * At least one window should be specified.
+		 */
+		std::vector<window_parameters> windows;
+	};
+
 protected:
 	/**
 	 * @brief Application constructor.
-	 * @param name - name of the application.
-	 * @param window_params - requested window parameters.
+	 * @param params - application parameters.
+	 * @throw std::invalid_argument - in case list of windows to create is empty.
 	 */
-	application(
-		std::string name, //
-		const window_parameters& window_params
-	);
+	application(parameters params);
 
 public:
 	application(const application&) = delete;
