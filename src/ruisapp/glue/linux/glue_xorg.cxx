@@ -293,11 +293,11 @@ struct window_wrapper : public utki::destructable {
 			visual_attribs.push_back(GLX_ALPHA_SIZE);
 			visual_attribs.push_back(utki::byte_bits);
 
-			if (wp.buffers.get(window_parameters::buffer::depth)) {
+			if (wp.buffers.get(ruisapp::buffer::depth)) {
 				visual_attribs.push_back(GLX_DEPTH_SIZE);
 				visual_attribs.push_back(utki::byte_bits * 3); // 24 bits per pixel for depth buffer
 			}
-			if (wp.buffers.get(window_parameters::buffer::stencil)) {
+			if (wp.buffers.get(ruisapp::buffer::stencil)) {
 				visual_attribs.push_back(GLX_STENCIL_SIZE);
 				visual_attribs.push_back(utki::byte_bits);
 			}
@@ -409,9 +409,9 @@ struct window_wrapper : public utki::destructable {
 				EGL_RED_SIZE,
 				8,
 				EGL_DEPTH_SIZE,
-				wp.buffers.get(window_parameters::buffer::depth) ? int(utki::byte_bits * sizeof(uint16_t)) : 0,
+				wp.buffers.get(ruisapp::buffer::depth) ? int(utki::byte_bits * sizeof(uint16_t)) : 0,
 				EGL_STENCIL_SIZE,
-				wp.buffers.get(window_parameters::buffer::stencil) ? utki::byte_bits : 0,
+				wp.buffers.get(ruisapp::buffer::stencil) ? utki::byte_bits : 0,
 				EGL_NONE
 			};
 

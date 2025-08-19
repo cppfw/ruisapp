@@ -648,10 +648,10 @@ WindowWrapper::WindowWrapper(const window_parameters& wp){
 		std::vector<NSOpenGLPixelFormatAttribute> attributes;
 		attributes.push_back(NSOpenGLPFAAccelerated);
 		attributes.push_back(NSOpenGLPFAColorSize); attributes.push_back(24);
-		if(wp.buffers.get(window_parameters::buffer::depth)){
+		if(wp.buffers.get(ruisapp::buffer::depth)){
 			attributes.push_back(NSOpenGLPFADepthSize); attributes.push_back(16);
 		}
-		if(wp.buffers.get(window_parameters::buffer::stencil)){
+		if(wp.buffers.get(ruisapp::buffer::stencil)){
 			attributes.push_back(NSOpenGLPFAStencilSize); attributes.push_back(8);
 		}
 		attributes.push_back(NSOpenGLPFADoubleBuffer);

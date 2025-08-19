@@ -1025,9 +1025,9 @@ window_wrapper::window_wrapper(const window_parameters& wp)
 			BYTE(0),
 			BYTE(0),
 			BYTE(0), // accumulation bits ignored
-			wp.buffers.get(window_parameters::buffer::depth) ? BYTE(utki::byte_bits * 2)
+			wp.buffers.get(ruisapp::buffer::depth) ? BYTE(utki::byte_bits * 2)
 															 : BYTE(0), // 16 bit depth buffer
-			wp.buffers.get(window_parameters::buffer::stencil) ? BYTE(utki::byte_bits) : BYTE(0),
+			wp.buffers.get(ruisapp::buffer::stencil) ? BYTE(utki::byte_bits) : BYTE(0),
 			BYTE(0), // no auxiliary buffer
 			BYTE(PFD_MAIN_PLANE), // main drawing layer
 			BYTE(0), // reserved
@@ -1135,9 +1135,9 @@ window_wrapper::window_wrapper(const window_parameters& wp)
 			EGL_BLUE_SIZE,
 			8,
 			EGL_DEPTH_SIZE,
-			wp.buffers.get(window_parameters::buffer::depth) ? int(utki::byte_bits * sizeof(uint16_t)) : 0,
+			wp.buffers.get(ruisapp::buffer::depth) ? int(utki::byte_bits * sizeof(uint16_t)) : 0,
 			EGL_STENCIL_SIZE,
-			wp.buffers.get(window_parameters::buffer::stencil) ? utki::byte_bits : 0,
+			wp.buffers.get(ruisapp::buffer::stencil) ? utki::byte_bits : 0,
 			EGL_NONE
 		};
 

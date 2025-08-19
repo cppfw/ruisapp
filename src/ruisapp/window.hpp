@@ -87,15 +87,11 @@ struct window_parameters {
 	// TODO: implement support for all backends
 	bool fullscreen = false;
 
-	// TODO: remove
-	// DEPRECATED: use ruisapp::buffer.
-	using buffer = ruisapp::buffer;
-
 	/**
 	 * @brief Flags describing desired buffers for rendering context.
 	 * Color buffer is always there implicitly.
 	 */
-	utki::flags<buffer> buffers = false;
+	utki::flags<ruisapp::buffer> buffers = false;
 
 	// version 0.0 means default version
 	// clang-format off

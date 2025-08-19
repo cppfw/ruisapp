@@ -145,12 +145,12 @@ namespace{
 
 	{
 		const window_parameters& wp = windowParams;
-		if(wp.buffers.get(window_parameters::buffer::depth)){
+		if(wp.buffers.get(ruisapp::buffer::depth)){
 			view.drawableDepthFormat = GLKViewDrawableDepthFormat16;
 		}else{
 			view.drawableDepthFormat = GLKViewDrawableDepthFormatNone;
 		}
-		if(wp.buffers.get(window_parameters::buffer::stencil)){
+		if(wp.buffers.get(ruisapp::buffer::stencil)){
 			view.drawableStencilFormat = GLKViewDrawableStencilFormat8;
 		}else{
 			view.drawableStencilFormat = GLKViewDrawableStencilFormatNone;
