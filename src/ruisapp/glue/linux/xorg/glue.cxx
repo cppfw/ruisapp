@@ -271,7 +271,6 @@ struct window_wrapper : public utki::destructable {
 			int worst_num_samp = 999;
 
 			for (auto fb_config : fb_configs) {
-				// for (size_t i = 0; i < fb_config.size(); ++i) {
 				XVisualInfo* vi = glXGetVisualFromFBConfig(this->display.get().display(), fb_config);
 				if (!vi) {
 					continue;
@@ -580,12 +579,8 @@ struct window_wrapper : public utki::destructable {
 			throw std::runtime_error("GLEW initialization failed");
 		}
 #elif defined(RUISAPP_RENDER_OPENGLES)
-		this->egl_surface = eglCreateWindowSurface(
-			this->display.get().egl_display(),
-			egl_config,
-			this->window,
-			nullptr
-		);
+		this->egl_surface =
+			eglCreateWindowSurface(this->display.get().egl_display(), egl_config, this->window, nullptr);
 		if (this->egl_surface == EGL_NO_SURFACE) {
 			throw std::runtime_error("eglCreateWindowSurface() failed");
 		}
@@ -614,13 +609,20 @@ struct window_wrapper : public utki::destructable {
 				EGL_NONE
 			};
 
-			this->egl_context = eglCreateContext(this->display.get().egl_display(), egl_config, EGL_NO_CONTEXT, context_attrs.data());
+			this->egl_context =
+				eglCreateContext(this->display.get().egl_display(), egl_config, EGL_NO_CONTEXT, context_attrs.data());
 			if (this->egl_context == EGL_NO_CONTEXT) {
 				throw std::runtime_error("eglCreateContext() failed");
 			}
 		}
 
-		if (eglMakeCurrent(this->display.get().egl_display(), this->egl_surface, this->egl_surface, this->egl_context) == EGL_FALSE) {
+		if (eglMakeCurrent(
+				this->display.get().egl_display(),
+				this->egl_surface,
+				this->egl_surface,
+				this->egl_context
+			) == EGL_FALSE)
+		{
 			eglDestroyContext(this->display.get().egl_display(), this->egl_context);
 			throw std::runtime_error("eglMakeCurrent() failed");
 		}

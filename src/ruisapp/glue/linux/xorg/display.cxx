@@ -2,17 +2,19 @@
 namespace {
 class display_wrapper
 {
-	struct xorg_display_wrapper{
+	struct xorg_display_wrapper {
 		Display* display;
 
-		xorg_display_wrapper(){
+		xorg_display_wrapper()
+		{
 			this->display = XOpenDisplay(nullptr);
 			if (!this->display) {
 				throw std::runtime_error("XOpenDisplay() failed");
 			}
 		}
 
-		~xorg_display_wrapper(){
+		~xorg_display_wrapper()
+		{
 			XCloseDisplay(this->display);
 		}
 
@@ -21,7 +23,8 @@ class display_wrapper
 			XFlush(this->display);
 		}
 
-		Window& get_default_root_window(){
+		Window& get_default_root_window()
+		{
 			return DefaultRootWindow(this->display);
 		}
 	} xorg_display_v;
@@ -49,21 +52,24 @@ class display_wrapper
 	} input_method_v;
 
 #if defined(RUISAPP_RENDER_OPENGLES)
-	struct egl_display_wrapper{
+	struct egl_display_wrapper {
 		EGLDisplay egl_display;
 
-		egl_display_wrapper(){
+		egl_display_wrapper()
+		{
 			this->egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 			if (this->egl_display == EGL_NO_DISPLAY) {
 				throw std::runtime_error("eglGetDisplay(): failed, no matching display connection found");
 			}
 		}
 
-		~egl_display_wrapper(){
+		~egl_display_wrapper()
+		{
 			eglTerminate(this->egl_display);
 		}
 
-		void init(){
+		void init()
+		{
 			if (eglInitialize(this->egl_display, nullptr, nullptr) == EGL_FALSE) {
 				throw std::runtime_error("eglInitialize() failed");
 			}
@@ -80,7 +86,7 @@ public:
 
 	display_wrapper() :
 		input_method_v(this->display()),
-		scale_factor([](){
+		scale_factor([]() {
 			// get scale factor
 			gdk_init(nullptr, nullptr);
 
@@ -105,7 +111,28 @@ public:
 			return scale_factor;
 		}())
 	{
-#if defined(RUISAPP_RENDER_OPENGLES)
+#if defined(RUISAPP_RENDER_OPENGL)
+		{
+			int glx_ver_major = 0;
+			int glx_ver_minor = 0;
+			if (!glXQueryVersion(
+					this->display(), //
+					&glx_ver_major,
+					&glx_ver_minor
+				))
+			{
+				throw std::runtime_error("glXQueryVersion() failed");
+			}
+
+			// we need the following:
+			// - glXQueryExtensionsString(), availabale starting from GLX version 1.1
+			// - FBConfigs, availabale starting from GLX version 1.3
+			// minimum GLX version needed is 1.3
+			if (glx_ver_major < 1 || (glx_ver_major == 1 && glx_ver_minor < 3)) {
+				throw std::runtime_error("GLX version 1.3 or above is required");
+			}
+		}
+#elif defined(RUISAPP_RENDER_OPENGLES)
 		this->egl_display_v.init();
 #endif
 	}
@@ -127,7 +154,8 @@ public:
 	}
 
 #if defined(RUISAPP_RENDER_OPENGLES)
-	EGLDisplay& egl_display(){
+	EGLDisplay& egl_display()
+	{
 		return this->egl_display_v.egl_display;
 	}
 #endif
@@ -137,8 +165,9 @@ public:
 		this->xorg_display_v.flush();
 	}
 
-    Window& get_default_root_window(){
-        return this->xorg_display_v.get_default_root_window();
-    }
+	Window& get_default_root_window()
+	{
+		return this->xorg_display_v.get_default_root_window();
+	}
 };
 } // namespace
