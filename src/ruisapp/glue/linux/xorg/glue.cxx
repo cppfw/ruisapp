@@ -216,54 +216,10 @@ struct window_wrapper : public utki::destructable {
 			window_params //
 		)
 	{
-		XVisualInfo* visual_info = nullptr;
-#ifdef RUISAPP_RENDER_OPENGL
-		visual_info = glXGetVisualFromFBConfig(
-			this->display.get().xorg_display.display, //
-			this->win.fb_config()
-		);
-		if (!visual_info) {
-			throw std::runtime_error("glXGetVisualFromFBConfig() failed");
-		}
-#elif defined(RUISAPP_RENDER_OPENGLES)
-		{
-			EGLint vid = 0;
-
-			if (!eglGetConfigAttrib(
-					this->display.get().egl_display.display, //
-					this->win.egl_config(),
-					EGL_NATIVE_VISUAL_ID,
-					&vid
-				))
-			{
-				throw std::runtime_error("eglGetConfigAttrib() failed");
-			}
-
-			int num_visuals = 0;
-			XVisualInfo vis_template;
-			vis_template.visualid = vid;
-			visual_info = XGetVisualInfo(
-				this->display.get().xorg_display.display, //
-				VisualIDMask,
-				&vis_template,
-				&num_visuals
-			);
-			if (!visual_info) {
-				throw std::runtime_error("XGetVisualInfo() failed");
-			}
-		}
-#else
-#	error "Unknown graphics API"
-#endif
-		utki::scope_exit scope_exit_visual_info([visual_info]() {
-			XFree(visual_info);
-		});
-
 		this->color_map = XCreateColormap(
 			this->display.get().xorg_display.display,
-			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			RootWindow(this->display.get().xorg_display.display, visual_info->screen),
-			visual_info->visual,
+			this->display.get().xorg_display.get_root_window(this->win.visual_info()->screen),
+			this->win.visual_info()->visual,
 			AllocNone
 		);
 		if (this->color_map == None) {
@@ -287,16 +243,15 @@ struct window_wrapper : public utki::destructable {
 
 			this->window = XCreateWindow(
 				this->display.get().xorg_display.display,
-				// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast,cppcoreguidelines-pro-bounds-pointer-arithmetic)
-				RootWindow(this->display.get().xorg_display.display, visual_info->screen), // parent window
+				this->display.get().xorg_display.get_root_window(this->win.visual_info()->screen), // parent window
 				0, // x position
 				0, // y position
 				dims.x(), // width
 				dims.y(), // height
 				0, // border width
-				visual_info->depth, // window's depth
+				this->win.visual_info()->depth, // window's depth
 				InputOutput, // window's class
-				visual_info->visual,
+				this->win.visual_info()->visual,
 				fields, // defined attributes
 				&attr
 			);
@@ -333,18 +288,29 @@ struct window_wrapper : public utki::destructable {
 		// SOURCE:
 		// https://dri.freedesktop.org/wiki/glXGetProcAddressNeverReturnsNULL/
 
-		auto glx_extensions_string =
-			std::string_view(glXQueryExtensionsString(this->display.get().xorg_display.display, visual_info->screen));
+		auto glx_extensions_string = std::string_view(glXQueryExtensionsString(
+			this->display.get().xorg_display.display, //
+			this->win.visual_info()->screen
+		));
 		utki::log_debug([&](auto& o) {
 			o << "glx_extensions_string = " << glx_extensions_string << std::endl;
 		});
 
 		auto glx_extensions = utki::split(glx_extensions_string);
 
-		if (std::find(glx_extensions.begin(), glx_extensions.end(), "GLX_ARB_create_context") == glx_extensions.end()) {
+		if (std::find(
+				glx_extensions.begin(), //
+				glx_extensions.end(),
+				"GLX_ARB_create_context"
+			) == glx_extensions.end())
+		{
 			// GLX_ARB_create_context is not supported
-			this->gl_context =
-				glXCreateContext(this->display.get().xorg_display.display, visual_info, nullptr, GL_TRUE);
+			this->gl_context = glXCreateContext(
+				this->display.get().xorg_display.display, //
+				this->win.visual_info(),
+				nullptr,
+				GL_TRUE
+			);
 		} else {
 			// GLX_ARB_create_context is supported
 
@@ -392,7 +358,7 @@ struct window_wrapper : public utki::destructable {
 
 			this->gl_context = glx_create_context_attribs_arb(
 				this->display.get().xorg_display.display,
-				this->win.fb_config(),
+				this->win.xorg_fb_config(),
 				nullptr,
 				GL_TRUE,
 				context_attribs.data()

@@ -31,6 +31,16 @@ public:
 			return DefaultRootWindow(this->display);
 		}
 
+		Window& get_root_window(int screen)
+		{
+			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
+
+			return RootWindow(
+				this->display, //
+				screen
+			);
+		}
+
 		int get_default_screen()
 		{
 			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, "the cast is inside of xlib macro")

@@ -5,11 +5,12 @@ class xorg_window_wrapper : public ruisapp::window
 	utki::shared_ref<display_wrapper> display;
 
 #ifdef RUISAPP_RENDER_OPENGL
-	struct xorg_fb_config_wrapper {
+	struct fb_config_wrapper {
 		GLXFBConfig config;
 
-		xorg_fb_config_wrapper(
+		fb_config_wrapper(
 			display_wrapper& display, //
+			const utki::version_duplet& gl_version,
 			const ruisapp::window_parameters& window_params
 		) :
 			config([&]() {
@@ -114,13 +115,13 @@ class xorg_window_wrapper : public ruisapp::window
 		{}
 
 		// no need to free fb config
-		~xorg_fb_config_wrapper() = default;
-	} xorg_fb_config;
+		~fb_config_wrapper() = default;
+	} fb_config;
 #elif defined(RUISAPP_RENDER_OPENGLES)
-	struct egl_config_wrapper {
+	struct fb_config_wrapper {
 		EGLConfig config;
 
-		egl_config_wrapper(
+		fb_config_wrapper(
 			display_wrapper& display,
 			const utki::version_duplet& gl_version,
 			const ruisapp::window_parameters& window_params
@@ -180,9 +181,64 @@ class xorg_window_wrapper : public ruisapp::window
 		{}
 
 		// no need to free the egl config
-		~egl_config_wrapper() = default;
-	} egl_config_v;
+		~fb_config_wrapper() = default;
+	} fb_config;
 #endif
+
+	struct xorg_visual_info_wrapper {
+		XVisualInfo* const visual_info;
+
+		xorg_visual_info_wrapper(
+			display_wrapper& display,
+			fb_config_wrapper& fb_config
+		) :
+			visual_info([&]() {
+#ifdef RUISAPP_RENDER_OPENGL
+				auto visual_info = glXGetVisualFromFBConfig(
+					display.xorg_display.display, //
+					fb_config.config
+				);
+				if (!visual_info) {
+					throw std::runtime_error("glXGetVisualFromFBConfig() failed");
+				}
+				return visual_info;
+#elif defined(RUISAPP_RENDER_OPENGLES)
+				EGLint vid = 0;
+
+				if (!eglGetConfigAttrib(
+						display.egl_display.display, //
+						fb_config.config,
+						EGL_NATIVE_VISUAL_ID,
+						&vid
+					))
+				{
+					throw std::runtime_error("eglGetConfigAttrib() failed");
+				}
+
+				int num_visuals = 0;
+				XVisualInfo vis_template;
+				vis_template.visualid = vid;
+				auto visual_info = XGetVisualInfo(
+					display.xorg_display.display, //
+					VisualIDMask,
+					&vis_template,
+					&num_visuals
+				);
+				if (!visual_info) {
+					throw std::runtime_error("XGetVisualInfo() failed");
+				}
+				return visual_info;
+#else
+#	error "Unknown graphics API"
+#endif
+			}())
+		{}
+
+		~xorg_visual_info_wrapper()
+		{
+			XFree(this->visual_info);
+		}
+	} xorg_visual_info;
 
 	Colormap color_map;
 	::Window window;
@@ -196,32 +252,33 @@ public:
 		const ruisapp::window_parameters& window_params
 	) :
 		display(std::move(display)),
-#ifdef RUISAPP_RENDER_OPENGL
-		xorg_fb_config(
-			this->display, //
-			window_params
-		)
-#elif defined(RUISAPP_RENDER_OPENGLES)
-		egl_config_v(
+		fb_config(
 			this->display, //
 			gl_version,
 			window_params
+		),
+		xorg_visual_info(
+			this->display, //
+			fb_config
 		)
-#endif
 	{}
 
 	// TODO: remove
 #ifdef RUISAPP_RENDER_OPENGL
-	GLXFBConfig& fb_config()
+	GLXFBConfig& xorg_fb_config()
 	{
-		return this->xorg_fb_config.config;
+		return this->fb_config.config;
 	}
 #elif defined(RUISAPP_RENDER_OPENGLES)
 	EGLConfig& egl_config()
 	{
-		return this->egl_config_v.config;
+		return this->fb_config.config;
 	}
 #endif
+	XVisualInfo* visual_info()
+	{
+		return this->xorg_visual_info.visual_info;
+	}
 };
 
 } // namespace
