@@ -346,7 +346,7 @@ struct window_wrapper : public utki::destructable {
 		}
 		ASSERT(best_fb_config)
 #elif defined(RUISAPP_RENDER_OPENGLES)
-		auto graphics_api_version = [&ver = wp.graphics_api_version]() {
+		auto graphics_api_version = [&ver = gl_version]() {
 			if (ver.to_uint32_t() == 0) {
 				// default OpenGL ES version is 2.0
 				return utki::version_duplet{
@@ -383,7 +383,7 @@ struct window_wrapper : public utki::destructable {
 				// We cannot set bits for all OpenGL ES versions because on platforms which do not
 				// support later versions the matching config will not be found by eglChooseConfig().
 				// So, set bits according to requested OpenGL ES version.
-				[&ver = wp.graphics_api_version]() {
+				[&ver = gl_version]() {
 					EGLint ret = EGL_OPENGL_ES2_BIT; // OpenGL ES 2 is the minimum
 					if (ver.major >= 3) {
 						ret |= EGL_OPENGL_ES3_BIT;
@@ -397,9 +397,9 @@ struct window_wrapper : public utki::destructable {
 				EGL_RED_SIZE,
 				8,
 				EGL_DEPTH_SIZE,
-				wp.buffers.get(ruisapp::buffer::depth) ? int(utki::byte_bits * sizeof(uint16_t)) : 0,
+				window_params.buffers.get(ruisapp::buffer::depth) ? int(utki::byte_bits * sizeof(uint16_t)) : 0,
 				EGL_STENCIL_SIZE,
-				wp.buffers.get(ruisapp::buffer::stencil) ? utki::byte_bits : 0,
+				window_params.buffers.get(ruisapp::buffer::stencil) ? utki::byte_bits : 0,
 				EGL_NONE
 			};
 
@@ -452,7 +452,7 @@ struct window_wrapper : public utki::destructable {
 			int num_visuals = 0;
 			XVisualInfo vis_template;
 			vis_template.visualid = vid;
-			visual_info = XGetVisualInfo(this->display.display, VisualIDMask, &vis_template, &num_visuals);
+			visual_info = XGetVisualInfo(this->display.get().display(), VisualIDMask, &vis_template, &num_visuals);
 			if (!visual_info) {
 				throw std::runtime_error("XGetVisualInfo() failed");
 			}
