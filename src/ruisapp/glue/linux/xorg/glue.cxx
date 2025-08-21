@@ -89,8 +89,6 @@ struct window_wrapper : public utki::destructable {
 	Colormap color_map;
 	::Window window;
 
-	ruis::real scale_factor = 1;
-
 #ifdef RUISAPP_RENDER_OPENGL
 	GLXContext gl_context;
 #elif defined(RUISAPP_RENDER_OPENGLES)
@@ -198,30 +196,6 @@ struct window_wrapper : public utki::destructable {
 		display(utki::make_shared<xorg_display_wrapper>()),
 		win(this->display)
 	{
-		// set scale factor
-		{
-			gdk_init(nullptr, nullptr);
-
-			// GDK-4 version commented out because GDK-4 is not available in Debian 11
-
-			// auto display_name = DisplayString(ww.display.display);
-			// std::cout << "display name = " << display_name << std::endl;
-			// auto disp = gdk_display_open(display_name);
-			// utki::assert(disp, SL);
-			// std::cout << "gdk display name = " << gdk_display_get_name(disp) << std::endl;
-			// auto surf = gdk_surface_new_toplevel (disp);
-			// utki::assert(surf, SL);
-			// auto mon = gdk_display_get_monitor_at_surface (disp, surf);
-			// utki::assert(mon, SL);
-			// int sf = gdk_monitor_get_scale_factor(mon);
-
-			// GDK-3 version
-			int sf = gdk_window_get_scale_factor(gdk_get_default_root_window());
-			this->scale_factor = ruis::real(sf);
-
-			std::cout << "display scale factor = " << this->scale_factor << std::endl;
-		}
-
 #ifdef RUISAPP_RENDER_OPENGL
 		{
 			int glx_ver_major = 0;
@@ -442,7 +416,9 @@ struct window_wrapper : public utki::destructable {
 				PointerMotionMask | ButtonMotionMask | StructureNotifyMask | EnterWindowMask | LeaveWindowMask;
 			unsigned long fields = CWBorderPixel | CWColormap | CWEventMask; // TODO: add CWBackPixmap?
 
-			auto dims = (this->scale_factor * window_params.dims.to<ruis::real>()).to<unsigned>();
+			auto& glue = get_glue(ruisapp::inst());
+
+			auto dims = (glue.scale_factor * window_params.dims.to<ruis::real>()).to<unsigned>();
 
 			this->window = XCreateWindow(
 				this->display.get().display(),
@@ -771,9 +747,11 @@ struct window_wrapper : public utki::destructable {
 
 	ruis::real get_dots_per_pp()
 	{
+		auto& glue = get_glue(ruisapp::inst());
+
 		// TODO: use scale factor only for desktop monitors
-		if (this->scale_factor != ruis::real(1)) {
-			return this->scale_factor;
+		if (glue.scale_factor != ruis::real(1)) {
+			return glue.scale_factor;
 		}
 
 		int src_num = 0;
