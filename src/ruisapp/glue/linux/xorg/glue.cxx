@@ -55,6 +55,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../../friend_accessors.cxx" // NOLINT(bugprone-suspicious-include)
 #include "../../unix_common.cxx" // NOLINT(bugprone-suspicious-include)
 
+#include "application.cxx"
 #include "display.cxx" // NOLINT(bugprone-suspicious-include)
 
 using namespace std::string_view_literals;
@@ -192,12 +193,10 @@ struct window_wrapper : public utki::destructable {
 	XIM input_method;
 	XIC input_context;
 
-	nitki::queue ui_queue;
-
-	std::atomic_bool quit_flag = false;
-
-	// TODO: should be no app params, but window params and GL api version
-	window_wrapper(const utki::version_duplet& gl_version, const ruisapp::window_parameters& window_params)
+	window_wrapper(
+		const utki::version_duplet& gl_version, //
+		const ruisapp::window_parameters& window_params
+	)
 	{
 		// set scale factor
 		{
@@ -513,7 +512,7 @@ struct window_wrapper : public utki::destructable {
 
 		XMapWindow(this->display.display(), this->window);
 
-		XFlush(this->display.display());
+		this->display.flush();
 
 		// set window title
 		XStoreName(
@@ -899,7 +898,16 @@ window_wrapper& get_impl(application& app)
 } // namespace
 
 application::application(application::parameters params) :
+	application(std::move(params), utki::make_unique<application::platform_glue>())
+{}
+
+application::application(
+	parameters params, //
+	utki::unique_ref<platform_glue> glue_object
+) :
 	name(std::move(params.name)),
+	glue(glue_object.get()),
+	glue_object(std::move(glue_object)),
 	window_pimpl(std::make_unique<window_wrapper>(
 		params.graphics_api_version, //
 		// TODO: check that there is at least 1 window
@@ -923,7 +931,7 @@ application::application(application::parameters params) :
 		ruis::context::parameters{
 			.post_to_ui_thread_function =
 				[this](std::function<void()> proc) {
-					get_impl(get_window_pimpl(*this)).ui_queue.push_back(std::move(proc));
+					this->glue.ui_queue.push_back(std::move(proc));
 				},
 			.set_mouse_cursor_function =
 				[this](ruis::mouse_cursor cursor) {
@@ -1311,9 +1319,7 @@ public:
 
 void application::quit() noexcept
 {
-	auto& ww = get_impl(this->window_pimpl);
-
-	ww.quit_flag.store(true);
+	this->glue.quit_flag.store(true);
 }
 
 int main(int argc, const char** argv)
@@ -1323,8 +1329,9 @@ int main(int argc, const char** argv)
 		// Not an error. The app just did not show any GUI to the user.
 		return 0;
 	}
+	utki::assert(app, SL);
 
-	ASSERT(app)
+	auto& glue = get_glue(*app);
 
 	auto& ww = get_impl(get_window_pimpl(*app));
 
@@ -1333,14 +1340,21 @@ int main(int argc, const char** argv)
 	opros::wait_set wait_set(2);
 
 	wait_set.add(xew, {opros::ready::read}, &xew);
-	wait_set.add(ww.ui_queue, {opros::ready::read}, &ww.ui_queue);
+	utki::scope_exit xew_wait_set_scope_exit([&]() {
+		wait_set.remove(xew);
+	});
+
+	wait_set.add(glue.ui_queue, {opros::ready::read}, &glue.ui_queue);
+	utki::scope_exit ui_queue_wait_set_scope_exit([&]() {
+		wait_set.remove(glue.ui_queue);
+	});
 
 	// Sometimes the first Expose event does not come for some reason. It happens
 	// constantly in some systems and never happens on all the others. So, render
 	// everything for the first time.
 	render(*app);
 
-	while (!ww.quit_flag.load()) {
+	while (!glue.quit_flag.load()) {
 		// sequence:
 		// - update updateables
 		// - render
@@ -1354,13 +1368,13 @@ int main(int argc, const char** argv)
 		bool ui_queue_ready_to_read = false;
 
 		for (auto& ei : triggered_events) {
-			if (ei.user_data == &ww.ui_queue) {
+			if (ei.user_data == &glue.ui_queue) {
 				ui_queue_ready_to_read = true;
 			}
 		}
 
 		if (ui_queue_ready_to_read) {
-			while (auto m = ww.ui_queue.pop_front()) {
+			while (auto m = glue.ui_queue.pop_front()) {
 				utki::log_debug([](auto& o) {
 					o << "loop message" << std::endl;
 				});
@@ -1476,7 +1490,7 @@ int main(int argc, const char** argv)
 						// NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
 						char* name = XGetAtomName(ww.display.display(), event.xclient.message_type);
 						if ("WM_PROTOCOLS"sv == name) {
-							ww.quit_flag.store(true);
+							glue.quit_flag.store(true);
 						}
 						XFree(name);
 					}
@@ -1500,9 +1514,6 @@ int main(int argc, const char** argv)
 			update_window_rect(*app, ruis::rect(0, new_win_dims));
 		}
 	}
-
-	wait_set.remove(ww.ui_queue);
-	wait_set.remove(xew);
 
 	return 0;
 }
@@ -1554,7 +1565,7 @@ void application::set_fullscreen(bool enable)
 		&event
 	);
 
-	XFlush(ww.display.display());
+	ww.display.flush();
 
 	this->is_fullscreen_v = enable;
 }

@@ -26,6 +26,11 @@ public:
 		return this->display_v;
 	}
 
+	void flush()
+	{
+		XFlush(this->display_v);
+	}
+
 	~xorg_display_wrapper()
 	{
 		XCloseDisplay(this->display_v);

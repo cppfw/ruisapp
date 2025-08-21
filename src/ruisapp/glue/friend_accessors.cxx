@@ -21,6 +21,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 namespace ruisapp {
 
+application::platform_glue& get_glue(application& app)
+{
+	return app.glue;
+}
+
 const decltype(application::window_pimpl)& get_window_pimpl(application& app)
 {
 	return app.window_pimpl;
