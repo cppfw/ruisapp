@@ -190,7 +190,6 @@ struct window_wrapper : public utki::destructable {
 		}
 	}
 
-	XIM input_method;
 	XIC input_context;
 
 	window_wrapper(
@@ -762,17 +761,9 @@ struct window_wrapper : public utki::destructable {
 
 		// initialize input method
 
-		this->input_method = XOpenIM(this->display.display(), nullptr, nullptr, nullptr);
-		if (this->input_method == nullptr) {
-			throw std::runtime_error("XOpenIM() failed");
-		}
-		utki::scope_exit scope_exit_input_method([this]() {
-			XCloseIM(this->input_method);
-		});
-
 		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
 		this->input_context = XCreateIC(
-			this->input_method,
+			this->display.input_method(),
 			XNClientWindow,
 			this->window,
 			XNFocusWindow,
@@ -790,7 +781,6 @@ struct window_wrapper : public utki::destructable {
 		});
 
 		scope_exit_input_context.release();
-		scope_exit_input_method.release();
 		scope_exit_window.release();
 		scope_exit_color_map.release();
 #ifdef RUISAPP_RENDER_OPENGL
@@ -814,8 +804,6 @@ struct window_wrapper : public utki::destructable {
 	{
 		XUnsetICFocus(this->input_context);
 		XDestroyIC(this->input_context);
-
-		XCloseIM(this->input_method);
 
 #ifdef RUISAPP_RENDER_OPENGL
 		glXMakeCurrent(this->display.display(), None, nullptr);
