@@ -6,13 +6,13 @@ class xorg_window_wrapper : public ruisapp::window
 
 #ifdef RUISAPP_RENDER_OPENGL
 	struct xorg_fb_config_wrapper {
-		GLXFBConfig fb_config;
+		GLXFBConfig config;
 
 		xorg_fb_config_wrapper(
 			display_wrapper& display, //
 			const ruisapp::window_parameters& window_params
 		) :
-			fb_config([&]() {
+			config([&]() {
 				GLXFBConfig best_fb_config = nullptr;
 				std::vector<int> visual_attribs;
 				visual_attribs.push_back(GLX_X_RENDERABLE);
@@ -116,6 +116,72 @@ class xorg_window_wrapper : public ruisapp::window
 		// no need to free fb config
 		~xorg_fb_config_wrapper() = default;
 	} xorg_fb_config;
+#elif defined(RUISAPP_RENDER_OPENGLES)
+	struct egl_config_wrapper {
+		EGLConfig config;
+
+		egl_config_wrapper(
+			display_wrapper& display,
+			const utki::version_duplet& gl_version,
+			const ruisapp::window_parameters& window_params
+		) :
+			config([&]() {
+				EGLConfig egl_config = nullptr;
+
+				// Here specify the attributes of the desired configuration.
+				// Below, we select an EGLConfig with at least 8 bits per color
+				// component compatible with on-screen windows.
+				const std::array<EGLint, 15> attribs = {
+					EGL_SURFACE_TYPE,
+					EGL_WINDOW_BIT,
+					EGL_RENDERABLE_TYPE,
+					// We cannot set bits for all OpenGL ES versions because on platforms which do not
+					// support later versions the matching config will not be found by eglChooseConfig().
+					// So, set bits according to requested OpenGL ES version.
+					[&ver = gl_version]() {
+						EGLint ret = EGL_OPENGL_ES2_BIT; // OpenGL ES 2 is the minimum
+						if (ver.major >= 3) {
+							ret |= EGL_OPENGL_ES3_BIT;
+						}
+						return ret;
+					}(),
+					EGL_BLUE_SIZE,
+					8,
+					EGL_GREEN_SIZE,
+					8,
+					EGL_RED_SIZE,
+					8,
+					EGL_DEPTH_SIZE,
+					window_params.buffers.get(ruisapp::buffer::depth) ? int(utki::byte_bits * sizeof(uint16_t)) : 0,
+					EGL_STENCIL_SIZE,
+					window_params.buffers.get(ruisapp::buffer::stencil) ? utki::byte_bits : 0,
+					EGL_NONE
+				};
+
+				// Here, the application chooses the configuration it desires. In this
+				// sample, we have a very simplified selection process, where we pick
+				// the first EGLConfig that matches our criteria.
+				EGLint num_configs = 0;
+				eglChooseConfig(
+					display.egl_display.display, //
+					attribs.data(),
+					&egl_config,
+					1,
+					&num_configs
+				);
+				if (num_configs <= 0) {
+					throw std::runtime_error("eglChooseConfig() failed, no matching config found");
+				}
+
+				utki::assert(egl_config, SL);
+
+				return egl_config;
+			}())
+		{}
+
+		// no need to free the egl config
+		~egl_config_wrapper() = default;
+	} egl_config_v;
 #endif
 
 	Colormap color_map;
@@ -126,13 +192,19 @@ class xorg_window_wrapper : public ruisapp::window
 public:
 	xorg_window_wrapper(
 		utki::shared_ref<display_wrapper> display, //
+		const utki::version_duplet& gl_version,
 		const ruisapp::window_parameters& window_params
 	) :
-		display(std::move(display))
+		display(std::move(display)),
 #ifdef RUISAPP_RENDER_OPENGL
-		,
 		xorg_fb_config(
 			this->display, //
+			window_params
+		)
+#elif defined(RUISAPP_RENDER_OPENGLES)
+		egl_config_v(
+			this->display, //
+			gl_version,
 			window_params
 		)
 #endif
@@ -142,7 +214,12 @@ public:
 #ifdef RUISAPP_RENDER_OPENGL
 	GLXFBConfig& fb_config()
 	{
-		return this->xorg_fb_config.fb_config;
+		return this->xorg_fb_config.config;
+	}
+#elif defined(RUISAPP_RENDER_OPENGLES)
+	EGLConfig& egl_config()
+	{
+		return this->egl_config_v.config;
 	}
 #endif
 };

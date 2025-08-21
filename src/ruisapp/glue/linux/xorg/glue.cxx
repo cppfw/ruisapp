@@ -212,56 +212,10 @@ struct window_wrapper : public utki::destructable {
 	) :
 		display(utki::make_shared<display_wrapper>()),
 		win(this->display,
+			gl_version,
 			window_params //
 		)
 	{
-#ifdef RUISAPP_RENDER_OPENGL
-#elif defined(RUISAPP_RENDER_OPENGLES)
-		EGLConfig egl_config = nullptr;
-		{
-			// Here specify the attributes of the desired configuration.
-			// Below, we select an EGLConfig with at least 8 bits per color
-			// component compatible with on-screen windows.
-			const std::array<EGLint, 15> attribs = {
-				EGL_SURFACE_TYPE,
-				EGL_WINDOW_BIT,
-				EGL_RENDERABLE_TYPE,
-				// We cannot set bits for all OpenGL ES versions because on platforms which do not
-				// support later versions the matching config will not be found by eglChooseConfig().
-				// So, set bits according to requested OpenGL ES version.
-				[&ver = gl_version]() {
-					EGLint ret = EGL_OPENGL_ES2_BIT; // OpenGL ES 2 is the minimum
-					if (ver.major >= 3) {
-						ret |= EGL_OPENGL_ES3_BIT;
-					}
-					return ret;
-				}(),
-				EGL_BLUE_SIZE,
-				8,
-				EGL_GREEN_SIZE,
-				8,
-				EGL_RED_SIZE,
-				8,
-				EGL_DEPTH_SIZE,
-				window_params.buffers.get(ruisapp::buffer::depth) ? int(utki::byte_bits * sizeof(uint16_t)) : 0,
-				EGL_STENCIL_SIZE,
-				window_params.buffers.get(ruisapp::buffer::stencil) ? utki::byte_bits : 0,
-				EGL_NONE
-			};
-
-			// Here, the application chooses the configuration it desires. In this
-			// sample, we have a very simplified selection process, where we pick
-			// the first EGLConfig that matches our criteria.
-			EGLint num_configs = 0;
-			eglChooseConfig(this->display.get().egl_display(), attribs.data(), &egl_config, 1, &num_configs);
-			if (num_configs <= 0) {
-				throw std::runtime_error("eglChooseConfig() failed, no matching config found");
-			}
-		}
-#else
-#	error "Unknown graphics API"
-#endif
-
 		XVisualInfo* visual_info = nullptr;
 #ifdef RUISAPP_RENDER_OPENGL
 		visual_info = glXGetVisualFromFBConfig(
@@ -275,14 +229,25 @@ struct window_wrapper : public utki::destructable {
 		{
 			EGLint vid = 0;
 
-			if (!eglGetConfigAttrib(this->display.get().egl_display(), egl_config, EGL_NATIVE_VISUAL_ID, &vid)) {
+			if (!eglGetConfigAttrib(
+					this->display.get().egl_display.display, //
+					this->win.egl_config(),
+					EGL_NATIVE_VISUAL_ID,
+					&vid
+				))
+			{
 				throw std::runtime_error("eglGetConfigAttrib() failed");
 			}
 
 			int num_visuals = 0;
 			XVisualInfo vis_template;
 			vis_template.visualid = vid;
-			visual_info = XGetVisualInfo(this->display.get().xorg_display.display, VisualIDMask, &vis_template, &num_visuals);
+			visual_info = XGetVisualInfo(
+				this->display.get().xorg_display.display, //
+				VisualIDMask,
+				&vis_template,
+				&num_visuals
+			);
 			if (!visual_info) {
 				throw std::runtime_error("XGetVisualInfo() failed");
 			}
@@ -378,7 +343,8 @@ struct window_wrapper : public utki::destructable {
 
 		if (std::find(glx_extensions.begin(), glx_extensions.end(), "GLX_ARB_create_context") == glx_extensions.end()) {
 			// GLX_ARB_create_context is not supported
-			this->gl_context = glXCreateContext(this->display.get().xorg_display.display, visual_info, nullptr, GL_TRUE);
+			this->gl_context =
+				glXCreateContext(this->display.get().xorg_display.display, visual_info, nullptr, GL_TRUE);
 		} else {
 			// GLX_ARB_create_context is supported
 
@@ -501,13 +467,20 @@ struct window_wrapper : public utki::destructable {
 			throw std::runtime_error("GLEW initialization failed");
 		}
 #elif defined(RUISAPP_RENDER_OPENGLES)
-		this->egl_surface =
-			eglCreateWindowSurface(this->display.get().egl_display(), egl_config, this->window, nullptr);
+		this->egl_surface = eglCreateWindowSurface(
+			this->display.get().egl_display.display, //
+			this->win.egl_config(),
+			this->window,
+			nullptr
+		);
 		if (this->egl_surface == EGL_NO_SURFACE) {
 			throw std::runtime_error("eglCreateWindowSurface() failed");
 		}
 		utki::scope_exit scope_exit_egl_surface([this]() {
-			eglDestroySurface(this->display.get().egl_display(), this->egl_surface);
+			eglDestroySurface(
+				this->display.get().egl_display.display, //
+				this->egl_surface
+			);
 		});
 
 		{
@@ -531,30 +504,45 @@ struct window_wrapper : public utki::destructable {
 				EGL_NONE
 			};
 
-			this->egl_context =
-				eglCreateContext(this->display.get().egl_display(), egl_config, EGL_NO_CONTEXT, context_attrs.data());
+			this->egl_context = eglCreateContext(
+				this->display.get().egl_display.display, //
+				this->win.egl_config(),
+				EGL_NO_CONTEXT,
+				context_attrs.data()
+			);
 			if (this->egl_context == EGL_NO_CONTEXT) {
 				throw std::runtime_error("eglCreateContext() failed");
 			}
 		}
 
 		if (eglMakeCurrent(
-				this->display.get().egl_display(),
+				this->display.get().egl_display.display,
 				this->egl_surface,
 				this->egl_surface,
 				this->egl_context
 			) == EGL_FALSE)
 		{
-			eglDestroyContext(this->display.get().egl_display(), this->egl_context);
+			eglDestroyContext(
+				this->display.get().egl_display.display, //
+				this->egl_context
+			);
 			throw std::runtime_error("eglMakeCurrent() failed");
 		}
 		utki::scope_exit scope_exit_egl_context([this]() {
-			eglMakeCurrent(this->display.get().egl_display(), EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-			eglDestroyContext(this->display.get().egl_display(), this->egl_context);
+			eglMakeCurrent(
+				this->display.get().egl_display.display, //
+				EGL_NO_SURFACE,
+				EGL_NO_SURFACE,
+				EGL_NO_CONTEXT
+			);
+			eglDestroyContext(
+				this->display.get().egl_display.display, //
+				this->egl_context
+			);
 		});
 
 		// disable v-sync
-		if (eglSwapInterval(this->display.get().egl_display(), 0) != EGL_TRUE) {
+		if (eglSwapInterval(this->display.get().egl_display.display, 0) != EGL_TRUE) {
 			throw std::runtime_error("eglSwapInterval() failed");
 		}
 #else
@@ -610,18 +598,35 @@ struct window_wrapper : public utki::destructable {
 		glXMakeCurrent(this->display.get().xorg_display.display, None, nullptr);
 		glXDestroyContext(this->display.get().xorg_display.display, this->gl_context);
 #elif defined(RUISAPP_RENDER_OPENGLES)
-		eglMakeCurrent(this->display.get().egl_display(), EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-		eglDestroyContext(this->display.get().egl_display(), this->egl_context);
-		eglDestroySurface(this->display.get().egl_display(), this->egl_surface);
+		eglMakeCurrent(
+			this->display.get().egl_display.display, //
+			EGL_NO_SURFACE,
+			EGL_NO_SURFACE,
+			EGL_NO_CONTEXT
+		);
+		eglDestroyContext(
+			this->display.get().egl_display.display, //
+			this->egl_context
+		);
+		eglDestroySurface(
+			this->display.get().egl_display.display, //
+			this->egl_surface
+		);
 #else
 #	error "Unknown graphics API"
 #endif
 
-		XDestroyWindow(this->display.get().xorg_display.display, this->window);
-		XFreeColormap(this->display.get().xorg_display.display, this->color_map);
+		XDestroyWindow(
+			this->display.get().xorg_display.display, //
+			this->window
+		);
+		XFreeColormap(
+			this->display.get().xorg_display.display, //
+			this->color_map
+		);
 
 #ifdef RUISAPP_RENDER_OPENGLES
-		eglTerminate(this->display.get().egl_display());
+		eglTerminate(this->display.get().egl_display.display);
 #endif
 	}
 
@@ -641,7 +646,8 @@ struct window_wrapper : public utki::destructable {
 			 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
 			 (ruis::real(DisplayHeight(this->display.get().xorg_display.display, src_num))
 			  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			  / (ruis::real(DisplayHeightMM(this->display.get().xorg_display.display, src_num)) / ruis::real(mm_per_cm)))) /
+			  / (ruis::real(DisplayHeightMM(this->display.get().xorg_display.display, src_num)) / ruis::real(mm_per_cm))
+			 )) /
 			2;
 		value *= ruis::real(utki::cm_per_inch);
 		return value;
@@ -1222,8 +1228,10 @@ int main(int argc, const char** argv)
 								// key wasn't actually released
 								handle_character_input(*app, key_event_unicode_provider(ww.input_context, nev), key);
 
-								XNextEvent(ww.display.get().xorg_display.display,
-										   &nev); // remove the key down event from queue
+								XNextEvent(
+									ww.display.get().xorg_display.display,
+									&nev
+								); // remove the key down event from queue
 								break;
 							}
 						}
@@ -1360,9 +1368,15 @@ void application::swap_frame_buffers()
 	auto& ww = get_impl(this->window_pimpl);
 
 #ifdef RUISAPP_RENDER_OPENGL
-	glXSwapBuffers(ww.display.get().xorg_display.display, ww.window);
+	glXSwapBuffers(
+		ww.display.get().xorg_display.display, //
+		ww.window
+	);
 #elif defined(RUISAPP_RENDER_OPENGLES)
-	eglSwapBuffers(ww.display.get().egl_display(), ww.egl_surface);
+	eglSwapBuffers(
+		ww.display.get().egl_display.display, //
+		ww.egl_surface
+	);
 #else
 #	error "Unknown graphics API"
 #endif

@@ -62,25 +62,34 @@ private:
 	} input_method_v;
 
 #if defined(RUISAPP_RENDER_OPENGLES)
-	struct egl_display_wrapper {
-		EGLDisplay egl_display;
 
-		egl_display_wrapper()
-		{
-			this->egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-			if (this->egl_display == EGL_NO_DISPLAY) {
-				throw std::runtime_error("eglGetDisplay(): failed, no matching display connection found");
-			}
-		}
+public:
+	struct egl_display_wrapper {
+		EGLDisplay display;
+
+		egl_display_wrapper() :
+			display([]() {
+				auto d = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+				if (d == EGL_NO_DISPLAY) {
+					throw std::runtime_error("eglGetDisplay(): failed, no matching display connection found");
+				}
+				return d;
+			}())
+		{}
 
 		~egl_display_wrapper()
 		{
-			eglTerminate(this->egl_display);
+			eglTerminate(this->display);
 		}
 
 		void init()
 		{
-			if (eglInitialize(this->egl_display, nullptr, nullptr) == EGL_FALSE) {
+			if (eglInitialize(
+					this->display, //
+					nullptr,
+					nullptr
+				) == EGL_FALSE)
+			{
 				throw std::runtime_error("eglInitialize() failed");
 			}
 
@@ -88,7 +97,7 @@ private:
 				throw std::runtime_error("eglBindApi() failed");
 			}
 		}
-	} egl_display_v;
+	} egl_display;
 #endif
 
 public:
@@ -143,7 +152,7 @@ public:
 			}
 		}
 #elif defined(RUISAPP_RENDER_OPENGLES)
-		this->egl_display_v.init();
+		this->egl_display.init();
 #endif
 	}
 
@@ -157,12 +166,5 @@ public:
 	{
 		return this->input_method_v.xim;
 	}
-
-#if defined(RUISAPP_RENDER_OPENGLES)
-	EGLDisplay& egl_display()
-	{
-		return this->egl_display_v.egl_display;
-	}
-#endif
 };
 } // namespace
