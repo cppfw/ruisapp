@@ -82,7 +82,7 @@ const std::map<ruis::mouse_cursor, unsigned> x_cursor_map = {
 
 namespace {
 struct window_wrapper : public utki::destructable {
-	utki::shared_ref<xorg_display_wrapper> display;
+	utki::shared_ref<display_wrapper> display;
 
 	xorg_window_wrapper win; // TODO: rename to window
 
@@ -193,7 +193,7 @@ struct window_wrapper : public utki::destructable {
 		const utki::version_duplet& gl_version, //
 		const ruisapp::window_parameters& window_params
 	) :
-		display(utki::make_shared<xorg_display_wrapper>()),
+		display(utki::make_shared<display_wrapper>()),
 		win(this->display)
 	{
 #ifdef RUISAPP_RENDER_OPENGL
@@ -416,9 +416,7 @@ struct window_wrapper : public utki::destructable {
 				PointerMotionMask | ButtonMotionMask | StructureNotifyMask | EnterWindowMask | LeaveWindowMask;
 			unsigned long fields = CWBorderPixel | CWColormap | CWEventMask; // TODO: add CWBackPixmap?
 
-			auto& glue = get_glue(ruisapp::inst());
-
-			auto dims = (glue.scale_factor * window_params.dims.to<ruis::real>()).to<unsigned>();
+			auto dims = (this->display.get().scale_factor * window_params.dims.to<ruis::real>()).to<unsigned>();
 
 			this->window = XCreateWindow(
 				this->display.get().display(),
@@ -747,11 +745,9 @@ struct window_wrapper : public utki::destructable {
 
 	ruis::real get_dots_per_pp()
 	{
-		auto& glue = get_glue(ruisapp::inst());
-
 		// TODO: use scale factor only for desktop monitors
-		if (glue.scale_factor != ruis::real(1)) {
-			return glue.scale_factor;
+		if (auto scale_factor = this->display.get().scale_factor; scale_factor != ruis::real(1)) {
+			return scale_factor;
 		}
 
 		int src_num = 0;
