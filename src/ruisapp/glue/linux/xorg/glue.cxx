@@ -223,17 +223,6 @@ struct window_wrapper : public utki::destructable {
 		}
 
 #ifdef RUISAPP_RENDER_OPENGL
-		auto graphics_api_version = [&ver = gl_version]() {
-			if (ver.to_uint32_t() == 0) {
-				// default OpenGL version is 2.0
-				return utki::version_duplet{
-					.major = 2, //
-					.minor = 0
-				};
-			}
-			return ver;
-		}();
-
 		{
 			int glx_ver_major = 0;
 			int glx_ver_minor = 0;
@@ -337,17 +326,6 @@ struct window_wrapper : public utki::destructable {
 		}
 		ASSERT(best_fb_config)
 #elif defined(RUISAPP_RENDER_OPENGLES)
-		auto graphics_api_version = [&ver = gl_version]() {
-			if (ver.to_uint32_t() == 0) {
-				// default OpenGL ES version is 2.0
-				return utki::version_duplet{
-					.major = 2, //
-					.minor = 0
-				};
-			}
-			return ver;
-		}();
-
 		// NOLINTNEXTLINE(cppcoreguidelines-prefer-member-initializer)
 		this->egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 		if (this->egl_display == EGL_NO_DISPLAY) {
@@ -360,6 +338,10 @@ struct window_wrapper : public utki::destructable {
 
 		if (eglInitialize(this->egl_display, nullptr, nullptr) == EGL_FALSE) {
 			throw std::runtime_error("eglInitialize() failed");
+		}
+
+		if (eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE) {
+			throw std::runtime_error("eglBindApi() failed");
 		}
 
 		EGLConfig egl_config = nullptr;
@@ -402,10 +384,6 @@ struct window_wrapper : public utki::destructable {
 			if (num_configs <= 0) {
 				throw std::runtime_error("eglChooseConfig() failed, no matching config found");
 			}
-		}
-
-		if (eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE) {
-			throw std::runtime_error("eglBindApi() failed");
 		}
 #else
 #	error "Unknown graphics API"
@@ -548,13 +526,22 @@ struct window_wrapper : public utki::destructable {
 				throw std::runtime_error("glXCreateContextAttribsARB() not found");
 			}
 
-			const auto& ver = graphics_api_version;
+			auto graphics_api_version = [&ver = gl_version]() {
+				if (ver.to_uint32_t() == 0) {
+					// default OpenGL version is 2.0
+					return utki::version_duplet{
+						.major = 2, //
+						.minor = 0
+					};
+				}
+				return ver;
+			}();
 
 			static const std::array<int, 7> context_attribs = {
 				GLX_CONTEXT_MAJOR_VERSION_ARB,
-				ver.major,
+				graphics_api_version.major,
 				GLX_CONTEXT_MINOR_VERSION_ARB,
-				ver.minor,
+				graphics_api_version.minor,
 				GLX_CONTEXT_PROFILE_MASK_ARB,
 				// we don't need compatibility context
 				GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
@@ -652,6 +639,17 @@ struct window_wrapper : public utki::destructable {
 		});
 
 		{
+			auto graphics_api_version = [&ver = gl_version]() {
+				if (ver.to_uint32_t() == 0) {
+					// default OpenGL ES version is 2.0
+					return utki::version_duplet{
+						.major = 2, //
+						.minor = 0
+					};
+				}
+				return ver;
+			}();
+
 			constexpr auto attrs_array_size = 5;
 			std::array<EGLint, attrs_array_size> context_attrs = {
 				EGL_CONTEXT_MAJOR_VERSION,
