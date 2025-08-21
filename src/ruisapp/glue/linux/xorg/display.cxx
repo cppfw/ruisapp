@@ -49,6 +49,30 @@ class display_wrapper
 	} input_method_v;
 
 #if defined(RUISAPP_RENDER_OPENGLES)
+	struct egl_display_wrapper{
+		EGLDisplay egl_display;
+
+		egl_display_wrapper(){
+			this->egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+			if (this->egl_display == EGL_NO_DISPLAY) {
+				throw std::runtime_error("eglGetDisplay(): failed, no matching display connection found");
+			}
+		}
+
+		~egl_display_wrapper(){
+			eglTerminate(this->egl_display);
+		}
+
+		void init(){
+			if (eglInitialize(this->egl_display, nullptr, nullptr) == EGL_FALSE) {
+				throw std::runtime_error("eglInitialize() failed");
+			}
+
+			if (eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE) {
+				throw std::runtime_error("eglBindApi() failed");
+			}
+		}
+	} egl_display_v;
 #endif
 
 public:
@@ -80,7 +104,11 @@ public:
 			std::cout << "display scale factor = " << scale_factor << std::endl;
 			return scale_factor;
 		}())
-	{}
+	{
+#if defined(RUISAPP_RENDER_OPENGLES)
+		this->egl_display_v.init();
+#endif
+	}
 
 	display_wrapper(const xorg_display_wrapper&) = delete;
 	display_wrapper& operator=(const xorg_display_wrapper&) = delete;
@@ -97,6 +125,12 @@ public:
 	{
 		return this->input_method_v.xim;
 	}
+
+#if defined(RUISAPP_RENDER_OPENGLES)
+	EGLDisplay& egl_display(){
+		return this->egl_display_v.egl_display;
+	}
+#endif
 
 	void flush()
 	{

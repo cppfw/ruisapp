@@ -92,7 +92,6 @@ struct window_wrapper : public utki::destructable {
 #ifdef RUISAPP_RENDER_OPENGL
 	GLXContext gl_context;
 #elif defined(RUISAPP_RENDER_OPENGLES)
-	EGLDisplay egl_display;
 	EGLSurface egl_surface;
 	EGLContext egl_context;
 #else
@@ -300,24 +299,6 @@ struct window_wrapper : public utki::destructable {
 		}
 		ASSERT(best_fb_config)
 #elif defined(RUISAPP_RENDER_OPENGLES)
-		// NOLINTNEXTLINE(cppcoreguidelines-prefer-member-initializer)
-		this->egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-		if (this->egl_display == EGL_NO_DISPLAY) {
-			throw std::runtime_error("eglGetDisplay(): failed, no matching display connection found");
-		}
-
-		utki::scope_exit scope_exit_egl_display([this]() {
-			eglTerminate(this->egl_display);
-		});
-
-		if (eglInitialize(this->egl_display, nullptr, nullptr) == EGL_FALSE) {
-			throw std::runtime_error("eglInitialize() failed");
-		}
-
-		if (eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE) {
-			throw std::runtime_error("eglBindApi() failed");
-		}
-
 		EGLConfig egl_config = nullptr;
 		{
 			// Here specify the attributes of the desired configuration.
@@ -354,7 +335,7 @@ struct window_wrapper : public utki::destructable {
 			// sample, we have a very simplified selection process, where we pick
 			// the first EGLConfig that matches our criteria.
 			EGLint num_configs = 0;
-			eglChooseConfig(this->egl_display, attribs.data(), &egl_config, 1, &num_configs);
+			eglChooseConfig(this->display.get().egl_display(), attribs.data(), &egl_config, 1, &num_configs);
 			if (num_configs <= 0) {
 				throw std::runtime_error("eglChooseConfig() failed, no matching config found");
 			}
@@ -373,7 +354,7 @@ struct window_wrapper : public utki::destructable {
 		{
 			EGLint vid = 0;
 
-			if (!eglGetConfigAttrib(this->egl_display, egl_config, EGL_NATIVE_VISUAL_ID, &vid)) {
+			if (!eglGetConfigAttrib(this->display.get().egl_display(), egl_config, EGL_NATIVE_VISUAL_ID, &vid)) {
 				throw std::runtime_error("eglGetConfigAttrib() failed");
 			}
 
@@ -600,7 +581,7 @@ struct window_wrapper : public utki::destructable {
 		}
 #elif defined(RUISAPP_RENDER_OPENGLES)
 		this->egl_surface = eglCreateWindowSurface(
-			this->egl_display,
+			this->display.get().egl_display(),
 			egl_config,
 			this->window,
 			nullptr
@@ -609,7 +590,7 @@ struct window_wrapper : public utki::destructable {
 			throw std::runtime_error("eglCreateWindowSurface() failed");
 		}
 		utki::scope_exit scope_exit_egl_surface([this]() {
-			eglDestroySurface(this->egl_display, this->egl_surface);
+			eglDestroySurface(this->display.get().egl_display(), this->egl_surface);
 		});
 
 		{
@@ -633,23 +614,23 @@ struct window_wrapper : public utki::destructable {
 				EGL_NONE
 			};
 
-			this->egl_context = eglCreateContext(this->egl_display, egl_config, EGL_NO_CONTEXT, context_attrs.data());
+			this->egl_context = eglCreateContext(this->display.get().egl_display(), egl_config, EGL_NO_CONTEXT, context_attrs.data());
 			if (this->egl_context == EGL_NO_CONTEXT) {
 				throw std::runtime_error("eglCreateContext() failed");
 			}
 		}
 
-		if (eglMakeCurrent(this->egl_display, this->egl_surface, this->egl_surface, this->egl_context) == EGL_FALSE) {
-			eglDestroyContext(this->egl_display, this->egl_context);
+		if (eglMakeCurrent(this->display.get().egl_display(), this->egl_surface, this->egl_surface, this->egl_context) == EGL_FALSE) {
+			eglDestroyContext(this->display.get().egl_display(), this->egl_context);
 			throw std::runtime_error("eglMakeCurrent() failed");
 		}
 		utki::scope_exit scope_exit_egl_context([this]() {
-			eglMakeCurrent(this->egl_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-			eglDestroyContext(this->egl_display, this->egl_context);
+			eglMakeCurrent(this->display.get().egl_display(), EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+			eglDestroyContext(this->display.get().egl_display(), this->egl_context);
 		});
 
 		// disable v-sync
-		if (eglSwapInterval(this->egl_display, 0) != EGL_TRUE) {
+		if (eglSwapInterval(this->display.get().egl_display(), 0) != EGL_TRUE) {
 			throw std::runtime_error("eglSwapInterval() failed");
 		}
 #else
@@ -683,7 +664,6 @@ struct window_wrapper : public utki::destructable {
 #ifdef RUISAPP_RENDER_OPENGL
 		scope_exit_gl_context.release();
 #elif defined(RUISAPP_RENDER_OPENGLES)
-		scope_exit_egl_display.release();
 		scope_exit_egl_surface.release();
 		scope_exit_egl_context.release();
 #else
@@ -706,9 +686,9 @@ struct window_wrapper : public utki::destructable {
 		glXMakeCurrent(this->display.get().display(), None, nullptr);
 		glXDestroyContext(this->display.get().display(), this->gl_context);
 #elif defined(RUISAPP_RENDER_OPENGLES)
-		eglMakeCurrent(this->egl_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-		eglDestroyContext(this->egl_display, this->egl_context);
-		eglDestroySurface(this->egl_display, this->egl_surface);
+		eglMakeCurrent(this->display.get().egl_display(), EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+		eglDestroyContext(this->display.get().egl_display(), this->egl_context);
+		eglDestroySurface(this->display.get().egl_display(), this->egl_surface);
 #else
 #	error "Unknown graphics API"
 #endif
@@ -717,7 +697,7 @@ struct window_wrapper : public utki::destructable {
 		XFreeColormap(this->display.get().display(), this->color_map);
 
 #ifdef RUISAPP_RENDER_OPENGLES
-		eglTerminate(this->egl_display);
+		eglTerminate(this->display.get().egl_display());
 #endif
 	}
 
@@ -1458,7 +1438,7 @@ void application::swap_frame_buffers()
 #ifdef RUISAPP_RENDER_OPENGL
 	glXSwapBuffers(ww.display.get().display(), ww.window);
 #elif defined(RUISAPP_RENDER_OPENGLES)
-	eglSwapBuffers(ww.egl_display, ww.egl_surface);
+	eglSwapBuffers(ww.display.get().egl_display(), ww.egl_surface);
 #else
 #	error "Unknown graphics API"
 #endif
