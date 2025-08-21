@@ -27,6 +27,12 @@ class display_wrapper
 		{
 			return DefaultRootWindow(this->display);
 		}
+
+		int get_default_screen()
+		{
+			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, "the cast is inside of xlib macro")
+			return DefaultScreen(this->display);
+		}
 	} xorg_display_v;
 
 	struct xorg_input_method_wrapper {
@@ -163,6 +169,11 @@ public:
 	void flush()
 	{
 		this->xorg_display_v.flush();
+	}
+
+	int get_default_screen()
+	{
+		return this->xorg_display_v.get_default_screen();
 	}
 
 	Window& get_default_root_window()

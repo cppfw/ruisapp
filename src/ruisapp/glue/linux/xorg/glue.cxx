@@ -193,94 +193,11 @@ struct window_wrapper : public utki::destructable {
 		const ruisapp::window_parameters& window_params
 	) :
 		display(utki::make_shared<display_wrapper>()),
-		win(this->display)
+		win(this->display,
+			window_params //
+		)
 	{
 #ifdef RUISAPP_RENDER_OPENGL
-		GLXFBConfig best_fb_config = nullptr;
-		{
-			std::vector<int> visual_attribs;
-			visual_attribs.push_back(GLX_X_RENDERABLE);
-			visual_attribs.push_back(True);
-			visual_attribs.push_back(GLX_X_VISUAL_TYPE);
-			visual_attribs.push_back(GLX_TRUE_COLOR);
-			visual_attribs.push_back(GLX_DRAWABLE_TYPE);
-			visual_attribs.push_back(GLX_WINDOW_BIT);
-			visual_attribs.push_back(GLX_RENDER_TYPE);
-			visual_attribs.push_back(GLX_RGBA_BIT);
-			visual_attribs.push_back(GLX_DOUBLEBUFFER);
-			visual_attribs.push_back(True);
-			visual_attribs.push_back(GLX_RED_SIZE);
-			visual_attribs.push_back(utki::byte_bits);
-			visual_attribs.push_back(GLX_GREEN_SIZE);
-			visual_attribs.push_back(utki::byte_bits);
-			visual_attribs.push_back(GLX_BLUE_SIZE);
-			visual_attribs.push_back(utki::byte_bits);
-			visual_attribs.push_back(GLX_ALPHA_SIZE);
-			visual_attribs.push_back(utki::byte_bits);
-
-			if (window_params.buffers.get(ruisapp::buffer::depth)) {
-				visual_attribs.push_back(GLX_DEPTH_SIZE);
-				visual_attribs.push_back(utki::byte_bits * 3); // 24 bits per pixel for depth buffer
-			}
-			if (window_params.buffers.get(ruisapp::buffer::stencil)) {
-				visual_attribs.push_back(GLX_STENCIL_SIZE);
-				visual_attribs.push_back(utki::byte_bits);
-			}
-
-			visual_attribs.push_back(None);
-
-			utki::span<GLXFBConfig> fb_configs = [&]() {
-				int fbcount = 0;
-				GLXFBConfig* fb_configs = glXChooseFBConfig(
-					this->display.get().display(),
-					// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
-					DefaultScreen(this->display.get().display()),
-					visual_attribs.data(),
-					&fbcount
-				);
-				if (!fb_configs) {
-					throw std::runtime_error("glXChooseFBConfig() returned empty list");
-				}
-				return utki::make_span(fb_configs, fbcount);
-			}();
-
-			utki::scope_exit scope_exit_fbc([&fb_configs]() {
-				// NOLINTNEXTLINE(bugprone-multi-level-implicit-pointer-conversion)
-				XFree(fb_configs.data());
-			});
-
-			GLXFBConfig worst_fb_config = nullptr;
-			int best_num_samp = -1;
-			// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
-			int worst_num_samp = 999;
-
-			for (auto fb_config : fb_configs) {
-				XVisualInfo* vi = glXGetVisualFromFBConfig(this->display.get().display(), fb_config);
-				if (!vi) {
-					continue;
-				}
-
-				// NOLINTNEXTLINE(cppcoreguidelines-init-variables)
-				int samp_buf;
-				glXGetFBConfigAttrib(this->display.get().display(), fb_config, GLX_SAMPLE_BUFFERS, &samp_buf);
-
-				// NOLINTNEXTLINE(cppcoreguidelines-init-variables)
-				int samples;
-				glXGetFBConfigAttrib(this->display.get().display(), fb_config, GLX_SAMPLES, &samples);
-
-				if (!best_fb_config || (samp_buf && samples > best_num_samp)) {
-					best_fb_config = fb_config;
-					best_num_samp = samples;
-				}
-				if (!worst_fb_config || !samp_buf || samples < worst_num_samp) {
-					worst_fb_config = fb_config;
-					worst_num_samp = samples;
-				}
-
-				XFree(vi);
-			}
-		}
-		ASSERT(best_fb_config)
 #elif defined(RUISAPP_RENDER_OPENGLES)
 		EGLConfig egl_config = nullptr;
 		{
@@ -329,7 +246,10 @@ struct window_wrapper : public utki::destructable {
 
 		XVisualInfo* visual_info = nullptr;
 #ifdef RUISAPP_RENDER_OPENGL
-		visual_info = glXGetVisualFromFBConfig(this->display.get().display(), best_fb_config);
+		visual_info = glXGetVisualFromFBConfig(
+			this->display.get().display(), //
+			this->win.fb_config()
+		);
 		if (!visual_info) {
 			throw std::runtime_error("glXGetVisualFromFBConfig() failed");
 		}
@@ -488,7 +408,7 @@ struct window_wrapper : public utki::destructable {
 
 			this->gl_context = glx_create_context_attribs_arb(
 				this->display.get().display(),
-				best_fb_config,
+				this->win.fb_config(),
 				nullptr,
 				GL_TRUE,
 				context_attribs.data()
