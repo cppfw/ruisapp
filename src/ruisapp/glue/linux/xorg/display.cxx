@@ -35,7 +35,7 @@ public:
 			}
 			return d;
 		}()),
-        input_method_v(this->display_v)
+		input_method_v(this->display_v)
 	{}
 
 	xorg_display_wrapper(const xorg_display_wrapper&) = delete;
@@ -49,14 +49,19 @@ public:
 		return this->display_v;
 	}
 
-    XIM& input_method(){
-        return this->input_method_v.xim;
-    }
+	XIM& input_method()
+	{
+		return this->input_method_v.xim;
+	}
 
 	void flush()
 	{
 		XFlush(this->display_v);
 	}
+
+    Window& get_default_root_window(){
+        return DefaultRootWindow(this->display_v);
+    }
 
 	~xorg_display_wrapper()
 	{
