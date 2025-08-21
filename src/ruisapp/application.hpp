@@ -32,6 +32,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <utki/destructable.hpp>
 #include <utki/flags.hpp>
 #include <utki/singleton.hpp>
+#include <utki/unique_ref.hpp>
 #include <utki/util.hpp>
 
 #include "config.hpp"
@@ -52,12 +53,13 @@ class application : public utki::intrusive_singleton<application>
 	// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 	static instance_type instance;
 
-	std::vector<window> windows_v;
+	std::vector<utki::unique_ref<window>> windows_v;
 
 public:
 	const std::string name;
 
 private:
+	// TODO: remove
 	std::unique_ptr<utki::destructable> window_pimpl;
 
 	friend const decltype(window_pimpl)& get_window_pimpl(application& app);
@@ -72,7 +74,7 @@ public:
 	 * so the returned span's size is guaranteed to be >= 1.
 	 * @return A span of application windows. Size of the span is always >= 1.
 	 */
-	utki::span<window> windows()
+	utki::span<const utki::unique_ref<window>> windows()
 	{
 		return this->windows_v;
 	}

@@ -115,6 +115,7 @@ struct window_parameters {
 class window
 {
 public:
+	virtual ~window() = default;
 };
 
 } // namespace ruisapp

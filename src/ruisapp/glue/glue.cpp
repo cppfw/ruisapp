@@ -32,9 +32,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #elif CFG_OS == CFG_OS_LINUX
 #	ifdef RUISAPP_BACKEND_WAYLAND
 // NOLINTNEXTLINE(bugprone-suspicious-include)
-#		include "linux/glue_wayland.cxx"
+#		include "linux/wayland/glue.cxx"
 #	else
 // NOLINTNEXTLINE(bugprone-suspicious-include)
-#		include "linux/glue_xorg.cxx"
+#		include "linux/xorg/glue.cxx"
 #	endif
 #endif
