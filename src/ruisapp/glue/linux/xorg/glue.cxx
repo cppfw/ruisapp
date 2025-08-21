@@ -108,8 +108,13 @@ struct window_wrapper : public utki::destructable {
 			if (c == ruis::mouse_cursor::none) {
 				std::array<char, 1> data = {0};
 
-				Pixmap blank =
-					XCreateBitmapFromData(this->owner.display.get().display(), this->owner.window, data.data(), 1, 1);
+				Pixmap blank = XCreateBitmapFromData(
+					this->owner.display.get().xorg_display.display, //
+					this->owner.window,
+					data.data(),
+					1,
+					1
+				);
 				if (blank == None) {
 					throw std::runtime_error(
 						"application::XEmptyMouseCursor::XEmptyMouseCursor(): could not "
@@ -117,14 +122,27 @@ struct window_wrapper : public utki::destructable {
 					);
 				}
 				utki::scope_exit scope_exit([this, &blank]() {
-					XFreePixmap(this->owner.display.get().display(), blank);
+					XFreePixmap(
+						this->owner.display.get().xorg_display.display, //
+						blank
+					);
 				});
 
 				XColor dummy;
-				this->cursor =
-					XCreatePixmapCursor(this->owner.display.get().display(), blank, blank, &dummy, &dummy, 0, 0);
+				this->cursor = XCreatePixmapCursor(
+					this->owner.display.get().xorg_display.display, //
+					blank,
+					blank,
+					&dummy,
+					&dummy,
+					0,
+					0
+				);
 			} else {
-				this->cursor = XCreateFontCursor(this->owner.display.get().display(), x_cursor_map.at(c));
+				this->cursor = XCreateFontCursor(
+					this->owner.display.get().xorg_display.display, //
+					x_cursor_map.at(c)
+				);
 			}
 		}
 
@@ -136,7 +154,7 @@ struct window_wrapper : public utki::destructable {
 
 		~cursor_wrapper()
 		{
-			XFreeCursor(this->owner.display.get().display(), this->cursor);
+			XFreeCursor(this->owner.display.get().xorg_display.display, this->cursor);
 		}
 	};
 
@@ -148,7 +166,7 @@ struct window_wrapper : public utki::destructable {
 	void apply_cursor(cursor_wrapper& c)
 	{
 		XDefineCursor(
-			this->display.get().display(), //
+			this->display.get().xorg_display.display, //
 			this->window,
 			c.cursor
 		);
@@ -179,7 +197,7 @@ struct window_wrapper : public utki::destructable {
 			if (this->cur_cursor) {
 				this->apply_cursor(*this->cur_cursor);
 			} else {
-				XUndefineCursor(this->display.get().display(), this->window);
+				XUndefineCursor(this->display.get().xorg_display.display, this->window);
 			}
 		} else {
 			this->apply_cursor(*this->get_cursor(ruis::mouse_cursor::none));
@@ -247,7 +265,7 @@ struct window_wrapper : public utki::destructable {
 		XVisualInfo* visual_info = nullptr;
 #ifdef RUISAPP_RENDER_OPENGL
 		visual_info = glXGetVisualFromFBConfig(
-			this->display.get().display(), //
+			this->display.get().xorg_display.display, //
 			this->win.fb_config()
 		);
 		if (!visual_info) {
@@ -264,7 +282,7 @@ struct window_wrapper : public utki::destructable {
 			int num_visuals = 0;
 			XVisualInfo vis_template;
 			vis_template.visualid = vid;
-			visual_info = XGetVisualInfo(this->display.get().display(), VisualIDMask, &vis_template, &num_visuals);
+			visual_info = XGetVisualInfo(this->display.get().xorg_display.display, VisualIDMask, &vis_template, &num_visuals);
 			if (!visual_info) {
 				throw std::runtime_error("XGetVisualInfo() failed");
 			}
@@ -277,9 +295,9 @@ struct window_wrapper : public utki::destructable {
 		});
 
 		this->color_map = XCreateColormap(
-			this->display.get().display(),
+			this->display.get().xorg_display.display,
 			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			RootWindow(this->display.get().display(), visual_info->screen),
+			RootWindow(this->display.get().xorg_display.display, visual_info->screen),
 			visual_info->visual,
 			AllocNone
 		);
@@ -288,7 +306,7 @@ struct window_wrapper : public utki::destructable {
 			throw std::runtime_error("XCreateColormap(): failed");
 		}
 		utki::scope_exit scope_exit_color_map([this]() {
-			XFreeColormap(this->display.get().display(), this->color_map);
+			XFreeColormap(this->display.get().xorg_display.display, this->color_map);
 		});
 
 		{
@@ -303,9 +321,9 @@ struct window_wrapper : public utki::destructable {
 			auto dims = (this->display.get().scale_factor * window_params.dims.to<ruis::real>()).to<unsigned>();
 
 			this->window = XCreateWindow(
-				this->display.get().display(),
+				this->display.get().xorg_display.display,
 				// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast,cppcoreguidelines-pro-bounds-pointer-arithmetic)
-				RootWindow(this->display.get().display(), visual_info->screen), // parent window
+				RootWindow(this->display.get().xorg_display.display, visual_info->screen), // parent window
 				0, // x position
 				0, // y position
 				dims.x(), // width
@@ -322,21 +340,21 @@ struct window_wrapper : public utki::destructable {
 			throw std::runtime_error("Failed to create window");
 		}
 		utki::scope_exit scope_exit_window([this]() {
-			XDestroyWindow(this->display.get().display(), this->window);
+			XDestroyWindow(this->display.get().xorg_display.display, this->window);
 		});
 
 		{ // we want to handle WM_DELETE_WINDOW event to know when window is closed
-			Atom a = XInternAtom(this->display.get().display(), "WM_DELETE_WINDOW", True);
-			XSetWMProtocols(this->display.get().display(), this->window, &a, 1);
+			Atom a = XInternAtom(this->display.get().xorg_display.display, "WM_DELETE_WINDOW", True);
+			XSetWMProtocols(this->display.get().xorg_display.display, this->window, &a, 1);
 		}
 
-		XMapWindow(this->display.get().display(), this->window);
+		XMapWindow(this->display.get().xorg_display.display, this->window);
 
-		this->display.get().flush();
+		this->display.get().xorg_display.flush();
 
 		// set window title
 		XStoreName(
-			this->display.get().display(), //
+			this->display.get().xorg_display.display, //
 			this->window,
 			window_params.title.c_str()
 		);
@@ -351,7 +369,7 @@ struct window_wrapper : public utki::destructable {
 		// https://dri.freedesktop.org/wiki/glXGetProcAddressNeverReturnsNULL/
 
 		auto glx_extensions_string =
-			std::string_view(glXQueryExtensionsString(this->display.get().display(), visual_info->screen));
+			std::string_view(glXQueryExtensionsString(this->display.get().xorg_display.display, visual_info->screen));
 		utki::log_debug([&](auto& o) {
 			o << "glx_extensions_string = " << glx_extensions_string << std::endl;
 		});
@@ -360,7 +378,7 @@ struct window_wrapper : public utki::destructable {
 
 		if (std::find(glx_extensions.begin(), glx_extensions.end(), "GLX_ARB_create_context") == glx_extensions.end()) {
 			// GLX_ARB_create_context is not supported
-			this->gl_context = glXCreateContext(this->display.get().display(), visual_info, nullptr, GL_TRUE);
+			this->gl_context = glXCreateContext(this->display.get().xorg_display.display, visual_info, nullptr, GL_TRUE);
 		} else {
 			// GLX_ARB_create_context is supported
 
@@ -407,7 +425,7 @@ struct window_wrapper : public utki::destructable {
 			};
 
 			this->gl_context = glx_create_context_attribs_arb(
-				this->display.get().display(),
+				this->display.get().xorg_display.display,
 				this->win.fb_config(),
 				nullptr,
 				GL_TRUE,
@@ -416,17 +434,17 @@ struct window_wrapper : public utki::destructable {
 		}
 
 		// sync to ensure any errors generated are processed
-		XSync(this->display.get().display(), False);
+		XSync(this->display.get().xorg_display.display, False);
 
 		if (this->gl_context == nullptr) {
 			throw std::runtime_error("glXCreateContext() failed");
 		}
 		utki::scope_exit scope_exit_gl_context([this]() {
-			glXMakeCurrent(this->display.get().display(), None, nullptr);
-			glXDestroyContext(this->display.get().display(), this->gl_context);
+			glXMakeCurrent(this->display.get().xorg_display.display, None, nullptr);
+			glXDestroyContext(this->display.get().xorg_display.display, this->gl_context);
 		});
 
-		glXMakeCurrent(this->display.get().display(), this->window, this->gl_context);
+		glXMakeCurrent(this->display.get().xorg_display.display, this->window, this->gl_context);
 
 		// disable v-sync via swap control extension
 
@@ -443,7 +461,7 @@ struct window_wrapper : public utki::destructable {
 			ASSERT(glx_swap_interval_ext)
 
 			// disable v-sync
-			glx_swap_interval_ext(this->display.get().display(), this->window, 0);
+			glx_swap_interval_ext(this->display.get().xorg_display.display, this->window, 0);
 		} else if ( //
 			std::find( //
 					   glx_extensions.begin(),
@@ -474,7 +492,7 @@ struct window_wrapper : public utki::destructable {
 		}
 
 		// sync to ensure any errors generated are processed
-		XSync(this->display.get().display(), False);
+		XSync(this->display.get().xorg_display.display, False);
 
 		//=============
 		// init OpenGL
@@ -589,8 +607,8 @@ struct window_wrapper : public utki::destructable {
 		XDestroyIC(this->input_context);
 
 #ifdef RUISAPP_RENDER_OPENGL
-		glXMakeCurrent(this->display.get().display(), None, nullptr);
-		glXDestroyContext(this->display.get().display(), this->gl_context);
+		glXMakeCurrent(this->display.get().xorg_display.display, None, nullptr);
+		glXDestroyContext(this->display.get().xorg_display.display, this->gl_context);
 #elif defined(RUISAPP_RENDER_OPENGLES)
 		eglMakeCurrent(this->display.get().egl_display(), EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 		eglDestroyContext(this->display.get().egl_display(), this->egl_context);
@@ -599,8 +617,8 @@ struct window_wrapper : public utki::destructable {
 #	error "Unknown graphics API"
 #endif
 
-		XDestroyWindow(this->display.get().display(), this->window);
-		XFreeColormap(this->display.get().display(), this->color_map);
+		XDestroyWindow(this->display.get().xorg_display.display, this->window);
+		XFreeColormap(this->display.get().xorg_display.display, this->color_map);
 
 #ifdef RUISAPP_RENDER_OPENGLES
 		eglTerminate(this->display.get().egl_display());
@@ -615,15 +633,15 @@ struct window_wrapper : public utki::destructable {
 
 		ruis::real value =
 			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			((ruis::real(DisplayWidth(this->display.get().display(), src_num))
+			((ruis::real(DisplayWidth(this->display.get().xorg_display.display, src_num))
 			  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			  / (ruis::real(DisplayWidthMM(this->display.get().display(), src_num)) / ruis::real(mm_per_cm)))
+			  / (ruis::real(DisplayWidthMM(this->display.get().xorg_display.display, src_num)) / ruis::real(mm_per_cm)))
 			 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
 			 +
 			 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			 (ruis::real(DisplayHeight(this->display.get().display(), src_num))
+			 (ruis::real(DisplayHeight(this->display.get().xorg_display.display, src_num))
 			  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			  / (ruis::real(DisplayHeightMM(this->display.get().display(), src_num)) / ruis::real(mm_per_cm)))) /
+			  / (ruis::real(DisplayHeightMM(this->display.get().xorg_display.display, src_num)) / ruis::real(mm_per_cm)))) /
 			2;
 		value *= ruis::real(utki::cm_per_inch);
 		return value;
@@ -639,15 +657,15 @@ struct window_wrapper : public utki::destructable {
 		int src_num = 0;
 		r4::vector2<unsigned> resolution(
 			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			DisplayWidth(this->display.get().display(), src_num),
+			DisplayWidth(this->display.get().xorg_display.display, src_num),
 			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			DisplayHeight(this->display.get().display(), src_num)
+			DisplayHeight(this->display.get().xorg_display.display, src_num)
 		);
 		r4::vector2<unsigned> screen_size_mm(
 			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			DisplayWidthMM(this->display.get().display(), src_num),
+			DisplayWidthMM(this->display.get().xorg_display.display, src_num),
 			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			DisplayHeightMM(this->display.get().display(), src_num)
+			DisplayHeightMM(this->display.get().xorg_display.display, src_num)
 		);
 
 		return application::get_pixels_per_pp(resolution, screen_size_mm);
@@ -1102,7 +1120,7 @@ int main(int argc, const char** argv)
 
 	auto& ww = get_impl(get_window_pimpl(*app));
 
-	xevent_waitable xew(ww.display.get().display());
+	xevent_waitable xew(ww.display.get().xorg_display.display);
 
 	opros::wait_set wait_set(2);
 
@@ -1155,10 +1173,10 @@ int main(int argc, const char** argv)
 		// with 0 timeout it will never be set.
 		//       Maybe some bug in XWindows, maybe something else.
 		bool x_event_arrived = false;
-		while (XPending(ww.display.get().display()) > 0) {
+		while (XPending(ww.display.get().xorg_display.display) > 0) {
 			x_event_arrived = true;
 			XEvent event;
-			XNextEvent(ww.display.get().display(), &event);
+			XNextEvent(ww.display.get().xorg_display.display, &event);
 			// TRACE(<< "X event got, type = " << (event.type) << std::endl)
 			switch (event.type) {
 				case Expose:
@@ -1193,10 +1211,10 @@ int main(int argc, const char** argv)
 						ruis::key key = key_code_map[std::uint8_t(event.xkey.keycode)];
 
 						// detect auto-repeated key events
-						if (XEventsQueued(ww.display.get().display(), QueuedAfterReading))
+						if (XEventsQueued(ww.display.get().xorg_display.display, QueuedAfterReading))
 						{ // if there are other events queued
 							XEvent nev;
-							XPeekEvent(ww.display.get().display(), &nev);
+							XPeekEvent(ww.display.get().xorg_display.display, &nev);
 
 							if (nev.type == KeyPress && nev.xkey.time == event.xkey.time &&
 								nev.xkey.keycode == event.xkey.keycode)
@@ -1204,7 +1222,7 @@ int main(int argc, const char** argv)
 								// key wasn't actually released
 								handle_character_input(*app, key_event_unicode_provider(ww.input_context, nev), key);
 
-								XNextEvent(ww.display.get().display(),
+								XNextEvent(ww.display.get().xorg_display.display,
 										   &nev); // remove the key down event from queue
 								break;
 							}
@@ -1255,7 +1273,7 @@ int main(int argc, const char** argv)
 					// probably a WM_DELETE_WINDOW event
 					{
 						// NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
-						char* name = XGetAtomName(ww.display.get().display(), event.xclient.message_type);
+						char* name = XGetAtomName(ww.display.get().xorg_display.display, event.xclient.message_type);
 						if ("WM_PROTOCOLS"sv == name) {
 							glue.quit_flag.store(true);
 						}
@@ -1293,8 +1311,8 @@ void application::set_fullscreen(bool enable)
 
 	auto& ww = get_impl(this->window_pimpl);
 
-	Atom state_atom = XInternAtom(ww.display.get().display(), "_NET_WM_STATE", False);
-	Atom atom = XInternAtom(ww.display.get().display(), "_NET_WM_STATE_FULLSCREEN", False);
+	Atom state_atom = XInternAtom(ww.display.get().xorg_display.display, "_NET_WM_STATE", False);
+	Atom atom = XInternAtom(ww.display.get().xorg_display.display, "_NET_WM_STATE_FULLSCREEN", False);
 
 	XEvent event;
 	event.xclient.type = ClientMessage;
@@ -1319,15 +1337,15 @@ void application::set_fullscreen(bool enable)
 	event.xclient.data.l[2] = 0;
 
 	XSendEvent(
-		ww.display.get().display(),
+		ww.display.get().xorg_display.display,
 		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-		ww.display.get().get_default_root_window(),
+		ww.display.get().xorg_display.get_default_root_window(),
 		False,
 		SubstructureRedirectMask | SubstructureNotifyMask,
 		&event
 	);
 
-	ww.display.get().flush();
+	ww.display.get().xorg_display.flush();
 
 	this->is_fullscreen_v = enable;
 }
@@ -1342,7 +1360,7 @@ void application::swap_frame_buffers()
 	auto& ww = get_impl(this->window_pimpl);
 
 #ifdef RUISAPP_RENDER_OPENGL
-	glXSwapBuffers(ww.display.get().display(), ww.window);
+	glXSwapBuffers(ww.display.get().xorg_display.display, ww.window);
 #elif defined(RUISAPP_RENDER_OPENGLES)
 	eglSwapBuffers(ww.display.get().egl_display(), ww.egl_surface);
 #else

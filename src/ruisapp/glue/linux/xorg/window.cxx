@@ -48,8 +48,8 @@ class xorg_window_wrapper : public ruisapp::window
 				utki::span<GLXFBConfig> fb_configs = [&]() {
 					int fbcount = 0;
 					GLXFBConfig* fb_configs = glXChooseFBConfig(
-						display.display(),
-						display.get_default_screen(),
+						display.xorg_display.display,
+						display.xorg_display.get_default_screen(),
 						visual_attribs.data(),
 						&fbcount
 					);
@@ -70,18 +70,31 @@ class xorg_window_wrapper : public ruisapp::window
 				int worst_num_samp = 999;
 
 				for (auto fb_config : fb_configs) {
-					XVisualInfo* vi = glXGetVisualFromFBConfig(display.display(), fb_config);
+					XVisualInfo* vi = glXGetVisualFromFBConfig(
+						display.xorg_display.display, //
+						fb_config
+					);
 					if (!vi) {
 						continue;
 					}
 
 					// NOLINTNEXTLINE(cppcoreguidelines-init-variables)
 					int samp_buf;
-					glXGetFBConfigAttrib(display.display(), fb_config, GLX_SAMPLE_BUFFERS, &samp_buf);
+					glXGetFBConfigAttrib(
+						display.xorg_display.display, //
+						fb_config,
+						GLX_SAMPLE_BUFFERS,
+						&samp_buf
+					);
 
 					// NOLINTNEXTLINE(cppcoreguidelines-init-variables)
 					int samples;
-					glXGetFBConfigAttrib(display.display(), fb_config, GLX_SAMPLES, &samples);
+					glXGetFBConfigAttrib(
+						display.xorg_display.display, //
+						fb_config,
+						GLX_SAMPLES,
+						&samples
+					);
 
 					if (!best_fb_config || (samp_buf && samples > best_num_samp)) {
 						best_fb_config = fb_config;

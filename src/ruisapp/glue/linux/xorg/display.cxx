@@ -2,16 +2,19 @@
 namespace {
 class display_wrapper
 {
+public:
 	struct xorg_display_wrapper {
-		Display* display;
+		Display* const display;
 
-		xorg_display_wrapper()
-		{
-			this->display = XOpenDisplay(nullptr);
-			if (!this->display) {
-				throw std::runtime_error("XOpenDisplay() failed");
-			}
-		}
+		xorg_display_wrapper() :
+			display([]() {
+				auto d = XOpenDisplay(nullptr);
+				if (!d) {
+					throw std::runtime_error("XOpenDisplay() failed");
+				}
+				return d;
+			}())
+		{}
 
 		~xorg_display_wrapper()
 		{
@@ -33,8 +36,9 @@ class display_wrapper
 			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, "the cast is inside of xlib macro")
 			return DefaultScreen(this->display);
 		}
-	} xorg_display_v;
+	} xorg_display;
 
+private:
 	struct xorg_input_method_wrapper {
 		XIM xim;
 
@@ -91,7 +95,7 @@ public:
 	const ruis::real scale_factor;
 
 	display_wrapper() :
-		input_method_v(this->display()),
+		input_method_v(this->xorg_display.display),
 		scale_factor([]() {
 			// get scale factor
 			gdk_init(nullptr, nullptr);
@@ -122,7 +126,7 @@ public:
 			int glx_ver_major = 0;
 			int glx_ver_minor = 0;
 			if (!glXQueryVersion(
-					this->display(), //
+					this->xorg_display.display, //
 					&glx_ver_major,
 					&glx_ver_minor
 				))
@@ -149,11 +153,6 @@ public:
 	display_wrapper(xorg_display_wrapper&&) = delete;
 	display_wrapper& operator=(xorg_display_wrapper&&) = delete;
 
-	Display* display()
-	{
-		return this->xorg_display_v.display;
-	}
-
 	XIM& input_method()
 	{
 		return this->input_method_v.xim;
@@ -165,20 +164,5 @@ public:
 		return this->egl_display_v.egl_display;
 	}
 #endif
-
-	void flush()
-	{
-		this->xorg_display_v.flush();
-	}
-
-	int get_default_screen()
-	{
-		return this->xorg_display_v.get_default_screen();
-	}
-
-	Window& get_default_root_window()
-	{
-		return this->xorg_display_v.get_default_root_window();
-	}
 };
 } // namespace
