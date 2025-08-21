@@ -196,22 +196,6 @@ struct window_wrapper : public utki::destructable {
 		win(this->display)
 	{
 #ifdef RUISAPP_RENDER_OPENGL
-		{
-			int glx_ver_major = 0;
-			int glx_ver_minor = 0;
-			if (!glXQueryVersion(this->display.get().display(), &glx_ver_major, &glx_ver_minor)) {
-				throw std::runtime_error("glXQueryVersion() failed");
-			}
-
-			// we need the following:
-			// - glXQueryExtensionsString(), availabale starting from GLX version 1.1
-			// - FBConfigs, availabale starting from GLX version 1.3
-			// minimum GLX version needed is 1.3
-			if (glx_ver_major < 1 || (glx_ver_major == 1 && glx_ver_minor < 3)) {
-				throw std::runtime_error("GLX version 1.3 or above is required");
-			}
-		}
-
 		GLXFBConfig best_fb_config = nullptr;
 		{
 			std::vector<int> visual_attribs;
