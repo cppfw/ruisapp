@@ -41,9 +41,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #elif defined(RUISAPP_RENDER_OPENGLES)
 #	include <EGL/egl.h>
 #	include <GLES2/gl2.h>
-#	ifdef RUISAPP_RASPBERRYPI
-#		include <bcm_host.h>
-#	endif
 
 #	include <ruis/render/opengles/context.hpp>
 
@@ -97,12 +94,6 @@ struct window_wrapper : public utki::destructable {
 #ifdef RUISAPP_RENDER_OPENGL
 	GLXContext gl_context;
 #elif defined(RUISAPP_RENDER_OPENGLES)
-#	ifdef RUISAPP_RASPBERRYPI
-	EGL_DISPMANX_WINDOW_T rpi_native_window{};
-	DISPMANX_DISPLAY_HANDLE_T rpi_dispman_display;
-	DISPMANX_UPDATE_HANDLE_T rpi_dispman_update;
-	DISPMANX_ELEMENT_HANDLE_T rpi_dispman_element;
-#	endif
 	EGLDisplay egl_display;
 	EGLSurface egl_surface;
 	EGLContext egl_context;
@@ -427,21 +418,6 @@ struct window_wrapper : public utki::destructable {
 			throw std::runtime_error("glXGetVisualFromFBConfig() failed");
 		}
 #elif defined(RUISAPP_RENDER_OPENGLES)
-#	ifdef RUISAPP_RASPBERRYPI
-		{
-			// the variable is initialied via output argument, so no need to
-			// initialize it here
-			// NOLINTNEXTLINE(cppcoreguidelines-init-variables)
-			int num_visuals;
-			XVisualInfo vis_template;
-			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
-			vis_template.screen = DefaultScreen(this->display.display); // LCD
-			visual_info = XGetVisualInfo(this->display.display, VisualScreenMask, &vis_template, &num_visuals);
-			if (!visual_info) {
-				throw std::runtime_error("XGetVisualInfo() failed");
-			}
-		}
-#	else
 		{
 			EGLint vid = 0;
 
@@ -457,7 +433,6 @@ struct window_wrapper : public utki::destructable {
 				throw std::runtime_error("XGetVisualInfo() failed");
 			}
 		}
-#	endif
 #else
 #	error "Unknown graphics API"
 #endif
@@ -663,70 +638,10 @@ struct window_wrapper : public utki::destructable {
 			throw std::runtime_error("GLEW initialization failed");
 		}
 #elif defined(RUISAPP_RENDER_OPENGLES)
-
-#	ifdef RUISAPP_RASPBERRYPI
-		{
-			bcm_host_init();
-
-			VC_RECT_T dst_rect, src_rect;
-
-			// the variables are initialized via output argument, so no need to
-			// initialize it here
-			// NOLINTNEXTLINE(cppcoreguidelines-init-variables)
-			uint32_t display_width, display_height;
-
-			// create an EGL window surface, passing context width/height
-			if (graphics_get_display_size(
-					0, // LCD
-					&display_width,
-					&display_height
-				) < 0)
-			{
-				throw std::runtime_error("graphics_get_display_size() failed");
-			}
-
-			dst_rect.x = 0;
-			dst_rect.y = 0;
-			dst_rect.width = display_width;
-			dst_rect.height = display_height;
-
-			src_rect.x = 0;
-			src_rect.y = 0;
-			src_rect.width = display_width << (utki::byte_bits * 2);
-			src_rect.height = display_height << (utki::byte_bits * 2);
-
-			this->rpi_dispman_display = vc_dispmanx_display_open(0); // 0 = LCD
-			this->rpi_dispman_update = vc_dispmanx_update_start(0);
-
-			this->rpi_dispman_element = vc_dispmanx_element_add(
-				this->rpi_dispman_update,
-				this->rpi_dispman_display,
-				0, // layer
-				&dst_rect,
-				0, // src
-				&src_rect,
-				DISPMANX_PROTECTION_NONE,
-				nullptr, // alpha
-				nullptr, // clamp
-				DISPMANX_NO_ROTATE // transform
-			);
-
-			this->rpi_native_window.element = this->rpi_dispman_element;
-			this->rpi_native_window.width = display_width;
-			this->rpi_native_window.height = display_height;
-			vc_dispmanx_update_submit_sync(this->rpi_dispman_update);
-		}
-#	endif
-
 		this->egl_surface = eglCreateWindowSurface(
 			this->egl_display,
 			egl_config,
-#	ifdef RUISAPP_RASPBERRYPI
-			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-			reinterpret_cast<EGLNativeWindowType>(&this->rpi_native_window),
-#	else
 			this->window,
-#	endif
 			nullptr
 		);
 		if (this->egl_surface == EGL_NO_SURFACE) {
@@ -944,16 +859,12 @@ application::application(
 	)),
 	directory(get_application_directories(this->name))
 {
-#ifdef RUISAPP_RASPBERRYPI
-	this->set_fullscreen(true);
-#else
 	this->update_window_rect(ruis::rect(
 		0, //
 		0,
 		ruis::real(params.windows.front().dims.x()),
 		ruis::real(params.windows.front().dims.y())
 	));
-#endif
 }
 
 namespace {
@@ -1518,11 +1429,6 @@ int main(int argc, const char** argv)
 
 void application::set_fullscreen(bool enable)
 {
-#ifdef RUISAPP_RASPBERRYPI
-	if (this->is_fullscreen()) {
-		return;
-	}
-#endif
 	if (enable == this->is_fullscreen()) {
 		return;
 	}
