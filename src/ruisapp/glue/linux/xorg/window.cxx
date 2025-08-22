@@ -1,6 +1,6 @@
 namespace {
 
-class xorg_window_wrapper : public ruisapp::window
+class native_window : public ruisapp::window
 {
 	utki::shared_ref<display_wrapper> display;
 
@@ -188,10 +188,7 @@ class xorg_window_wrapper : public ruisapp::window
 	struct xorg_visual_info_wrapper {
 		XVisualInfo* const visual_info;
 
-		xorg_visual_info_wrapper(
-			display_wrapper& display,
-			fb_config_wrapper& fb_config
-		) :
+		xorg_visual_info_wrapper(display_wrapper& display, fb_config_wrapper& fb_config) :
 			visual_info([&]() {
 #ifdef RUISAPP_RENDER_OPENGL
 				auto visual_info = glXGetVisualFromFBConfig(
@@ -240,13 +237,46 @@ class xorg_window_wrapper : public ruisapp::window
 		}
 	} xorg_visual_info;
 
-	Colormap color_map;
+	struct xorg_color_map_wrapper {
+		display_wrapper& display;
+
+		const Colormap color_map;
+
+		xorg_color_map_wrapper(
+			display_wrapper& display, //
+			xorg_visual_info_wrapper& visual_info
+		) :
+			display(display),
+			color_map([&]() {
+				auto cm = XCreateColormap(
+					this->display.xorg_display.display,
+					this->display.xorg_display.get_root_window(visual_info.visual_info->screen),
+					visual_info.visual_info->visual,
+					AllocNone
+				);
+				if (cm == None) {
+					// TODO: use XSetErrorHandler() to get error code
+					throw std::runtime_error("XCreateColormap(): failed");
+				}
+				return cm;
+			}())
+		{}
+
+		~xorg_color_map_wrapper()
+		{
+			XFreeColormap(
+				display.xorg_display.display, //
+				this->color_map
+			);
+		}
+	} xorg_color_map;
+
 	::Window window;
 
 	ruis::real scale_factor = 1;
 
 public:
-	xorg_window_wrapper(
+	native_window(
 		utki::shared_ref<display_wrapper> display, //
 		const utki::version_duplet& gl_version,
 		const ruisapp::window_parameters& window_params
@@ -259,7 +289,11 @@ public:
 		),
 		xorg_visual_info(
 			this->display, //
-			fb_config
+			this->fb_config
+		),
+		xorg_color_map(
+			this->display, //
+			this->xorg_visual_info
 		)
 	{}
 
@@ -278,6 +312,10 @@ public:
 	XVisualInfo* visual_info()
 	{
 		return this->xorg_visual_info.visual_info;
+	}
+
+	Colormap color_map(){
+		return this->xorg_color_map.color_map;
 	}
 };
 

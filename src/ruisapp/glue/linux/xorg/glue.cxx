@@ -84,9 +84,8 @@ namespace {
 struct window_wrapper : public utki::destructable {
 	utki::shared_ref<display_wrapper> display;
 
-	xorg_window_wrapper win; // TODO: rename to window
+	native_window win; // TODO: rename to window
 
-	Colormap color_map;
 	::Window window;
 
 #ifdef RUISAPP_RENDER_OPENGL
@@ -216,23 +215,9 @@ struct window_wrapper : public utki::destructable {
 			window_params //
 		)
 	{
-		this->color_map = XCreateColormap(
-			this->display.get().xorg_display.display,
-			this->display.get().xorg_display.get_root_window(this->win.visual_info()->screen),
-			this->win.visual_info()->visual,
-			AllocNone
-		);
-		if (this->color_map == None) {
-			// TODO: use XSetErrorHandler() to get error code
-			throw std::runtime_error("XCreateColormap(): failed");
-		}
-		utki::scope_exit scope_exit_color_map([this]() {
-			XFreeColormap(this->display.get().xorg_display.display, this->color_map);
-		});
-
 		{
 			XSetWindowAttributes attr;
-			attr.colormap = this->color_map;
+			attr.colormap = this->win.color_map();
 			attr.border_pixel = 0;
 			attr.background_pixmap = None;
 			attr.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask |
@@ -538,7 +523,6 @@ struct window_wrapper : public utki::destructable {
 
 		scope_exit_input_context.release();
 		scope_exit_window.release();
-		scope_exit_color_map.release();
 #ifdef RUISAPP_RENDER_OPENGL
 		scope_exit_gl_context.release();
 #elif defined(RUISAPP_RENDER_OPENGLES)
@@ -586,14 +570,6 @@ struct window_wrapper : public utki::destructable {
 			this->display.get().xorg_display.display, //
 			this->window
 		);
-		XFreeColormap(
-			this->display.get().xorg_display.display, //
-			this->color_map
-		);
-
-#ifdef RUISAPP_RENDER_OPENGLES
-		eglTerminate(this->display.get().egl_display.display);
-#endif
 	}
 
 	ruis::real get_dots_per_inch()
