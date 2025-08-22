@@ -116,6 +116,8 @@ class window
 {
 public:
 	virtual ~window() = default;
+
+	virtual void swap_frame_buffers() = 0;
 };
 
 } // namespace ruisapp

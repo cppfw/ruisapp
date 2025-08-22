@@ -114,6 +114,12 @@ class native_window : public ruisapp::window
 			}())
 		{}
 
+		fb_config_wrapper(const fb_config_wrapper&) = delete;
+		fb_config_wrapper& operator=(const fb_config_wrapper&) = delete;
+
+		fb_config_wrapper(fb_config_wrapper&&) = delete;
+		fb_config_wrapper& operator=(fb_config_wrapper&&) = delete;
+
 		// no need to free fb config
 		~fb_config_wrapper() = default;
 	} fb_config;
@@ -180,6 +186,12 @@ class native_window : public ruisapp::window
 			}())
 		{}
 
+		fb_config_wrapper(const fb_config_wrapper&) = delete;
+		fb_config_wrapper& operator=(const fb_config_wrapper&) = delete;
+
+		fb_config_wrapper(fb_config_wrapper&&) = delete;
+		fb_config_wrapper& operator=(fb_config_wrapper&&) = delete;
+
 		// no need to free the egl config
 		~fb_config_wrapper() = default;
 	} fb_config;
@@ -231,6 +243,12 @@ class native_window : public ruisapp::window
 			}())
 		{}
 
+		xorg_visual_info_wrapper(const xorg_visual_info_wrapper&) = delete;
+		xorg_visual_info_wrapper& operator=(const xorg_visual_info_wrapper&) = delete;
+
+		xorg_visual_info_wrapper(xorg_visual_info_wrapper&&) = delete;
+		xorg_visual_info_wrapper& operator=(xorg_visual_info_wrapper&&) = delete;
+
 		~xorg_visual_info_wrapper()
 		{
 			XFree(this->visual_info);
@@ -261,6 +279,12 @@ class native_window : public ruisapp::window
 				return cm;
 			}())
 		{}
+
+		xorg_color_map_wrapper(const xorg_color_map_wrapper&) = delete;
+		xorg_color_map_wrapper& operator=(const xorg_color_map_wrapper&) = delete;
+
+		xorg_color_map_wrapper(xorg_color_map_wrapper&&) = delete;
+		xorg_color_map_wrapper& operator=(xorg_color_map_wrapper&&) = delete;
 
 		~xorg_color_map_wrapper()
 		{
@@ -343,6 +367,12 @@ class native_window : public ruisapp::window
 			);
 		}
 
+		xorg_window_wrapper(const xorg_window_wrapper&) = delete;
+		xorg_window_wrapper& operator=(const xorg_window_wrapper&) = delete;
+
+		xorg_window_wrapper(xorg_window_wrapper&&) = delete;
+		xorg_window_wrapper& operator=(xorg_window_wrapper&&) = delete;
+
 		~xorg_window_wrapper()
 		{
 			XDestroyWindow(
@@ -370,7 +400,7 @@ class native_window : public ruisapp::window
 		// https://dri.freedesktop.org/wiki/glXGetProcAddressNeverReturnsNULL/
 		const utki::flags<glx_extension> supported_extensions;
 
-		const GLXContext gl_context;
+		const GLXContext context;
 
 		glx_context_wrapper(
 			display_wrapper& display, //
@@ -421,7 +451,7 @@ class native_window : public ruisapp::window
 
 				return supported;
 			}()),
-			gl_context([&]() {
+			context([&]() {
 				GLXContext gl_context = nullptr;
 
 				if (this->supported_extensions.get(glx_extension::glx_arb_create_context)) {
@@ -455,8 +485,10 @@ class native_window : public ruisapp::window
 								.minor = 0
 							};
 						}
-						if(ver.major < 2){
-							throw std::invalid_argument(utki::cat("minimum supported OpenGL version is 2.0, requested: ", ver));
+						if (ver.major < 2) {
+							throw std::invalid_argument(
+								utki::cat("minimal supported OpenGL version is 2.0, requested: ", ver)
+							);
 						}
 						return ver;
 					}();
@@ -503,6 +535,12 @@ class native_window : public ruisapp::window
 			}())
 		{}
 
+		glx_context_wrapper(const glx_context_wrapper&) = delete;
+		glx_context_wrapper& operator=(const glx_context_wrapper&) = delete;
+
+		glx_context_wrapper(glx_context_wrapper&&) = delete;
+		glx_context_wrapper& operator=(glx_context_wrapper&&) = delete;
+
 		~glx_context_wrapper()
 		{
 			glXMakeCurrent(
@@ -512,11 +550,123 @@ class native_window : public ruisapp::window
 			);
 			glXDestroyContext(
 				this->display.xorg_display.display, //
-				this->gl_context
+				this->context
 			);
 		}
 	} glx_context;
+
 #elif defined(RUISAPP_RENDER_OPENGLES)
+	struct egl_surface_wrapper {
+		display_wrapper& display;
+
+		const EGLSurface surface;
+
+		egl_surface_wrapper(
+			display_wrapper& display, //
+			const fb_config_wrapper& fb_config,
+			const xorg_window_wrapper& xorg_window
+		) :
+			display(display),
+			surface([&]() {
+				auto s = eglCreateWindowSurface(
+					this->display.egl_display.display, //
+					fb_config.config,
+					xorg_window.window,
+					nullptr
+				);
+				if (s == EGL_NO_SURFACE) {
+					throw std::runtime_error("eglCreateWindowSurface() failed");
+				}
+				return s;
+			}())
+		{}
+
+		egl_surface_wrapper(const egl_surface_wrapper&) = delete;
+		egl_surface_wrapper& operator=(const egl_surface_wrapper&) = delete;
+
+		egl_surface_wrapper(egl_surface_wrapper&&) = delete;
+		egl_surface_wrapper& operator=(egl_surface_wrapper&&) = delete;
+
+		~egl_surface_wrapper()
+		{
+			eglDestroySurface(
+				this->display.egl_display.display, //
+				this->surface
+			);
+		}
+	} egl_surface;
+
+	struct egl_context_wrapper {
+		display_wrapper& display;
+
+		const EGLContext context;
+
+		egl_context_wrapper(
+			display_wrapper& display, //
+			const utki::version_duplet& gl_version,
+			const fb_config_wrapper& fb_config
+		) :
+			display(display),
+			context([&]() {
+				auto graphics_api_version = [&ver = gl_version]() {
+					if (ver.to_uint32_t() == 0) {
+						// default OpenGL ES version is 2.0
+						return utki::version_duplet{
+							.major = 2, //
+							.minor = 0
+						};
+					}
+
+					if (ver.major < 2) {
+						throw std::invalid_argument(
+							utki::cat("minimal supported OpenGL ES version is 2.0, requested: ", ver)
+						);
+					}
+					return ver;
+				}();
+
+				constexpr auto attrs_array_size = 5;
+				std::array<EGLint, attrs_array_size> context_attrs = {
+					EGL_CONTEXT_MAJOR_VERSION,
+					graphics_api_version.major,
+					EGL_CONTEXT_MINOR_VERSION,
+					graphics_api_version.minor,
+					EGL_NONE
+				};
+
+				auto egl_context = eglCreateContext(
+					this->display.egl_display.display, //
+					fb_config.config,
+					EGL_NO_CONTEXT,
+					context_attrs.data()
+				);
+				if (egl_context == EGL_NO_CONTEXT) {
+					throw std::runtime_error("eglCreateContext() failed");
+				}
+				return egl_context;
+			}())
+		{}
+
+		egl_context_wrapper(const egl_context_wrapper&) = delete;
+		egl_context_wrapper& operator=(const egl_context_wrapper&) = delete;
+
+		egl_context_wrapper(egl_context_wrapper&&) = delete;
+		egl_context_wrapper& operator=(egl_context_wrapper&&) = delete;
+
+		~egl_context_wrapper()
+		{
+			eglMakeCurrent(
+				this->display.egl_display.display, //
+				EGL_NO_SURFACE,
+				EGL_NO_SURFACE,
+				EGL_NO_CONTEXT
+			);
+			eglDestroyContext(
+				this->display.egl_display.display, //
+				this->context
+			);
+		}
+	} egl_context;
 #endif
 
 	struct xorg_input_context_wrapper {
@@ -585,12 +735,25 @@ public:
 			this->xorg_color_map,
 			this->xorg_visual_info
 		),
+#ifdef RUISAPP_RENDER_OPENGL
 		glx_context(
 			this->display, //
 			this->xorg_visual_info,
 			gl_version,
 			this->fb_config
 		),
+#elif defined(RUISAPP_RENDER_OPENGLES)
+		egl_surface(
+			this->display, //
+			this->fb_config,
+			this->xorg_window
+		),
+		egl_context(
+			this->display, //
+			gl_version,
+			this->fb_config
+		),
+#endif
 		xorg_input_context(
 			this->display, //
 			this->xorg_window
@@ -612,10 +775,18 @@ public:
 		glXMakeCurrent(
 			this->display.get().xorg_display.display, //
 			this->xorg_window.window,
-			this->glx_context.gl_context
+			this->glx_context.context
 		);
 #elif defined(RUISAPP_RENDER_OPENGLES)
-// TODO:
+		if (eglMakeCurrent(
+				this->display.get().egl_display.display,
+				this->egl_surface.surface,
+				this->egl_surface.surface,
+				this->egl_context.context
+			) == EGL_FALSE)
+		{
+			throw std::runtime_error("eglMakeCurrent() failed");
+		}
 #endif
 	};
 
@@ -672,22 +843,35 @@ public:
 			False
 		);
 #elif defined(RUISAPP_RENDER_OPENGLES)
-// TODO:
+		if (eglSwapInterval(
+				this->display.get().egl_display.display, //
+				0
+			) != EGL_TRUE)
+		{
+			throw std::runtime_error("eglSwapInterval() failed");
+		}
+#endif
+	}
+
+	void swap_frame_buffers() override
+	{
+#ifdef RUISAPP_RENDER_OPENGL
+		glXSwapBuffers(
+			this->display.get().xorg_display.display, //
+			this->xorg_window.window
+		);
+#elif defined(RUISAPP_RENDER_OPENGLES)
+		eglSwapBuffers(
+			this->display.get().egl_display.display, //
+			this->egl_surface.surface
+		);
+#else
+#	error "Unknown graphics API"
 #endif
 	}
 
 	// TODO: remove
-#ifdef RUISAPP_RENDER_OPENGL
-	GLXFBConfig& xorg_fb_config()
-	{
-		return this->fb_config.config;
-	}
-#elif defined(RUISAPP_RENDER_OPENGLES)
-	EGLConfig& egl_config()
-	{
-		return this->fb_config.config;
-	}
-#endif
+
 	XVisualInfo* visual_info()
 	{
 		return this->xorg_visual_info.visual_info;

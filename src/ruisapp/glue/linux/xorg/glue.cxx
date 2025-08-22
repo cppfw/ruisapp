@@ -56,11 +56,18 @@ using namespace std::string_view_literals;
 #include "../../friend_accessors.cxx" // NOLINT(bugprone-suspicious-include)
 #include "../../unix_common.cxx" // NOLINT(bugprone-suspicious-include)
 
-#include "application.cxx" // NOLINT(bugprone-suspicious-include)
 #include "display.cxx" // NOLINT(bugprone-suspicious-include)
 #include "window.cxx" // NOLINT(bugprone-suspicious-include)
 
 using namespace ruisapp;
+
+class ruisapp::application::platform_glue : public utki::destructable
+{
+public:
+	nitki::queue ui_queue;
+
+	std::atomic_bool quit_flag = false;
+};
 
 namespace {
 const std::map<ruis::mouse_cursor, unsigned> x_cursor_map = {
@@ -88,13 +95,6 @@ struct window_wrapper : public utki::destructable {
 
 	native_window window;
 
-#ifdef RUISAPP_RENDER_OPENGL
-#elif defined(RUISAPP_RENDER_OPENGLES)
-	EGLSurface egl_surface;
-	EGLContext egl_context;
-#else
-#	error "Unknown graphics API"
-#endif
 	struct cursor_wrapper {
 		// NOLINTNEXTLINE(clang-analyzer-webkit.NoUncountedMemberChecker, "false-positive")
 		window_wrapper& owner;
@@ -111,7 +111,8 @@ struct window_wrapper : public utki::destructable {
 
 				Pixmap blank = XCreateBitmapFromData(
 					this->owner.display.get().xorg_display.display, //
-					this->owner.window.win(),
+					this->owner.display.get().xorg_display.get_default_root_window(
+					), // only used to deremine screen and depth
 					data.data(),
 					1,
 					1
@@ -231,92 +232,6 @@ struct window_wrapper : public utki::destructable {
 			throw std::runtime_error("GLEW initialization failed");
 		}
 #elif defined(RUISAPP_RENDER_OPENGLES)
-		this->egl_surface = eglCreateWindowSurface(
-			this->display.get().egl_display.display, //
-			this->window.egl_config(),
-			this->window.win(),
-			nullptr
-		);
-		if (this->egl_surface == EGL_NO_SURFACE) {
-			throw std::runtime_error("eglCreateWindowSurface() failed");
-		}
-		utki::scope_exit scope_exit_egl_surface([this]() {
-			eglDestroySurface(
-				this->display.get().egl_display.display, //
-				this->egl_surface
-			);
-		});
-
-		{
-			auto graphics_api_version = [&ver = gl_version]() {
-				if (ver.to_uint32_t() == 0) {
-					// default OpenGL ES version is 2.0
-					return utki::version_duplet{
-						.major = 2, //
-						.minor = 0
-					};
-				}
-				return ver;
-			}();
-
-			constexpr auto attrs_array_size = 5;
-			std::array<EGLint, attrs_array_size> context_attrs = {
-				EGL_CONTEXT_MAJOR_VERSION,
-				graphics_api_version.major,
-				EGL_CONTEXT_MINOR_VERSION,
-				graphics_api_version.minor,
-				EGL_NONE
-			};
-
-			this->egl_context = eglCreateContext(
-				this->display.get().egl_display.display, //
-				this->window.egl_config(),
-				EGL_NO_CONTEXT,
-				context_attrs.data()
-			);
-			if (this->egl_context == EGL_NO_CONTEXT) {
-				throw std::runtime_error("eglCreateContext() failed");
-			}
-		}
-
-		if (eglMakeCurrent(
-				this->display.get().egl_display.display,
-				this->egl_surface,
-				this->egl_surface,
-				this->egl_context
-			) == EGL_FALSE)
-		{
-			eglDestroyContext(
-				this->display.get().egl_display.display, //
-				this->egl_context
-			);
-			throw std::runtime_error("eglMakeCurrent() failed");
-		}
-		utki::scope_exit scope_exit_egl_context([this]() {
-			eglMakeCurrent(
-				this->display.get().egl_display.display, //
-				EGL_NO_SURFACE,
-				EGL_NO_SURFACE,
-				EGL_NO_CONTEXT
-			);
-			eglDestroyContext(
-				this->display.get().egl_display.display, //
-				this->egl_context
-			);
-		});
-
-		// disable v-sync
-		if (eglSwapInterval(this->display.get().egl_display.display, 0) != EGL_TRUE) {
-			throw std::runtime_error("eglSwapInterval() failed");
-		}
-#else
-#	error "Unknown graphics API"
-#endif
-
-#ifdef RUISAPP_RENDER_OPENGL
-#elif defined(RUISAPP_RENDER_OPENGLES)
-		scope_exit_egl_surface.release();
-		scope_exit_egl_context.release();
 #else
 #	error "Unknown graphics API"
 #endif
@@ -328,28 +243,7 @@ struct window_wrapper : public utki::destructable {
 	window_wrapper(window_wrapper&&) = delete;
 	window_wrapper& operator=(window_wrapper&&) = delete;
 
-	~window_wrapper() override
-	{
-#ifdef RUISAPP_RENDER_OPENGL
-#elif defined(RUISAPP_RENDER_OPENGLES)
-		eglMakeCurrent(
-			this->display.get().egl_display.display, //
-			EGL_NO_SURFACE,
-			EGL_NO_SURFACE,
-			EGL_NO_CONTEXT
-		);
-		eglDestroyContext(
-			this->display.get().egl_display.display, //
-			this->egl_context
-		);
-		eglDestroySurface(
-			this->display.get().egl_display.display, //
-			this->egl_surface
-		);
-#else
-#	error "Unknown graphics API"
-#endif
-	}
+	~window_wrapper() override {}
 
 	ruis::real get_dots_per_inch()
 	{
@@ -1095,18 +989,5 @@ void application::set_mouse_cursor_visible(bool visible)
 void application::swap_frame_buffers()
 {
 	auto& ww = get_impl(this->window_pimpl);
-
-#ifdef RUISAPP_RENDER_OPENGL
-	glXSwapBuffers(
-		ww.display.get().xorg_display.display, //
-		ww.window.win()
-	);
-#elif defined(RUISAPP_RENDER_OPENGLES)
-	eglSwapBuffers(
-		ww.display.get().egl_display.display, //
-		ww.egl_surface
-	);
-#else
-#	error "Unknown graphics API"
-#endif
+	ww.window.swap_frame_buffers();
 }
