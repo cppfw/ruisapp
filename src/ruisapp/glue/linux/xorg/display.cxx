@@ -85,27 +85,29 @@ public:
 				}
 				return d;
 			}())
-		{}
+		{
+			try {
+				if (eglInitialize(
+						this->display, //
+						nullptr,
+						nullptr
+					) == EGL_FALSE)
+				{
+					throw std::runtime_error("eglInitialize() failed");
+				}
+
+				if (eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE) {
+					throw std::runtime_error("eglBindApi() failed");
+				}
+			} catch (...) {
+				eglTerminate(this->display);
+				throw;
+			}
+		}
 
 		~egl_display_wrapper()
 		{
 			eglTerminate(this->display);
-		}
-
-		void init()
-		{
-			if (eglInitialize(
-					this->display, //
-					nullptr,
-					nullptr
-				) == EGL_FALSE)
-			{
-				throw std::runtime_error("eglInitialize() failed");
-			}
-
-			if (eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE) {
-				throw std::runtime_error("eglBindApi() failed");
-			}
 		}
 	} egl_display;
 #endif
@@ -161,8 +163,6 @@ public:
 				throw std::runtime_error("GLX version 1.3 or above is required");
 			}
 		}
-#elif defined(RUISAPP_RENDER_OPENGLES)
-		this->egl_display.init();
 #endif
 	}
 

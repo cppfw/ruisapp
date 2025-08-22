@@ -84,9 +84,7 @@ namespace {
 struct window_wrapper : public utki::destructable {
 	utki::shared_ref<display_wrapper> display;
 
-	native_window win; // TODO: rename to window
-
-	::Window window;
+	native_window window;
 
 #ifdef RUISAPP_RENDER_OPENGL
 	GLXContext gl_context;
@@ -109,7 +107,7 @@ struct window_wrapper : public utki::destructable {
 
 				Pixmap blank = XCreateBitmapFromData(
 					this->owner.display.get().xorg_display.display, //
-					this->owner.window,
+					this->owner.window.win(),
 					data.data(),
 					1,
 					1
@@ -166,7 +164,7 @@ struct window_wrapper : public utki::destructable {
 	{
 		XDefineCursor(
 			this->display.get().xorg_display.display, //
-			this->window,
+			this->window.win(),
 			c.cursor
 		);
 	}
@@ -196,7 +194,10 @@ struct window_wrapper : public utki::destructable {
 			if (this->cur_cursor) {
 				this->apply_cursor(*this->cur_cursor);
 			} else {
-				XUndefineCursor(this->display.get().xorg_display.display, this->window);
+				XUndefineCursor(
+					this->display.get().xorg_display.display, //
+					this->window.win()
+				);
 			}
 		} else {
 			this->apply_cursor(*this->get_cursor(ruis::mouse_cursor::none));
@@ -210,60 +211,12 @@ struct window_wrapper : public utki::destructable {
 		const ruisapp::window_parameters& window_params
 	) :
 		display(utki::make_shared<display_wrapper>()),
-		win(this->display,
+		window(
+			this->display,
 			gl_version,
 			window_params //
 		)
 	{
-		{
-			XSetWindowAttributes attr;
-			attr.colormap = this->win.color_map();
-			attr.border_pixel = 0;
-			attr.background_pixmap = None;
-			attr.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask |
-				PointerMotionMask | ButtonMotionMask | StructureNotifyMask | EnterWindowMask | LeaveWindowMask;
-			unsigned long fields = CWBorderPixel | CWColormap | CWEventMask; // TODO: add CWBackPixmap?
-
-			auto dims = (this->display.get().scale_factor * window_params.dims.to<ruis::real>()).to<unsigned>();
-
-			this->window = XCreateWindow(
-				this->display.get().xorg_display.display,
-				this->display.get().xorg_display.get_root_window(this->win.visual_info()->screen), // parent window
-				0, // x position
-				0, // y position
-				dims.x(), // width
-				dims.y(), // height
-				0, // border width
-				this->win.visual_info()->depth, // window's depth
-				InputOutput, // window's class
-				this->win.visual_info()->visual,
-				fields, // defined attributes
-				&attr
-			);
-		}
-		if (!this->window) {
-			throw std::runtime_error("Failed to create window");
-		}
-		utki::scope_exit scope_exit_window([this]() {
-			XDestroyWindow(this->display.get().xorg_display.display, this->window);
-		});
-
-		{ // we want to handle WM_DELETE_WINDOW event to know when window is closed
-			Atom a = XInternAtom(this->display.get().xorg_display.display, "WM_DELETE_WINDOW", True);
-			XSetWMProtocols(this->display.get().xorg_display.display, this->window, &a, 1);
-		}
-
-		XMapWindow(this->display.get().xorg_display.display, this->window);
-
-		this->display.get().xorg_display.flush();
-
-		// set window title
-		XStoreName(
-			this->display.get().xorg_display.display, //
-			this->window,
-			window_params.title.c_str()
-		);
-
 		//====================
 		// create GLX context
 
@@ -275,7 +228,7 @@ struct window_wrapper : public utki::destructable {
 
 		auto glx_extensions_string = std::string_view(glXQueryExtensionsString(
 			this->display.get().xorg_display.display, //
-			this->win.visual_info()->screen
+			this->window.visual_info()->screen
 		));
 		utki::log_debug([&](auto& o) {
 			o << "glx_extensions_string = " << glx_extensions_string << std::endl;
@@ -292,7 +245,7 @@ struct window_wrapper : public utki::destructable {
 			// GLX_ARB_create_context is not supported
 			this->gl_context = glXCreateContext(
 				this->display.get().xorg_display.display, //
-				this->win.visual_info(),
+				this->window.visual_info(),
 				nullptr,
 				GL_TRUE
 			);
@@ -343,7 +296,7 @@ struct window_wrapper : public utki::destructable {
 
 			this->gl_context = glx_create_context_attribs_arb(
 				this->display.get().xorg_display.display,
-				this->win.xorg_fb_config(),
+				this->window.xorg_fb_config(),
 				nullptr,
 				GL_TRUE,
 				context_attribs.data()
@@ -357,11 +310,22 @@ struct window_wrapper : public utki::destructable {
 			throw std::runtime_error("glXCreateContext() failed");
 		}
 		utki::scope_exit scope_exit_gl_context([this]() {
-			glXMakeCurrent(this->display.get().xorg_display.display, None, nullptr);
-			glXDestroyContext(this->display.get().xorg_display.display, this->gl_context);
+			glXMakeCurrent(
+				this->display.get().xorg_display.display, //
+				None,
+				nullptr
+			);
+			glXDestroyContext(
+				this->display.get().xorg_display.display, //
+				this->gl_context
+			);
 		});
 
-		glXMakeCurrent(this->display.get().xorg_display.display, this->window, this->gl_context);
+		glXMakeCurrent(
+			this->display.get().xorg_display.display, //
+			this->window.win(),
+			this->gl_context
+		);
 
 		// disable v-sync via swap control extension
 
@@ -378,7 +342,11 @@ struct window_wrapper : public utki::destructable {
 			ASSERT(glx_swap_interval_ext)
 
 			// disable v-sync
-			glx_swap_interval_ext(this->display.get().xorg_display.display, this->window, 0);
+			glx_swap_interval_ext(
+				this->display.get().xorg_display.display, //
+				this->window.win(),
+				0
+			);
 		} else if ( //
 			std::find( //
 					   glx_extensions.begin(),
@@ -420,8 +388,8 @@ struct window_wrapper : public utki::destructable {
 #elif defined(RUISAPP_RENDER_OPENGLES)
 		this->egl_surface = eglCreateWindowSurface(
 			this->display.get().egl_display.display, //
-			this->win.egl_config(),
-			this->window,
+			this->window.egl_config(),
+			this->window.win(),
 			nullptr
 		);
 		if (this->egl_surface == EGL_NO_SURFACE) {
@@ -457,7 +425,7 @@ struct window_wrapper : public utki::destructable {
 
 			this->egl_context = eglCreateContext(
 				this->display.get().egl_display.display, //
-				this->win.egl_config(),
+				this->window.egl_config(),
 				EGL_NO_CONTEXT,
 				context_attrs.data()
 			);
@@ -506,9 +474,9 @@ struct window_wrapper : public utki::destructable {
 		this->input_context = XCreateIC(
 			this->display.get().input_method(),
 			XNClientWindow,
-			this->window,
+			this->window.win(),
 			XNFocusWindow,
-			this->window,
+			this->window.win(),
 			XNInputStyle,
 			XIMPreeditNothing | XIMStatusNothing,
 			nullptr
@@ -522,7 +490,6 @@ struct window_wrapper : public utki::destructable {
 		});
 
 		scope_exit_input_context.release();
-		scope_exit_window.release();
 #ifdef RUISAPP_RENDER_OPENGL
 		scope_exit_gl_context.release();
 #elif defined(RUISAPP_RENDER_OPENGLES)
@@ -565,11 +532,6 @@ struct window_wrapper : public utki::destructable {
 #else
 #	error "Unknown graphics API"
 #endif
-
-		XDestroyWindow(
-			this->display.get().xorg_display.display, //
-			this->window
-		);
 	}
 
 	ruis::real get_dots_per_inch()
@@ -1268,7 +1230,7 @@ void application::set_fullscreen(bool enable)
 	event.xclient.type = ClientMessage;
 	event.xclient.serial = 0;
 	event.xclient.send_event = True;
-	event.xclient.window = ww.window;
+	event.xclient.window = ww.window.win();
 	event.xclient.message_type = state_atom;
 
 	// data should be viewed as list of longs
@@ -1312,7 +1274,7 @@ void application::swap_frame_buffers()
 #ifdef RUISAPP_RENDER_OPENGL
 	glXSwapBuffers(
 		ww.display.get().xorg_display.display, //
-		ww.window
+		ww.window.win()
 	);
 #elif defined(RUISAPP_RENDER_OPENGLES)
 	eglSwapBuffers(

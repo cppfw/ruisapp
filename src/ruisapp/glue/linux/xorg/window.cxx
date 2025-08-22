@@ -271,7 +271,86 @@ class native_window : public ruisapp::window
 		}
 	} xorg_color_map;
 
-	::Window window;
+	struct xorg_window_wrapper {
+		display_wrapper& display;
+
+		const ::Window window;
+
+		xorg_window_wrapper(
+			display_wrapper& display, //
+			const ruisapp::window_parameters& window_params,
+			xorg_color_map_wrapper& color_map,
+			xorg_visual_info_wrapper& visual_info
+		) :
+			display(display),
+			window([&]() {
+				XSetWindowAttributes attr;
+				attr.colormap = color_map.color_map;
+				attr.border_pixel = 0;
+				attr.background_pixmap = None;
+				attr.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask |
+					PointerMotionMask | ButtonMotionMask | StructureNotifyMask | EnterWindowMask | LeaveWindowMask;
+				unsigned long fields = CWBorderPixel | CWColormap | CWEventMask | CWBackPixmap;
+
+				auto dims = (this->display.scale_factor * window_params.dims.to<ruis::real>()).to<unsigned>();
+
+				auto w = XCreateWindow(
+					this->display.xorg_display.display,
+					this->display.xorg_display.get_root_window(visual_info.visual_info->screen), // parent window
+					0, // x position
+					0, // y position
+					dims.x(), // width
+					dims.y(), // height
+					0, // border width
+					visual_info.visual_info->depth, // window's depth
+					InputOutput, // window's class
+					visual_info.visual_info->visual,
+					fields, // defined attributes
+					&attr
+				);
+				if (!w) {
+					throw std::runtime_error("Failed to create window");
+				}
+				return w;
+			}())
+		{
+			{ // we want to handle WM_DELETE_WINDOW event to know when window is closed
+				Atom a = XInternAtom(
+					this->display.xorg_display.display, //
+					"WM_DELETE_WINDOW",
+					True
+				);
+				XSetWMProtocols(
+					this->display.xorg_display.display, //
+					this->window,
+					&a,
+					1
+				);
+			}
+
+			XMapWindow(
+				this->display.xorg_display.display, //
+				this->window
+			);
+
+			this->display.xorg_display.flush();
+
+			// set window title
+			XStoreName(
+				this->display.xorg_display.display, //
+				this->window,
+				window_params.title.c_str()
+			);
+		}
+
+		~xorg_window_wrapper()
+		{
+			XDestroyWindow(
+				this->display.xorg_display.display, //
+				this->window
+			);
+		}
+	} xorg_window;
 
 	ruis::real scale_factor = 1;
 
@@ -294,8 +373,20 @@ public:
 		xorg_color_map(
 			this->display, //
 			this->xorg_visual_info
+		),
+		xorg_window(
+			this->display, //
+			window_params,
+			this->xorg_color_map,
+			this->xorg_visual_info
 		)
 	{}
+
+	native_window(const native_window&) = delete;
+	native_window& operator=(const native_window&) = delete;
+
+	native_window(native_window&&) = delete;
+	native_window& operator=(native_window&&) = delete;
 
 	// TODO: remove
 #ifdef RUISAPP_RENDER_OPENGL
@@ -314,8 +405,14 @@ public:
 		return this->xorg_visual_info.visual_info;
 	}
 
-	Colormap color_map(){
+	Colormap color_map()
+	{
 		return this->xorg_color_map.color_map;
+	}
+
+	::Window win()
+	{
+		return this->xorg_window.window;
 	}
 };
 
