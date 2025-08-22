@@ -99,7 +99,10 @@ struct window_wrapper : public utki::destructable {
 		window_wrapper& owner;
 		Cursor cursor;
 
-		cursor_wrapper(window_wrapper& owner, ruis::mouse_cursor c) :
+		cursor_wrapper(
+			window_wrapper& owner, //
+			ruis::mouse_cursor c
+		) :
 			owner(owner)
 		{
 			if (c == ruis::mouse_cursor::none) {
