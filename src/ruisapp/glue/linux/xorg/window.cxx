@@ -352,6 +352,173 @@ class native_window : public ruisapp::window
 		}
 	} xorg_window;
 
+#ifdef RUISAPP_RENDER_OPENGL
+	struct glx_context_wrapper {
+		display_wrapper& display;
+
+		enum class glx_extension {
+			glx_arb_create_context,
+			glx_ext_swap_control,
+			glx_mesa_swap_control,
+
+			enum_size
+		};
+
+		// glXGetProcAddressARB() will return non-null pointer even if extension is
+		// not supported, so we need to explicitly check for supported extensions.
+		// SOURCE:
+		// https://dri.freedesktop.org/wiki/glXGetProcAddressNeverReturnsNULL/
+		const utki::flags<glx_extension> supported_extensions;
+
+		const GLXContext gl_context;
+
+		glx_context_wrapper(
+			display_wrapper& display, //
+			const xorg_visual_info_wrapper& visual_info,
+			const utki::version_duplet& gl_version,
+			const fb_config_wrapper& fb_config
+		) :
+			display(display),
+			supported_extensions([&]() {
+				utki::flags<glx_extension> supported = false;
+
+				auto glx_extensions_string = std::string_view(glXQueryExtensionsString(
+					this->display.xorg_display.display, //
+					visual_info.visual_info->screen
+				));
+				utki::log_debug([&](auto& o) {
+					o << "glx_extensions_string = " << glx_extensions_string << std::endl;
+				});
+
+				auto glx_extensions = utki::split(glx_extensions_string);
+
+				if (std::find(
+						glx_extensions.begin(), //
+						glx_extensions.end(),
+						"GLX_ARB_create_context"s
+					) != glx_extensions.end())
+				{
+					supported.set(glx_extension::glx_arb_create_context);
+				}
+
+				if (std::find(
+						glx_extensions.begin(), //
+						glx_extensions.end(),
+						"GLX_EXT_swap_control"s
+					) != glx_extensions.end())
+				{
+					supported.set(glx_extension::glx_ext_swap_control);
+				}
+
+				if (std::find( //
+						glx_extensions.begin(),
+						glx_extensions.end(),
+						"GLX_MESA_swap_control"s
+					) != glx_extensions.end())
+				{
+					supported.set(glx_extension::glx_mesa_swap_control);
+				}
+
+				return supported;
+			}()),
+			gl_context([&]() {
+				GLXContext gl_context = nullptr;
+
+				if (this->supported_extensions.get(glx_extension::glx_arb_create_context)) {
+					// GLX_ARB_create_context is supported
+
+					// NOTE: glXGetProcAddressARB() is guaranteed to be present in all GLX
+					// versions.
+					//       glXGetProcAddress() is not guaranteed.
+					// SOURCE:
+					// https://dri.freedesktop.org/wiki/glXGetProcAddressNeverReturnsNULL/
+
+					auto glx_create_context_attribs_arb = PFNGLXCREATECONTEXTATTRIBSARBPROC(glXGetProcAddressARB(
+						// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+						reinterpret_cast<const GLubyte*>("glXCreateContextAttribsARB")
+					));
+
+					if (!glx_create_context_attribs_arb) {
+						// this should not happen since we checked extension presence, and
+						// anyway, glXGetProcAddressARB() never returns nullptr according to
+						// https://dri.freedesktop.org/wiki/glXGetProcAddressNeverReturnsNULL/
+						// so, this check for null is just in case future version of GLX may
+						// return null
+						throw std::runtime_error("glXCreateContextAttribsARB() not found");
+					}
+
+					auto graphics_api_version = [&ver = gl_version]() {
+						if (ver.to_uint32_t() == 0) {
+							// default OpenGL version is 2.0
+							return utki::version_duplet{
+								.major = 2, //
+								.minor = 0
+							};
+						}
+						if(ver.major < 2){
+							throw std::invalid_argument(utki::cat("minimum supported OpenGL version is 2.0, requested: ", ver));
+						}
+						return ver;
+					}();
+
+					static const std::array<int, 7> context_attribs = {
+						GLX_CONTEXT_MAJOR_VERSION_ARB,
+						graphics_api_version.major,
+						GLX_CONTEXT_MINOR_VERSION_ARB,
+						graphics_api_version.minor,
+						GLX_CONTEXT_PROFILE_MASK_ARB,
+						// we don't need compatibility context
+						GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
+						None
+					};
+
+					gl_context = glx_create_context_attribs_arb(
+						this->display.xorg_display.display, //
+						fb_config.config,
+						nullptr,
+						GL_TRUE,
+						context_attribs.data()
+					);
+				} else {
+					// GLX_ARB_create_context is not supported
+					gl_context = glXCreateContext(
+						this->display.xorg_display.display, //
+						visual_info.visual_info,
+						nullptr,
+						GL_TRUE
+					);
+				}
+
+				// sync to ensure any errors generated are processed
+				XSync(
+					this->display.xorg_display.display, //
+					False
+				);
+
+				if (gl_context == nullptr) {
+					throw std::runtime_error("glXCreateContext() failed");
+				}
+
+				return gl_context;
+			}())
+		{}
+
+		~glx_context_wrapper()
+		{
+			glXMakeCurrent(
+				this->display.xorg_display.display, //
+				None,
+				nullptr
+			);
+			glXDestroyContext(
+				this->display.xorg_display.display, //
+				this->gl_context
+			);
+		}
+	} glx_context;
+#elif defined(RUISAPP_RENDER_OPENGLES)
+#endif
+
 	struct xorg_input_context_wrapper {
 		const XIC input_context;
 
@@ -418,17 +585,96 @@ public:
 			this->xorg_color_map,
 			this->xorg_visual_info
 		),
+		glx_context(
+			this->display, //
+			this->xorg_visual_info,
+			gl_version,
+			this->fb_config
+		),
 		xorg_input_context(
 			this->display, //
 			this->xorg_window
 		)
-	{}
+	{
+		this->make_gl_context_current();
+		this->disable_vsync();
+	}
 
 	native_window(const native_window&) = delete;
 	native_window& operator=(const native_window&) = delete;
 
 	native_window(native_window&&) = delete;
 	native_window& operator=(native_window&&) = delete;
+
+	void make_gl_context_current()
+	{
+#ifdef RUISAPP_RENDER_OPENGL
+		glXMakeCurrent(
+			this->display.get().xorg_display.display, //
+			this->xorg_window.window,
+			this->glx_context.gl_context
+		);
+#elif defined(RUISAPP_RENDER_OPENGLES)
+// TODO:
+#endif
+	};
+
+	void disable_vsync()
+	{
+		this->make_gl_context_current();
+#ifdef RUISAPP_RENDER_OPENGL
+		// disable v-sync via swap control extension
+
+		if (this->glx_context.supported_extensions.get(glx_context_wrapper::glx_extension::glx_ext_swap_control)) {
+			utki::log_debug([](auto& o) {
+				o << "GLX_EXT_swap_control is supported\n";
+			});
+
+			auto glx_swap_interval_ext = PFNGLXSWAPINTERVALEXTPROC(glXGetProcAddressARB(
+				// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+				reinterpret_cast<const GLubyte*>("glXSwapIntervalEXT")
+			));
+
+			ASSERT(glx_swap_interval_ext)
+
+			// disable v-sync
+			glx_swap_interval_ext(
+				this->display.get().xorg_display.display, //
+				this->xorg_window.window,
+				0
+			);
+		} else if (this->glx_context.supported_extensions.get(glx_context_wrapper::glx_extension::glx_mesa_swap_control
+				   ))
+		{
+			utki::log_debug([](auto& o) {
+				o << "GLX_MESA_swap_control is supported\n";
+			});
+
+			auto glx_swap_interval_mesa = PFNGLXSWAPINTERVALMESAPROC(glXGetProcAddressARB(
+				// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+				reinterpret_cast<const GLubyte*>("glXSwapIntervalMESA")
+			));
+
+			ASSERT(glx_swap_interval_mesa)
+
+			// disable v-sync
+			if (glx_swap_interval_mesa(0) != 0) {
+				throw std::runtime_error("glXSwapIntervalMESA() failed");
+			}
+		} else {
+			std::cout << "none of GLX_EXT_swap_control, GLX_MESA_swap_control GLX "
+					  << "extensions are supported. Not disabling v-sync." << std::endl;
+		}
+
+		// sync to ensure any errors generated are processed
+		XSync(
+			this->display.get().xorg_display.display, //
+			False
+		);
+#elif defined(RUISAPP_RENDER_OPENGLES)
+// TODO:
+#endif
+	}
 
 	// TODO: remove
 #ifdef RUISAPP_RENDER_OPENGL

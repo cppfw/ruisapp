@@ -49,14 +49,16 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #include "../../../application.hpp"
+
+using namespace std::string_literals;
+using namespace std::string_view_literals;
+
 #include "../../friend_accessors.cxx" // NOLINT(bugprone-suspicious-include)
 #include "../../unix_common.cxx" // NOLINT(bugprone-suspicious-include)
 
 #include "application.cxx" // NOLINT(bugprone-suspicious-include)
 #include "display.cxx" // NOLINT(bugprone-suspicious-include)
 #include "window.cxx" // NOLINT(bugprone-suspicious-include)
-
-using namespace std::string_view_literals;
 
 using namespace ruisapp;
 
@@ -87,7 +89,6 @@ struct window_wrapper : public utki::destructable {
 	native_window window;
 
 #ifdef RUISAPP_RENDER_OPENGL
-	GLXContext gl_context;
 #elif defined(RUISAPP_RENDER_OPENGLES)
 	EGLSurface egl_surface;
 	EGLContext egl_context;
@@ -165,6 +166,7 @@ struct window_wrapper : public utki::destructable {
 
 	void apply_cursor(cursor_wrapper& c)
 	{
+		// set the cursor to xorg window
 		XDefineCursor(
 			this->display.get().xorg_display.display, //
 			this->window.win(),
@@ -222,163 +224,6 @@ struct window_wrapper : public utki::destructable {
 		// create GLX context
 
 #ifdef RUISAPP_RENDER_OPENGL
-		// glXGetProcAddressARB() will retutn non-null pointer even if extension is
-		// not supported, so we need to explicitly check for supported extensions.
-		// SOURCE:
-		// https://dri.freedesktop.org/wiki/glXGetProcAddressNeverReturnsNULL/
-
-		auto glx_extensions_string = std::string_view(glXQueryExtensionsString(
-			this->display.get().xorg_display.display, //
-			this->window.visual_info()->screen
-		));
-		utki::log_debug([&](auto& o) {
-			o << "glx_extensions_string = " << glx_extensions_string << std::endl;
-		});
-
-		auto glx_extensions = utki::split(glx_extensions_string);
-
-		if (std::find(
-				glx_extensions.begin(), //
-				glx_extensions.end(),
-				"GLX_ARB_create_context"
-			) == glx_extensions.end())
-		{
-			// GLX_ARB_create_context is not supported
-			this->gl_context = glXCreateContext(
-				this->display.get().xorg_display.display, //
-				this->window.visual_info(),
-				nullptr,
-				GL_TRUE
-			);
-		} else {
-			// GLX_ARB_create_context is supported
-
-			// NOTE: glXGetProcAddressARB() is guaranteed to be present in all GLX
-			// versions.
-			//       glXGetProcAddress() is not guaranteed.
-			// SOURCE:
-			// https://dri.freedesktop.org/wiki/glXGetProcAddressNeverReturnsNULL/
-
-			auto glx_create_context_attribs_arb = PFNGLXCREATECONTEXTATTRIBSARBPROC(glXGetProcAddressARB(
-				// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-				reinterpret_cast<const GLubyte*>("glXCreateContextAttribsARB")
-			));
-
-			if (!glx_create_context_attribs_arb) {
-				// this should not happen since we checked extension presence, and
-				// anyway, glXGetProcAddressARB() never returns nullptr according to
-				// https://dri.freedesktop.org/wiki/glXGetProcAddressNeverReturnsNULL/
-				// so, this check for null is just in case future version of GLX may
-				// return null
-				throw std::runtime_error("glXCreateContextAttribsARB() not found");
-			}
-
-			auto graphics_api_version = [&ver = gl_version]() {
-				if (ver.to_uint32_t() == 0) {
-					// default OpenGL version is 2.0
-					return utki::version_duplet{
-						.major = 2, //
-						.minor = 0
-					};
-				}
-				return ver;
-			}();
-
-			static const std::array<int, 7> context_attribs = {
-				GLX_CONTEXT_MAJOR_VERSION_ARB,
-				graphics_api_version.major,
-				GLX_CONTEXT_MINOR_VERSION_ARB,
-				graphics_api_version.minor,
-				GLX_CONTEXT_PROFILE_MASK_ARB,
-				// we don't need compatibility context
-				GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
-				None
-			};
-
-			this->gl_context = glx_create_context_attribs_arb(
-				this->display.get().xorg_display.display,
-				this->window.xorg_fb_config(),
-				nullptr,
-				GL_TRUE,
-				context_attribs.data()
-			);
-		}
-
-		// sync to ensure any errors generated are processed
-		XSync(this->display.get().xorg_display.display, False);
-
-		if (this->gl_context == nullptr) {
-			throw std::runtime_error("glXCreateContext() failed");
-		}
-		utki::scope_exit scope_exit_gl_context([this]() {
-			glXMakeCurrent(
-				this->display.get().xorg_display.display, //
-				None,
-				nullptr
-			);
-			glXDestroyContext(
-				this->display.get().xorg_display.display, //
-				this->gl_context
-			);
-		});
-
-		glXMakeCurrent(
-			this->display.get().xorg_display.display, //
-			this->window.win(),
-			this->gl_context
-		);
-
-		// disable v-sync via swap control extension
-
-		if (std::find(glx_extensions.begin(), glx_extensions.end(), "GLX_EXT_swap_control") != glx_extensions.end()) {
-			utki::log_debug([](auto& o) {
-				o << "GLX_EXT_swap_control is supported\n";
-			});
-
-			auto glx_swap_interval_ext = PFNGLXSWAPINTERVALEXTPROC(glXGetProcAddressARB(
-				// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-				reinterpret_cast<const GLubyte*>("glXSwapIntervalEXT")
-			));
-
-			ASSERT(glx_swap_interval_ext)
-
-			// disable v-sync
-			glx_swap_interval_ext(
-				this->display.get().xorg_display.display, //
-				this->window.win(),
-				0
-			);
-		} else if ( //
-			std::find( //
-					   glx_extensions.begin(),
-					   glx_extensions.end(),
-					   "GLX_MESA_swap_control"
-				   ) != glx_extensions.end()
-		)
-		{
-			utki::log_debug([](auto& o) {
-				o << "GLX_MESA_swap_control is supported\n";
-			});
-
-			auto glx_swap_interval_mesa = PFNGLXSWAPINTERVALMESAPROC(glXGetProcAddressARB(
-				// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-				reinterpret_cast<const GLubyte*>("glXSwapIntervalMESA")
-			));
-
-			ASSERT(glx_swap_interval_mesa)
-
-			// disable v-sync
-			if (glx_swap_interval_mesa(0) != 0) {
-				throw std::runtime_error("glXSwapIntervalMESA() failed");
-			}
-		} else {
-			std::cout << "none of GLX_EXT_swap_control, GLX_MESA_swap_control GLX "
-					  << "extensions are supported. Not disabling v-sync." << std::endl;
-		}
-
-		// sync to ensure any errors generated are processed
-		XSync(this->display.get().xorg_display.display, False);
-
 		//=============
 		// init OpenGL
 
@@ -469,7 +314,6 @@ struct window_wrapper : public utki::destructable {
 #endif
 
 #ifdef RUISAPP_RENDER_OPENGL
-		scope_exit_gl_context.release();
 #elif defined(RUISAPP_RENDER_OPENGLES)
 		scope_exit_egl_surface.release();
 		scope_exit_egl_context.release();
@@ -487,8 +331,6 @@ struct window_wrapper : public utki::destructable {
 	~window_wrapper() override
 	{
 #ifdef RUISAPP_RENDER_OPENGL
-		glXMakeCurrent(this->display.get().xorg_display.display, None, nullptr);
-		glXDestroyContext(this->display.get().xorg_display.display, this->gl_context);
 #elif defined(RUISAPP_RENDER_OPENGLES)
 		eglMakeCurrent(
 			this->display.get().egl_display.display, //
