@@ -10,7 +10,7 @@ class native_window : public ruisapp::window
 
 		fb_config_wrapper(
 			display_wrapper& display, //
-			const utki::version_duplet& gl_version,
+			const utki::version_duplet&,
 			const ruisapp::window_parameters& window_params
 		) :
 			config([&]() {
