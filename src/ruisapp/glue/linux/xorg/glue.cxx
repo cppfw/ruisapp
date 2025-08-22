@@ -204,8 +204,6 @@ struct window_wrapper : public utki::destructable {
 		}
 	}
 
-	XIC input_context;
-
 	window_wrapper(
 		const utki::version_duplet& gl_version, //
 		const ruisapp::window_parameters& window_params
@@ -372,8 +370,7 @@ struct window_wrapper : public utki::destructable {
 			}
 		} else {
 			std::cout << "none of GLX_EXT_swap_control, GLX_MESA_swap_control GLX "
-						 "extensions are supported"
-					  << std::endl;
+					  << "extensions are supported. Not disabling v-sync." << std::endl;
 		}
 
 		// sync to ensure any errors generated are processed
@@ -468,28 +465,6 @@ struct window_wrapper : public utki::destructable {
 #	error "Unknown graphics API"
 #endif
 
-		// initialize input method
-
-		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
-		this->input_context = XCreateIC(
-			this->display.get().input_method(),
-			XNClientWindow,
-			this->window.win(),
-			XNFocusWindow,
-			this->window.win(),
-			XNInputStyle,
-			XIMPreeditNothing | XIMStatusNothing,
-			nullptr
-		);
-		if (this->input_context == nullptr) {
-			throw std::runtime_error("XCreateIC() failed");
-		}
-		utki::scope_exit scope_exit_input_context([this]() {
-			XUnsetICFocus(this->input_context);
-			XDestroyIC(this->input_context);
-		});
-
-		scope_exit_input_context.release();
 #ifdef RUISAPP_RENDER_OPENGL
 		scope_exit_gl_context.release();
 #elif defined(RUISAPP_RENDER_OPENGLES)
@@ -508,9 +483,6 @@ struct window_wrapper : public utki::destructable {
 
 	~window_wrapper() override
 	{
-		XUnsetICFocus(this->input_context);
-		XDestroyIC(this->input_context);
-
 #ifdef RUISAPP_RENDER_OPENGL
 		glXMakeCurrent(this->display.get().xorg_display.display, None, nullptr);
 		glXDestroyContext(this->display.get().xorg_display.display, this->gl_context);
@@ -947,12 +919,12 @@ const std::array<ruis::key, size_t(std::numeric_limits<uint8_t>::max()) + 1> key
 
 class key_event_unicode_provider : public ruis::gui::input_string_provider
 {
-	XIC& xic;
+	const XIC& xic;
 	// NOLINTNEXTLINE(clang-analyzer-webkit.NoUncountedMemberChecker, "false-positive")
 	XEvent& event;
 
 public:
-	key_event_unicode_provider(XIC& xic, XEvent& event) :
+	key_event_unicode_provider(const XIC& xic, XEvent& event) :
 		xic(xic),
 		event(event)
 	{}
@@ -1110,27 +1082,35 @@ int main(int argc, const char** argv)
 						// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
 						ruis::key key = key_code_map[std::uint8_t(event.xkey.keycode)];
 						handle_key_event(*app, true, key);
-						handle_character_input(*app, key_event_unicode_provider(ww.input_context, event), key);
+						handle_character_input(*app, key_event_unicode_provider(ww.window.xic(), event), key);
 					}
 					break;
 				case KeyRelease:
-					//						TRACE(<< "KeyRelease X
-					// event got" << std::endl)
 					{
 						// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
 						ruis::key key = key_code_map[std::uint8_t(event.xkey.keycode)];
 
 						// detect auto-repeated key events
-						if (XEventsQueued(ww.display.get().xorg_display.display, QueuedAfterReading))
+						if (XEventsQueued(
+								ww.display.get().xorg_display.display, //
+								QueuedAfterReading
+							))
 						{ // if there are other events queued
 							XEvent nev;
-							XPeekEvent(ww.display.get().xorg_display.display, &nev);
+							XPeekEvent(
+								ww.display.get().xorg_display.display, //
+								&nev
+							);
 
 							if (nev.type == KeyPress && nev.xkey.time == event.xkey.time &&
 								nev.xkey.keycode == event.xkey.keycode)
 							{
 								// key wasn't actually released
-								handle_character_input(*app, key_event_unicode_provider(ww.input_context, nev), key);
+								handle_character_input(
+									*app, //
+									key_event_unicode_provider(ww.window.xic(), nev),
+									key
+								);
 
 								XNextEvent(
 									ww.display.get().xorg_display.display,

@@ -352,6 +352,44 @@ class native_window : public ruisapp::window
 		}
 	} xorg_window;
 
+	struct xorg_input_context_wrapper {
+		const XIC input_context;
+
+		xorg_input_context_wrapper(
+			const display_wrapper& display, //
+			const xorg_window_wrapper& window
+		) :
+			input_context([&]() {
+				auto ic = XCreateIC(
+					display.xorg_input_method.xim,
+					XNClientWindow,
+					window.window,
+					XNFocusWindow,
+					window.window,
+					XNInputStyle,
+					XIMPreeditNothing | XIMStatusNothing,
+					nullptr
+				);
+				if (ic == nullptr) {
+					throw std::runtime_error("XCreateIC() failed");
+				}
+				return ic;
+			}())
+		{}
+
+		xorg_input_context_wrapper(const xorg_input_context_wrapper&) = delete;
+		xorg_input_context_wrapper& operator=(const xorg_input_context_wrapper&) = delete;
+
+		xorg_input_context_wrapper(xorg_input_context_wrapper&&) = delete;
+		xorg_input_context_wrapper& operator=(xorg_input_context_wrapper&&) = delete;
+
+		~xorg_input_context_wrapper()
+		{
+			XUnsetICFocus(this->input_context);
+			XDestroyIC(this->input_context);
+		}
+	} xorg_input_context;
+
 	ruis::real scale_factor = 1;
 
 public:
@@ -379,6 +417,10 @@ public:
 			window_params,
 			this->xorg_color_map,
 			this->xorg_visual_info
+		),
+		xorg_input_context(
+			this->display, //
+			this->xorg_window
 		)
 	{}
 
@@ -405,7 +447,7 @@ public:
 		return this->xorg_visual_info.visual_info;
 	}
 
-	Colormap color_map()
+	const Colormap& color_map()
 	{
 		return this->xorg_color_map.color_map;
 	}
@@ -413,6 +455,11 @@ public:
 	::Window win()
 	{
 		return this->xorg_window.window;
+	}
+
+	const XIC& xic()
+	{
+		return this->xorg_input_context.input_context;
 	}
 };
 

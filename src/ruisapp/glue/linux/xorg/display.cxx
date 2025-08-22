@@ -16,6 +16,12 @@ public:
 			}())
 		{}
 
+		xorg_display_wrapper(const xorg_display_wrapper&) = delete;
+		xorg_display_wrapper& operator=(const xorg_display_wrapper&) = delete;
+
+		xorg_display_wrapper(xorg_display_wrapper&&) = delete;
+		xorg_display_wrapper& operator=(xorg_display_wrapper&&) = delete;
+
 		~xorg_display_wrapper()
 		{
 			XCloseDisplay(this->display);
@@ -48,34 +54,33 @@ public:
 		}
 	} xorg_display;
 
-private:
 	struct xorg_input_method_wrapper {
-		XIM xim;
+		const XIM xim;
 
-		xorg_input_method_wrapper(Display* display)
-		{
-			this->xim = XOpenIM(
-				display, //
-				nullptr,
-				nullptr,
-				nullptr
-			);
-			if (this->xim == nullptr) {
-				throw std::runtime_error("XOpenIM() failed");
-			}
-		}
+		xorg_input_method_wrapper(const xorg_display_wrapper& display) :
+			xim([&]() {
+				auto xim = XOpenIM(
+					display.display, //
+					nullptr,
+					nullptr,
+					nullptr
+				);
+				if (xim == nullptr) {
+					throw std::runtime_error("XOpenIM() failed");
+				}
+				return xim;
+			}())
+		{}
 
 		~xorg_input_method_wrapper()
 		{
 			XCloseIM(this->xim);
 		}
-	} input_method_v;
+	} xorg_input_method;
 
 #if defined(RUISAPP_RENDER_OPENGLES)
-
-public:
 	struct egl_display_wrapper {
-		EGLDisplay display;
+		const EGLDisplay display;
 
 		egl_display_wrapper() :
 			display([]() {
@@ -112,11 +117,10 @@ public:
 	} egl_display;
 #endif
 
-public:
 	const ruis::real scale_factor;
 
 	display_wrapper() :
-		input_method_v(this->xorg_display.display),
+		xorg_input_method(this->xorg_display),
 		scale_factor([]() {
 			// get scale factor
 			gdk_init(nullptr, nullptr);
@@ -171,10 +175,5 @@ public:
 
 	display_wrapper(xorg_display_wrapper&&) = delete;
 	display_wrapper& operator=(xorg_display_wrapper&&) = delete;
-
-	XIM& input_method()
-	{
-		return this->input_method_v.xim;
-	}
 };
 } // namespace
