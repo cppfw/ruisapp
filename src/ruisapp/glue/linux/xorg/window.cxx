@@ -870,6 +870,8 @@ public:
 #endif
 	}
 
+
+
 	// TODO: remove
 
 	XVisualInfo* visual_info()
