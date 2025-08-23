@@ -53,18 +53,16 @@ class application : public utki::intrusive_singleton<application>
 	// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 	static instance_type instance;
 
+public:
+	const utki::unique_ref<utki::destructable> pimpl;
+
+private:
 	std::vector<utki::unique_ref<window>> windows_v;
 
 public:
 	const std::string name;
 
 private:
-	class platform_glue;
-
-	platform_glue& glue;
-	utki::unique_ref<utki::destructable> glue_object;
-	friend platform_glue& get_glue(application& app);
-
 	// TODO: remove
 	std::unique_ptr<utki::destructable> window_pimpl;
 	friend const decltype(window_pimpl)& get_window_pimpl(application& app);
@@ -241,12 +239,6 @@ public:
 		 */
 		std::vector<window_parameters> windows;
 	};
-
-private:
-	application(
-		parameters params, //
-		utki::unique_ref<platform_glue> glue_object
-	);
 
 protected:
 	/**

@@ -61,13 +61,22 @@ using namespace std::string_view_literals;
 
 using namespace ruisapp;
 
-class ruisapp::application::platform_glue : public utki::destructable
+namespace {
+class os_platform_glue : public utki::destructable
 {
 public:
 	nitki::queue ui_queue;
 
 	std::atomic_bool quit_flag = false;
 };
+} // namespace
+
+namespace {
+os_platform_glue& get_glue(ruisapp::application& app)
+{
+	return static_cast<os_platform_glue&>(app.pimpl.get());
+}
+} // namespace
 
 namespace {
 const std::map<ruis::mouse_cursor, unsigned> x_cursor_map = {
@@ -97,22 +106,21 @@ struct window_wrapper : public utki::destructable {
 
 	struct cursor_wrapper {
 		// NOLINTNEXTLINE(clang-analyzer-webkit.NoUncountedMemberChecker, "false-positive")
-		window_wrapper& owner;
+		display_wrapper& display;
 		Cursor cursor;
 
 		cursor_wrapper(
-			window_wrapper& owner, //
+			display_wrapper& display, //
 			ruis::mouse_cursor c
 		) :
-			owner(owner)
+			display(display)
 		{
 			if (c == ruis::mouse_cursor::none) {
 				std::array<char, 1> data = {0};
 
 				Pixmap blank = XCreateBitmapFromData(
-					this->owner.display.get().xorg_display.display, //
-					this->owner.display.get().xorg_display.get_default_root_window(
-					), // only used to deremine screen and depth
+					this->display.xorg_display.display, //
+					this->display.xorg_display.get_default_root_window(), // only used to deremine screen and depth
 					data.data(),
 					1,
 					1
@@ -125,14 +133,14 @@ struct window_wrapper : public utki::destructable {
 				}
 				utki::scope_exit scope_exit([this, &blank]() {
 					XFreePixmap(
-						this->owner.display.get().xorg_display.display, //
+						this->display.xorg_display.display, //
 						blank
 					);
 				});
 
 				XColor dummy;
 				this->cursor = XCreatePixmapCursor(
-					this->owner.display.get().xorg_display.display, //
+					this->display.xorg_display.display, //
 					blank,
 					blank,
 					&dummy,
@@ -142,7 +150,7 @@ struct window_wrapper : public utki::destructable {
 				);
 			} else {
 				this->cursor = XCreateFontCursor(
-					this->owner.display.get().xorg_display.display, //
+					this->display.xorg_display.display, //
 					x_cursor_map.at(c)
 				);
 			}
@@ -156,7 +164,10 @@ struct window_wrapper : public utki::destructable {
 
 		~cursor_wrapper()
 		{
-			XFreeCursor(this->owner.display.get().xorg_display.display, this->cursor);
+			XFreeCursor(
+				this->display.xorg_display.display, //
+				this->cursor
+			);
 		}
 	};
 
@@ -179,7 +190,7 @@ struct window_wrapper : public utki::destructable {
 	{
 		auto i = this->cursors.find(c);
 		if (i == this->cursors.end()) {
-			i = this->cursors.insert(std::make_pair(c, std::make_unique<cursor_wrapper>(*this, c))).first;
+			i = this->cursors.insert(std::make_pair(c, std::make_unique<cursor_wrapper>(this->display, c))).first;
 		}
 		return i->second.get();
 	}
@@ -307,17 +318,9 @@ window_wrapper& get_impl(application& app)
 
 } // namespace
 
-application::application(application::parameters params) :
-	application(std::move(params), utki::make_unique<application::platform_glue>())
-{}
-
-application::application(
-	parameters params, //
-	utki::unique_ref<platform_glue> glue_object
-) :
+application::application(parameters params) :
+	pimpl(utki::make_unique<os_platform_glue>()),
 	name(std::move(params.name)),
-	glue(glue_object.get()),
-	glue_object(std::move(glue_object)),
 	window_pimpl(std::make_unique<window_wrapper>(
 		params.graphics_api_version, //
 		// TODO: check that there is at least 1 window
@@ -341,7 +344,8 @@ application::application(
 		ruis::context::parameters{
 			.post_to_ui_thread_function =
 				[this](std::function<void()> proc) {
-					this->glue.ui_queue.push_back(std::move(proc));
+					auto& glue = get_glue(*this);
+					glue.ui_queue.push_back(std::move(proc));
 				},
 			.set_mouse_cursor_function =
 				[this](ruis::mouse_cursor cursor) {
@@ -725,7 +729,8 @@ public:
 
 void application::quit() noexcept
 {
-	this->glue.quit_flag.store(true);
+	auto& glue = get_glue(*this);
+	glue.quit_flag.store(true);
 }
 
 int main(int argc, const char** argv)
