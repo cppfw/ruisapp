@@ -907,6 +907,47 @@ public:
 	{
 		return this->xorg_input_context.input_context;
 	}
+
+	void set_cursor(ruis::mouse_cursor c)
+	{
+		this->cur_cursor = &this->display.get().get_cursor(c);
+
+		if (this->cursor_visible) {
+			this->apply_cursor(*this->cur_cursor);
+		}
+	}
+
+	void set_cursor_visible(bool visible)
+	{
+		this->cursor_visible = visible;
+		if (visible) {
+			if (this->cur_cursor) {
+				this->apply_cursor(*this->cur_cursor);
+			} else {
+				XUndefineCursor(
+					this->display.get().xorg_display.display, //
+					this->xorg_window.window
+				);
+			}
+		} else {
+			this->apply_cursor(this->display.get().get_cursor(ruis::mouse_cursor::none));
+		}
+	}
+
+private:
+	// NOLINTNEXTLINE(clang-analyzer-webkit.NoUncountedMemberChecker, "false-positive")
+	cursor_wrapper* cur_cursor = nullptr;
+	bool cursor_visible = true;
+
+	void apply_cursor(cursor_wrapper& c)
+	{
+		// set the cursor to xorg window
+		XDefineCursor(
+			this->display.get().xorg_display.display, //
+			this->xorg_window.window,
+			c.cursor
+		);
+	}
 };
 
 } // namespace

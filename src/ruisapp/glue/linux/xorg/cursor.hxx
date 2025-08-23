@@ -3,14 +3,14 @@
 #include <X11/cursorfont.h>
 #include <utki/enum_array.hpp>
 
-#include "display.hxx"
+#include "xorg_display_wrapper.hxx"
 
 namespace {
 struct cursor_wrapper {
 	friend class os_platform_glue;
 
 	// NOLINTNEXTLINE(clang-analyzer-webkit.NoUncountedMemberChecker, "false-positive")
-	display_wrapper& display;
+	xorg_display_wrapper& xorg_display;
 	const Cursor cursor; // xorg cursor
 
 	constexpr static const utki::enum_array<unsigned, ruis::mouse_cursor> ruis_to_x_cursor_map = {
@@ -33,17 +33,17 @@ struct cursor_wrapper {
 	};
 
 	cursor_wrapper(
-		display_wrapper& display, //
+		xorg_display_wrapper& display, //
 		ruis::mouse_cursor c
 	) :
-		display(display),
+		xorg_display(display),
 		cursor([&]() {
 			if (c == ruis::mouse_cursor::none) {
 				std::array<char, 1> data = {0};
 
 				Pixmap blank = XCreateBitmapFromData(
-					this->display.xorg_display.display, //
-					this->display.xorg_display.get_default_root_window(), // only used to deremine screen and depth
+					this->xorg_display.display, //
+					this->xorg_display.get_default_root_window(), // only used to deremine screen and depth
 					data.data(),
 					1,
 					1
@@ -56,14 +56,14 @@ struct cursor_wrapper {
 				}
 				utki::scope_exit scope_exit([this, &blank]() {
 					XFreePixmap(
-						this->display.xorg_display.display, //
+						this->xorg_display.display, //
 						blank
 					);
 				});
 
 				XColor dummy;
 				auto c = XCreatePixmapCursor(
-					this->display.xorg_display.display, //
+					this->xorg_display.display, //
 					blank,
 					blank,
 					&dummy,
@@ -77,7 +77,7 @@ struct cursor_wrapper {
 				return c;
 			} else {
 				auto cur = XCreateFontCursor(
-					this->display.xorg_display.display, //
+					this->xorg_display.display, //
 					ruis_to_x_cursor_map[c]
 				);
 				if (cur == None) {
@@ -97,7 +97,7 @@ struct cursor_wrapper {
 	~cursor_wrapper()
 	{
 		XFreeCursor(
-			this->display.xorg_display.display, //
+			this->xorg_display.display, //
 			this->cursor
 		);
 	}

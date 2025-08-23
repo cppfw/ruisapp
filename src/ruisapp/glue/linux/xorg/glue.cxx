@@ -44,6 +44,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "../../../application.hpp"
 
+// TODO: make hxx
 #include "../../friend_accessors.cxx" // NOLINT(bugprone-suspicious-include)
 #include "../../unix_common.cxx" // NOLINT(bugprone-suspicious-include)
 
@@ -65,18 +66,6 @@ public:
 	nitki::queue ui_queue;
 
 	std::atomic_bool quit_flag = false;
-
-	cursor_wrapper& get_cursor(ruis::mouse_cursor c)
-	{
-		auto& p = this->cursors[c];
-		if (!p) {
-			p = std::make_unique<cursor_wrapper>(this->display, c);
-		}
-		return *p;
-	}
-
-private:
-	utki::enum_array<std::unique_ptr<cursor_wrapper>, ruis::mouse_cursor> cursors;
 };
 } // namespace
 
@@ -93,46 +82,14 @@ struct window_wrapper : public utki::destructable {
 
 	native_window window;
 
-	// NOLINTNEXTLINE(clang-analyzer-webkit.NoUncountedMemberChecker, "false-positive")
-	cursor_wrapper* cur_cursor = nullptr;
-	bool cursor_visible = true;
-
-	void apply_cursor(cursor_wrapper& c)
-	{
-		// set the cursor to xorg window
-		XDefineCursor(
-			this->display.get().xorg_display.display, //
-			this->window.win(),
-			c.cursor
-		);
-	}
-
 	void set_cursor(ruis::mouse_cursor c)
 	{
-		auto& glue = get_glue(ruisapp::inst());
-		this->cur_cursor = &glue.get_cursor(c);
-
-		if (this->cursor_visible) {
-			this->apply_cursor(*this->cur_cursor);
-		}
+		this->window.set_cursor(c);
 	}
 
 	void set_cursor_visible(bool visible)
 	{
-		this->cursor_visible = visible;
-		if (visible) {
-			if (this->cur_cursor) {
-				this->apply_cursor(*this->cur_cursor);
-			} else {
-				XUndefineCursor(
-					this->display.get().xorg_display.display, //
-					this->window.win()
-				);
-			}
-		} else {
-			auto& glue = get_glue(ruisapp::inst());
-			this->apply_cursor(glue.get_cursor(ruis::mouse_cursor::none));
-		}
+		this->window.set_cursor_visible(visible);
 	}
 
 	window_wrapper(
