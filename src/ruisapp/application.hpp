@@ -68,6 +68,7 @@ private:
 	friend const decltype(window_pimpl)& get_window_pimpl(application& app);
 
 private:
+	// TODO: remove
 	void swap_frame_buffers();
 
 public:
@@ -88,6 +89,7 @@ public:
 		return this->windows_v;
 	}
 
+	// TODO: move to window
 	ruis::gui gui;
 
 public:
@@ -128,9 +130,12 @@ private:
 
 	// this is a viewport rectangle in coordinates that are as follows: x grows
 	// right, y grows up.
+
+	// TODO: move to window
 	ruis::rect cur_window_rect = {0, 0, 0, 0};
 
 public:
+	// TODO: mve to window
 	const ruis::vector2& window_dims() const noexcept
 	{
 		return this->cur_window_rect.d;
@@ -141,6 +146,7 @@ private:
 
 	friend void render(application& app);
 
+	// TODO: move to window
 	void update_window_rect(const ruis::rect& rect);
 
 	friend void update_window_rect(
@@ -268,6 +274,7 @@ public:
 	 * On mobile platforms this function will summon the on-screen keyboard.
 	 * On desktop platforms this function does nothing.
 	 */
+	// TODO: move to window?
 	void show_virtual_keyboard() noexcept;
 
 	/**
@@ -275,6 +282,7 @@ public:
 	 * On mobile platforms this function hides the on-screen keyboard.
 	 * On desktop platforms this function does nothing.
 	 */
+	// TODO: move to window?
 	void hide_virtual_keyboard() noexcept;
 
 private:

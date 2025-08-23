@@ -82,16 +82,6 @@ struct window_wrapper : public utki::destructable {
 
 	native_window window;
 
-	void set_cursor(ruis::mouse_cursor c)
-	{
-		this->window.set_cursor(c);
-	}
-
-	void set_cursor_visible(bool visible)
-	{
-		this->window.set_cursor_visible(visible);
-	}
-
 	window_wrapper(
 		const utki::version_duplet& gl_version, //
 		const ruisapp::window_parameters& window_params,
@@ -104,9 +94,6 @@ struct window_wrapper : public utki::destructable {
 			window_params //
 		)
 	{
-		//====================
-		// create GLX context
-
 #ifdef RUISAPP_RENDER_OPENGL
 #elif defined(RUISAPP_RENDER_OPENGLES)
 #else
@@ -173,7 +160,7 @@ application::application(parameters params) :
 			.set_mouse_cursor_function =
 				[this](ruis::mouse_cursor cursor) {
 					auto& ww = get_impl(*this);
-					ww.set_cursor(cursor);
+					ww.window.set_cursor(cursor);
 				},
 			.units =
 				[this]() {
@@ -783,7 +770,7 @@ bool application::is_fullscreen() const noexcept
 
 void application::set_mouse_cursor_visible(bool visible)
 {
-	get_impl(*this).set_cursor_visible(visible);
+	get_impl(*this).window.set_cursor_visible(visible);
 }
 
 void application::swap_frame_buffers()
