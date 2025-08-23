@@ -21,8 +21,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "../application.hpp"
 
-using namespace std::string_view_literals;
-
 namespace {
 
 std::unique_ptr<ruisapp::application> create_app_unix(int argc, const char** argv)
@@ -64,6 +62,8 @@ std::string get_xdg_dir_home(
 ruisapp::application::directories get_application_directories(std::string_view app_name)
 {
 	ruisapp::application::directories dirs;
+
+	using namespace std::string_view_literals;
 
 	dirs.cache = get_xdg_dir_home("XDG_CACHE_HOME", ".cache/"sv, app_name);
 	dirs.config = get_xdg_dir_home("XDG_CONFIG_HOME", ".config/"sv, app_name);

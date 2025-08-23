@@ -44,15 +44,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "../../../application.hpp"
 
-using namespace std::string_literals;
-using namespace std::string_view_literals;
-
 #include "../../friend_accessors.cxx" // NOLINT(bugprone-suspicious-include)
 #include "../../unix_common.cxx" // NOLINT(bugprone-suspicious-include)
 
 #include "cursor.hxx"
 #include "display.hxx"
 #include "window.hxx"
+
+using namespace std::string_literals;
+using namespace std::string_view_literals;
 
 using namespace ruisapp;
 

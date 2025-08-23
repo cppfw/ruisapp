@@ -436,10 +436,12 @@ class native_window : public ruisapp::window
 
 				auto glx_extensions = utki::split(glx_extensions_string);
 
+				using namespace std::string_view_literals;
+
 				if (std::find(
 						glx_extensions.begin(), //
 						glx_extensions.end(),
-						"GLX_ARB_create_context"s
+						"GLX_ARB_create_context"sv
 					) != glx_extensions.end())
 				{
 					supported.set(glx_extension::glx_arb_create_context);
@@ -448,7 +450,7 @@ class native_window : public ruisapp::window
 				if (std::find(
 						glx_extensions.begin(), //
 						glx_extensions.end(),
-						"GLX_EXT_swap_control"s
+						"GLX_EXT_swap_control"sv
 					) != glx_extensions.end())
 				{
 					supported.set(glx_extension::glx_ext_swap_control);
@@ -457,7 +459,7 @@ class native_window : public ruisapp::window
 				if (std::find( //
 						glx_extensions.begin(),
 						glx_extensions.end(),
-						"GLX_MESA_swap_control"s
+						"GLX_MESA_swap_control"sv
 					) != glx_extensions.end())
 				{
 					supported.set(glx_extension::glx_mesa_swap_control);
