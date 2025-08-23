@@ -71,6 +71,12 @@ private:
 	void swap_frame_buffers();
 
 public:
+	window& get_main_window()
+	{
+		utki::assert(!this->windows().empty(), SL);
+		return this->windows().front();
+	}
+
 	/**
 	 * @brief Get application windows.
 	 * It is guaranteed that at least one window always exists,
@@ -314,8 +320,7 @@ public:
 	void quit() noexcept;
 
 private:
-	bool is_fullscreen_v = false;
-
+	// TODO: not used in linux, move to window implementation
 	r4::rectangle<int> before_fullscreen_window_rect{0, 0, 0, 0};
 
 public:
@@ -324,21 +329,21 @@ public:
 	 * @return true if application is in fullscreen mode.
 	 * @return false if application is in windowed mode.
 	 */
-	bool is_fullscreen() const noexcept
-	{
-		return this->is_fullscreen_v;
-	}
+	// TODO: remove
+	bool is_fullscreen() const noexcept;
 
 	/**
 	 * @brief Set/unset fullscreen mode.
 	 * @param enable - whether to enable or to disable fullscreen mode.
 	 */
+	// TODO: remove
 	void set_fullscreen(bool enable);
 
 	/**
 	 * @brief Show/hide mouse cursor.
 	 * @param visible - whether to show (true) or hide (false) mouse cursor.
 	 */
+	// TODO: remove
 	void set_mouse_cursor_visible(bool visible);
 
 	/**

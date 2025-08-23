@@ -22,3 +22,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "window.hpp"
 
 using namespace ruisapp;
+
+void window::set_fullscreen(bool enable)
+{
+	if (enable == this->is_fullscreen()) {
+		return;
+	}
+
+	this->set_fullscreen_internal(enable);
+
+	this->is_fullscreen_v = enable;
+}

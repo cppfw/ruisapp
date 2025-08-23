@@ -114,10 +114,21 @@ struct window_parameters {
 
 class window
 {
+	bool is_fullscreen_v = false;
+
+	virtual void set_fullscreen_internal(bool enable) = 0;
+
 public:
 	virtual ~window() = default;
 
 	virtual void swap_frame_buffers() = 0;
+
+	void set_fullscreen(bool enable);
+
+	bool is_fullscreen() const noexcept
+	{
+		return this->is_fullscreen_v;
+	}
 };
 
 } // namespace ruisapp

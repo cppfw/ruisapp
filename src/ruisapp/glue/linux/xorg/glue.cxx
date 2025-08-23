@@ -108,12 +108,6 @@ struct window_wrapper : public utki::destructable {
 		// create GLX context
 
 #ifdef RUISAPP_RENDER_OPENGL
-		//=============
-		// init OpenGL
-
-		if (glewInit() != GLEW_OK) {
-			throw std::runtime_error("GLEW initialization failed");
-		}
 #elif defined(RUISAPP_RENDER_OPENGLES)
 #else
 #	error "Unknown graphics API"
@@ -775,49 +769,16 @@ int main(int argc, const char** argv)
 
 void application::set_fullscreen(bool enable)
 {
-	if (enable == this->is_fullscreen()) {
-		return;
-	}
-
 	auto& ww = get_impl(this->window_pimpl);
 
-	Atom state_atom = XInternAtom(ww.display.get().xorg_display.display, "_NET_WM_STATE", False);
-	Atom atom = XInternAtom(ww.display.get().xorg_display.display, "_NET_WM_STATE_FULLSCREEN", False);
+	ww.window.set_fullscreen(enable);
+}
 
-	XEvent event;
-	event.xclient.type = ClientMessage;
-	event.xclient.serial = 0;
-	event.xclient.send_event = True;
-	event.xclient.window = ww.window.win();
-	event.xclient.message_type = state_atom;
+bool application::is_fullscreen() const noexcept
+{
+	auto& ww = get_impl(this->window_pimpl);
 
-	// data should be viewed as list of longs
-	event.xclient.format = utki::byte_bits * 4;
-
-	// use union from third-party code
-	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
-	event.xclient.data.l[0] = enable ? 1 : 0;
-
-	// use union from third-party code
-	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
-	event.xclient.data.l[1] = long(atom);
-
-	// use union from third-party code
-	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
-	event.xclient.data.l[2] = 0;
-
-	XSendEvent(
-		ww.display.get().xorg_display.display,
-		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-		ww.display.get().xorg_display.get_default_root_window(),
-		False,
-		SubstructureRedirectMask | SubstructureNotifyMask,
-		&event
-	);
-
-	ww.display.get().xorg_display.flush();
-
-	this->is_fullscreen_v = enable;
+	return ww.window.is_fullscreen();
 }
 
 void application::set_mouse_cursor_visible(bool visible)

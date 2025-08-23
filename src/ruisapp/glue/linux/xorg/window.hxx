@@ -777,6 +777,12 @@ public:
 	{
 		this->make_gl_context_current();
 		this->disable_vsync();
+
+#ifdef RUISAPP_RENDER_OPENGL
+		if (glewInit() != GLEW_OK) {
+			throw std::runtime_error("GLEW initialization failed");
+		}
+#endif
 	}
 
 	native_window(const native_window&) = delete;
@@ -887,25 +893,56 @@ public:
 	}
 
 	// TODO: remove
-
-	XVisualInfo* visual_info()
-	{
-		return this->xorg_visual_info.visual_info;
-	}
-
-	const Colormap& color_map()
-	{
-		return this->xorg_color_map.color_map;
-	}
-
-	::Window win()
-	{
-		return this->xorg_window.window;
-	}
-
 	const XIC& xic()
 	{
 		return this->xorg_input_context.input_context;
+	}
+
+	void set_fullscreen_internal(bool enable) override
+	{
+		Atom state_atom = XInternAtom(
+			this->display.get().xorg_display.display, //
+			"_NET_WM_STATE",
+			False
+		);
+		Atom atom = XInternAtom(
+			this->display.get().xorg_display.display, //
+			"_NET_WM_STATE_FULLSCREEN",
+			False
+		);
+
+		XEvent event;
+		event.xclient.type = ClientMessage;
+		event.xclient.serial = 0;
+		event.xclient.send_event = True;
+		event.xclient.window = this->xorg_window.window;
+		event.xclient.message_type = state_atom;
+
+		// data should be viewed as list of longs
+		event.xclient.format = utki::byte_bits * 4;
+
+		// use union from third-party code
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
+		event.xclient.data.l[0] = enable ? 1 : 0;
+
+		// use union from third-party code
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
+		event.xclient.data.l[1] = long(atom);
+
+		// use union from third-party code
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
+		event.xclient.data.l[2] = 0;
+
+		XSendEvent(
+			this->display.get().xorg_display.display, //
+			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			this->display.get().xorg_display.get_default_root_window(),
+			False,
+			SubstructureRedirectMask | SubstructureNotifyMask,
+			&event
+		);
+
+		this->display.get().xorg_display.flush();
 	}
 
 	void set_cursor(ruis::mouse_cursor c)
