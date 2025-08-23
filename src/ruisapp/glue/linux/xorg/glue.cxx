@@ -23,10 +23,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <string_view>
 #include <vector>
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/cursorfont.h>
-#include <gdk/gdk.h>
 #include <nitki/queue.hpp>
 #include <opros/wait_set.hpp>
 #include <papki/fs_file.hpp>
@@ -36,11 +32,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #ifdef RUISAPP_RENDER_OPENGL
 #	include <GL/glew.h>
-#	include <GL/glx.h>
 #	include <ruis/render/opengl/context.hpp>
 
 #elif defined(RUISAPP_RENDER_OPENGLES)
-#	include <EGL/egl.h>
 #	include <GLES2/gl2.h>
 
 #	include <ruis/render/opengles/context.hpp>
@@ -57,9 +51,9 @@ using namespace std::string_view_literals;
 #include "../../friend_accessors.cxx" // NOLINT(bugprone-suspicious-include)
 #include "../../unix_common.cxx" // NOLINT(bugprone-suspicious-include)
 
-#include "display.cxx" // NOLINT(bugprone-suspicious-include)
-#include "cursor.cxx" // NOLINT(bugprone-suspicious-include)
-#include "window.cxx" // NOLINT(bugprone-suspicious-include)
+#include "cursor.hxx"
+#include "display.hxx"
+#include "window.hxx"
 
 using namespace ruisapp;
 
@@ -76,7 +70,7 @@ public:
 	cursor_wrapper& get_cursor(ruis::mouse_cursor c)
 	{
 		auto& p = this->cursors[c];
-		if(!p){
+		if (!p) {
 			p = std::make_unique<cursor_wrapper>(this->display, c);
 		}
 		return *p;
@@ -231,13 +225,15 @@ application::application(parameters params) :
 					auto& ww = get_impl(*this);
 					ww.set_cursor(cursor);
 				},
-			.units = [this](){
-				auto& glue = get_glue(*this);
-				auto& display = glue.display.get();
-				return ruis::units(
-				display.get_dots_per_inch(), //
-				display.get_dots_per_pp()
-			);}()
+			.units =
+				[this]() {
+					auto& glue = get_glue(*this);
+					auto& display = glue.display.get();
+					return ruis::units(
+						display.get_dots_per_inch(), //
+						display.get_dots_per_pp()
+					);
+				}()
 		}
 	)),
 	directory(get_application_directories(this->name))

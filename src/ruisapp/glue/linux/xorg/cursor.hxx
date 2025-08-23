@@ -1,3 +1,9 @@
+#pragma once
+
+#include <X11/cursorfont.h>
+
+#include "display.hxx"
+
 namespace {
 const utki::enum_array<unsigned, ruis::mouse_cursor> ruis_to_x_cursor_map = {
 	XC_left_ptr, // ruis::mouse_cursor::none

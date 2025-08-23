@@ -1,4 +1,16 @@
 
+#pragma once
+
+#include <X11/Xlib.h>
+#include <gdk/gdk.h>
+
+#ifdef RUISAPP_RENDER_OPENGL
+#	include <GL/glx.h>
+
+#elif defined(RUISAPP_RENDER_OPENGLES)
+#	include <EGL/egl.h>
+#endif
+
 namespace {
 class display_wrapper
 {
@@ -176,7 +188,7 @@ public:
 	display_wrapper(xorg_display_wrapper&&) = delete;
 	display_wrapper& operator=(xorg_display_wrapper&&) = delete;
 
-		ruis::real get_dots_per_inch()
+	ruis::real get_dots_per_inch()
 	{
 		int src_num = 0;
 
@@ -192,8 +204,7 @@ public:
 			 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
 			 (ruis::real(DisplayHeight(this->xorg_display.display, src_num))
 			  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			  / (ruis::real(DisplayHeightMM(this->xorg_display.display, src_num)) / ruis::real(mm_per_cm))
-			 )) /
+			  / (ruis::real(DisplayHeightMM(this->xorg_display.display, src_num)) / ruis::real(mm_per_cm)))) /
 			2;
 		value *= ruis::real(utki::cm_per_inch);
 		return value;

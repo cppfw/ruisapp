@@ -1,3 +1,17 @@
+#pragma once
+
+#include <X11/Xutil.h>
+
+#ifdef RUISAPP_RENDER_OPENGL
+#	include <GL/glx.h>
+
+#elif defined(RUISAPP_RENDER_OPENGLES)
+#	include <EGL/egl.h>
+
+#else
+#	error "Unknown graphics API"
+#endif
+
 namespace {
 
 class native_window : public ruisapp::window
@@ -869,8 +883,6 @@ public:
 #	error "Unknown graphics API"
 #endif
 	}
-
-
 
 	// TODO: remove
 
