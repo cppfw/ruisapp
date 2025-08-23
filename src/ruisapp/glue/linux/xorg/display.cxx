@@ -175,5 +175,52 @@ public:
 
 	display_wrapper(xorg_display_wrapper&&) = delete;
 	display_wrapper& operator=(xorg_display_wrapper&&) = delete;
+
+		ruis::real get_dots_per_inch()
+	{
+		int src_num = 0;
+
+		constexpr auto mm_per_cm = 10;
+
+		ruis::real value =
+			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			((ruis::real(DisplayWidth(this->xorg_display.display, src_num))
+			  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			  / (ruis::real(DisplayWidthMM(this->xorg_display.display, src_num)) / ruis::real(mm_per_cm)))
+			 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			 +
+			 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			 (ruis::real(DisplayHeight(this->xorg_display.display, src_num))
+			  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			  / (ruis::real(DisplayHeightMM(this->xorg_display.display, src_num)) / ruis::real(mm_per_cm))
+			 )) /
+			2;
+		value *= ruis::real(utki::cm_per_inch);
+		return value;
+	}
+
+	ruis::real get_dots_per_pp()
+	{
+		// TODO: use scale factor only for desktop monitors
+		if (auto scale_factor = this->scale_factor; scale_factor != ruis::real(1)) {
+			return scale_factor;
+		}
+
+		int src_num = 0;
+		r4::vector2<unsigned> resolution(
+			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			DisplayWidth(this->xorg_display.display, src_num),
+			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			DisplayHeight(this->xorg_display.display, src_num)
+		);
+		r4::vector2<unsigned> screen_size_mm(
+			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			DisplayWidthMM(this->xorg_display.display, src_num),
+			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			DisplayHeightMM(this->xorg_display.display, src_num)
+		);
+
+		return ruisapp::application::get_pixels_per_pp(resolution, screen_size_mm);
+	}
 };
 } // namespace

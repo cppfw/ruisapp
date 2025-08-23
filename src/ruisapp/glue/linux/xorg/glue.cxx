@@ -177,53 +177,6 @@ struct window_wrapper : public utki::destructable {
 	window_wrapper& operator=(window_wrapper&&) = delete;
 
 	~window_wrapper() override {}
-
-	ruis::real get_dots_per_inch()
-	{
-		int src_num = 0;
-
-		constexpr auto mm_per_cm = 10;
-
-		ruis::real value =
-			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			((ruis::real(DisplayWidth(this->display.get().xorg_display.display, src_num))
-			  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			  / (ruis::real(DisplayWidthMM(this->display.get().xorg_display.display, src_num)) / ruis::real(mm_per_cm)))
-			 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			 +
-			 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			 (ruis::real(DisplayHeight(this->display.get().xorg_display.display, src_num))
-			  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			  / (ruis::real(DisplayHeightMM(this->display.get().xorg_display.display, src_num)) / ruis::real(mm_per_cm))
-			 )) /
-			2;
-		value *= ruis::real(utki::cm_per_inch);
-		return value;
-	}
-
-	ruis::real get_dots_per_pp()
-	{
-		// TODO: use scale factor only for desktop monitors
-		if (auto scale_factor = this->display.get().scale_factor; scale_factor != ruis::real(1)) {
-			return scale_factor;
-		}
-
-		int src_num = 0;
-		r4::vector2<unsigned> resolution(
-			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			DisplayWidth(this->display.get().xorg_display.display, src_num),
-			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			DisplayHeight(this->display.get().xorg_display.display, src_num)
-		);
-		r4::vector2<unsigned> screen_size_mm(
-			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			DisplayWidthMM(this->display.get().xorg_display.display, src_num),
-			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			DisplayHeightMM(this->display.get().xorg_display.display, src_num)
-		);
-
-		return application::get_pixels_per_pp(resolution, screen_size_mm);
-	}
 };
 
 window_wrapper& get_impl(const std::unique_ptr<utki::destructable>& pimpl)
@@ -278,10 +231,13 @@ application::application(parameters params) :
 					auto& ww = get_impl(*this);
 					ww.set_cursor(cursor);
 				},
-			.units = ruis::units(
-				get_impl(window_pimpl).get_dots_per_inch(), //
-				get_impl(window_pimpl).get_dots_per_pp()
-			)
+			.units = [this](){
+				auto& glue = get_glue(*this);
+				auto& display = glue.display.get();
+				return ruis::units(
+				display.get_dots_per_inch(), //
+				display.get_dots_per_pp()
+			);}()
 		}
 	)),
 	directory(get_application_directories(this->name))
