@@ -84,41 +84,19 @@ const utki::enum_array<unsigned, ruis::mouse_cursor> ruis_to_x_cursor_map = {
 } // namespace
 
 namespace {
-class os_platform_glue : public utki::destructable
-{
-public:
-	const utki::shared_ref<display_wrapper> display = utki::make_shared<display_wrapper>();
+struct cursor_wrapper {
+	friend class os_platform_glue;
 
-	nitki::queue ui_queue;
+	// NOLINTNEXTLINE(clang-analyzer-webkit.NoUncountedMemberChecker, "false-positive")
+	display_wrapper& display;
+	const Cursor cursor; // xorg cursor
 
-	std::atomic_bool quit_flag = false;
-};
-} // namespace
-
-namespace {
-os_platform_glue& get_glue(ruisapp::application& app)
-{
-	return static_cast<os_platform_glue&>(app.pimpl.get());
-}
-} // namespace
-
-namespace {
-struct window_wrapper : public utki::destructable {
-	utki::shared_ref<display_wrapper> display;
-
-	native_window window;
-
-	struct cursor_wrapper {
-		// NOLINTNEXTLINE(clang-analyzer-webkit.NoUncountedMemberChecker, "false-positive")
-		display_wrapper& display;
-		Cursor cursor;
-
-		cursor_wrapper(
-			display_wrapper& display, //
-			ruis::mouse_cursor c
-		) :
-			display(display)
-		{
+	cursor_wrapper(
+		display_wrapper& display, //
+		ruis::mouse_cursor c
+	) :
+		display(display),
+		cursor([&]() {
 			if (c == ruis::mouse_cursor::none) {
 				std::array<char, 1> data = {0};
 
@@ -143,7 +121,7 @@ struct window_wrapper : public utki::destructable {
 				});
 
 				XColor dummy;
-				this->cursor = XCreatePixmapCursor(
+				auto c = XCreatePixmapCursor(
 					this->display.xorg_display.display, //
 					blank,
 					blank,
@@ -152,33 +130,80 @@ struct window_wrapper : public utki::destructable {
 					0,
 					0
 				);
+				if (c == None) {
+					throw std::runtime_error("XCreatePixmapCursor() failed");
+				}
+				return c;
 			} else {
-				this->cursor = XCreateFontCursor(
+				auto cur = XCreateFontCursor(
 					this->display.xorg_display.display, //
 					ruis_to_x_cursor_map[c]
 				);
+				if (cur == None) {
+					throw std::runtime_error("XCreatePixmapCursor() failed");
+				}
+				return cur;
 			}
+		}())
+	{}
+
+	cursor_wrapper(const cursor_wrapper&) = delete;
+	cursor_wrapper& operator=(const cursor_wrapper&) = delete;
+
+	cursor_wrapper(cursor_wrapper&&) = delete;
+	cursor_wrapper& operator=(cursor_wrapper&&) = delete;
+
+	~cursor_wrapper()
+	{
+		XFreeCursor(
+			this->display.xorg_display.display, //
+			this->cursor
+		);
+	}
+};
+} // namespace
+
+namespace {
+class os_platform_glue : public utki::destructable
+{
+public:
+	const utki::shared_ref<display_wrapper> display = utki::make_shared<display_wrapper>();
+
+	nitki::queue ui_queue;
+
+	std::atomic_bool quit_flag = false;
+
+	cursor_wrapper& get_cursor(ruis::mouse_cursor c)
+	{
+		auto i = this->cursors.find(c);
+		if (i == this->cursors.end()) {
+			i = this->cursors.insert(std::make_pair(c, std::make_unique<cursor_wrapper>(this->display, c))).first;
 		}
+		return *i->second.get();
+	}
 
-		cursor_wrapper(const cursor_wrapper&) = delete;
-		cursor_wrapper& operator=(const cursor_wrapper&) = delete;
+private:
+	// TODO: use enum_array
+	std::map<ruis::mouse_cursor, std::unique_ptr<cursor_wrapper>> cursors;
+};
+} // namespace
 
-		cursor_wrapper(cursor_wrapper&&) = delete;
-		cursor_wrapper& operator=(cursor_wrapper&&) = delete;
+namespace {
+os_platform_glue& get_glue(ruisapp::application& app)
+{
+	return static_cast<os_platform_glue&>(app.pimpl.get());
+}
+} // namespace
 
-		~cursor_wrapper()
-		{
-			XFreeCursor(
-				this->display.xorg_display.display, //
-				this->cursor
-			);
-		}
-	};
+namespace {
+struct window_wrapper : public utki::destructable {
+	utki::shared_ref<display_wrapper> display;
+
+	native_window window;
 
 	// NOLINTNEXTLINE(clang-analyzer-webkit.NoUncountedMemberChecker, "false-positive")
 	cursor_wrapper* cur_cursor = nullptr;
 	bool cursor_visible = true;
-	std::map<ruis::mouse_cursor, std::unique_ptr<cursor_wrapper>> cursors;
 
 	void apply_cursor(cursor_wrapper& c)
 	{
@@ -190,18 +215,10 @@ struct window_wrapper : public utki::destructable {
 		);
 	}
 
-	cursor_wrapper* get_cursor(ruis::mouse_cursor c)
-	{
-		auto i = this->cursors.find(c);
-		if (i == this->cursors.end()) {
-			i = this->cursors.insert(std::make_pair(c, std::make_unique<cursor_wrapper>(this->display, c))).first;
-		}
-		return i->second.get();
-	}
-
 	void set_cursor(ruis::mouse_cursor c)
 	{
-		this->cur_cursor = this->get_cursor(c);
+		auto& glue = get_glue(ruisapp::inst());
+		this->cur_cursor = &glue.get_cursor(c);
 
 		if (this->cursor_visible) {
 			this->apply_cursor(*this->cur_cursor);
@@ -221,7 +238,8 @@ struct window_wrapper : public utki::destructable {
 				);
 			}
 		} else {
-			this->apply_cursor(*this->get_cursor(ruis::mouse_cursor::none));
+			auto& glue = get_glue(ruisapp::inst());
+			this->apply_cursor(glue.get_cursor(ruis::mouse_cursor::none));
 		}
 	}
 
