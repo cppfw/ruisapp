@@ -1,29 +1,9 @@
 #pragma once
 
 #include <X11/cursorfont.h>
+#include <utki/enum_array.hpp>
 
 #include "display.hxx"
-
-namespace {
-const utki::enum_array<unsigned, ruis::mouse_cursor> ruis_to_x_cursor_map = {
-	XC_left_ptr, // ruis::mouse_cursor::none
-	XC_left_ptr, // ruis::mouse_cursor::arrow
-	XC_sb_h_double_arrow, // ruis::mouse_cursor::left_right_arrow
-	XC_sb_v_double_arrow, // ruis::mouse_cursor::up_down_arrow
-	XC_fleur, // ruis::mouse_cursor::all_directions_arrow
-	XC_left_side, // ruis::mouse_cursor::left_side
-	XC_right_side, // ruis::mouse_cursor::right_side
-	XC_top_side, // ruis::mouse_cursor::top_side
-	XC_bottom_side, // ruis::mouse_cursor::bottom_side
-	XC_top_left_corner, // ruis::mouse_cursor::top_left_corner
-	XC_top_right_corner, // ruis::mouse_cursor::top_right_corner
-	XC_bottom_left_corner, // ruis::mouse_cursor::bottom_left_corner
-	XC_bottom_right_corner, // ruis::mouse_cursor::bottom_right_corner
-	XC_hand2, // ruis::mouse_cursor::index_finger
-	XC_hand1, // ruis::mouse_cursor::grab
-	XC_xterm // ruis::mouse_cursor::caret
-};
-} // namespace
 
 namespace {
 struct cursor_wrapper {
@@ -32,6 +12,25 @@ struct cursor_wrapper {
 	// NOLINTNEXTLINE(clang-analyzer-webkit.NoUncountedMemberChecker, "false-positive")
 	display_wrapper& display;
 	const Cursor cursor; // xorg cursor
+
+	constexpr static const utki::enum_array<unsigned, ruis::mouse_cursor> ruis_to_x_cursor_map = {
+		XC_left_ptr, // ruis::mouse_cursor::none
+		XC_left_ptr, // ruis::mouse_cursor::arrow
+		XC_sb_h_double_arrow, // ruis::mouse_cursor::left_right_arrow
+		XC_sb_v_double_arrow, // ruis::mouse_cursor::up_down_arrow
+		XC_fleur, // ruis::mouse_cursor::all_directions_arrow
+		XC_left_side, // ruis::mouse_cursor::left_side
+		XC_right_side, // ruis::mouse_cursor::right_side
+		XC_top_side, // ruis::mouse_cursor::top_side
+		XC_bottom_side, // ruis::mouse_cursor::bottom_side
+		XC_top_left_corner, // ruis::mouse_cursor::top_left_corner
+		XC_top_right_corner, // ruis::mouse_cursor::top_right_corner
+		XC_bottom_left_corner, // ruis::mouse_cursor::bottom_left_corner
+		XC_bottom_right_corner, // ruis::mouse_cursor::bottom_right_corner
+		XC_hand2, // ruis::mouse_cursor::index_finger
+		XC_hand1, // ruis::mouse_cursor::grab
+		XC_xterm // ruis::mouse_cursor::caret
+	};
 
 	cursor_wrapper(
 		display_wrapper& display, //

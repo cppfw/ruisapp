@@ -26,7 +26,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <nitki/queue.hpp>
 #include <opros/wait_set.hpp>
 #include <papki/fs_file.hpp>
-#include <utki/enum_array.hpp>
 #include <utki/string.hpp>
 #include <utki/unicode.hpp>
 
