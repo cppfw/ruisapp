@@ -30,6 +30,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <nitki/queue.hpp>
 #include <opros/wait_set.hpp>
 #include <papki/fs_file.hpp>
+#include <utki/enum_array.hpp>
 #include <utki/string.hpp>
 #include <utki/unicode.hpp>
 
@@ -62,9 +63,32 @@ using namespace std::string_view_literals;
 using namespace ruisapp;
 
 namespace {
+const utki::enum_array<unsigned, ruis::mouse_cursor> ruis_to_x_cursor_map = {
+	XC_left_ptr, // ruis::mouse_cursor::none
+	XC_left_ptr, // ruis::mouse_cursor::arrow
+	XC_sb_h_double_arrow, // ruis::mouse_cursor::left_right_arrow
+	XC_sb_v_double_arrow, // ruis::mouse_cursor::up_down_arrow
+	XC_fleur, // ruis::mouse_cursor::all_directions_arrow
+	XC_left_side, // ruis::mouse_cursor::left_side
+	XC_right_side, // ruis::mouse_cursor::right_side
+	XC_top_side, // ruis::mouse_cursor::top_side
+	XC_bottom_side, // ruis::mouse_cursor::bottom_side
+	XC_top_left_corner, // ruis::mouse_cursor::top_left_corner
+	XC_top_right_corner, // ruis::mouse_cursor::top_right_corner
+	XC_bottom_left_corner, // ruis::mouse_cursor::bottom_left_corner
+	XC_bottom_right_corner, // ruis::mouse_cursor::bottom_right_corner
+	XC_hand2, // ruis::mouse_cursor::index_finger
+	XC_hand1, // ruis::mouse_cursor::grab
+	XC_xterm // ruis::mouse_cursor::caret
+};
+} // namespace
+
+namespace {
 class os_platform_glue : public utki::destructable
 {
 public:
+	const utki::shared_ref<display_wrapper> display = utki::make_shared<display_wrapper>();
+
 	nitki::queue ui_queue;
 
 	std::atomic_bool quit_flag = false;
@@ -76,26 +100,6 @@ os_platform_glue& get_glue(ruisapp::application& app)
 {
 	return static_cast<os_platform_glue&>(app.pimpl.get());
 }
-} // namespace
-
-namespace {
-const std::map<ruis::mouse_cursor, unsigned> x_cursor_map = {
-	{			   ruis::mouse_cursor::arrow,            XC_left_ptr},
-	{    ruis::mouse_cursor::left_right_arrow,   XC_sb_h_double_arrow},
-	{	   ruis::mouse_cursor::up_down_arrow,   XC_sb_v_double_arrow},
-	{ruis::mouse_cursor::all_directions_arrow,               XC_fleur},
-	{		   ruis::mouse_cursor::left_side,           XC_left_side},
-	{		  ruis::mouse_cursor::right_side,          XC_right_side},
-	{			ruis::mouse_cursor::top_side,            XC_top_side},
-	{		 ruis::mouse_cursor::bottom_side,         XC_bottom_side},
-	{	 ruis::mouse_cursor::top_left_corner,     XC_top_left_corner},
-	{    ruis::mouse_cursor::top_right_corner,    XC_top_right_corner},
-	{  ruis::mouse_cursor::bottom_left_corner,  XC_bottom_left_corner},
-	{ ruis::mouse_cursor::bottom_right_corner, XC_bottom_right_corner},
-	{		ruis::mouse_cursor::index_finger,               XC_hand2},
-	{				ruis::mouse_cursor::grab,               XC_hand1},
-	{			   ruis::mouse_cursor::caret,               XC_xterm}
-};
 } // namespace
 
 namespace {
@@ -151,7 +155,7 @@ struct window_wrapper : public utki::destructable {
 			} else {
 				this->cursor = XCreateFontCursor(
 					this->display.xorg_display.display, //
-					x_cursor_map.at(c)
+					ruis_to_x_cursor_map[c]
 				);
 			}
 		}
@@ -223,9 +227,10 @@ struct window_wrapper : public utki::destructable {
 
 	window_wrapper(
 		const utki::version_duplet& gl_version, //
-		const ruisapp::window_parameters& window_params
+		const ruisapp::window_parameters& window_params,
+		utki::shared_ref<display_wrapper> display
 	) :
-		display(utki::make_shared<display_wrapper>()),
+		display(std::move(display)),
 		window(
 			this->display,
 			gl_version,
@@ -324,7 +329,11 @@ application::application(parameters params) :
 	window_pimpl(std::make_unique<window_wrapper>(
 		params.graphics_api_version, //
 		// TODO: check that there is at least 1 window
-		params.windows.front()
+		params.windows.front(),
+		[&]() {
+			auto& glue = get_glue(*this);
+			return glue.display;
+		}()
 	)),
 	gui(utki::make_shared<ruis::context>(
 		utki::make_shared<ruis::style_provider>( //
