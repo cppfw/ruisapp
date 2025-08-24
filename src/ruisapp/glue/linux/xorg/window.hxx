@@ -723,8 +723,6 @@ class native_window : public ruis::native_window
 		}
 	} xorg_input_context;
 
-	ruis::real scale_factor = 1;
-
 public:
 	native_window(
 		utki::shared_ref<display_wrapper> display, //

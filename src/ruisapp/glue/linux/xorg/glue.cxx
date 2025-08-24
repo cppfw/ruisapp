@@ -500,12 +500,26 @@ public:
 		// it here NOLINTNEXTLINE(cppcoreguidelines-init-variables)
 		Status status;
 
-		int size = Xutf8LookupString(this->xic, &this->event.xkey, buf.begin(), int(buf.size() - 1), nullptr, &status);
+		int size = Xutf8LookupString(
+			this->xic, //
+			&this->event.xkey,
+			buf.data(),
+			int(buf.size() - 1),
+			nullptr,
+			&status
+		);
 		if (status == XBufferOverflow) {
 			// allocate enough memory
 			arr.resize(size + 1);
 			buf = utki::make_span(arr);
-			size = Xutf8LookupString(this->xic, &this->event.xkey, buf.begin(), int(buf.size() - 1), nullptr, &status);
+			size = Xutf8LookupString(
+				this->xic, //
+				&this->event.xkey,
+				buf.data(),
+				int(buf.size() - 1),
+				nullptr,
+				&status
+			);
 		}
 		ASSERT(size >= 0)
 		ASSERT(buf.size() != 0)
