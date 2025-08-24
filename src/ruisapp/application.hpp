@@ -348,13 +348,6 @@ public:
 	void set_fullscreen(bool enable);
 
 	/**
-	 * @brief Show/hide mouse cursor.
-	 * @param visible - whether to show (true) or hide (false) mouse cursor.
-	 */
-	// TODO: remove
-	void set_mouse_cursor_visible(bool visible);
-
-	/**
 	 * @brief Get dots per density pixel (dp) for given display parameters.
 	 * The size of the dp for desktop displays should normally be equal to one
 	 * pixel. For hand held devices size of the dp depends on physical screen size

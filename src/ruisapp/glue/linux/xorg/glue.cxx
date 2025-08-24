@@ -80,7 +80,7 @@ namespace {
 struct window_wrapper : public utki::destructable {
 	utki::shared_ref<display_wrapper> display;
 
-	native_window window;
+	utki::shared_ref<native_window> window;
 
 	window_wrapper(
 		const utki::version_duplet& gl_version, //
@@ -88,11 +88,11 @@ struct window_wrapper : public utki::destructable {
 		utki::shared_ref<display_wrapper> display
 	) :
 		display(std::move(display)),
-		window(
+		window(utki::make_shared<native_window>(
 			this->display,
 			gl_version,
 			window_params //
-		)
+		))
 	{
 #ifdef RUISAPP_RENDER_OPENGL
 #elif defined(RUISAPP_RENDER_OPENGLES)
@@ -141,7 +141,7 @@ application::application(parameters params) :
 			utki::make_shared<ruis::resource_loader>( //
 				utki::make_shared<ruis::render::renderer>(
 #ifdef RUISAPP_RENDER_OPENGL
-					utki::make_shared<ruis::render::opengl::context>()
+					utki::make_shared<ruis::render::opengl::context>(get_impl(*this).window)
 #elif defined(RUISAPP_RENDER_OPENGLES)
 					utki::make_shared<ruis::render::opengles::context>()
 #else
@@ -156,11 +156,6 @@ application::application(parameters params) :
 				[this](std::function<void()> proc) {
 					auto& glue = get_glue(*this);
 					glue.ui_queue.push_back(std::move(proc));
-				},
-			.set_mouse_cursor_function =
-				[this](ruis::mouse_cursor cursor) {
-					auto& ww = get_impl(*this);
-					ww.window.set_cursor(cursor);
 				},
 			.units =
 				[this]() {
@@ -641,7 +636,7 @@ int main(int argc, const char** argv)
 						// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
 						ruis::key key = key_code_map[std::uint8_t(event.xkey.keycode)];
 						handle_key_event(*app, true, key);
-						handle_character_input(*app, key_event_unicode_provider(ww.window.xic(), event), key);
+						handle_character_input(*app, key_event_unicode_provider(ww.window.get().xic(), event), key);
 					}
 					break;
 				case KeyRelease:
@@ -667,7 +662,7 @@ int main(int argc, const char** argv)
 								// key wasn't actually released
 								handle_character_input(
 									*app, //
-									key_event_unicode_provider(ww.window.xic(), nev),
+									key_event_unicode_provider(ww.window.get().xic(), nev),
 									key
 								);
 
@@ -758,23 +753,18 @@ void application::set_fullscreen(bool enable)
 {
 	auto& ww = get_impl(this->window_pimpl);
 
-	ww.window.set_fullscreen(enable);
+	ww.window.get().set_fullscreen(enable);
 }
 
 bool application::is_fullscreen() const noexcept
 {
 	auto& ww = get_impl(this->window_pimpl);
 
-	return ww.window.is_fullscreen();
-}
-
-void application::set_mouse_cursor_visible(bool visible)
-{
-	get_impl(*this).window.set_cursor_visible(visible);
+	return ww.window.get().is_fullscreen();
 }
 
 void application::swap_frame_buffers()
 {
 	auto& ww = get_impl(this->window_pimpl);
-	ww.window.swap_frame_buffers();
+	ww.window.get().swap_frame_buffers();
 }

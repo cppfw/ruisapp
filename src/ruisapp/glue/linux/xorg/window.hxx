@@ -14,7 +14,7 @@
 
 namespace {
 
-class native_window : public ruisapp::window
+class native_window : public ruis::native_window
 {
 	utki::shared_ref<display_wrapper> display;
 
@@ -775,7 +775,7 @@ public:
 			this->xorg_window
 		)
 	{
-		this->make_gl_context_current();
+		this->bind_render_context();
 		this->disable_vsync();
 
 #ifdef RUISAPP_RENDER_OPENGL
@@ -791,30 +791,9 @@ public:
 	native_window(native_window&&) = delete;
 	native_window& operator=(native_window&&) = delete;
 
-	void make_gl_context_current()
-	{
-#ifdef RUISAPP_RENDER_OPENGL
-		glXMakeCurrent(
-			this->display.get().xorg_display.display, //
-			this->xorg_window.window,
-			this->glx_context.context
-		);
-#elif defined(RUISAPP_RENDER_OPENGLES)
-		if (eglMakeCurrent(
-				this->display.get().egl_display.display,
-				this->egl_surface.surface,
-				this->egl_surface.surface,
-				this->egl_context.context
-			) == EGL_FALSE)
-		{
-			throw std::runtime_error("eglMakeCurrent() failed");
-		}
-#endif
-	};
-
 	void disable_vsync()
 	{
-		this->make_gl_context_current();
+		this->bind_render_context();
 #ifdef RUISAPP_RENDER_OPENGL
 		// disable v-sync via swap control extension
 
@@ -945,7 +924,7 @@ public:
 		this->display.get().xorg_display.flush();
 	}
 
-	void set_cursor(ruis::mouse_cursor c)
+	void set_mouse_cursor(ruis::mouse_cursor c) override
 	{
 		this->cur_cursor = &this->display.get().get_cursor(c);
 
@@ -954,7 +933,7 @@ public:
 		}
 	}
 
-	void set_cursor_visible(bool visible)
+	void set_mouse_cursor_visible(bool visible) override
 	{
 		this->cursor_visible = visible;
 		if (visible) {
@@ -984,6 +963,27 @@ private:
 			this->xorg_window.window,
 			c.cursor
 		);
+	}
+
+	void bind_render_context() override
+	{
+#ifdef RUISAPP_RENDER_OPENGL
+		glXMakeCurrent(
+			this->display.get().xorg_display.display, //
+			this->xorg_window.window,
+			this->glx_context.context
+		);
+#elif defined(RUISAPP_RENDER_OPENGLES)
+		if (eglMakeCurrent(
+				this->display.get().egl_display.display,
+				this->egl_surface.surface,
+				this->egl_surface.surface,
+				this->egl_context.context
+			) == EGL_FALSE)
+		{
+			throw std::runtime_error("eglMakeCurrent() failed");
+		}
+#endif
 	}
 };
 
