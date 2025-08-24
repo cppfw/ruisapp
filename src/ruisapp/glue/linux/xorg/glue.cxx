@@ -143,7 +143,7 @@ application::application(parameters params) :
 #ifdef RUISAPP_RENDER_OPENGL
 					utki::make_shared<ruis::render::opengl::context>(get_impl(*this).window)
 #elif defined(RUISAPP_RENDER_OPENGLES)
-					utki::make_shared<ruis::render::opengles::context>()
+					utki::make_shared<ruis::render::opengles::context>(get_impl(*this).window)
 #else
 #	error "Unknown graphics API"
 #endif
