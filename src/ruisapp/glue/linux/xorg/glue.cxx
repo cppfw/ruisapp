@@ -325,11 +325,9 @@ int main(int argc, const char** argv)
 		}
 
 		// NOTE: do not check 'read' flag for X event, for some reason when waiting
-		// with 0 timeout it will never be set.
-		//       Maybe some bug in XWindows, maybe something else.
-		bool x_event_arrived = false;
+		//       with 0 timeout it will never be set.
+		//       Maybe some bug in XWindows.
 		while (XPending(glue.display.get().xorg_display.display) > 0) {
-			x_event_arrived = true;
 			XEvent event;
 			XNextEvent(
 				glue.display.get().xorg_display.display, //
@@ -344,10 +342,8 @@ int main(int argc, const char** argv)
 
 			auto& w = *window;
 
-			// TRACE(<< "X event got, type = " << (event.type) << std::endl)
 			switch (event.type) {
 				case Expose:
-					// TRACE(<< "Expose X event got" << std::endl)
 					if (event.xexpose.count != 0) {
 						break;
 					}
@@ -361,14 +357,24 @@ int main(int argc, const char** argv)
 					w.new_win_dims.y() = ruis::real(event.xconfigure.height);
 					break;
 				case KeyPress:
-					//						TRACE(<< "KeyPress X
-					// event got" << std::endl)
 					{
 						// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
 						ruis::key key = key_code_map[std::uint8_t(event.xkey.keycode)];
 
-						w.gui.send_key(true, key);
-						w.gui.send_character_input(key_event_unicode_provider(w.ruis_native_window, event.xkey), key);
+						w.gui.send_key(
+							true, //
+							key
+						);
+
+						key_event_unicode_provider string_provider(
+							w.ruis_native_window, //
+							event.xkey
+						);
+
+						w.gui.send_character_input(
+							string_provider, //
+							key
+						);
 					}
 					break;
 				case KeyRelease:
@@ -381,7 +387,9 @@ int main(int argc, const char** argv)
 								glue.display.get().xorg_display.display, //
 								QueuedAfterReading
 							))
-						{ // if there are other events queued
+						{
+							// there are other events queued
+
 							XEvent nev;
 							XPeekEvent(
 								glue.display.get().xorg_display.display, //
@@ -397,10 +405,8 @@ int main(int argc, const char** argv)
 									key
 								);
 
-								XNextEvent(
-									glue.display.get().xorg_display.display,
-									&nev
-								); // remove the key down event from queue
+								// remove the key down event from queue
+								XNextEvent(glue.display.get().xorg_display.display, &nev);
 								break;
 							}
 						}
@@ -417,8 +423,6 @@ int main(int argc, const char** argv)
 					);
 					break;
 				case ButtonRelease:
-					// utki::log_debug([&](auto&o){o << "ButtonRelease X event got, button mask = " <<
-					// event.xbutton.button << std::endl;})
 					w.gui.send_mouse_button(
 						false, //
 						ruis::vector2(event.xbutton.x, event.xbutton.y),
@@ -427,8 +431,6 @@ int main(int argc, const char** argv)
 					);
 					break;
 				case MotionNotify:
-					//						TRACE(<< "MotionNotify X
-					// event got" << std::endl)
 					w.gui.send_mouse_move(
 						ruis::vector2(
 							event.xmotion.x, //
@@ -450,9 +452,6 @@ int main(int argc, const char** argv)
 					);
 					break;
 				case ClientMessage:
-					//						TRACE(<< "ClientMessage
-					// X event got" << std::endl)
-
 					// probably a WM_DELETE_WINDOW event
 					{
 						// NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
@@ -461,6 +460,7 @@ int main(int argc, const char** argv)
 							event.xclient.message_type
 						);
 						if ("WM_PROTOCOLS"sv == name) {
+							// TODO: instead of setting the guit flag, invoke window's close handler
 							glue.quit_flag.store(true);
 						}
 						XFree(name);
@@ -470,15 +470,6 @@ int main(int argc, const char** argv)
 					// ignore
 					break;
 			}
-		}
-
-		// WORKAROUND: XEvent file descriptor becomes ready to read many times per
-		// second, even if
-		//             there are no events to handle returned by XPending(), so here
-		//             we check if something meaningful actually happened and call
-		//             render() only if it did
-		if (triggered_events.size() != 0 && !x_event_arrived && !ui_queue_ready_to_read) {
-			continue;
 		}
 
 		glue.apply_new_win_dims();
