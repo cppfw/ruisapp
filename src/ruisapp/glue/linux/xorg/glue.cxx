@@ -87,16 +87,31 @@ public:
 namespace {
 class os_platform_glue : public utki::destructable
 {
+public:
+	const utki::shared_ref<display_wrapper> display = utki::make_shared<display_wrapper>();
+
+private:
 	utki::version_duplet gl_version;
+
+	utki::shared_ref<native_window> resource_loader_gl_context;
 
 	std::map<native_window::window_id_type, utki::shared_ref<app_window>> windows;
 
 public:
 	os_platform_glue(const utki::version_duplet& gl_version) :
-		gl_version(gl_version)
+		gl_version(gl_version),
+		resource_loader_gl_context(utki::make_shared<native_window>(
+			this->display, //
+			this->gl_version,
+			ruisapp::window_parameters{
+				.dims = {1, 1},
+				.title = {},
+				.fullscreen = false,
+				.visible = false
+    },
+			nullptr
+		))
 	{}
-
-	const utki::shared_ref<display_wrapper> display = utki::make_shared<display_wrapper>();
 
 	nitki::queue ui_queue;
 
@@ -109,7 +124,8 @@ public:
 		auto ruis_native_window = utki::make_shared<native_window>(
 			this->display, //
 			this->gl_version,
-			window_params
+			window_params,
+			&this->resource_loader_gl_context.get()
 		);
 
 		auto ruis_context = utki::make_shared<ruis::context>(
@@ -163,7 +179,8 @@ public:
 		return res.first->second.get();
 	}
 
-	void destroy_window(app_window& w){
+	void destroy_window(app_window& w)
+	{
 		auto i = this->windows.find(w.ruis_native_window.get().get_id());
 		utki::assert(i != this->windows.end(), SL);
 		this->windows.erase(i);
@@ -277,7 +294,8 @@ ruisapp::window& application::make_window(const window_parameters& window_params
 	return glue.make_window(window_params);
 }
 
-void application::destroy_window(ruisapp::window& w){
+void application::destroy_window(ruisapp::window& w)
+{
 	auto& glue = get_glue(*this);
 
 	utki::assert(dynamic_cast<app_window*>(&w), SL);

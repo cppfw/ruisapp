@@ -99,18 +99,15 @@ struct window_parameters {
 	bool fullscreen = false;
 
 	/**
+	 * @brief Indicates whether the window is initially visible or not.
+	 */
+	bool visible = true;
+
+	/**
 	 * @brief Flags describing desired buffers for rendering context.
 	 * Color buffer is always there implicitly.
 	 */
 	utki::flags<ruisapp::buffer> buffers = false;
-
-	// version 0.0 means default version
-	// clang-format off
-	utki::version_duplet graphics_api_version = {
-		.major = 0,
-		.minor = 0
-	};
-	// clang-format on
 };
 
 class window

@@ -366,19 +366,22 @@ class native_window : public ruis::native_window
 				);
 			}
 
-			XMapWindow(
-				this->display.xorg_display.display, //
-				this->window
-			);
+			if (window_params.visible) {
+				XMapWindow(
+					this->display.xorg_display.display, //
+					this->window
+				);
+			}
 
 			this->display.xorg_display.flush();
 
-			// set window title
-			XStoreName(
-				this->display.xorg_display.display, //
-				this->window,
-				window_params.title.c_str()
-			);
+			if (!window_params.title.empty()) {
+				XStoreName(
+					this->display.xorg_display.display, //
+					this->window,
+					window_params.title.c_str()
+				);
+			}
 		}
 
 		xorg_window_wrapper(const xorg_window_wrapper&) = delete;
@@ -420,7 +423,8 @@ class native_window : public ruis::native_window
 			display_wrapper& display, //
 			const xorg_visual_info_wrapper& visual_info,
 			const utki::version_duplet& gl_version,
-			const fb_config_wrapper& fb_config
+			const fb_config_wrapper& fb_config,
+			native_window* shared_gl_context_native_window
 		) :
 			display(display),
 			supported_extensions([&]() {
@@ -469,6 +473,13 @@ class native_window : public ruis::native_window
 			}()),
 			context([&]() {
 				GLXContext gl_context = nullptr;
+
+				GLXContext shared_glx_context = [&]() -> GLXContext {
+					if (shared_gl_context_native_window) {
+						return shared_gl_context_native_window->glx_context.context;
+					}
+					return nullptr;
+				}();
 
 				if (this->supported_extensions.get(glx_extension::glx_arb_create_context)) {
 					// GLX_ARB_create_context is supported
@@ -523,7 +534,7 @@ class native_window : public ruis::native_window
 					gl_context = glx_create_context_attribs_arb(
 						this->display.xorg_display.display, //
 						fb_config.config,
-						nullptr,
+						shared_glx_context,
 						GL_TRUE,
 						context_attribs.data()
 					);
@@ -532,7 +543,7 @@ class native_window : public ruis::native_window
 					gl_context = glXCreateContext(
 						this->display.xorg_display.display, //
 						visual_info.visual_info,
-						nullptr,
+						shared_glx_context,
 						GL_TRUE
 					);
 				}
@@ -620,7 +631,8 @@ class native_window : public ruis::native_window
 		egl_context_wrapper(
 			display_wrapper& display, //
 			const utki::version_duplet& gl_version,
-			const fb_config_wrapper& fb_config
+			const fb_config_wrapper& fb_config,
+			native_window* shared_gl_context_native_window
 		) :
 			display(display),
 			context([&]() {
@@ -650,10 +662,17 @@ class native_window : public ruis::native_window
 					EGL_NONE
 				};
 
+				EGLContext shared_gl_context = [&]() {
+					if (shared_gl_context_native_window) {
+						return shared_gl_context_native_window->egl_context.context;
+					}
+					return EGL_NO_CONTEXT;
+				}();
+
 				auto egl_context = eglCreateContext(
 					this->display.egl_display.display, //
 					fb_config.config,
-					EGL_NO_CONTEXT,
+					shared_gl_context,
 					context_attrs.data()
 				);
 				if (egl_context == EGL_NO_CONTEXT) {
@@ -727,7 +746,8 @@ public:
 	native_window(
 		utki::shared_ref<display_wrapper> display, //
 		const utki::version_duplet& gl_version,
-		const ruisapp::window_parameters& window_params
+		const ruisapp::window_parameters& window_params,
+		native_window* shared_gl_context_native_window
 	) :
 		display(std::move(display)),
 		fb_config(
@@ -754,7 +774,8 @@ public:
 			this->display, //
 			this->xorg_visual_info,
 			gl_version,
-			this->fb_config
+			this->fb_config,
+			shared_gl_context_native_window
 		),
 #elif defined(RUISAPP_RENDER_OPENGLES)
 		egl_surface(
@@ -765,7 +786,8 @@ public:
 		egl_context(
 			this->display, //
 			gl_version,
-			this->fb_config
+			this->fb_config,
+			shared_gl_context_native_window
 		),
 #endif
 		xorg_input_context(
