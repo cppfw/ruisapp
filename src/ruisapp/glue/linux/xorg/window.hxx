@@ -14,7 +14,7 @@
 
 namespace {
 
-class native_window : public ruis::native_window
+class native_window : public ruis::render::native_window
 {
 	utki::shared_ref<display_wrapper> display;
 

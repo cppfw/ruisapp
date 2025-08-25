@@ -72,8 +72,8 @@ public:
 	{
 		utki::assert(
 			[&]() {
-				ruis::native_window& w1 = this->ruis_native_window.get();
-				ruis::native_window& w2 = this->gui.context.get().window();
+				ruis::render::native_window& w1 = this->ruis_native_window.get();
+				ruis::render::native_window& w2 = this->gui.context.get().window();
 				return &w1 == &w2;
 			},
 			SL
