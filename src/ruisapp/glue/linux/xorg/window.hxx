@@ -948,6 +948,72 @@ public:
 		}
 	}
 
+	std::u32string get_string(XKeyEvent& event) const
+	{
+#ifndef X_HAVE_UTF8_STRING
+#	error "no Xutf8stringlookup()"
+#endif
+		constexpr auto static_buf_size = 32;
+
+		// the array is used to get data, so no need to initialize it
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
+		std::array<char, static_buf_size> static_buf;
+
+		std::vector<char> arr;
+		auto buf = utki::make_span(static_buf);
+
+		// the variable is initialized via output argument, so no need to initialize
+		// it here NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+		Status status;
+
+		int size = Xutf8LookupString(
+			this->xorg_input_context.input_context, //
+			&event,
+			buf.data(),
+			int(buf.size() - 1),
+			nullptr,
+			&status
+		);
+		if (status == XBufferOverflow) {
+			// allocate enough memory
+			arr.resize(size + 1);
+			buf = utki::make_span(arr);
+			size = Xutf8LookupString(
+				this->xorg_input_context.input_context, //
+				&event,
+				buf.data(),
+				int(buf.size() - 1),
+				nullptr,
+				&status
+			);
+		}
+		ASSERT(size >= 0)
+		ASSERT(buf.size() != 0)
+		ASSERT(buf.size() > unsigned(size))
+
+		//		TRACE(<< "KeyEventUnicodeResolver::Resolve(): size = " << size
+		//<< std::endl)
+
+		buf[size] = 0; // null-terminate
+
+		switch (status) {
+			case XLookupChars:
+			case XLookupBoth:
+				if (size == 0) {
+					return {};
+				}
+				return utki::to_utf32(buf.data());
+			default:
+			case XBufferOverflow:
+				ASSERT(false)
+			case XLookupKeySym:
+			case XLookupNone:
+				break;
+		}
+
+		return {};
+	}
+
 private:
 	// NOLINTNEXTLINE(clang-analyzer-webkit.NoUncountedMemberChecker, "false-positive")
 	cursor_wrapper* cur_cursor = nullptr;

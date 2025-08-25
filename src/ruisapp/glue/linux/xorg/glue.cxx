@@ -472,80 +472,22 @@ const std::array<ruis::key, size_t(std::numeric_limits<uint8_t>::max()) + 1> key
 
 class key_event_unicode_provider : public ruis::gui::input_string_provider
 {
-	const XIC& xic;
+	const native_window& window;
 	// NOLINTNEXTLINE(clang-analyzer-webkit.NoUncountedMemberChecker, "false-positive")
-	XEvent& event;
+	XKeyEvent& event;
 
 public:
-	key_event_unicode_provider(const XIC& xic, XEvent& event) :
-		xic(xic),
+	key_event_unicode_provider(
+		const native_window& window, //
+		XKeyEvent& event
+	) :
+		window(window),
 		event(event)
 	{}
 
 	std::u32string get() const override
 	{
-#ifndef X_HAVE_UTF8_STRING
-#	error "no Xutf8stringlookup()"
-#endif
-		constexpr auto static_buf_size = 32;
-
-		// the array is used to get data, so no need to initialize it
-		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
-		std::array<char, static_buf_size> static_buf;
-
-		std::vector<char> arr;
-		auto buf = utki::make_span(static_buf);
-
-		// the variable is initialized via output argument, so no need to initialize
-		// it here NOLINTNEXTLINE(cppcoreguidelines-init-variables)
-		Status status;
-
-		int size = Xutf8LookupString(
-			this->xic, //
-			&this->event.xkey,
-			buf.data(),
-			int(buf.size() - 1),
-			nullptr,
-			&status
-		);
-		if (status == XBufferOverflow) {
-			// allocate enough memory
-			arr.resize(size + 1);
-			buf = utki::make_span(arr);
-			size = Xutf8LookupString(
-				this->xic, //
-				&this->event.xkey,
-				buf.data(),
-				int(buf.size() - 1),
-				nullptr,
-				&status
-			);
-		}
-		ASSERT(size >= 0)
-		ASSERT(buf.size() != 0)
-		ASSERT(buf.size() > unsigned(size))
-
-		//		TRACE(<< "KeyEventUnicodeResolver::Resolve(): size = " << size
-		//<< std::endl)
-
-		buf[size] = 0; // null-terminate
-
-		switch (status) {
-			case XLookupChars:
-			case XLookupBoth:
-				if (size == 0) {
-					return {};
-				}
-				return utki::to_utf32(buf.data());
-			default:
-			case XBufferOverflow:
-				ASSERT(false)
-			case XLookupKeySym:
-			case XLookupNone:
-				break;
-		}
-
-		return {};
+		return this->window.get_string(this->event);
 	}
 };
 
@@ -650,7 +592,7 @@ int main(int argc, const char** argv)
 						// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
 						ruis::key key = key_code_map[std::uint8_t(event.xkey.keycode)];
 						handle_key_event(*app, true, key);
-						handle_character_input(*app, key_event_unicode_provider(ww.window.get().xic(), event), key);
+						handle_character_input(*app, key_event_unicode_provider(ww.window, event.xkey), key);
 					}
 					break;
 				case KeyRelease:
@@ -676,7 +618,7 @@ int main(int argc, const char** argv)
 								// key wasn't actually released
 								handle_character_input(
 									*app, //
-									key_event_unicode_provider(ww.window.get().xic(), nev),
+									key_event_unicode_provider(ww.window, nev.xkey),
 									key
 								);
 
