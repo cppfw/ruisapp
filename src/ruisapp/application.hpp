@@ -169,7 +169,13 @@ public:
 	 * @param window_params - window parameters.
 	 * @return shared_ref to the created window object.
 	 */
-	utki::shared_ref<ruisapp::window> make_window(const window_parameters& window_params);
+	ruisapp::window& make_window(const window_parameters& window_params);
+
+	/**
+	 * @brief Destroy native window.
+	 * @param w - native window to destroy.
+	 */
+	void destroy_window(ruisapp::window& w);
 
 	/**
 	 * @brief Get dots per density pixel (dp) for given display parameters.

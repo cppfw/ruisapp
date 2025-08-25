@@ -139,9 +139,3 @@ ruis::real application::get_pixels_per_pp(r4::vector2<unsigned> resolution, r4::
 	return ruis::real(1);
 #endif
 }
-
-// TODO: remove
-// void application::handle_key_event(bool is_down, ruis::key key_code)
-// {
-// 	this->gui.send_key(is_down, key_code);
-// }
