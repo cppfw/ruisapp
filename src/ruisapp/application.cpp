@@ -31,38 +31,49 @@ using namespace ruisapp;
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 application::instance_type application::instance;
 
-void application::render()
+application_factory::factory_type& application_factory::get_factory_internal()
 {
-	// TODO: render only if needed?
-	this->gui.context.get().renderer.get().render_context.get().clear_framebuffer_color();
-
-	// no clear of depth and stencil buffers, it will be done by individual widgets if needed
-
-	this->gui.render(this->gui.context.get().renderer.get().render_context.get().initial_matrix);
-
-	this->swap_frame_buffers();
+	static application_factory::factory_type f;
+	return f;
 }
 
-void application::update_window_rect(const ruis::rect& rect)
+const application_factory::factory_type& application_factory::get_factory()
 {
-	if (this->cur_window_rect == rect) {
-		return;
+	auto& f = get_factory_internal();
+	if (!f) {
+		throw std::logic_error("no application factory registered");
+	}
+	return f;
+}
+
+std::unique_ptr<application> application_factory::make_application(
+	int argc, //
+	const char** argv
+)
+{
+	auto cli_args = utki::make_span(argv, argc);
+
+	if (cli_args.empty()) {
+		return get_factory()(std::string_view(), {});
 	}
 
-	this->cur_window_rect = rect;
+	std::string_view executable = cli_args.front();
 
-	utki::log_debug([&](auto& o) {
-		o << "application::update_window_rect(): this->cur_window_rect = " << this->cur_window_rect << std::endl;
-	});
+	std::vector<std::string_view> args;
+	for (const auto& a : cli_args.subspan(1)) {
+		args.emplace_back(a);
+	}
 
-	this->gui.context.get().renderer.get().render_context.get().set_viewport(r4::rectangle<uint32_t>(
-		uint32_t(this->cur_window_rect.p.x()),
-		uint32_t(this->cur_window_rect.p.y()),
-		uint32_t(this->cur_window_rect.d.x()),
-		uint32_t(this->cur_window_rect.d.y())
-	));
+	return get_factory()(executable, args);
+}
 
-	this->gui.set_viewport(this->cur_window_rect.d);
+application_factory::application_factory(factory_type factory)
+{
+	auto& f = this->get_factory_internal();
+	if (f) {
+		throw std::logic_error("application factory is already registered");
+	}
+	f = std::move(factory);
 }
 
 #if CFG_OS_NAME != CFG_OS_NAME_ANDROID && CFG_OS_NAME != CFG_OS_NAME_IOS
@@ -129,52 +140,8 @@ ruis::real application::get_pixels_per_pp(r4::vector2<unsigned> resolution, r4::
 #endif
 }
 
-void application::handle_key_event(bool is_down, ruis::key key_code)
-{
-	this->gui.send_key(is_down, key_code);
-}
-
-application_factory::factory_type& application_factory::get_factory_internal()
-{
-	static application_factory::factory_type f;
-	return f;
-}
-
-const application_factory::factory_type& application_factory::get_factory()
-{
-	auto& f = get_factory_internal();
-	if (!f) {
-		throw std::logic_error("no application factory registered");
-	}
-	return f;
-}
-
-std::unique_ptr<application> application_factory::make_application(
-	int argc, //
-	const char** argv
-)
-{
-	auto cli_args = utki::make_span(argv, argc);
-
-	if (cli_args.empty()) {
-		return get_factory()(std::string_view(), {});
-	}
-
-	std::string_view executable = cli_args.front();
-
-	std::vector<std::string_view> args;
-	for (const auto& a : cli_args.subspan(1)) {
-		args.emplace_back(a);
-	}
-
-	return get_factory()(executable, args);
-}
-
-application_factory::application_factory(factory_type factory)
-{
-	auto& f = this->get_factory_internal();
-	if (f) {
-		throw std::logic_error("application factory is already registered");
-	}
-	f = std::move(factory);
-}
+// TODO: remove
+// void application::handle_key_event(bool is_down, ruis::key key_code)
+// {
+// 	this->gui.send_key(is_down, key_code);
+// }

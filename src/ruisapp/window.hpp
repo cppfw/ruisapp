@@ -22,6 +22,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <r4/vector.hpp>
+#include <ruis/gui.hpp>
 #include <utki/flags.hpp>
 
 namespace ruisapp {
@@ -114,8 +115,37 @@ struct window_parameters {
 
 class window
 {
+	// TODO: make it window rectangle and track viewport separately,
+	//       use top-left coordinate system
+
+	// this is a viewport rectangle in coordinates that are as follows: x grows
+	// right, y grows up.
+	ruis::rect cur_window_rect = {0, 0, 0, 0};
+
+	// TODO: not used in linux, move to window implementation?
+	r4::rectangle<int> before_fullscreen_window_rect{0, 0, 0, 0};
+
 public:
+	ruis::gui gui;
+
+	window(utki::shared_ref<ruis::context> ruis_context);
+
+	window(const window&) = delete;
+	window& operator=(const window&) = delete;
+
+	window(window&&) = delete;
+	window& operator=(window&&) = delete;
+
 	virtual ~window() = default;
+
+	const ruis::vector2& dims() const noexcept
+	{
+		return this->cur_window_rect.d;
+	}
+
+	void update_window_rect(const ruis::rect& rect);
+
+	void render();
 };
 
 } // namespace ruisapp

@@ -56,43 +56,8 @@ class application : public utki::intrusive_singleton<application>
 public:
 	const utki::unique_ref<utki::destructable> pimpl;
 
-private:
-	std::vector<utki::unique_ref<window>> windows_v;
-
-public:
 	const std::string name;
 
-private:
-	// TODO: remove
-	std::unique_ptr<utki::destructable> window_pimpl;
-	friend const decltype(window_pimpl)& get_window_pimpl(application& app);
-
-private:
-	// TODO: remove
-	void swap_frame_buffers();
-
-public:
-	window& get_main_window()
-	{
-		utki::assert(!this->windows().empty(), SL);
-		return this->windows().front();
-	}
-
-	/**
-	 * @brief Get application windows.
-	 * It is guaranteed that at least one window always exists,
-	 * so the returned span's size is guaranteed to be >= 1.
-	 * @return A span of application windows. Size of the span is always >= 1.
-	 */
-	utki::span<const utki::unique_ref<window>> windows()
-	{
-		return this->windows_v;
-	}
-
-	// TODO: move to window
-	ruis::gui gui;
-
-public:
 	/**
 	 * @brief Create file interface into resources storage.
 	 * This function creates a ruis's standard file interface to read
@@ -102,7 +67,6 @@ public:
 	 */
 	std::unique_ptr<papki::file> get_res_file(std::string_view path = {}) const;
 
-public:
 	/**
 	 * @brief Aggregation of application directory locations.
 	 * See https://www.freedesktop.org/software/systemd/man/file-hierarchy.html#Home%20Directory
@@ -123,95 +87,6 @@ public:
 	 * locations, make sure to create them, e.g. with std::filesystem::create_directories().
 	 */
 	const directories directory;
-
-private:
-	// TODO: make it window rectangle and track viewport separately,
-	//       use top-left coordinate system
-
-	// this is a viewport rectangle in coordinates that are as follows: x grows
-	// right, y grows up.
-
-	// TODO: move to window
-	ruis::rect cur_window_rect = {0, 0, 0, 0};
-
-public:
-	// TODO: mve to window
-	const ruis::vector2& window_dims() const noexcept
-	{
-		return this->cur_window_rect.d;
-	}
-
-private:
-	void render();
-
-	friend void render(application& app);
-
-	// TODO: move to window
-	void update_window_rect(const ruis::rect& rect);
-
-	friend void update_window_rect(
-		application& app, //
-		const ruis::rect& rect
-	);
-
-	// pos is in usual window coordinates, y goes down.
-	void handle_mouse_move(
-		const r4::vector2<float>& pos, //
-		unsigned id
-	)
-	{
-		this->gui.send_mouse_move(
-			pos, //
-			id
-		);
-	}
-
-	friend void handle_mouse_move(
-		application& app, //
-		const r4::vector2<float>& pos,
-		unsigned id
-	);
-
-	// pos is in usual window coordinates, y goes down.
-	void handle_mouse_button(
-		bool is_down, //
-		const r4::vector2<float>& pos,
-		ruis::mouse_button button,
-		unsigned id
-	)
-	{
-		this->gui.send_mouse_button(
-			is_down, //
-			pos,
-			button,
-			id
-		);
-	}
-
-	friend void handle_mouse_button(
-		application& app, //
-		bool is_down,
-		const r4::vector2<float>& pos,
-		ruis::mouse_button button,
-		unsigned id
-	);
-
-	void handle_mouse_hover(
-		bool is_hovered, //
-		unsigned id
-	)
-	{
-		this->gui.send_mouse_hover(
-			is_hovered, //
-			id
-		);
-	}
-
-	friend void handle_mouse_hover(
-		application& app, //
-		bool is_hovered,
-		unsigned pointer_id
-	);
 
 public:
 	/**
@@ -244,12 +119,6 @@ public:
 			.minor = 0
 		};
 		// clang-format on
-
-		/**
-		 * @brief Application windows to create.
-		 * At least one window should be specified.
-		 */
-		std::vector<window_parameters> windows;
 	};
 
 protected:
@@ -285,38 +154,6 @@ public:
 	// TODO: move to window?
 	void hide_virtual_keyboard() noexcept;
 
-private:
-	// The idea with unicode_resolver parameter is that we don't want to calculate
-	// the unicode unless it is really needed, thus postpone it as much as
-	// possible.
-	void handle_character_input(
-		const ruis::gui::input_string_provider& string_provider, //
-		ruis::key key_code
-	)
-	{
-		this->gui.send_character_input(
-			string_provider, //
-			key_code
-		);
-	}
-
-	friend void handle_character_input(
-		application& app, //
-		const ruis::gui::input_string_provider& string_provider,
-		ruis::key key_code
-	);
-
-	void handle_key_event(
-		bool is_down, //
-		ruis::key key_code
-	);
-
-	friend void handle_key_event(
-		application& app, //
-		bool is_down,
-		ruis::key key_code
-	);
-
 public:
 	/**
 	 * @brief Requests application to exit.
@@ -327,25 +164,12 @@ public:
 	 */
 	void quit() noexcept;
 
-private:
-	// TODO: not used in linux, move to window implementation
-	r4::rectangle<int> before_fullscreen_window_rect{0, 0, 0, 0};
-
-public:
 	/**
-	 * @brief Check if application currently runs in fullscreen mode.
-	 * @return true if application is in fullscreen mode.
-	 * @return false if application is in windowed mode.
+	 * @brief Create native window.
+	 * @param window_params - window parameters.
+	 * @return shared_ref to the created window object.
 	 */
-	// TODO: remove
-	bool is_fullscreen() const noexcept;
-
-	/**
-	 * @brief Set/unset fullscreen mode.
-	 * @param enable - whether to enable or to disable fullscreen mode.
-	 */
-	// TODO: remove
-	void set_fullscreen(bool enable);
+	utki::shared_ref<ruisapp::window> make_window(const window_parameters& window_params);
 
 	/**
 	 * @brief Get dots per density pixel (dp) for given display parameters.

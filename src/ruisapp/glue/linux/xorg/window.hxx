@@ -869,10 +869,12 @@ public:
 #endif
 	}
 
-	// TODO: remove
-	const XIC& xic()
+	static_assert(std::is_integral_v<::Window>, "xorg lib's Window type is unexpectedly not integral");
+	using window_id_type = ::Window;
+
+	window_id_type get_id() const noexcept
 	{
-		return this->xorg_input_context.input_context;
+		return this->xorg_window.window;
 	}
 
 	void set_fullscreen_internal(bool enable) override

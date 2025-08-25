@@ -22,3 +22,43 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "window.hpp"
 
 using namespace ruisapp;
+
+window::window(utki::shared_ref<ruis::context> ruis_context) :
+	gui(std::move(ruis_context))
+{}
+
+void window::render()
+{
+	// TODO: bind render context
+
+	// TODO: render only if needed?
+	this->gui.context.get().renderer.get().render_context.get().clear_framebuffer_color();
+
+	// no clear of depth and stencil buffers, it will be done by individual widgets if needed
+
+	this->gui.render(this->gui.context.get().renderer.get().render_context.get().initial_matrix);
+
+	this->gui.context.get().window().swap_frame_buffers();
+}
+
+void window::update_window_rect(const ruis::rect& rect)
+{
+	if (this->cur_window_rect == rect) {
+		return;
+	}
+
+	this->cur_window_rect = rect;
+
+	utki::log_debug([&](auto& o) {
+		o << "application::update_window_rect(): this->cur_window_rect = " << this->cur_window_rect << std::endl;
+	});
+
+	this->gui.context.get().renderer.get().render_context.get().set_viewport(r4::rectangle<uint32_t>(
+		uint32_t(this->cur_window_rect.p.x()),
+		uint32_t(this->cur_window_rect.p.y()),
+		uint32_t(this->cur_window_rect.d.x()),
+		uint32_t(this->cur_window_rect.d.y())
+	));
+
+	this->gui.set_viewport(this->cur_window_rect.d);
+}
