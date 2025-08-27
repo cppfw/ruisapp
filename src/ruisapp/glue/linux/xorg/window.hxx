@@ -570,11 +570,13 @@ class native_window : public ruis::render::native_window
 
 		~glx_context_wrapper()
 		{
-			glXMakeCurrent(
-				this->display.xorg_display.display, //
-				None,
-				nullptr
-			);
+			if (glXGetCurrentContext() == this->context) {
+				glXMakeCurrent(
+					this->display.xorg_display.display, //
+					None,
+					nullptr
+				);
+			}
 			glXDestroyContext(
 				this->display.xorg_display.display, //
 				this->context
@@ -690,12 +692,14 @@ class native_window : public ruis::render::native_window
 
 		~egl_context_wrapper()
 		{
-			eglMakeCurrent(
-				this->display.egl_display.display, //
-				EGL_NO_SURFACE,
-				EGL_NO_SURFACE,
-				EGL_NO_CONTEXT
-			);
+			if (eglGetCurrentContext() == this->context) {
+				eglMakeCurrent(
+					this->display.egl_display.display, //
+					EGL_NO_SURFACE,
+					EGL_NO_SURFACE,
+					EGL_NO_CONTEXT
+				);
+			}
 			eglDestroyContext(
 				this->display.egl_display.display, //
 				this->context
