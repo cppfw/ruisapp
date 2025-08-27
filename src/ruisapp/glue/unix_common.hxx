@@ -19,11 +19,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 /* ================ LICENSE END ================ */
 
+#pragma once
+
 #include "../application.hpp"
 
 namespace {
 
-std::string get_xdg_dir_home(
+inline std::string get_xdg_dir_home(
 	const char* xdg_env_var, //
 	std::string_view default_subdir,
 	std::string_view app_name
@@ -54,7 +56,7 @@ std::string get_xdg_dir_home(
 	);
 }
 
-ruisapp::application::directories get_application_directories(std::string_view app_name)
+inline ruisapp::application::directories get_application_directories(std::string_view app_name)
 {
 	ruisapp::application::directories dirs;
 

@@ -43,9 +43,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #include "../../../application.hpp"
-
-// TODO: make hxx
-#include "../../unix_common.cxx" // NOLINT(bugprone-suspicious-include)
+#include "../../unix_common.hxx"
 
 #include "cursor.hxx"
 #include "display.hxx"
