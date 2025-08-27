@@ -216,6 +216,7 @@ public:
 		auto i = this->windows.find(w.ruis_native_window.get().get_id());
 		utki::assert(i != this->windows.end(), SL);
 		this->windows.erase(i);
+		// TODO: defer window destruction by pushing destroy proc to ui queue?
 	}
 
 	app_window* get_window(native_window::window_id_type id)
