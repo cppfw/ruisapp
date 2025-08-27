@@ -795,7 +795,7 @@ public:
 			this->xorg_window
 		)
 	{
-		this->bind_render_context();
+		this->bind_rendering_context();
 		this->disable_vsync();
 
 #ifdef RUISAPP_RENDER_OPENGL
@@ -813,7 +813,7 @@ public:
 
 	void disable_vsync()
 	{
-		this->bind_render_context();
+		this->bind_rendering_context();
 #ifdef RUISAPP_RENDER_OPENGL
 		// disable v-sync via swap control extension
 
@@ -1053,7 +1053,7 @@ private:
 		);
 	}
 
-	void bind_render_context() override
+	void bind_rendering_context() override
 	{
 #ifdef RUISAPP_RENDER_OPENGL
 		glXMakeCurrent(

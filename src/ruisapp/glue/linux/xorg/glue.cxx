@@ -93,24 +93,57 @@ public:
 private:
 	utki::version_duplet gl_version;
 
-	utki::shared_ref<native_window> resource_loader_gl_context;
+	utki::shared_ref<native_window> shared_gl_context_native_window;
+	utki::shared_ref<ruis::render::context> resource_loader_ruis_rendering_context;
+	utki::shared_ref<const ruis::render::context::shaders> common_shaders;
+	utki::shared_ref<const ruis::render::renderer::objects> common_render_objects;
+	utki::shared_ref<ruis::resource_loader> ruis_resource_loader;
 
-	std::map<native_window::window_id_type, utki::shared_ref<app_window>> windows;
+	std::map<
+		native_window::window_id_type, //
+		utki::shared_ref<app_window>>
+		windows;
 
 public:
 	os_platform_glue(const utki::version_duplet& gl_version) :
 		gl_version(gl_version),
-		resource_loader_gl_context(utki::make_shared<native_window>(
-			this->display, //
-			this->gl_version,
-			ruisapp::window_parameters{
-				.dims = {1, 1},
-				.title = {},
-				.fullscreen = false,
-				.visible = false
+		shared_gl_context_native_window( //
+			utki::make_shared<native_window>(
+				this->display, //
+				this->gl_version,
+				ruisapp::window_parameters{
+					.dims = {1, 1},
+					.title = {},
+					.fullscreen = false,
+					.visible = false
     },
-			nullptr
-		))
+				nullptr
+			)
+		),
+		resource_loader_ruis_rendering_context(
+#ifdef RUISAPP_RENDER_OPENGL
+			utki::make_shared<ruis::render::opengl::context>(this->shared_gl_context_native_window)
+#elif defined(RUISAPP_RENDER_OPENGLES)
+			utki::make_shared<ruis::render::opengles::context>(this->shared_gl_context_native_window)
+#else
+#	error "Unknown graphics API"
+#endif
+		),
+		common_shaders( //
+			[&]() {
+				utki::assert(this->resource_loader_ruis_rendering_context.to_shared_ptr(), SL);
+				return this->resource_loader_ruis_rendering_context.get().make_shaders();
+			}()
+		),
+		common_render_objects( //
+			utki::make_shared<ruis::render::renderer::objects>(this->resource_loader_ruis_rendering_context)
+		),
+		ruis_resource_loader( //
+			utki::make_shared<ruis::resource_loader>(
+				this->resource_loader_ruis_rendering_context, //
+				this->common_render_objects
+			)
+		)
 	{}
 
 	nitki::queue ui_queue;
@@ -125,22 +158,23 @@ public:
 			this->display, //
 			this->gl_version,
 			window_params,
-			&this->resource_loader_gl_context.get()
+			&this->shared_gl_context_native_window.get()
 		);
 
 		auto ruis_context = utki::make_shared<ruis::context>(
 			utki::make_shared<ruis::style_provider>( //
-				utki::make_shared<ruis::resource_loader>( //
-					utki::make_shared<ruis::render::renderer>(
+				this->ruis_resource_loader
+			),
+			utki::make_shared<ruis::render::renderer>(
 #ifdef RUISAPP_RENDER_OPENGL
-						utki::make_shared<ruis::render::opengl::context>(ruis_native_window)
+				utki::make_shared<ruis::render::opengl::context>(ruis_native_window),
 #elif defined(RUISAPP_RENDER_OPENGLES)
-						utki::make_shared<ruis::render::opengles::context>(ruis_native_window)
+				utki::make_shared<ruis::render::opengles::context>(ruis_native_window),
 #else
 #	error "Unknown graphics API"
 #endif
-					)
-				)
+				this->common_shaders,
+				this->common_render_objects
 			),
 			this->updater,
 			ruis::context::parameters{
