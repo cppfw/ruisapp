@@ -340,7 +340,7 @@ void application::destroy_window(ruisapp::window& w)
 
 int main(int argc, const char** argv)
 {
-	std::unique_ptr<ruisapp::application> app = create_app_unix(argc, argv);
+	auto app = ruisapp::application_factory::make_application(argc, argv);
 	if (!app) {
 		// Not an error. The app just did not show any GUI to the user.
 		return 0;
