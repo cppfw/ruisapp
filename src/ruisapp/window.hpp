@@ -21,6 +21,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
+#include <functional>
+
 #include <r4/vector.hpp>
 #include <ruis/gui.hpp>
 #include <utki/flags.hpp>
@@ -143,6 +145,16 @@ public:
 	void update_window_rect(const ruis::rect& rect);
 
 	void render();
+
+	// TODO: add close() to close the window
+	// TODO: add set_maximized(bool) & is_maximized()
+	// TODO: add set_minimized(bool) & is_minimized()
+
+	/**
+	 * @brief Handler of window close request.
+	 * Invoked when user tries to close the window.
+	 */
+	std::function<void(window&)> close_request_hander;
 };
 
 } // namespace ruisapp

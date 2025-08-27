@@ -525,8 +525,9 @@ int main(int argc, const char** argv)
 							event.xclient.message_type
 						);
 						if ("WM_PROTOCOLS"sv == name) {
-							// TODO: instead of setting the guit flag, invoke window's close handler
-							glue.quit_flag.store(true);
+							if (w.close_request_hander) {
+								w.close_request_hander(w);
+							}
 						}
 						XFree(name);
 					}
