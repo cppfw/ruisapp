@@ -121,6 +121,13 @@ public:
 		// clang-format on
 	};
 
+private:
+	application(
+		utki::unique_ref<utki::destructable> pimpl, //
+		ruisapp::application::directories directories,
+		parameters params
+	);
+
 protected:
 	/**
 	 * @brief Application constructor.

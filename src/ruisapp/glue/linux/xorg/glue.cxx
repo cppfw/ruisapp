@@ -257,9 +257,11 @@ os_platform_glue& get_glue(ruisapp::application& app)
 } // namespace
 
 application::application(parameters params) :
-	pimpl(utki::make_unique<os_platform_glue>(params.graphics_api_version)),
-	name(std::move(params.name)),
-	directory(get_application_directories(this->name))
+	application(
+		utki::make_unique<os_platform_glue>(params.graphics_api_version), //
+		get_application_directories(params.name),
+		std::move(params)
+	)
 {}
 
 namespace {

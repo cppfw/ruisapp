@@ -76,6 +76,16 @@ application_factory::application_factory(factory_type factory)
 	f = std::move(factory);
 }
 
+application::application(
+	utki::unique_ref<utki::destructable> pimpl, //
+	ruisapp::application::directories directories,
+	parameters params
+) :
+	pimpl(std::move(pimpl)),
+	name(std::move(params.name)),
+	directory(directories)
+{}
+
 #if CFG_OS_NAME != CFG_OS_NAME_ANDROID && CFG_OS_NAME != CFG_OS_NAME_IOS
 std::unique_ptr<papki::file> application::get_res_file(std::string_view path) const
 {
