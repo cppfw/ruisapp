@@ -525,8 +525,8 @@ int main(int argc, const char** argv)
 							event.xclient.message_type
 						);
 						if ("WM_PROTOCOLS"sv == name) {
-							if (w.close_request_hander) {
-								w.close_request_hander(w);
+							if (w.close_hander) {
+								w.close_hander(w);
 							}
 						}
 						XFree(name);
