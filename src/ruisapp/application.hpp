@@ -176,6 +176,7 @@ public:
 	 * @param window_params - window parameters.
 	 * @return shared_ref to the created window object.
 	 */
+	// TODO: allow injecting own style provider (along with loader)
 	ruisapp::window& make_window(const window_parameters& window_params);
 
 	/**

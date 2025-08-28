@@ -96,6 +96,7 @@ private:
 	utki::shared_ref<const ruis::render::context::shaders> common_shaders;
 	utki::shared_ref<const ruis::render::renderer::objects> common_render_objects;
 	utki::shared_ref<ruis::resource_loader> ruis_resource_loader;
+	utki::shared_ref<ruis::style_provider> ruis_style_provider;
 
 	std::map<
 		native_window::window_id_type, //
@@ -141,6 +142,9 @@ public:
 				this->resource_loader_ruis_rendering_context, //
 				this->common_render_objects
 			)
+		),
+		ruis_style_provider( //
+			utki::make_shared<ruis::style_provider>(this->ruis_resource_loader)
 		)
 	{}
 
@@ -160,9 +164,7 @@ public:
 		);
 
 		auto ruis_context = utki::make_shared<ruis::context>(
-			utki::make_shared<ruis::style_provider>( //
-				this->ruis_resource_loader
-			),
+			this->ruis_style_provider,
 			utki::make_shared<ruis::render::renderer>(
 #ifdef RUISAPP_RENDER_OPENGL
 				utki::make_shared<ruis::render::opengl::context>(ruis_native_window),
@@ -526,8 +528,8 @@ int main(int argc, const char** argv)
 							event.xclient.message_type
 						);
 						if ("WM_PROTOCOLS"sv == name) {
-							if (w.close_hander) {
-								w.close_hander(w);
+							if (w.close_handler) {
+								w.close_handler(w);
 							}
 						}
 						XFree(name);
