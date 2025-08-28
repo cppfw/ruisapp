@@ -121,7 +121,7 @@ class window
 	// right, y grows up.
 	ruis::rect cur_window_rect = {0, 0, 0, 0};
 
-	// TODO: not used in linux, move to window implementation?
+	// TODO: not used in e.g. linux, move to window implementation?
 	r4::rectangle<int> before_fullscreen_window_rect{0, 0, 0, 0};
 
 public:
@@ -142,6 +142,7 @@ public:
 		return this->cur_window_rect.d;
 	}
 
+	// TODO: move to ruis::gui as this only conttrols GL viewport
 	void update_window_rect(const ruis::rect& rect);
 
 	void render();

@@ -7,6 +7,7 @@
 
 #elif defined(RUISAPP_RENDER_OPENGLES)
 #	include <EGL/egl.h>
+#	include "../../egl_utils.hxx"
 
 #else
 #	error "Unknown graphics API"
@@ -604,7 +605,10 @@ class native_window : public ruis::render::native_window
 					nullptr
 				);
 				if (s == EGL_NO_SURFACE) {
-					throw std::runtime_error("eglCreateWindowSurface() failed");
+					throw std::runtime_error(utki::cat(
+						"eglCreateWindowSurface() failed, error: ", //
+						egl_error_to_string(eglGetError())
+					));
 				}
 				return s;
 			}())
