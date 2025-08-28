@@ -106,6 +106,11 @@ struct window_parameters {
 	bool visible = true;
 
 	/**
+	 * @brief Indicates that the window is added to the taskbar.
+	 */
+	bool taskbar = true;
+
+	/**
 	 * @brief Flags describing desired buffers for rendering context.
 	 * Color buffer is always there implicitly.
 	 */
@@ -114,7 +119,7 @@ struct window_parameters {
 
 class window
 {
-	// TODO: not used in e.g. linux, move to window implementation?
+	// TODO: only needed on macos and windows, move to window implementation?
 	r4::rectangle<int> before_fullscreen_window_rect{0, 0, 0, 0};
 
 public:
@@ -131,13 +136,6 @@ public:
 	virtual ~window() = default;
 
 	void render();
-
-	// TODO: closing the  window should be done by destroying the window
-
-	// TODO: move to ruis::native_window
-	// TODO: add set_maximized(bool) & is_maximized()
-	// TODO: add set_minimized(bool) & is_minimized()
-	// TODO: add set_hidden(bool) & is_hidden()
 };
 
 } // namespace ruisapp

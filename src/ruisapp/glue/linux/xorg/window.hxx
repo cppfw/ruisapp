@@ -1,5 +1,6 @@
 #pragma once
 
+#include <X11/Xatom.h>
 #include <X11/Xutil.h>
 
 #ifdef RUISAPP_RENDER_OPENGL
@@ -364,6 +365,31 @@ class native_window : public ruis::render::native_window
 					this->window,
 					&a,
 					1
+				);
+			}
+
+			if (!window_params.taskbar) {
+				Atom wm_state = XInternAtom(
+					this->display.xorg_display.display, //
+					"_NET_WM_STATE",
+					False
+				);
+				Atom skip_taskbar = XInternAtom(
+					this->display.xorg_display.display, //
+					"_NET_WM_STATE_SKIP_TASKBAR",
+					False
+				);
+
+				static_assert(sizeof(skip_taskbar) >= 4, "Atom must be of at least 32-bit size");
+				XChangeProperty(
+					this->display.xorg_display.display, //
+					this->window,
+					wm_state,
+					XA_ATOM, // type of data
+					32, // data is a list of 32-bit values
+					PropModeReplace,
+					reinterpret_cast<unsigned char*>(&skip_taskbar), // data
+					1 // only one value in the data
 				);
 			}
 
