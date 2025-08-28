@@ -138,12 +138,6 @@ public:
 	// TODO: add set_maximized(bool) & is_maximized()
 	// TODO: add set_minimized(bool) & is_minimized()
 	// TODO: add set_hidden(bool) & is_hidden()
-
-	/**
-	 * @brief Handler of window close event.
-	 * Invoked when user tries to close the window, e.g. by clicking the window's close button.
-	 */
-	std::function<void(window&)> close_handler;
 };
 
 } // namespace ruisapp

@@ -532,8 +532,9 @@ int main(int argc, const char** argv)
 							event.xclient.message_type
 						);
 						if ("WM_PROTOCOLS"sv == name) {
-							if (w.close_handler) {
-								w.close_handler(w);
+							auto& nw = w.ruis_native_window.get();
+							if (nw.close_handler) {
+								nw.close_handler();
 							}
 						}
 						XFree(name);
