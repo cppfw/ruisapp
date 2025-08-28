@@ -40,27 +40,3 @@ void window::render()
 		this->gui.context.get().window().swap_frame_buffers();
 	});
 }
-
-void window::update_window_rect(const ruis::rect& rect)
-{
-	if (this->cur_window_rect == rect) {
-		return;
-	}
-
-	this->gui.context.get().ren().ctx().apply([&]() {
-		this->cur_window_rect = rect;
-
-		utki::log_debug([&](auto& o) {
-			o << "application::update_window_rect(): this->cur_window_rect = " << this->cur_window_rect << std::endl;
-		});
-
-		this->gui.context.get().ren().ctx().set_viewport(r4::rectangle<uint32_t>(
-			uint32_t(this->cur_window_rect.p.x()),
-			uint32_t(this->cur_window_rect.p.y()),
-			uint32_t(this->cur_window_rect.d.x()),
-			uint32_t(this->cur_window_rect.d.y())
-		));
-
-		this->gui.set_viewport(this->cur_window_rect.d);
-	});
-}

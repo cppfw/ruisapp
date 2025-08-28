@@ -114,13 +114,6 @@ struct window_parameters {
 
 class window
 {
-	// TODO: make it window rectangle and track viewport separately,
-	//       use top-left coordinate system
-
-	// this is a viewport rectangle in coordinates that are as follows: x grows
-	// right, y grows up.
-	ruis::rect cur_window_rect = {0, 0, 0, 0};
-
 	// TODO: not used in e.g. linux, move to window implementation?
 	r4::rectangle<int> before_fullscreen_window_rect{0, 0, 0, 0};
 
@@ -136,14 +129,6 @@ public:
 	window& operator=(window&&) = delete;
 
 	virtual ~window() = default;
-
-	const ruis::vector2& dims() const noexcept
-	{
-		return this->cur_window_rect.d;
-	}
-
-	// TODO: move to ruis::gui as this only conttrols GL viewport
-	void update_window_rect(const ruis::rect& rect);
 
 	void render();
 

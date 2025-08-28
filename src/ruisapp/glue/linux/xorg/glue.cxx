@@ -197,17 +197,21 @@ public:
 			std::move(ruis_native_window)
 		);
 
-		ruisapp_window.get().update_window_rect(ruis::rect(
-			0, //
-			0,
-			ruis::real(window_params.dims.x()),
-			ruis::real(window_params.dims.y())
-		));
+		ruisapp_window.get().gui.set_viewport( //
+			ruis::rect(
+				0, //
+				0,
+				ruis::real(window_params.dims.x()),
+				ruis::real(window_params.dims.y())
+			)
+		);
 
-		auto res = this->windows.insert(std::make_pair(
-			ruisapp_window.get().ruis_native_window.get().get_id(), //
-			std::move(ruisapp_window)
-		));
+		auto res = this->windows.insert( //
+			std::make_pair(
+				ruisapp_window.get().ruis_native_window.get().get_id(), //
+				std::move(ruisapp_window)
+			)
+		);
 		utki::assert(res.second, SL);
 
 		return res.first->second.get();
@@ -242,7 +246,7 @@ public:
 		for (auto& win : this->windows) {
 			auto& w = win.second.get();
 			if (w.new_win_dims.is_positive_or_zero()) {
-				w.update_window_rect(ruis::rect(0, w.new_win_dims));
+				w.gui.set_viewport(ruis::rect(0, w.new_win_dims));
 			}
 			w.new_win_dims = {-1, -1};
 		}
