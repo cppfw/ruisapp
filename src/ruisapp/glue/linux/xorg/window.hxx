@@ -682,7 +682,10 @@ class native_window : public ruis::render::native_window
 					context_attrs.data()
 				);
 				if (egl_context == EGL_NO_CONTEXT) {
-					throw std::runtime_error("eglCreateContext() failed");
+					throw std::runtime_error(utki::cat(
+						"eglCreateContext() failed, error: ", //
+						egl_error_to_string(eglGetError())
+					));
 				}
 				return egl_context;
 			}())
