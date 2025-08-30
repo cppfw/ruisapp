@@ -163,9 +163,13 @@ public:
 			&this->shared_gl_context_native_window.get()
 		);
 
-		auto ruis_context = utki::make_shared<ruis::context>(
-			this->ruis_style_provider,
-			utki::make_shared<ruis::render::renderer>(
+		auto ruis_context = utki::make_shared<ruis::context>(ruis::context::parameters{
+			.post_to_ui_thread_function =
+				[this](std::function<void()> proc) {
+					this->ui_queue.push_back(std::move(proc));
+				},
+			.updater = this->updater,
+			.renderer = utki::make_shared<ruis::render::renderer>(
 #ifdef RUISAPP_RENDER_OPENGL
 				utki::make_shared<ruis::render::opengl::context>(ruis_native_window),
 #elif defined(RUISAPP_RENDER_OPENGLES)
@@ -176,21 +180,15 @@ public:
 				this->common_shaders,
 				this->common_render_objects
 			),
-			this->updater,
-			ruis::context::parameters{
-				.post_to_ui_thread_function =
-					[this](std::function<void()> proc) {
-						this->ui_queue.push_back(std::move(proc));
-					},
-				.units =
-					[this]() {
-						return ruis::units(
-							this->display.get().get_dots_per_inch(), //
-							this->display.get().get_dots_per_pp()
-						);
-					}()
-			}
-		);
+			.style_provider = this->ruis_style_provider,
+			.units =
+				[this]() {
+					return ruis::units(
+						this->display.get().get_dots_per_inch(), //
+						this->display.get().get_dots_per_pp()
+					);
+				}()
+		});
 
 		auto ruisapp_window = utki::make_shared<app_window>(
 			std::move(ruis_context), //
