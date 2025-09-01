@@ -25,17 +25,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include <nitki/queue.hpp>
 #include <opros/wait_set.hpp>
-#include <papki/fs_file.hpp>
-#include <utki/string.hpp>
 #include <utki/unicode.hpp>
 
 #ifdef RUISAPP_RENDER_OPENGL
-#	include <GL/glew.h>
 #	include <ruis/render/opengl/context.hpp>
 
 #elif defined(RUISAPP_RENDER_OPENGLES)
-#	include <GLES2/gl2.h>
-
 #	include <ruis/render/opengles/context.hpp>
 
 #else
@@ -47,7 +42,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "cursor.hxx"
 #include "display.hxx"
-#include "keycode_map.hxx"
+#include "key_code_map.hxx"
 #include "window.hxx"
 
 using namespace std::string_literals;

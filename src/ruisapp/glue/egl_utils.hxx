@@ -21,9 +21,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
+#include <stdexcept>
 #include <string_view>
 
 #include <EGL/egl.h>
+#include <utki/string.hpp>
+
+#include "../window.hpp"
 
 namespace {
 std::string_view egl_error_to_string(EGLint err)
@@ -64,4 +68,245 @@ std::string_view egl_error_to_string(EGLint err)
 			return "Unknown EGL error"sv;
 	}
 }
+} // namespace
+
+namespace {
+struct egl_display_wrapper {
+	const EGLDisplay display;
+
+	egl_display_wrapper(EGLNativeDisplayType display_id = EGL_DEFAULT_DISPLAY) :
+		display([&]() {
+			auto d = eglGetDisplay(display_id);
+			if (d == EGL_NO_DISPLAY) {
+				throw std::runtime_error(utki::cat(
+					"eglGetDisplay(): failed, error: ", //
+					egl_error_to_string(eglGetError())
+				));
+			}
+			return d;
+		}())
+	{
+		try {
+			if (eglInitialize(
+					this->display, //
+					nullptr,
+					nullptr
+				) == EGL_FALSE)
+			{
+				throw std::runtime_error("eglInitialize() failed");
+			}
+
+			if (eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE) {
+				throw std::runtime_error("eglBindApi() failed");
+			}
+		} catch (...) {
+			eglTerminate(this->display);
+			throw;
+		}
+	}
+
+	~egl_display_wrapper()
+	{
+		eglTerminate(this->display);
+	}
+};
+} // namespace
+
+namespace {
+struct egl_config_wrapper {
+	EGLConfig config;
+
+	egl_config_wrapper(
+		egl_display_wrapper& egl_display,
+		const utki::version_duplet& gl_version,
+		const ruisapp::window_parameters& window_params
+	) :
+		config([&]() {
+			EGLConfig egl_config = nullptr;
+
+			// Here specify the attributes of the desired configuration.
+			// Below, we select an EGLConfig with at least 8 bits per color
+			// component compatible with on-screen windows.
+			const std::array<EGLint, 15> attribs = {
+				EGL_SURFACE_TYPE,
+				EGL_WINDOW_BIT,
+				EGL_RENDERABLE_TYPE,
+				// We cannot set bits for all OpenGL ES versions because on platforms which do not
+				// support later versions the matching config will not be found by eglChooseConfig().
+				// So, set bits according to requested OpenGL ES version.
+				[&ver = gl_version]() {
+					EGLint ret = EGL_OPENGL_ES2_BIT; // OpenGL ES 2 is the minimum
+					if (ver.major >= 3) {
+						ret |= EGL_OPENGL_ES3_BIT;
+					}
+					return ret;
+				}(),
+				EGL_BLUE_SIZE,
+				8,
+				EGL_GREEN_SIZE,
+				8,
+				EGL_RED_SIZE,
+				8,
+				EGL_DEPTH_SIZE,
+				window_params.buffers.get(ruisapp::buffer::depth) ? int(utki::byte_bits * sizeof(uint16_t)) : 0,
+				EGL_STENCIL_SIZE,
+				window_params.buffers.get(ruisapp::buffer::stencil) ? utki::byte_bits : 0,
+				EGL_NONE
+			};
+
+			// Here, the application chooses the configuration it desires. In this
+			// sample, we have a very simplified selection process, where we pick
+			// the first EGLConfig that matches our criteria.
+			EGLint num_configs = 0;
+			eglChooseConfig(
+				egl_display.display, //
+				attribs.data(),
+				&egl_config,
+				1,
+				&num_configs
+			);
+			if (num_configs <= 0) {
+				throw std::runtime_error("eglChooseConfig() failed, no matching config found");
+			}
+
+			utki::assert(egl_config, SL);
+
+			return egl_config;
+		}())
+	{}
+
+	egl_config_wrapper(const egl_config_wrapper&) = delete;
+	egl_config_wrapper& operator=(const egl_config_wrapper&) = delete;
+
+	egl_config_wrapper(egl_config_wrapper&&) = delete;
+	egl_config_wrapper& operator=(egl_config_wrapper&&) = delete;
+
+	// no need to free the egl config
+	~egl_config_wrapper() = default;
+};
+} // namespace
+
+namespace {
+struct egl_surface_wrapper {
+	egl_display_wrapper& egl_display;
+
+	const EGLSurface surface;
+
+	egl_surface_wrapper(
+		egl_display_wrapper& egl_display, //
+		const egl_config_wrapper& egl_config,
+		EGLNativeWindowType window
+	) :
+		egl_display(egl_display),
+		surface([&]() {
+			auto s = eglCreateWindowSurface(
+				this->egl_display.display, //
+				egl_config.config,
+				window,
+				nullptr
+			);
+			if (s == EGL_NO_SURFACE) {
+				throw std::runtime_error(utki::cat(
+					"eglCreateWindowSurface() failed, error: ", //
+					egl_error_to_string(eglGetError())
+				));
+			}
+			return s;
+		}())
+	{}
+
+	egl_surface_wrapper(const egl_surface_wrapper&) = delete;
+	egl_surface_wrapper& operator=(const egl_surface_wrapper&) = delete;
+
+	egl_surface_wrapper(egl_surface_wrapper&&) = delete;
+	egl_surface_wrapper& operator=(egl_surface_wrapper&&) = delete;
+
+	~egl_surface_wrapper()
+	{
+		eglDestroySurface(
+			this->egl_display.display, //
+			this->surface
+		);
+	}
+};
+} // namespace
+
+namespace {
+struct egl_context_wrapper {
+	egl_display_wrapper& egl_display;
+
+	const EGLContext context;
+
+	egl_context_wrapper(
+		egl_display_wrapper& egl_display, //
+		const utki::version_duplet& gl_version,
+		const egl_config_wrapper& egl_config,
+		EGLContext shared_context = EGL_NO_CONTEXT
+	) :
+		egl_display(egl_display),
+		context([&]() {
+			auto graphics_api_version = [&ver = gl_version]() {
+				if (ver.to_uint32_t() == 0) {
+					// default OpenGL ES version is 2.0
+					return utki::version_duplet{
+						.major = 2, //
+						.minor = 0
+					};
+				}
+
+				if (ver.major < 2) {
+					throw std::invalid_argument(
+						utki::cat("minimal supported OpenGL ES version is 2.0, requested: ", ver)
+					);
+				}
+				return ver;
+			}();
+
+			constexpr auto attrs_array_size = 5;
+			std::array<EGLint, attrs_array_size> context_attrs = {
+				EGL_CONTEXT_MAJOR_VERSION,
+				graphics_api_version.major,
+				EGL_CONTEXT_MINOR_VERSION,
+				graphics_api_version.minor,
+				EGL_NONE
+			};
+
+			auto egl_context = eglCreateContext(
+				this->egl_display.display, //
+				egl_config.config,
+				shared_context,
+				context_attrs.data()
+			);
+			if (egl_context == EGL_NO_CONTEXT) {
+				throw std::runtime_error(utki::cat(
+					"eglCreateContext() failed, error: ", //
+					egl_error_to_string(eglGetError())
+				));
+			}
+			return egl_context;
+		}())
+	{}
+
+	egl_context_wrapper(const egl_context_wrapper&) = delete;
+	egl_context_wrapper& operator=(const egl_context_wrapper&) = delete;
+
+	egl_context_wrapper(egl_context_wrapper&&) = delete;
+	egl_context_wrapper& operator=(egl_context_wrapper&&) = delete;
+
+	~egl_context_wrapper()
+	{
+		if (eglGetCurrentContext() == this->context) {
+			eglMakeCurrent(
+				this->egl_display.display, //
+				EGL_NO_SURFACE,
+				EGL_NO_SURFACE,
+				EGL_NO_CONTEXT
+			);
+		}
+		eglDestroyContext(
+			this->egl_display.display, //
+			this->context
+		);
+	}
+};
 } // namespace

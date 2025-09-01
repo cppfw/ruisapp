@@ -35,6 +35,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #	error "Unknown graphics API"
 #endif
 
+#include "display.hxx"
+
 namespace {
 
 class native_window : public ruis::render::native_window
@@ -161,83 +163,17 @@ class native_window : public ruis::render::native_window
 		~fb_config_wrapper() = default;
 	} fb_config;
 #elif defined(RUISAPP_RENDER_OPENGLES)
-	struct fb_config_wrapper {
-		EGLConfig config;
-
-		fb_config_wrapper(
-			display_wrapper& display,
-			const utki::version_duplet& gl_version,
-			const ruisapp::window_parameters& window_params
-		) :
-			config([&]() {
-				EGLConfig egl_config = nullptr;
-
-				// Here specify the attributes of the desired configuration.
-				// Below, we select an EGLConfig with at least 8 bits per color
-				// component compatible with on-screen windows.
-				const std::array<EGLint, 15> attribs = {
-					EGL_SURFACE_TYPE,
-					EGL_WINDOW_BIT,
-					EGL_RENDERABLE_TYPE,
-					// We cannot set bits for all OpenGL ES versions because on platforms which do not
-					// support later versions the matching config will not be found by eglChooseConfig().
-					// So, set bits according to requested OpenGL ES version.
-					[&ver = gl_version]() {
-						EGLint ret = EGL_OPENGL_ES2_BIT; // OpenGL ES 2 is the minimum
-						if (ver.major >= 3) {
-							ret |= EGL_OPENGL_ES3_BIT;
-						}
-						return ret;
-					}(),
-					EGL_BLUE_SIZE,
-					8,
-					EGL_GREEN_SIZE,
-					8,
-					EGL_RED_SIZE,
-					8,
-					EGL_DEPTH_SIZE,
-					window_params.buffers.get(ruisapp::buffer::depth) ? int(utki::byte_bits * sizeof(uint16_t)) : 0,
-					EGL_STENCIL_SIZE,
-					window_params.buffers.get(ruisapp::buffer::stencil) ? utki::byte_bits : 0,
-					EGL_NONE
-				};
-
-				// Here, the application chooses the configuration it desires. In this
-				// sample, we have a very simplified selection process, where we pick
-				// the first EGLConfig that matches our criteria.
-				EGLint num_configs = 0;
-				eglChooseConfig(
-					display.egl_display.display, //
-					attribs.data(),
-					&egl_config,
-					1,
-					&num_configs
-				);
-				if (num_configs <= 0) {
-					throw std::runtime_error("eglChooseConfig() failed, no matching config found");
-				}
-
-				utki::assert(egl_config, SL);
-
-				return egl_config;
-			}())
-		{}
-
-		fb_config_wrapper(const fb_config_wrapper&) = delete;
-		fb_config_wrapper& operator=(const fb_config_wrapper&) = delete;
-
-		fb_config_wrapper(fb_config_wrapper&&) = delete;
-		fb_config_wrapper& operator=(fb_config_wrapper&&) = delete;
-
-		// no need to free the egl config
-		~fb_config_wrapper() = default;
-	} fb_config;
+	using fb_config_wrapper = egl_config_wrapper;
+	fb_config_wrapper fb_config;
 #endif
 
 	struct xorg_visual_info_wrapper {
 		XVisualInfo* const visual_info;
 
-		xorg_visual_info_wrapper(display_wrapper& display, fb_config_wrapper& fb_config) :
+		xorg_visual_info_wrapper(
+			display_wrapper& display, //
+			fb_config_wrapper& fb_config
+		) :
 			visual_info([&]() {
 #ifdef RUISAPP_RENDER_OPENGL
 				auto visual_info = glXGetVisualFromFBConfig(
@@ -633,133 +569,8 @@ class native_window : public ruis::render::native_window
 	} glx_context;
 
 #elif defined(RUISAPP_RENDER_OPENGLES)
-	struct egl_surface_wrapper {
-		display_wrapper& display;
-
-		const EGLSurface surface;
-
-		egl_surface_wrapper(
-			display_wrapper& display, //
-			const fb_config_wrapper& fb_config,
-			const xorg_window_wrapper& xorg_window
-		) :
-			display(display),
-			surface([&]() {
-				auto s = eglCreateWindowSurface(
-					this->display.egl_display.display, //
-					fb_config.config,
-					xorg_window.window,
-					nullptr
-				);
-				if (s == EGL_NO_SURFACE) {
-					throw std::runtime_error(utki::cat(
-						"eglCreateWindowSurface() failed, error: ", //
-						egl_error_to_string(eglGetError())
-					));
-				}
-				return s;
-			}())
-		{}
-
-		egl_surface_wrapper(const egl_surface_wrapper&) = delete;
-		egl_surface_wrapper& operator=(const egl_surface_wrapper&) = delete;
-
-		egl_surface_wrapper(egl_surface_wrapper&&) = delete;
-		egl_surface_wrapper& operator=(egl_surface_wrapper&&) = delete;
-
-		~egl_surface_wrapper()
-		{
-			eglDestroySurface(
-				this->display.egl_display.display, //
-				this->surface
-			);
-		}
-	} egl_surface;
-
-	struct egl_context_wrapper {
-		display_wrapper& display;
-
-		const EGLContext context;
-
-		egl_context_wrapper(
-			display_wrapper& display, //
-			const utki::version_duplet& gl_version,
-			const fb_config_wrapper& fb_config,
-			native_window* shared_gl_context_native_window
-		) :
-			display(display),
-			context([&]() {
-				auto graphics_api_version = [&ver = gl_version]() {
-					if (ver.to_uint32_t() == 0) {
-						// default OpenGL ES version is 2.0
-						return utki::version_duplet{
-							.major = 2, //
-							.minor = 0
-						};
-					}
-
-					if (ver.major < 2) {
-						throw std::invalid_argument(
-							utki::cat("minimal supported OpenGL ES version is 2.0, requested: ", ver)
-						);
-					}
-					return ver;
-				}();
-
-				constexpr auto attrs_array_size = 5;
-				std::array<EGLint, attrs_array_size> context_attrs = {
-					EGL_CONTEXT_MAJOR_VERSION,
-					graphics_api_version.major,
-					EGL_CONTEXT_MINOR_VERSION,
-					graphics_api_version.minor,
-					EGL_NONE
-				};
-
-				EGLContext shared_gl_context = [&]() {
-					if (shared_gl_context_native_window) {
-						return shared_gl_context_native_window->egl_context.context;
-					}
-					return EGL_NO_CONTEXT;
-				}();
-
-				auto egl_context = eglCreateContext(
-					this->display.egl_display.display, //
-					fb_config.config,
-					shared_gl_context,
-					context_attrs.data()
-				);
-				if (egl_context == EGL_NO_CONTEXT) {
-					throw std::runtime_error(utki::cat(
-						"eglCreateContext() failed, error: ", //
-						egl_error_to_string(eglGetError())
-					));
-				}
-				return egl_context;
-			}())
-		{}
-
-		egl_context_wrapper(const egl_context_wrapper&) = delete;
-		egl_context_wrapper& operator=(const egl_context_wrapper&) = delete;
-
-		egl_context_wrapper(egl_context_wrapper&&) = delete;
-		egl_context_wrapper& operator=(egl_context_wrapper&&) = delete;
-
-		~egl_context_wrapper()
-		{
-			if (eglGetCurrentContext() == this->context) {
-				eglMakeCurrent(
-					this->display.egl_display.display, //
-					EGL_NO_SURFACE,
-					EGL_NO_SURFACE,
-					EGL_NO_CONTEXT
-				);
-			}
-			eglDestroyContext(
-				this->display.egl_display.display, //
-				this->context
-			);
-		}
-	} egl_context;
+	egl_surface_wrapper egl_surface;
+	egl_context_wrapper egl_context;
 #endif
 
 	struct xorg_input_context_wrapper {
@@ -809,7 +620,11 @@ public:
 	) :
 		display(std::move(display)),
 		fb_config(
-			this->display, //
+#ifdef RUISAPP_RENDER_OPENGL
+			this->display,
+#elif defined(RUISAPP_RENDER_OPENGLES)
+			this->display.get().egl_display,
+#endif
 			gl_version,
 			window_params
 		),
@@ -837,15 +652,15 @@ public:
 		),
 #elif defined(RUISAPP_RENDER_OPENGLES)
 		egl_surface(
-			this->display, //
+			this->display.get().egl_display, //
 			this->fb_config,
-			this->xorg_window
+			this->xorg_window.window
 		),
 		egl_context(
-			this->display, //
+			this->display.get().egl_display, //
 			gl_version,
 			this->fb_config,
-			shared_gl_context_native_window
+			shared_gl_context_native_window ? shared_gl_context_native_window->egl_context.context : EGL_NO_CONTEXT
 		),
 #endif
 		xorg_input_context(

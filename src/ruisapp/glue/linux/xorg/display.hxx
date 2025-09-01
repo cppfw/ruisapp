@@ -27,7 +27,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #	include <GL/glx.h>
 
 #elif defined(RUISAPP_RENDER_OPENGLES)
-#	include <EGL/egl.h>
+#	include "../../egl_utils.hxx"
 #endif
 
 #include "cursor.hxx"
@@ -64,42 +64,7 @@ public:
 	} xorg_input_method;
 
 #if defined(RUISAPP_RENDER_OPENGLES)
-	struct egl_display_wrapper {
-		const EGLDisplay display;
-
-		egl_display_wrapper() :
-			display([]() {
-				auto d = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-				if (d == EGL_NO_DISPLAY) {
-					throw std::runtime_error("eglGetDisplay(): failed, no matching display connection found");
-				}
-				return d;
-			}())
-		{
-			try {
-				if (eglInitialize(
-						this->display, //
-						nullptr,
-						nullptr
-					) == EGL_FALSE)
-				{
-					throw std::runtime_error("eglInitialize() failed");
-				}
-
-				if (eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE) {
-					throw std::runtime_error("eglBindApi() failed");
-				}
-			} catch (...) {
-				eglTerminate(this->display);
-				throw;
-			}
-		}
-
-		~egl_display_wrapper()
-		{
-			eglTerminate(this->display);
-		}
-	} egl_display;
+	egl_display_wrapper egl_display;
 #endif
 
 	const ruis::real scale_factor;
