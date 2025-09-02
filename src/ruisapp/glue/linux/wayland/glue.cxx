@@ -61,87 +61,6 @@ using namespace std::string_view_literals;
 
 using namespace ruisapp;
 
-namespace {
-// TODO: why is this needed?
-// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-// bool application_constructed = false;
-} // namespace
-
-// application::application(std::string name, const window_parameters& wp) :
-// 	name(std::move(name)),
-// 	window_pimpl(std::make_unique<window_wrapper>(wp)),
-// 	gui(utki::make_shared<ruis::context>(
-// 		utki::make_shared<ruis::style_provider>( //
-// 			utki::make_shared<ruis::resource_loader>( //
-// 				utki::make_shared<ruis::render::renderer>(
-// #ifdef RUISAPP_RENDER_OPENGL
-// 					utki::make_shared<ruis::render::opengl::context>()
-// #elif defined(RUISAPP_RENDER_OPENGLES)
-// 					utki::make_shared<ruis::render::opengles::context>()
-// #else
-// #	error "Unknown graphics API"
-// #endif
-// 				)
-// 			)
-// 		),
-// 		utki::make_shared<ruis::updater>(),
-// 		ruis::context::parameters{
-// 			.post_to_ui_thread_function =
-// 				[this](std::function<void()> proc) {
-// 					get_impl(*this).ui_queue.push_back(std::move(proc));
-// 				},
-// 			.set_mouse_cursor_function =
-// 				[this](ruis::mouse_cursor c) {
-// 					auto& ww = get_impl(*this);
-// 					ww.seat.pointer.set_cursor(c);
-// 				}
-// 		}
-// 	)),
-// 	directory(get_application_directories(this->name))
-// {
-// 	this->update_window_rect(ruis::rect(
-// 		0, //
-// 		0,
-// 		ruis::real(wp.dims.x()),
-// 		ruis::real(wp.dims.y())
-// 	));
-
-// 	application_constructed = true;
-// }
-
-// TODO:
-// void application::set_mouse_cursor_visible(bool visible)
-// {
-// 	auto& ww = get_impl(this->window_pimpl);
-// 	ww.seat.pointer.set_cursor_visible(visible);
-// }
-
-// TODO:
-// void application::set_fullscreen(bool fullscreen)
-// {
-// 	if (fullscreen == this->is_fullscreen_v) {
-// 		return;
-// 	}
-
-// 	this->is_fullscreen_v = fullscreen;
-
-// 	auto& ww = get_impl(this->window_pimpl);
-
-// 	utki::log_debug([&](auto& o) {
-// 		o << "set_fullscreen(" << fullscreen << ")" << std::endl;
-// 	});
-
-// 	if (fullscreen) {
-// 		ww.pre_fullscreen_win_dims = ww.cur_window_dims;
-// 		utki::log_debug([&](auto& o) {
-// 			o << " old win dims = " << std::dec << ww.pre_fullscreen_win_dims << std::endl;
-// 		});
-// 		xdg_toplevel_set_fullscreen(ww.toplevel.toplev, nullptr);
-// 	} else {
-// 		xdg_toplevel_unset_fullscreen(ww.toplevel.toplev);
-// 	}
-// }
-
 // NOLINTNEXTLINE(bugprone-exception-escape, "it's what we want")
 int main(int argc, const char** argv)
 {
@@ -233,6 +152,7 @@ int main(int argc, const char** argv)
 
 			auto triggered_events = wait_set.get_triggered();
 
+			// TODO: wayland queue is constantly ready to read. figure out why.
 			std::cout << "num triggered = " << triggered_events.size() << std::endl;
 
 			// we want to first handle messages of ui queue,

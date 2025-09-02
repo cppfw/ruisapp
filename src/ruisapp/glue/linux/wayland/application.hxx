@@ -14,9 +14,6 @@
 namespace {
 class app_window : public ruisapp::window
 {
-	// keep track of current window dimensions
-	r4::vector2<uint32_t> cur_window_dims;
-
 	bool outputs_changed_message_pending = false;
 
 public:
@@ -43,6 +40,8 @@ public:
 	}
 
 	void resize(const r4::vector2<uint32_t>& dims);
+
+	void refresh_dimensions();
 
 	void notify_outputs_changed();
 };
@@ -90,7 +89,8 @@ private:
 		windows;
 
 public:
-	native_window::window_id_type get_shared_gl_context_window_id()const noexcept{
+	native_window::window_id_type get_shared_gl_context_window_id() const noexcept
+	{
 		return this->shared_gl_context_native_window.get().get_id();
 	}
 

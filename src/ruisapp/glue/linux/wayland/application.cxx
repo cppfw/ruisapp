@@ -14,8 +14,6 @@
 
 void app_window::resize(const r4::vector2<uint32_t>& dims)
 {
-	this->cur_window_dims = dims;
-
 	utki::log_debug([&](auto& o) {
 		o << "resize window to " << std::dec << dims << std::endl;
 	});
@@ -29,6 +27,11 @@ void app_window::resize(const r4::vector2<uint32_t>& dims)
 	// units.set_dots_per_inch(ruis::real(sd.dpi));
 
 	this->gui.set_viewport(ruis::rect(0, dims.to<ruis::real>()));
+}
+
+void app_window::refresh_dimensions()
+{
+	this->resize(this->ruis_native_window.get().cur_window_dims);
 }
 
 void app_window::notify_outputs_changed()
@@ -45,7 +48,7 @@ void app_window::notify_outputs_changed()
 		this->outputs_changed_message_pending = false;
 
 		// this call will update ruis::context::units values
-		this->resize(this->cur_window_dims);
+		this->refresh_dimensions();
 
 		// reload widgets hierarchy due to possible update of ruis::context::units values
 		this->gui.get_root().reload();

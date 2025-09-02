@@ -2,6 +2,8 @@
 
 void native_window::resize(const r4::vector2<uint32_t>& dims)
 {
+	this->cur_window_dims = dims;
+
 	auto sd = this->wayland_surface.find_scale_and_dpi(this->display.get().wayland_registry.outputs);
 
 	auto d = dims * sd.scale;

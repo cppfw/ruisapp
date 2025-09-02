@@ -2,35 +2,6 @@
 
 #include "application.hxx"
 
-void wayland_pointer_wrapper::wl_pointer_leave(
-	void* data, //
-	wl_pointer* pointer,
-	uint32_t serial,
-	wl_surface* surface
-)
-{
-	// std::cout << "mouse leave" << std::endl;
-
-	utki::assert(data, SL);
-	auto& self = *static_cast<wayland_pointer_wrapper*>(data);
-
-	utki::assert(self.cur_surface == surface, SL);
-
-	auto& glue = get_glue();
-
-	auto window = glue.get_window(surface);
-	if (!window) {
-		return;
-	}
-
-	window->gui.send_mouse_hover(
-		false, //
-		0
-	);
-
-	self.cur_surface = nullptr;
-}
-
 void wayland_pointer_wrapper::wl_pointer_enter(
 	void* data, //
 	wl_pointer* pointer,
@@ -72,6 +43,35 @@ void wayland_pointer_wrapper::wl_pointer_enter(
 		self.cur_pointer_pos, //
 		0
 	);
+}
+
+void wayland_pointer_wrapper::wl_pointer_leave(
+	void* data, //
+	wl_pointer* pointer,
+	uint32_t serial,
+	wl_surface* surface
+)
+{
+	// std::cout << "mouse leave" << std::endl;
+
+	utki::assert(data, SL);
+	auto& self = *static_cast<wayland_pointer_wrapper*>(data);
+
+	utki::assert(self.cur_surface == surface, SL);
+
+	auto& glue = get_glue();
+
+	auto window = glue.get_window(surface);
+	if (!window) {
+		return;
+	}
+
+	window->gui.send_mouse_hover(
+		false, //
+		0
+	);
+
+	self.cur_surface = nullptr;
 }
 
 void wayland_pointer_wrapper::wl_pointer_button(

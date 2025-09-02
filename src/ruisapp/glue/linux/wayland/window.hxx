@@ -28,6 +28,9 @@ class native_window : public ruis::render::native_window
 	ruis::real scale = 1;
 
 public:
+	// keep track of current window dimensions for restoring them after fullscreen mode
+	r4::vector2<uint32_t> cur_window_dims;
+
 	r4::vector2<uint32_t> pre_fullscreen_win_dims;
 
 	using window_id_type = const wl_surface*;
@@ -121,6 +124,36 @@ public:
 	bool is_rendering_context_bound() const noexcept
 	{
 		return eglGetCurrentContext() == this->egl_context.context;
+	}
+
+	void set_fullscreen_internal(bool enable) override
+	{
+		if (enable) {
+			this->pre_fullscreen_win_dims = this->cur_window_dims;
+			utki::log_debug([&](auto& o) {
+				o << " old win dims = " << std::dec << this->pre_fullscreen_win_dims << std::endl;
+			});
+			xdg_toplevel_set_fullscreen(
+				this->xdg_toplevel.toplevel, //
+				nullptr
+			);
+		} else {
+			xdg_toplevel_unset_fullscreen(this->xdg_toplevel.toplevel);
+		}
+	}
+
+	void set_mouse_cursor_visible(bool visible) override
+	{
+		// TODO:
+		// auto& ww = get_impl(this->window_pimpl);
+		// ww.seat.pointer.set_cursor_visible(visible);
+	}
+
+	void set_mouse_cursor(ruis::mouse_cursor cursor) override
+	{
+		// TODO:
+		// auto& ww = get_impl(*this);
+		// ww.seat.pointer.set_cursor(c);
 	}
 };
 } // namespace
