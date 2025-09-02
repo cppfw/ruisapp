@@ -95,7 +95,8 @@ private:
 
 	std::map<
 		native_window::window_id_type, //
-		utki::shared_ref<app_window>>
+		utki::shared_ref<app_window> //
+		>
 		windows;
 
 public:

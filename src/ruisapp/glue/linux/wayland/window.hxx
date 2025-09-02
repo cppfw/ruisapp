@@ -1,7 +1,6 @@
 #pragma once
 
 #include <ruis/render/native_window.hpp>
-#include <ruisapp/window.hpp>
 #include <wayland-egl.h> // Wayland EGL MUST be included before EGL headers
 
 #include "../../egl_utils.hxx"
@@ -26,17 +25,14 @@ class native_window : public ruis::render::native_window
 	egl_surface_wrapper egl_surface;
 	egl_context_wrapper egl_context;
 
-	// keep track of current window dimensions
-	r4::vector2<uint32_t> cur_window_dims;
-
 	bool fullscreen = false;
 	r4::vector2<uint32_t> pre_fullscreen_win_dims;
 
 	ruis::real scale = 1;
 
-	bool outputs_changed_message_pending = false;
-
 public:
+	using window_id_type = const wl_surface*;
+
 	native_window(
 		utki::shared_ref<display_wrapper> display,
 		const utki::version_duplet& gl_version,
@@ -96,73 +92,16 @@ public:
 		);
 	}
 
-	void resize(r4::vector2<uint32_t> dims)
+	void resize(const r4::vector2<uint32_t>& dims);
+
+	ruis::real get_scale() const noexcept
 	{
-		this->cur_window_dims = dims;
-
-		utki::log_debug([&](auto& o) {
-			o << "resize window to " << std::dec << dims << std::endl;
-		});
-
-		auto sd = this->wayland_surface.find_scale_and_dpi(this->display.get().wayland_registry.outputs);
-
-		dims *= sd.scale;
-
-		wl_egl_window_resize(
-			this->wayland_egl_window.window, //
-			int(dims.x()),
-			int(dims.y()),
-			0,
-			0
-		);
-
-		wayland_region_wrapper region(this->display.get().wayland_compositor);
-		region.add(r4::rectangle(
-			{0, 0}, //
-			dims.to<int32_t>()
-		));
-
-		this->wayland_surface.set_opaque_region(region);
-
-		this->wayland_surface.set_buffer_scale(sd.scale);
-
-		this->wayland_surface.commit();
-
-		utki::log_debug([&](auto& o) {
-			o << "final window scale = " << sd.scale << std::endl;
-		});
-
-		this->scale = ruis::real(sd.scale);
-
-		auto& app = ruisapp::inst();
-
-		// update ruis::context::units
-		auto& units = app.gui.context.get().units;
-		units.set_dots_per_pp(this->scale);
-		units.set_dots_per_inch(ruis::real(sd.dpi));
-
-		update_window_rect(app, ruis::rect(0, dims.to<ruis::real>()));
+		return this->scale;
 	}
 
-	void notify_outputs_changed()
+	window_id_type get_id() const noexcept
 	{
-		if (this->outputs_changed_message_pending) {
-			return;
-		}
-
-		this->outputs_changed_message_pending = true;
-
-		this->ui_queue.push_back([this]() {
-			this->outputs_changed_message_pending = false;
-
-			// this call will update ruis::context::units values
-			this->resize(this->cur_window_dims);
-
-			// reload widgets herarchy due to possible update of ruis::context::units values
-			auto& app = ruisapp::application::inst();
-			auto& root_widget = app.gui.get_root();
-			root_widget.reload();
-		});
+		return this->wayland_surface.surface;
 	}
 };
 } // namespace

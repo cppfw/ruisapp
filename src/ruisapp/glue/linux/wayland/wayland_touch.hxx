@@ -17,6 +17,7 @@ class wayland_touch_wrapper
 	struct touch_point {
 		unsigned ruis_id;
 		ruis::vec2 pos;
+		wl_surface* surface;
 	};
 
 	std::map<int32_t, touch_point> touch_points;
@@ -72,7 +73,6 @@ class wayland_touch_wrapper
 		});
 	}
 
-	// TODO: move impementation here?
 	static void wl_touch_cancel(
 		void* data, //
 		wl_touch* touch

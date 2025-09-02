@@ -48,7 +48,6 @@ class wayland_output_wrapper
 		});
 	}
 
-	// TODO: move implementation here?
 	static void wl_output_scale(
 		void* data, //
 		struct wl_output* wl_output,

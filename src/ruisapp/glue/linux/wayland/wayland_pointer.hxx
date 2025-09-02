@@ -12,6 +12,7 @@ struct wayland_pointer_wrapper {
 
 	wayland_surface_wrapper cursor_wayland_surface;
 
+	// TODO: move to window?
 	ruis::vector2 cur_pointer_pos{0, 0};
 
 	void connect(wl_seat* seat)
@@ -30,7 +31,12 @@ struct wayland_pointer_wrapper {
 			throw std::runtime_error("could not get wayland pointer interface");
 		}
 
-		if (wl_pointer_add_listener(this->pointer, &listener, this) != 0) {
+		if (wl_pointer_add_listener(
+				this->pointer, //
+				&listener,
+				this
+			) != 0)
+		{
 			this->release();
 			this->num_connected = 0;
 			throw std::runtime_error("could not add listener to wayland pointer interface");
@@ -164,31 +170,15 @@ private:
 		wl_surface* surface,
 		wl_fixed_t x,
 		wl_fixed_t y
-	)
-	{
-		// std::cout << "mouse enter: x,y = " << std::dec << x << ", " << y << std::endl;
-		auto& self = *static_cast<wayland_pointer_wrapper*>(data);
-		self.last_enter_serial = serial;
+	);
 
-		self.set_cursor();
+	static void wl_pointer_leave(
+		void* data, //
+		wl_pointer* pointer,
+		uint32_t serial,
+		wl_surface* surface
+	);
 
-		handle_mouse_hover(
-			ruisapp::inst(), //
-			true,
-			0
-		);
-		self.cur_pointer_pos = ruis::vector2(
-			wl_fixed_to_int(x), //
-			wl_fixed_to_int(y)
-		);
-		handle_mouse_move(
-			ruisapp::inst(), //
-			self.cur_pointer_pos,
-			0
-		);
-	}
-
-	// TODO: move implementation here?
 	static void wl_pointer_motion(
 		void* data, //
 		wl_pointer* pointer,
@@ -204,19 +194,7 @@ private:
 		uint32_t time,
 		uint32_t button,
 		uint32_t state
-	)
-	{
-		// std::cout << "mouse button: " << std::hex << "0x" << button << ", state = " << "0x" << state <<
-		// std::endl;
-		auto& self = *static_cast<wayland_pointer_wrapper*>(data);
-		handle_mouse_button(
-			ruisapp::inst(), //
-			state == WL_POINTER_BUTTON_STATE_PRESSED,
-			self.cur_pointer_pos,
-			button_number_to_enum(button),
-			0
-		);
-	}
+	);
 
 	static void wl_pointer_axis(
 		void* data, //
@@ -224,50 +202,11 @@ private:
 		uint32_t time,
 		uint32_t axis,
 		wl_fixed_t value
-	)
-	{
-		auto& self = *static_cast<wayland_pointer_wrapper*>(data);
-
-		// we get +-10 for each mouse wheel step
-		auto val = wl_fixed_to_int(value);
-
-		// std::cout << "mouse axis: " << std::dec << axis << ", val = " << val << std::endl;
-
-		for (unsigned i = 0; i != 2; ++i) {
-			handle_mouse_button(
-				ruisapp::inst(), //
-				i == 0, // pressed/released
-				self.cur_pointer_pos,
-				[axis, val]() {
-					if (axis == WL_POINTER_AXIS_VERTICAL_SCROLL) {
-						if (val >= 0) {
-							return ruis::mouse_button::wheel_down;
-						} else {
-							return ruis::mouse_button::wheel_up;
-						}
-					} else {
-						if (val >= 0) {
-							return ruis::mouse_button::wheel_right;
-						} else {
-							return ruis::mouse_button::wheel_left;
-						}
-					}
-				}(),
-				0 // pointer id
-			);
-		}
-	};
+	);
 
 	constexpr static const wl_pointer_listener listener = {
 		.enter = &wl_pointer_enter,
-		.leave =
-			[](void* data, //
-			   wl_pointer* pointer,
-			   uint32_t serial,
-			   wl_surface* surface) {
-				// std::cout << "mouse leave" << std::endl;
-				handle_mouse_hover(ruisapp::inst(), false, 0);
-			},
+		.leave = &wl_pointer_leave,
 		.motion = &wl_pointer_motion,
 		.button = &wl_pointer_button,
 		.axis = &wl_pointer_axis,
@@ -310,11 +249,14 @@ private:
 
 	wl_pointer* pointer = nullptr;
 
+	wl_surface* cur_surface = nullptr;
+
 	bool cursor_visible = true;
 
 	// NOLINTNEXTLINE(clang-analyzer-webkit.NoUncountedMemberChecker, "false-positive")
 	wl_cursor* current_cursor;
 
+	// TODO: how does it work with multiple windows? Move it to window?
 	uint32_t last_enter_serial = 0;
 
 	void apply_cursor(wl_cursor* cursor)

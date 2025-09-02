@@ -20,7 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 /* ================ LICENSE END ================ */
 
 #include <atomic>
-#include <optional>
+#include <map>
 
 #include <nitki/queue.hpp>
 #include <opros/wait_set.hpp>
@@ -45,65 +45,27 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../../../application.hpp"
 #include "../../unix_common.hxx"
 
-#include "display.hxx"
+#include "application.hxx"
+
+// include implementations
+#include "application.cxx"
+#include "wayland_keyboard.cxx"
+#include "wayland_output.cxx"
+#include "wayland_pointer.cxx"
+#include "wayland_surface.cxx"
+#include "wayland_touch.cxx"
+#include "window.cxx"
+#include "xdg_toplevel.cxx"
 
 using namespace std::string_view_literals;
 
 using namespace ruisapp;
 
 namespace {
-class os_platform_glue : public utki::destructable
-{
-public:
-	const utki::shared_ref<display_wrapper> display = utki::make_shared<display_wrapper>();
-
-	std::atomic_bool quit_flag = false;
-
-	nitki::queue ui_queue;
-
-	class wayland_waitable : public opros::waitable
-	{
-	public:
-		wayland_waitable(wayland_display_wrapper& wayland_display) :
-			opros::waitable([&]() {
-				auto fd = wl_display_get_fd(wayland_display.display);
-				utki::assert(fd != 0, SL);
-				return fd;
-			}())
-		{}
-	} waitable;
-
-private:
-	utki::version_duplet gl_version;
-
-public:
-	os_platform_glue(const utki::version_duplet& gl_version) :
-		waitable(this->display.get().wayland_display),
-		gl_version(gl_version)
-	{}
-};
-} // namespace
-
-namespace {
-os_platform_glue& get_glue(ruisapp::application& app)
-{
-	return static_cast<os_platform_glue&>(app.pimpl.get());
-}
-} // namespace
-
-namespace {
 // TODO: why is this needed?
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-bool application_constructed = false;
+// bool application_constructed = false;
 } // namespace
-
-application::application(parameters params) :
-	application(
-		utki::make_unique<os_platform_glue>(params.graphics_api_version), //
-		get_application_directories(params.name),
-		std::move(params)
-	)
-{}
 
 // application::application(std::string name, const window_parameters& wp) :
 // 	name(std::move(name)),
@@ -180,13 +142,6 @@ application::application(parameters params) :
 // 	}
 // }
 
-// TODO:
-// void ruisapp::application::quit() noexcept
-// {
-// 	auto& ww = get_impl(this->window_pimpl);
-// 	ww.quit_flag.store(true);
-// }
-
 // NOLINTNEXTLINE(bugprone-exception-escape, "it's what we want")
 int main(int argc, const char** argv)
 {
@@ -224,7 +179,7 @@ int main(int argc, const char** argv)
 		// - update updateables
 		// - render
 		// - wait for events and handle them/next cycle
-		auto to_wait_ms = app.gui.update();
+		auto to_wait_ms = glue.updater.get().update();
 		glue.render();
 
 		auto& disp = glue.display.get().wayland_display.display;
@@ -338,319 +293,4 @@ int main(int argc, const char** argv)
 	}
 
 	return 0;
-}
-
-void wayland_output_wrapper::wl_output_geometry(
-	void* data,
-	struct wl_output* wl_output,
-	int32_t x,
-	int32_t y,
-	int32_t physical_width,
-	int32_t physical_height,
-	int32_t subpixel,
-	const char* make,
-	const char* model,
-	int32_t transform
-)
-{
-	ASSERT(data)
-	auto& self = *static_cast<wayland_output_wrapper*>(data);
-
-	self.position = {uint32_t(x), uint32_t(y)};
-	self.physical_size_mm = {uint32_t(physical_width), uint32_t(physical_height)};
-
-	utki::log_debug([&](auto& o) {
-		o << "output(" << self.id << ")" << '\n' //
-		  << "  physical_size_mm = " << self.physical_size_mm << '\n' //
-		  << "  make = " << make << '\n' //
-		  << "  model = " << model << std::endl;
-	});
-
-	if (!application_constructed) {
-		// unable to obtain window_wrapper object before application is constructed,
-		// cannot do more without window_wrapper object
-		utki::log_debug([](auto& o) {
-			o << "  called within application constructor" << std::endl;
-		});
-		return;
-	}
-
-	auto& ww = get_impl(ruisapp::application::inst());
-	ww.notify_outputs_changed();
-}
-
-void wayland_output_wrapper::wl_output_mode(
-	void* data,
-	struct wl_output* wl_output,
-	uint32_t flags,
-	int32_t width,
-	int32_t height,
-	int32_t refresh
-)
-{
-	ASSERT(data)
-	auto& self = *static_cast<output_wrapper*>(data);
-
-	self.resolution = {uint32_t(width), uint32_t(height)};
-
-	utki::log_debug([&](auto& o) {
-		o << "output(" << self.id << ") resolution = " << self.resolution << std::endl;
-	});
-
-	if (!application_constructed) {
-		// unable to obtain window_wrapper object before application is constructed,
-		// cannot do more without window_wrapper object
-		utki::log_debug([](auto& o) {
-			o << "  called within application constructor" << std::endl;
-		});
-		return;
-	}
-
-	auto& ww = get_impl(ruisapp::application::inst());
-	ww.notify_outputs_changed();
-}
-
-void wayland_output_wrapper::wl_output_scale(void* data, struct wl_output* wl_output, int32_t factor)
-{
-	ASSERT(data)
-	auto& self = *static_cast<output_wrapper*>(data);
-
-	self.scale = uint32_t(std::max(factor, 1));
-
-	utki::log_debug([&](auto& o) {
-		o << "output(" << self.id << ") scale = " << self.scale << std::endl;
-	});
-
-	if (!application_constructed) {
-		// unable to obtain window_wrapper object before application is constructed,
-		// cannot do more without window_wrapper object
-		utki::log_debug([](auto& o) {
-			o << "  called within application constructor" << std::endl;
-		});
-		return;
-	}
-
-	auto& ww = get_impl(ruisapp::application::inst());
-	ww.notify_outputs_changed();
-}
-
-void wayland_surface_wrapper::wl_surface_enter(void* data, wl_surface* surface, wl_output* output)
-{
-	utki::log_debug([&](auto& o) {
-		o << "surface enters output(" << get_output_id(output) << ")" << std::endl;
-	});
-
-	ASSERT(data)
-	auto& self = *static_cast<surface_wrapper*>(data);
-
-	ASSERT(self.outputs.find(output) == self.outputs.end())
-
-	self.outputs.insert(output);
-
-	auto& ww = get_impl(ruisapp::application::inst());
-	ww.notify_outputs_changed();
-}
-
-void wayland_surface_wrapper::wl_surface_leave(void* data, wl_surface* surface, wl_output* output)
-{
-	utki::log_debug([&](auto& o) {
-		o << "surface leaves output(" << get_output_id(output) << ")" << std::endl;
-	});
-
-	ASSERT(data)
-	auto& self = *static_cast<surface_wrapper*>(data);
-
-	ASSERT(self.outputs.find(output) != self.outputs.end())
-
-	self.outputs.erase(output);
-
-	auto& ww = get_impl(ruisapp::application::inst());
-	ww.notify_outputs_changed();
-}
-
-void wayland_pointer_wrapper::wl_pointer_motion(
-	void* data,
-	wl_pointer* pointer,
-	uint32_t time,
-	wl_fixed_t x,
-	wl_fixed_t y
-)
-{
-	ASSERT(data)
-	auto& self = *static_cast<pointer_wrapper*>(data);
-
-	auto& ww = get_impl(ruisapp::application::inst());
-
-	ruis::vector2 pos( //
-		ruis::real(wl_fixed_to_double(x)),
-		ruis::real(wl_fixed_to_double(y))
-	);
-	pos *= ww.scale;
-	self.cur_pointer_pos = round(pos);
-
-	// std::cout << "mouse move: x,y = " << std::dec << self.cur_pointer_pos << std::endl;
-	handle_mouse_move( //
-		ruisapp::application::inst(),
-		self.cur_pointer_pos,
-		0
-	);
-}
-
-void wayland_touch_wrapper::wl_touch_down( //
-	void* data,
-	wl_touch* touch,
-	uint32_t serial,
-	uint32_t time,
-	wl_surface* surface,
-	int32_t id,
-	wl_fixed_t x,
-	wl_fixed_t y
-)
-{
-	utki::log_debug([](auto& o) {
-		o << "wayland: touch down event" << std::endl;
-	});
-
-	auto& ww = get_impl(ruisapp::application::inst());
-
-	if (ww.surface.sur != surface) {
-		utki::log_debug([](auto& o) {
-			o << "  non-window surface touched, ignore" << std::endl;
-		});
-		return;
-	}
-
-	ASSERT(data)
-	auto& self = *static_cast<touch_wrapper*>(data);
-	ASSERT(self.touch == touch)
-
-	ASSERT(!utki::contains(self.touch_points, id))
-
-	ruis::vector2 pos( //
-		ruis::real(wl_fixed_to_double(x)),
-		ruis::real(wl_fixed_to_double(y))
-	);
-	pos = round(pos * ww.scale);
-
-	auto insert_result = self.touch_points.insert(std::make_pair(
-		id,
-		touch_point{
-			.ruis_id = unsigned(id) + 1, // id = 0 reserved for mouse
-			.pos = pos
-		}
-	));
-	ASSERT(insert_result.second) // pair successfully inserted
-
-	const touch_point& tp = insert_result.first->second;
-
-	handle_mouse_button(
-		ruisapp::application::inst(),
-		true, // is_down
-		tp.pos,
-		ruis::mouse_button::left,
-		tp.ruis_id
-	);
-}
-
-void wayland_touch_wrapper::wl_touch_up( //
-	void* data,
-	wl_touch* touch,
-	uint32_t serial,
-	uint32_t time,
-	int32_t id
-)
-{
-	utki::log_debug([](auto& o) {
-		o << "wayland: touch up event" << std::endl;
-	});
-
-	ASSERT(data)
-	auto& self = *static_cast<touch_wrapper*>(data);
-	ASSERT(self.touch == touch)
-
-	auto i = self.touch_points.find(id);
-	ASSERT(i != self.touch_points.end())
-
-	const touch_point& tp = i->second;
-
-	handle_mouse_button(
-		ruisapp::application::inst(),
-		false, // is_down
-		tp.pos,
-		ruis::mouse_button::left,
-		tp.ruis_id
-	);
-
-	self.touch_points.erase(i);
-}
-
-void wayland_touch_wrapper::wl_touch_motion( //
-	void* data,
-	wl_touch* touch,
-	uint32_t time,
-	int32_t id,
-	wl_fixed_t x,
-	wl_fixed_t y
-)
-{
-	utki::log_debug([](auto& o) {
-		o << "wayland: touch motion event" << std::endl;
-	});
-
-	auto& ww = get_impl(ruisapp::application::inst());
-
-	ASSERT(data)
-	auto& self = *static_cast<touch_wrapper*>(data);
-	ASSERT(self.touch == touch)
-
-	auto i = self.touch_points.find(id);
-	ASSERT(i != self.touch_points.end())
-
-	touch_point& tp = i->second;
-
-	ruis::vector2 pos( //
-		ruis::real(wl_fixed_to_double(x)),
-		ruis::real(wl_fixed_to_double(y))
-	);
-	pos = round(pos * ww.scale);
-
-	tp.pos = pos;
-
-	handle_mouse_move( //
-		ruisapp::application::inst(),
-		tp.pos,
-		tp.ruis_id
-	);
-}
-
-// sent when compositor desides that touch gesture is going on, so
-// all touch points become invalid and must be cancelled. No further
-// events will be sent by wayland for current touch points.
-void wayland_touch_wrapper::wl_touch_cancel( //
-	void* data,
-	wl_touch* touch
-)
-{
-	utki::log_debug([](auto& o) {
-		o << "wayland: touch cancel event" << std::endl;
-	});
-
-	ASSERT(data)
-	auto& self = *static_cast<wayland_touch_wrapper*>(data);
-	ASSERT(self.touch == touch)
-
-	// send out-of-window button-up events fro all touch points
-	for (const auto& pair : self.touch_points) {
-		const auto& tp = pair.second;
-
-		handle_mouse_button(
-			ruisapp::application::inst(),
-			false, // is_down
-			{-1, -1},
-			ruis::mouse_button::left,
-			tp.ruis_id
-		);
-	}
-
-	self.touch_points.clear();
 }

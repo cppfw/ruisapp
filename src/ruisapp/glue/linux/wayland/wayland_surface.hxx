@@ -118,16 +118,15 @@ private:
 		return wl_proxy_get_id(reinterpret_cast<wl_proxy*>(output));
 	}
 
+	// wayland outputs this surface is on
 	std::set<wl_output*> wayland_outputs;
 
-	// TODO: move implementation here?
 	static void wl_surface_enter(
 		void* data, //
 		wl_surface* surface,
 		wl_output* output
 	);
 
-	// TODO: move implementation here?
 	static void wl_surface_leave(
 		void* data, //
 		wl_surface* surface,
