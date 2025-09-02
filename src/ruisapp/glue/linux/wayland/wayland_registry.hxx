@@ -29,7 +29,7 @@ struct wayland_registry_wrapper {
 	std::map<uint32_t, wayland_output_wrapper> outputs;
 
 	static void wl_registry_global(
-		void* data,
+		void* data, //
 		wl_registry* registry,
 		uint32_t id,
 		const char* interface,
@@ -125,7 +125,7 @@ struct wayland_registry_wrapper {
 			this
 		);
 
-		// this will call the attached listener's global_registry_handler
+		// this will call the attached listener's global_registry_handler for all currently available wayland interfaces
 		wl_display_roundtrip(wayland_display.display);
 		wl_display_dispatch_pending(wayland_display.display);
 

@@ -53,7 +53,15 @@ class application : public utki::intrusive_singleton<application>
 	// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 	static instance_type instance;
 
+	// TODO: remove
+	static bool is_constructed_v;
+
 public:
+	static bool is_constructed()
+	{
+		return is_constructed_v;
+	}
+
 	const utki::unique_ref<utki::destructable> pimpl;
 
 	const std::string name;
@@ -143,7 +151,7 @@ public:
 	application(application&&) = delete;
 	application& operator=(application&&) = delete;
 
-	~application() override = default;
+	~application() override;
 
 	/**
 	 * @brief Bring up the virtual keyboard.

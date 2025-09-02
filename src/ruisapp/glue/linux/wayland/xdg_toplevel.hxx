@@ -35,26 +35,7 @@ struct xdg_toplevel_wrapper {
 		wayland_surface_wrapper& wayland_surface, //
 		xdg_surface_wrapper& xdg_surface,
 		const ruisapp::window_parameters& window_params
-	) :
-		wayland_surface(wayland_surface),
-		toplevel(xdg_surface_get_toplevel(xdg_surface.surface))
-	{
-		if (!this->toplevel) {
-			throw std::runtime_error("could not get wayland xdg toplevel");
-		}
-
-		xdg_toplevel_set_title(
-			this->toplevel, //
-			window_params.title.c_str()
-		);
-		xdg_toplevel_add_listener(
-			this->toplevel, //
-			&listener,
-			this
-		);
-
-		wayland_surface.commit();
-	}
+	);
 
 	xdg_toplevel_wrapper(const xdg_toplevel_wrapper&) = delete;
 	xdg_toplevel_wrapper& operator=(const xdg_toplevel_wrapper&) = delete;

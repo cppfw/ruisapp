@@ -31,6 +31,8 @@ using namespace ruisapp;
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 application::instance_type application::instance;
 
+bool application::is_constructed_v = false;
+
 application_factory::factory_type& application_factory::get_factory_internal()
 {
 	static application_factory::factory_type f;
@@ -84,7 +86,14 @@ application::application(
 	pimpl(std::move(pimpl)),
 	name(std::move(params.name)),
 	directory(directories)
-{}
+{
+	is_constructed_v = true;
+}
+
+application::~application()
+{
+	is_constructed_v = false;
+}
 
 #if CFG_OS_NAME != CFG_OS_NAME_ANDROID && CFG_OS_NAME != CFG_OS_NAME_IOS
 std::unique_ptr<papki::file> application::get_res_file(std::string_view path) const

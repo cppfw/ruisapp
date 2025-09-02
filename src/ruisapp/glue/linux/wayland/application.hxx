@@ -20,6 +20,9 @@ class app_window : public ruisapp::window
 	bool outputs_changed_message_pending = false;
 
 public:
+	// keeps track of window fullscreen state as reported by wayland
+	bool is_actually_fullscreen = false;
+
 	utki::shared_ref<native_window> ruis_native_window;
 
 	app_window(
@@ -71,6 +74,7 @@ public:
 
 	const utki::version_duplet gl_version;
 
+	// TODO: make windowless sahred egl context
 	const utki::shared_ref<native_window> shared_gl_context_native_window;
 	const utki::shared_ref<ruis::render::context> resource_loader_ruis_rendering_context;
 	const utki::shared_ref<const ruis::render::context::shaders> common_shaders;
@@ -86,6 +90,10 @@ private:
 		windows;
 
 public:
+	native_window::window_id_type get_shared_gl_context_window_id()const noexcept{
+		return this->shared_gl_context_native_window.get().get_id();
+	}
+
 	application_glue(const utki::version_duplet& gl_version) :
 		waitable(this->display.get().wayland_display),
 		gl_version(gl_version),

@@ -82,6 +82,8 @@ void ruisapp::application::destroy_window(ruisapp::window& w)
 
 ruisapp::window& application_glue::make_window(const ruisapp::window_parameters& window_params)
 {
+	utki::logcat_debug("application_glue::make_window(): enter", '\n');
+
 	auto ruis_native_window = utki::make_shared<native_window>(
 		this->display, //
 		this->gl_version,

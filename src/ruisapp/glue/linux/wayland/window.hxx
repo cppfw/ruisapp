@@ -14,7 +14,7 @@
 namespace {
 class native_window : public ruis::render::native_window
 {
-	utki::shared_ref<display_wrapper> display;
+	const utki::shared_ref<display_wrapper> display;
 
 	wayland_surface_wrapper wayland_surface;
 	xdg_surface_wrapper xdg_surface;
@@ -25,12 +25,11 @@ class native_window : public ruis::render::native_window
 	egl_surface_wrapper egl_surface;
 	egl_context_wrapper egl_context;
 
-	bool fullscreen = false;
-	r4::vector2<uint32_t> pre_fullscreen_win_dims;
-
 	ruis::real scale = 1;
 
 public:
+	r4::vector2<uint32_t> pre_fullscreen_win_dims;
+
 	using window_id_type = const wl_surface*;
 
 	native_window(
@@ -71,13 +70,14 @@ public:
 			shared_gl_context_native_window ? shared_gl_context_native_window->egl_context.context : EGL_NO_CONTEXT
 		)
 	{
+		// TODO: is this workaround still needed? Looks like not
 		// WORKAROUND: the following calls are figured out by trial and error. Without those the wayland main loop
 		//             either gets stuck on waiting for events and no events come and window is not shown, or
 		//             some call related to wayland events queue fails with error.
 		// no idea why roundtrip is needed, perhaps to configure the xdg surface before actually drawing to it
-		wl_display_roundtrip(this->display.get().wayland_display.display);
+		// wl_display_roundtrip(this->display.get().wayland_display.display);
 		// no idea why initial buffer swap is needed, perhaps it moves the window configure procedure forward somehow
-		this->swap_frame_buffers();
+		// this->swap_frame_buffers();
 
 		utki::log_debug([](auto& o) {
 			o << "native_window constructed" << std::endl;
