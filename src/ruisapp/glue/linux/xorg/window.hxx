@@ -668,10 +668,11 @@ public:
 			this->xorg_window
 		)
 	{
-		this->bind_rendering_context();
-		this->disable_vsync();
-
 #ifdef RUISAPP_RENDER_OPENGL
+		// if there are no any GL contexts current, then set this one
+		if (glXGetCurrentContext() == NULL) {
+			this->bind_rendering_context();
+		}
 		if (glewInit() != GLEW_OK) {
 			throw std::runtime_error("GLEW initialization failed");
 		}
@@ -684,9 +685,16 @@ public:
 	native_window(native_window&&) = delete;
 	native_window& operator=(native_window&&) = delete;
 
+	// TODO: make this function part of ruis::native_window interface
 	void disable_vsync()
 	{
-		this->bind_rendering_context();
+		utki::assert(
+			[this]() {
+				return this->is_rendering_context_bound();
+			},
+			SL
+		);
+
 #ifdef RUISAPP_RENDER_OPENGL
 		// disable v-sync via swap control extension
 
@@ -700,7 +708,7 @@ public:
 				reinterpret_cast<const GLubyte*>("glXSwapIntervalEXT")
 			));
 
-			ASSERT(glx_swap_interval_ext)
+			utki::assert(glx_swap_interval_ext, SL);
 
 			// disable v-sync
 			glx_swap_interval_ext(
@@ -720,7 +728,7 @@ public:
 				reinterpret_cast<const GLubyte*>("glXSwapIntervalMESA")
 			));
 
-			ASSERT(glx_swap_interval_mesa)
+			utki::assert(glx_swap_interval_mesa, SL);
 
 			// disable v-sync
 			if (glx_swap_interval_mesa(0) != 0) {
@@ -884,12 +892,9 @@ public:
 				&status
 			);
 		}
-		ASSERT(size >= 0)
-		ASSERT(buf.size() != 0)
-		ASSERT(buf.size() > unsigned(size))
-
-		//		TRACE(<< "KeyEventUnicodeResolver::Resolve(): size = " << size
-		//<< std::endl)
+		utki::assert(size >= 0, SL);
+		utki::assert(buf.size() != 0, SL);
+		utki::assert(buf.size() > unsigned(size), SL);
 
 		buf[size] = 0; // null-terminate
 
@@ -944,6 +949,16 @@ private:
 		{
 			throw std::runtime_error("eglMakeCurrent() failed");
 		}
+#endif
+	}
+
+	// TODO: make this function part of ruis::native_window interface
+	bool is_rendering_context_bound() const noexcept
+	{
+#ifdef RUISAPP_RENDER_OPENGL
+		return glXGetCurrentContext() == this->glx_context.context;
+#elif defined(RUISAPP_RENDER_OPENGLES)
+		return eglGetCurrentContext() == this->egl_context.context;
 #endif
 	}
 };

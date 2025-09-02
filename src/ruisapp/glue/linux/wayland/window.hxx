@@ -84,14 +84,6 @@ public:
 		});
 	}
 
-	void swap_frame_buffers() override
-	{
-		eglSwapBuffers(
-			this->display.get().egl_display.display, //
-			this->egl_surface.surface
-		);
-	}
-
 	void resize(const r4::vector2<uint32_t>& dims);
 
 	ruis::real get_scale() const noexcept
@@ -102,6 +94,33 @@ public:
 	window_id_type get_id() const noexcept
 	{
 		return this->wayland_surface.surface;
+	}
+
+	void swap_frame_buffers() override
+	{
+		eglSwapBuffers(
+			this->display.get().egl_display.display, //
+			this->egl_surface.surface
+		);
+	}
+
+	void bind_rendering_context() override
+	{
+		if (eglMakeCurrent(
+				this->display.get().egl_display.display,
+				this->egl_surface.surface,
+				this->egl_surface.surface,
+				this->egl_context.context
+			) == EGL_FALSE)
+		{
+			throw std::runtime_error("eglMakeCurrent() failed");
+		}
+	}
+
+	// TODO: make this function part of ruis::native_window interface
+	bool is_rendering_context_bound() const noexcept
+	{
+		return eglGetCurrentContext() == this->egl_context.context;
 	}
 };
 } // namespace

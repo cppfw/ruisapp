@@ -99,7 +99,7 @@ public:
 					.fullscreen = false,
 					.visible = false
     },
-				nullptr
+				nullptr // no shared gl context
 			)
 		),
 		resource_loader_ruis_rendering_context(
