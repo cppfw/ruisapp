@@ -19,6 +19,7 @@ void wayland_keyboard_wrapper::wl_keyboard_enter(
 
 	// previous focused surface should leave focus first
 	utki::assert(!self.focused_surface, SL);
+	self.focused_surface = surface;
 
 	auto& glue = get_glue();
 
@@ -29,8 +30,6 @@ void wayland_keyboard_wrapper::wl_keyboard_enter(
 		return;
 	}
 	auto& win = *window;
-
-	self.focused_surface = surface;
 
 	// notify ruis about pressed keys
 	utki::assert(keys, SL);
