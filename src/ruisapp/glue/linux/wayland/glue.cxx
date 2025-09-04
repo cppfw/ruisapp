@@ -92,7 +92,7 @@ int main(int argc, const char** argv)
 	});
 
 	while (!glue.quit_flag.load()) {
-		std::cout << "loop" << std::endl;
+		// std::cout << "loop" << std::endl;
 
 		// sequence:
 		// - update updateables
@@ -144,16 +144,16 @@ int main(int argc, const char** argv)
 				);
 			}
 
-			std::cout << "wait for " << to_wait_ms << "ms" << std::endl;
+			// std::cout << "wait for " << to_wait_ms << "ms" << std::endl;
 
 			wait_set.wait(to_wait_ms);
 
-			std::cout << "waited" << std::endl;
+			// std::cout << "waited" << std::endl;
 
 			auto triggered_events = wait_set.get_triggered();
 
 			// TODO: wayland queue is constantly ready to read. figure out why.
-			std::cout << "num triggered = " << triggered_events.size() << std::endl;
+			// std::cout << "num triggered = " << triggered_events.size() << std::endl;
 
 			// we want to first handle messages of ui queue,
 			// but since we don't know the order of triggered objects,
@@ -167,7 +167,7 @@ int main(int argc, const char** argv)
 						throw std::runtime_error("waiting on ui queue errored");
 					}
 					if (ei.flags.get(opros::ready::read)) {
-						std::cout << "ui queue ready" << std::endl;
+						// std::cout << "ui queue ready" << std::endl;
 						ui_queue_ready_to_read = true;
 					}
 				} else if (ei.user_data == &glue.waitable) {
@@ -175,7 +175,7 @@ int main(int argc, const char** argv)
 						throw std::runtime_error("waiting on wayland file descriptor errored");
 					}
 					if (ei.flags.get(opros::ready::read)) {
-						std::cout << "wayland queue ready to read" << std::endl;
+						// std::cout << "wayland queue ready to read" << std::endl;
 						wayland_queue_ready_to_read = true;
 					}
 				}
@@ -193,7 +193,7 @@ int main(int argc, const char** argv)
 			if (wayland_queue_ready_to_read) {
 				scope_exit_wayland_prepare_read.release();
 
-				std::cout << "read" << std::endl;
+				// std::cout << "read" << std::endl;
 				if (wl_display_read_events(disp) < 0) {
 					throw std::runtime_error(utki::cat(
 						"wl_display_read_events() failed: ", //
@@ -201,7 +201,7 @@ int main(int argc, const char** argv)
 					));
 				}
 
-				std::cout << "disppatch" << std::endl;
+				// std::cout << "disppatch" << std::endl;
 				if (wl_display_dispatch_pending(disp) < 0) {
 					throw std::runtime_error(utki::cat(
 						"wl_display_dispatch_pending() failed: ", //

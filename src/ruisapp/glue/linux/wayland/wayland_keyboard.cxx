@@ -22,12 +22,15 @@ void wayland_keyboard_wrapper::wl_keyboard_enter(
 
 	auto& glue = get_glue();
 
+	utki::assert(surface, SL);
 	auto window = glue.get_window(surface);
 	if (!window) {
+		utki::logcat_debug("wayland_keyboard_wrapper::wl_keyboard_enter(): window no t found", '\n');
 		return;
 	}
-
 	auto& win = *window;
+
+	self.focused_surface = surface;
 
 	// notify ruis about pressed keys
 	utki::assert(keys, SL);
@@ -56,6 +59,15 @@ void wayland_keyboard_wrapper::wl_keyboard_leave(
 	utki::log_debug([](auto& o) {
 		o << "keyboard leave" << std::endl;
 	});
+
+	auto& glue = get_glue();
+
+	utki::assert(surface, SL);
+	auto window = glue.get_window(surface);
+	if (!window) {
+		utki::logcat_debug("wayland_keyboard_wrapper::wl_keyboard_leave(): window not found", '\n');
+		return;
+	}
 
 	utki::assert(data, SL);
 	auto& self = *static_cast<wayland_keyboard_wrapper*>(data);

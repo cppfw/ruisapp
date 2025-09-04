@@ -308,5 +308,20 @@ struct egl_context_wrapper {
 			this->context
 		);
 	}
+
+	void disable_vsync()
+	{
+		utki::assert(
+			eglGetCurrentContext() == this->context,
+			[](auto& o) {
+				o << "egl_context_wrapper::disable_vsync(): the EGL context is not current";
+			},
+			SL
+		);
+
+		if (eglSwapInterval(this->egl_display.display, 0) != EGL_TRUE) {
+			throw std::runtime_error("egl_context_wrapper::disable_vsync(): eglSwapInterval(0) failed");
+		}
+	}
 };
 } // namespace
