@@ -8,12 +8,12 @@ struct wayland_shm_wrapper {
 
 	wayland_shm_wrapper(const wayland_registry_wrapper& wayland_registry) :
 		shm([&]() {
-			utki::assert(wayland_registry.shm_id.has_value(), SL);
+			utki::assert(wayland_registry.shm_name.has_value(), SL);
 			void* s = wl_registry_bind(
 				wayland_registry.registry,
-				wayland_registry.shm_id.value().id,
+				wayland_registry.shm_name.value().name,
 				&wl_shm_interface,
-				std::min(wayland_registry.shm_id.value().version, 1u)
+				std::min(wayland_registry.shm_name.value().version, 1u)
 			);
 			utki::assert(s, SL);
 			return static_cast<wl_shm*>(s);

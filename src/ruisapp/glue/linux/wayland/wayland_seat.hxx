@@ -25,15 +25,15 @@ public:
 			wayland_shm
 		),
 		seat([&]() -> wl_seat* {
-			if (!wayland_registry.seat_id.has_value()) {
+			if (!wayland_registry.seat_name.has_value()) {
 				return nullptr;
 			}
 
 			void* seat = wl_registry_bind(
 				wayland_registry.registry, //
-				wayland_registry.seat_id.value().id,
+				wayland_registry.seat_name.value().name,
 				&wl_seat_interface,
-				std::min(wayland_registry.seat_id.value().version, 1u)
+				std::min(wayland_registry.seat_name.value().version, 1u)
 			);
 			utki::assert(seat, SL);
 			return static_cast<wl_seat*>(seat);

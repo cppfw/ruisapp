@@ -8,12 +8,12 @@ struct xdg_wm_base_wrapper {
 
 	xdg_wm_base_wrapper(const wayland_registry_wrapper& wayland_registry) :
 		wm_base([&]() {
-			utki::assert(wayland_registry.wm_base_id.has_value(), SL);
+			utki::assert(wayland_registry.wm_base_name.has_value(), SL);
 			void* wb = wl_registry_bind(
 				wayland_registry.registry,
-				wayland_registry.wm_base_id.value().id,
+				wayland_registry.wm_base_name.value().name,
 				&xdg_wm_base_interface,
-				std::min(wayland_registry.wm_base_id.value().version, 2u)
+				std::min(wayland_registry.wm_base_name.value().version, 2u)
 			);
 			utki::assert(wb, SL);
 			return static_cast<xdg_wm_base*>(wb);

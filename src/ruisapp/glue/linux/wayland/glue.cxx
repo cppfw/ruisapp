@@ -52,6 +52,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "wayland_keyboard.cxx"
 #include "wayland_output.cxx"
 #include "wayland_pointer.cxx"
+#include "wayland_registry.cxx"
 #include "wayland_surface.cxx"
 #include "wayland_touch.cxx"
 #include "window.cxx"

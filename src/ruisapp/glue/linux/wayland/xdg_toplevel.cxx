@@ -16,17 +16,17 @@ xdg_toplevel_wrapper::xdg_toplevel_wrapper(
 		this->toplevel, //
 		window_params.title.c_str()
 	);
-	utki::logcat_debug("xdg_toplevel_wrapper::xdg_toplevel_wrapper(): add listener", '\n');
+	// utki::logcat_debug("xdg_toplevel_wrapper::xdg_toplevel_wrapper(): add listener", '\n');
 	xdg_toplevel_add_listener(
 		this->toplevel, //
 		&listener,
 		this
 	);
-	utki::logcat_debug("xdg_toplevel_wrapper::xdg_toplevel_wrapper(): listener added, commit wayland surface", '\n');
+	// utki::logcat_debug("xdg_toplevel_wrapper::xdg_toplevel_wrapper(): listener added, commit wayland surface", '\n');
 
 	wayland_surface.commit();
 
-	utki::logcat_debug("xdg_toplevel_wrapper::xdg_toplevel_wrapper(): wayland surface committed", '\n');
+	// utki::logcat_debug("xdg_toplevel_wrapper::xdg_toplevel_wrapper(): wayland surface committed", '\n');
 }
 
 void xdg_toplevel_wrapper::xdg_toplevel_configure(

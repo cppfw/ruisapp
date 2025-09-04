@@ -8,12 +8,12 @@ struct wayland_compositor_wrapper {
 
 	wayland_compositor_wrapper(const wayland_registry_wrapper& wayland_registry) :
 		compositor([&]() {
-			utki::assert(wayland_registry.compositor_id.has_value(), SL);
+			utki::assert(wayland_registry.compositor_name.has_value(), SL);
 			void* comp = wl_registry_bind(
 				wayland_registry.registry,
-				wayland_registry.compositor_id.value().id,
+				wayland_registry.compositor_name.value().name,
 				&wl_compositor_interface,
-				std::min(wayland_registry.compositor_id.value().version, 4u)
+				std::min(wayland_registry.compositor_name.value().version, 4u)
 			);
 			utki::assert(comp, SL);
 			return static_cast<wl_compositor*>(comp);

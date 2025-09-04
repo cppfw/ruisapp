@@ -64,60 +64,9 @@ struct wayland_surface_wrapper {
 		float dpi = default_dpi;
 	};
 
-	scale_and_dpi find_scale_and_dpi(const std::map<uint32_t, wayland_output_wrapper>& wayland_outputs)
-	{
-		utki::log_debug([](auto& o) {
-			o << "looking for max scale" << std::endl;
-		});
-
-		// if surface did not enter any outputs yet, then just take scale of first available output
-		if (this->wayland_outputs.empty()) {
-			utki::log_debug([](auto& o) {
-				o << "  surface has not entered any outputs yet" << std::endl;
-			});
-			return {};
-		}
-
-		scale_and_dpi max_sd;
-
-		// go through outputs which the surface has entered
-		for (auto wlo : this->wayland_outputs) {
-			auto id = get_output_id(wlo);
-
-			utki::log_debug([&](auto& o) {
-				o << "  check output id = " << id << std::endl;
-			});
-
-			auto i = wayland_outputs.find(id);
-			if (i == wayland_outputs.end()) {
-				utki::log_debug([&](auto& o) {
-					o << "WARNING: wayland surface entered output with id = " << id
-					  << ", but no output with such id is reported" << std::endl;
-				});
-				continue;
-			}
-
-			auto& output = i->second;
-
-			utki::log_debug([&](auto& o) {
-				o << "  output found, scale = " << output.scale << std::endl;
-			});
-
-			max_sd.scale = std::max(output.scale, max_sd.scale);
-			max_sd.dpi = output.get_dpi();
-		}
-
-		return max_sd;
-	}
+	scale_and_dpi find_scale_and_dpi(const std::list<wayland_output_wrapper>& wayland_outputs);
 
 private:
-	static uint32_t get_output_id(wl_output* output)
-	{
-		utki::assert(output, SL);
-		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-		return wl_proxy_get_id(reinterpret_cast<wl_proxy*>(output));
-	}
-
 	// wayland outputs this surface is on
 	std::set<wl_output*> wayland_outputs;
 

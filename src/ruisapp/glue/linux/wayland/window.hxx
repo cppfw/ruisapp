@@ -155,5 +155,17 @@ public:
 		// auto& ww = get_impl(*this);
 		// ww.seat.pointer.set_cursor(c);
 	}
+
+	void disable_vsync()
+	{
+		utki::assert(
+			[this]() {
+				return this->is_rendering_context_bound();
+			},
+			SL
+		);
+
+		this->egl_context.disable_vsync();
+	}
 };
 } // namespace

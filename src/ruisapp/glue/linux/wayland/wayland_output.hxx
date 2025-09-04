@@ -9,7 +9,6 @@ class wayland_output_wrapper
 {
 	wl_output* output;
 
-	// TODO: move implementation here
 	static void wl_output_geometry(
 		void* data,
 		struct wl_output* wl_output,
@@ -23,7 +22,6 @@ class wayland_output_wrapper
 		int32_t transform
 	);
 
-	// TODO: move implementation here
 	static void wl_output_mode(
 		void* data,
 		struct wl_output* wl_output,
@@ -99,6 +97,14 @@ class wayland_output_wrapper
 	};
 
 public:
+	static uint32_t get_output_id(wl_output* output)
+	{
+		utki::assert(output, SL);
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+		return wl_proxy_get_id(reinterpret_cast<wl_proxy*>(output));
+	}
+
+	const uint32_t wayland_global_object_name;
 	const uint32_t id;
 
 	r4::vector2<uint32_t> position = {0, 0};
@@ -116,21 +122,30 @@ public:
 
 	wayland_output_wrapper(
 		wl_registry& registry, //
-		uint32_t id,
+		uint32_t name,
 		uint32_t interface_version
 	) :
 		output([&]() {
 			void* output = wl_registry_bind(
 				&registry, //
-				id,
+				name,
 				&wl_output_interface,
 				std::min(interface_version, 2u)
 			);
 			utki::assert(output, SL);
 			return static_cast<wl_output*>(output);
 		}()),
-		id(id)
+		wayland_global_object_name(name),
+		id(get_output_id(this->output))
 	{
+		utki::assert(
+			this->id == get_output_id(this->output),
+			[this](auto& o) {
+				o << "this->id = " << this->id << ", get_output_id(this->output) = " << get_output_id(this->output);
+			},
+			SL
+		);
+
 		wl_output_add_listener(this->output, &listener, this);
 	}
 
