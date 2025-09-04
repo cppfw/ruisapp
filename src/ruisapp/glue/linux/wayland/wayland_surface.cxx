@@ -28,6 +28,8 @@ void wayland_surface_wrapper::wl_surface_enter(
 			o << "wayland_surface_wrapper::wl_surface_enter(): no window for given surface, ignoring enter output event"
 			  << std::endl;
 		});
+		// TODO: this callback is called for some surface, try to figure out what is that surface
+		// utki::assert(surface == glue.get_shared_gl_context_window_id(), SL);
 		return;
 	}
 
@@ -116,4 +118,36 @@ wayland_surface_wrapper::find_scale_and_dpi( //
 	}
 
 	return max_sd;
+}
+
+void wayland_surface_wrapper::set_buffer_scale(uint32_t scale)
+{
+	if (wl_surface_get_version(this->surface) >= WL_SURFACE_SET_BUFFER_SCALE_SINCE_VERSION) {
+		wl_surface_set_buffer_scale(
+			this->surface, //
+			int32_t(scale)
+		);
+	}
+}
+
+void wayland_surface_wrapper::set_opaque_region(const wayland_region_wrapper& wayland_region)
+{
+	wl_surface_set_opaque_region(
+		this->surface, //
+		wayland_region.region
+	);
+}
+
+void wayland_surface_wrapper::damage(const r4::vector2<int32_t>& dims)
+{
+	// Use wl_surface_damage_buffer() over wl_surface_damage() as it is the
+	// the modern preferred way fo marking a surface dirty.
+	wl_surface_damage_buffer(
+		this->surface, //
+		0,
+		0,
+		dims.x(),
+		dims.y()
+	);
+	this->commit();
 }

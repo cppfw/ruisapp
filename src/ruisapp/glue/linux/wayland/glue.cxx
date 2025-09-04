@@ -93,19 +93,31 @@ int main(int argc, const char** argv)
 	});
 
 	while (!glue.quit_flag.load()) {
-		// std::cout << "loop" << std::endl;
+		// utki::log_debug([](auto&o){
+		// 	static unsigned counter = 0;
+		// 	o << "loop " << counter << std::endl;
+		// 	++counter;
+		// });
 
 		// sequence:
 		// - update updateables
 		// - render
 		// - wait for events and handle them/next cycle
 		auto to_wait_ms = glue.updater.get().update();
+		// std::cout << "updated" << std::endl;
 		glue.render();
+		// std::cout << "rendered" << std::endl;
 
 		auto& disp = glue.display.get().wayland_display.display;
 
 		// prepare wayland queue for waiting for events
 		while (wl_display_prepare_read(disp) != 0) {
+			// utki::log_debug([](auto&o){
+			// 	static unsigned counter = 0;
+			// 	o << "prepare wayland queue loop " << counter << std::endl;
+			// 	++counter;
+			// });
+
 			// there are events in wayland queue, dispatch them, as we need empty queue
 			// when we start waiting for events on the queue
 			if (wl_display_dispatch_pending(disp) < 0) {

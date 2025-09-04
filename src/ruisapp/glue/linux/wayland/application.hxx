@@ -39,11 +39,33 @@ public:
 		);
 	}
 
+	~app_window()
+	{
+		// If we have pending frame callback, then destroy it to in order to cancel the callback.
+		// This is to avoid the callback being called after the window object has been destroyed.
+		if (this->frame_callback) {
+			wl_callback_destroy(this->frame_callback);
+		}
+	}
+
 	void resize(const r4::vector2<uint32_t>& dims);
 
 	void refresh_dimensions();
 
 	void notify_outputs_changed();
+
+	void schedule_rendering();
+
+private:
+	wl_callback* frame_callback = nullptr;
+
+	static void wl_surface_frame_done(
+		void* data, //
+		struct wl_callback* callback,
+		uint32_t time
+	);
+
+	static const constexpr wl_callback_listener wl_surface_frame_listener = {.done = &wl_surface_frame_done};
 };
 } // namespace
 
@@ -154,7 +176,7 @@ public:
 	void render()
 	{
 		for (const auto& w : this->windows) {
-			w.second.get().render();
+			w.second.get().schedule_rendering();
 		}
 	}
 };

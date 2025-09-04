@@ -28,6 +28,13 @@ class native_window : public ruis::render::native_window
 	ruis::real scale = 1;
 
 public:
+	const unsigned sequence_number = []() {
+		static unsigned next_sequence_number = 0;
+		auto ret = next_sequence_number;
+		++next_sequence_number;
+		return ret;
+	}();
+
 	// keep track of current window dimensions for restoring them after fullscreen mode
 	r4::vector2<uint32_t> cur_window_dims;
 
@@ -156,6 +163,7 @@ public:
 		// ww.seat.pointer.set_cursor(c);
 	}
 
+	// TODO: make part of ruis::native_window intrface
 	void disable_vsync()
 	{
 		utki::assert(
@@ -166,6 +174,16 @@ public:
 		);
 
 		this->egl_context.disable_vsync();
+	}
+
+	wl_callback* make_frame_callback()
+	{
+		return wl_surface_frame(this->wayland_surface.surface);
+	}
+
+	void mark_dirty()
+	{
+		this->wayland_surface.damage(this->cur_window_dims.to<int32_t>());
 	}
 };
 } // namespace

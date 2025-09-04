@@ -39,23 +39,10 @@ struct wayland_surface_wrapper {
 		wl_surface_commit(this->surface);
 	}
 
-	void set_buffer_scale(uint32_t scale)
-	{
-		if (wl_surface_get_version(this->surface) >= WL_SURFACE_SET_BUFFER_SCALE_SINCE_VERSION) {
-			wl_surface_set_buffer_scale(
-				this->surface, //
-				int32_t(scale)
-			);
-		}
-	}
+	void damage(const r4::vector2<int32_t>& dims);
 
-	void set_opaque_region(const wayland_region_wrapper& wayland_region)
-	{
-		wl_surface_set_opaque_region(
-			this->surface, //
-			wayland_region.region
-		);
-	}
+	void set_buffer_scale(uint32_t scale);
+	void set_opaque_region(const wayland_region_wrapper& wayland_region);
 
 	struct scale_and_dpi {
 		uint32_t scale = 1;

@@ -55,6 +55,56 @@ void app_window::notify_outputs_changed()
 	});
 }
 
+void app_window::wl_surface_frame_done(
+	void* data, //
+	wl_callback* callback,
+	uint32_t time
+)
+{
+	// utki::logcat_debug("app_window::wl_surface_frame_done(): invoked", '\n');
+
+	utki::assert(data, SL);
+	auto& win = *static_cast<app_window*>(data);
+
+	utki::assert(win.frame_callback, SL);
+	utki::assert(win.frame_callback == callback, SL);
+
+	wl_callback_destroy(callback);
+	win.frame_callback = nullptr;
+
+	win.render();
+}
+
+void app_window::schedule_rendering()
+{
+	if (this->frame_callback) {
+		// rendering is already scheduled, do nothing
+
+		// utki::logcat_debug(
+		// 	"app_window::schedule_rendering(): already scheduled for window ",
+		// 	this->ruis_native_window.get().sequence_number,
+		// 	'\n'
+		// );
+		return;
+	}
+
+	// TODO: render only if needed
+
+	this->frame_callback = this->ruis_native_window.get().make_frame_callback();
+
+	wl_callback_add_listener(
+		this->frame_callback, //
+		&app_window::wl_surface_frame_listener,
+		this
+	);
+
+	// After requesting frame callback we need to tell Wayland that our window is dirty,
+	// otherwise it will not call the frame callback.
+	this->ruis_native_window.get().mark_dirty();
+
+	// utki::logcat_debug("app_window::schedule_rendering(): scheduled", '\n');
+}
+
 ruisapp::application::application(parameters params) :
 	application(
 		utki::make_unique<application_glue>(params.graphics_api_version), //

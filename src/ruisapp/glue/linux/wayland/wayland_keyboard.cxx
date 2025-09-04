@@ -31,6 +31,8 @@ void wayland_keyboard_wrapper::wl_keyboard_enter(
 	}
 	auto& win = *window;
 
+	utki::logcat_debug("  window sequence_number: ", win.ruis_native_window.get().sequence_number, '\n');
+
 	// notify ruis about pressed keys
 	utki::assert(keys, SL);
 	utki::assert(keys->size % sizeof(uint32_t) == 0, SL);
@@ -67,6 +69,9 @@ void wayland_keyboard_wrapper::wl_keyboard_leave(
 		utki::logcat_debug("wayland_keyboard_wrapper::wl_keyboard_leave(): window not found", '\n');
 		return;
 	}
+	auto& win = *window;
+
+	utki::logcat_debug("  window sequence_number: ", win.ruis_native_window.get().sequence_number, '\n');
 
 	utki::assert(data, SL);
 	auto& self = *static_cast<wayland_keyboard_wrapper*>(data);

@@ -37,6 +37,8 @@ void window::render()
 
 		this->gui.render(this->gui.context.get().ren().ctx().initial_matrix);
 
+		// std::cout << "swap frame buffers" << std::endl;
 		this->gui.context.get().window().swap_frame_buffers();
+		// std::cout << "swapped" << std::endl;
 	});
 }

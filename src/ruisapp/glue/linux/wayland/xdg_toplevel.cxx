@@ -12,17 +12,18 @@ xdg_toplevel_wrapper::xdg_toplevel_wrapper(
 		throw std::runtime_error("could not get wayland xdg toplevel");
 	}
 
-	xdg_toplevel_set_title(
-		this->toplevel, //
-		window_params.title.c_str()
-	);
 	// utki::logcat_debug("xdg_toplevel_wrapper::xdg_toplevel_wrapper(): add listener", '\n');
 	xdg_toplevel_add_listener(
 		this->toplevel, //
 		&listener,
 		this
 	);
-	// utki::logcat_debug("xdg_toplevel_wrapper::xdg_toplevel_wrapper(): listener added, commit wayland surface", '\n');
+	// utki::logcat_debug("xdg_toplevel_wrapper::xdg_toplevel_wrapper(): listener added", '\n');
+
+	xdg_toplevel_set_title(
+		this->toplevel, //
+		window_params.title.c_str()
+	);
 
 	wayland_surface.commit();
 
@@ -94,7 +95,7 @@ void xdg_toplevel_wrapper::xdg_toplevel_configure(
 		}
 	}
 
-	// TODO: is needed?
+	// TODO: is needed? Looks like it is not needed, since wayland messages are not processed until exit from application constructor.
 	// if (!ruisapp::application::is_constructed()) {
 	// 	// unable to obtain window object before application is constructed,
 	// 	// cannot do more without window object
@@ -119,8 +120,26 @@ void xdg_toplevel_wrapper::xdg_toplevel_configure(
 
 	auto& natwin = win.ruis_native_window.get();
 
+	utki::logcat_debug("  window sequence_number: ", natwin.sequence_number, '\n');
+
 	// if both width and height are zero, then it is one of states checked above
 	if (width == 0 && height == 0) {
+		if (states_span.empty()) {
+			// The configure callback is invoked with both dimensions 0
+			// and no any state changes. This means that it is an initial configure call.
+			// Right after creating a Wayland surface, according to the Wayland protocol, it
+			// should do the initial configure call, after which one is supposed to do the
+			// initial surface commit. In case of EGL we have to call eglSwapBuffers(), which will do the
+			// surface commit for us. This makes the sirface to be mapped to the screen and become visible.
+			// If this sequence is not honored the surface will not appear on the screen.
+
+			// swap EGL frame buffers with the window's EGL context made current
+			win.gui.context.get().ren().ctx().apply([&]() {
+				natwin.swap_frame_buffers();
+			});
+			return;
+		}
+
 		if (win.is_actually_fullscreen != fullscreen) {
 			if (!fullscreen) {
 				// exited fullscreen mode
@@ -128,6 +147,7 @@ void xdg_toplevel_wrapper::xdg_toplevel_configure(
 			}
 			win.is_actually_fullscreen = fullscreen;
 		}
+
 		return;
 	}
 
