@@ -193,19 +193,20 @@ void application_glue::destroy_window(app_window& w)
 {
 	auto i = this->windows.find(w.ruis_native_window.get().get_id());
 	utki::assert(i != this->windows.end(), SL);
+
+	this->windows_to_destroy.push_back(i->second);
 	this->windows.erase(i);
-	// TODO: defer window destruction by pushing destroy proc to ui queue?
 }
 
 void application_glue::render()
-	{
-		for (const auto& w : this->windows) {
-			// Wayland can block eglSwapBuffers() call in case the window (Wayland surface) is not visible,
-			// e.g. minimized or fully obscured by another window. To avoid UI thread blockages we need to
-			// make sure the Wayland does not block the eglSwapBuffers() call. To do that we need to request
-			// a frame from Wayland using wl_surface_frame() call. In that case, Wayland will call a callback
-			// when it is a good time to render a frame and then we can do the rendering. In that case Wayland
-			// guarantees that the eglSwapBuffers() will not be blocked.
-			w.second.get().schedule_rendering();
-		}
+{
+	for (const auto& w : this->windows) {
+		// Wayland can block eglSwapBuffers() call in case the window (Wayland surface) is not visible,
+		// e.g. minimized or fully obscured by another window. To avoid UI thread blockages we need to
+		// make sure the Wayland does not block the eglSwapBuffers() call. To do that we need to request
+		// a frame from Wayland using wl_surface_frame() call. In that case, Wayland will call a callback
+		// when it is a good time to render a frame and then we can do the rendering. In that case Wayland
+		// guarantees that the eglSwapBuffers() will not be blocked.
+		w.second.get().schedule_rendering();
 	}
+}

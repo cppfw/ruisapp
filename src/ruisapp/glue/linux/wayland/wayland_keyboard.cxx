@@ -61,9 +61,19 @@ void wayland_keyboard_wrapper::wl_keyboard_leave(
 		o << "keyboard leave" << std::endl;
 	});
 
+	utki::assert(data, SL);
+	auto& self = *static_cast<wayland_keyboard_wrapper*>(data);
+
+	if (!surface) {
+		// This should not happen according to Wayland protocol, but it happens on practice.
+		// For example when Wayland window which had keyboard focus is destroyed.
+		// Just reset currently focused surface.
+		self.focused_surface = nullptr;
+		return;
+	}
+
 	auto& glue = get_glue();
 
-	utki::assert(surface, SL);
 	auto window = glue.get_window(surface);
 	if (!window) {
 		utki::logcat_debug("wayland_keyboard_wrapper::wl_keyboard_leave(): window not found", '\n');
@@ -72,9 +82,6 @@ void wayland_keyboard_wrapper::wl_keyboard_leave(
 	auto& win = *window;
 
 	utki::logcat_debug("  window sequence_number: ", win.ruis_native_window.get().sequence_number, '\n');
-
-	utki::assert(data, SL);
-	auto& self = *static_cast<wayland_keyboard_wrapper*>(data);
 
 	utki::assert(self.focused_surface == surface, SL);
 	self.focused_surface = nullptr;

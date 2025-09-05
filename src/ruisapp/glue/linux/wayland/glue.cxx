@@ -99,7 +99,9 @@ int main(int argc, const char** argv)
 		// 	++counter;
 		// });
 
-		// sequence:
+		glue.windows_to_destroy.clear();
+
+		// main loop sequence as required by ruis:
 		// - update updateables
 		// - render
 		// - wait for events and handle them/next cycle

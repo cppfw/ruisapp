@@ -111,6 +111,8 @@ private:
 		windows;
 
 public:
+	std::vector<utki::shared_ref<app_window>> windows_to_destroy;
+
 	native_window::window_id_type get_shared_gl_context_window_id() const noexcept
 	{
 		return this->shared_gl_context_native_window.get().get_id();

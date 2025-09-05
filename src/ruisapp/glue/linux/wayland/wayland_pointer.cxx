@@ -57,7 +57,17 @@ void wayland_pointer_wrapper::wl_pointer_leave(
 	utki::assert(data, SL);
 	auto& self = *static_cast<wayland_pointer_wrapper*>(data);
 
+	if (!surface) {
+		// This should not happen according to Wayland protocol, but it happens on practice.
+		// For example when Wayland window which was hovered by pointer is destroyed.
+		// Just reset currently hovered surface.
+		self.cur_surface = nullptr;
+		return;
+	}
+
 	utki::assert(self.cur_surface == surface, SL);
+
+	self.cur_surface = nullptr;
 
 	auto& glue = get_glue();
 
@@ -70,8 +80,6 @@ void wayland_pointer_wrapper::wl_pointer_leave(
 		false, //
 		0
 	);
-
-	self.cur_surface = nullptr;
 }
 
 void wayland_pointer_wrapper::wl_pointer_button(
