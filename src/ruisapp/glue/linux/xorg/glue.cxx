@@ -78,6 +78,7 @@ public:
 } // namespace
 
 namespace {
+// TODO: rename to application_glue
 class os_platform_glue : public utki::destructable
 {
 public:
@@ -100,6 +101,8 @@ private:
 		windows;
 
 public:
+	std::vector<utki::shared_ref<app_window>> windows_to_destroy;
+
 	os_platform_glue(const utki::version_duplet& gl_version) :
 		gl_version(gl_version),
 		shared_gl_context_native_window( //
@@ -215,8 +218,12 @@ public:
 	{
 		auto i = this->windows.find(w.ruis_native_window.get().get_id());
 		utki::assert(i != this->windows.end(), SL);
+
+		// Defer actual window object destruction until next main loop cycle,
+		// for that put the window to the list of windows to destroy.
+		this->windows_to_destroy.push_back(i->second);
+
 		this->windows.erase(i);
-		// TODO: defer window destruction by pushing destroy proc to ui queue?
 	}
 
 	app_window* get_window(native_window::window_id_type id)
@@ -363,7 +370,9 @@ int main(int argc, const char** argv)
 	});
 
 	while (!glue.quit_flag.load()) {
-		// sequence:
+		glue.windows_to_destroy.clear();
+
+		// main loop sequence as required by ruis:
 		// - update updateables
 		// - render
 		// - wait for events and handle them/next cycle
