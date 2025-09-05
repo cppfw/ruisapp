@@ -173,12 +173,8 @@ public:
 		return &i->second.get();
 	}
 
-	void render()
-	{
-		for (const auto& w : this->windows) {
-			w.second.get().schedule_rendering();
-		}
-	}
+	// render all windows if needed
+	void render();
 };
 } // namespace
 
