@@ -372,10 +372,11 @@ int main(int argc, const char** argv)
 	while (!glue.quit_flag.load()) {
 		glue.windows_to_destroy.clear();
 
-		// main loop sequence as required by ruis:
+		// main loop cycle sequence as required by ruis:
 		// - update updateables
 		// - render
-		// - wait for events and handle them/next cycle
+		// - wait for events and handle them
+
 		auto to_wait_ms = glue.updater.get().update();
 		glue.render();
 		wait_set.wait(to_wait_ms);

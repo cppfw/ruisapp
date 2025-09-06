@@ -149,18 +149,32 @@ public:
 		}
 	}
 
+private:
+	ruis::mouse_cursor cur_mouse_cursor = ruis::mouse_cursor::arrow;
+	bool mouse_cursor_visible = true;
+
+public:
+	void update_mouse_cursor()
+	{
+		auto& wayland_pointer = this->display.get().wayland_seat.wayland_pointer;
+
+		if (this->mouse_cursor_visible) {
+			wayland_pointer.set_cursor(this->cur_mouse_cursor);
+		} else {
+			wayland_pointer.set_cursor(ruis::mouse_cursor::none);
+		}
+	}
+
 	void set_mouse_cursor_visible(bool visible) override
 	{
-		// TODO:
-		// auto& ww = get_impl(this->window_pimpl);
-		// ww.seat.pointer.set_cursor_visible(visible);
+		this->mouse_cursor_visible = visible;
+		this->update_mouse_cursor();
 	}
 
 	void set_mouse_cursor(ruis::mouse_cursor cursor) override
 	{
-		// TODO:
-		// auto& ww = get_impl(*this);
-		// ww.seat.pointer.set_cursor(c);
+		this->cur_mouse_cursor = cursor;
+		this->update_mouse_cursor();
 	}
 
 	// TODO: make part of ruis::native_window intrface
