@@ -87,6 +87,8 @@ void wayland_keyboard_wrapper::wl_keyboard_leave(
 	self.focused_surface = nullptr;
 
 	// TODO: send key releases
+
+	// TODO: unfocus focused widget
 }
 
 void wayland_keyboard_wrapper::wl_keyboard_key(
