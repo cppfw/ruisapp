@@ -127,6 +127,9 @@ void xdg_toplevel_wrapper::xdg_toplevel_configure(
 		win.actual_state = state;
 	});
 
+	// TODO: refactor. Figure out what is the actual protocol about configure calls with zero/non-zero window size,
+	// states reported etc.
+
 	// if both width and height are zero, then it is a state change
 	if (width == 0 && height == 0) {
 		if (states_span.empty()) {
