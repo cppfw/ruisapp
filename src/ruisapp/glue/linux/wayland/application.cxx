@@ -20,13 +20,13 @@ void app_window::resize(const r4::vector2<uint32_t>& dims)
 
 	this->ruis_native_window.get().resize(dims);
 
-	// TODO: update ruis::context::units
-	// auto& app = ruisapp::inst();
-	// auto& units = app.gui.context.get().units;
-	// units.set_dots_per_pp(this->scale);
-	// units.set_dots_per_inch(ruis::real(sd.dpi));
+	auto& natwin = this->ruis_native_window.get();
 
-	this->gui.set_viewport(ruis::rect(0, dims.to<ruis::real>()));
+	auto& units = this->gui.context.get().units;
+	units.set_dots_per_pp(natwin.get_scale());
+	units.set_dots_per_inch(natwin.get_dpi());
+
+	this->gui.set_viewport(ruis::rect(0, (dims * natwin.get_scale()).to<ruis::real>()));
 }
 
 void app_window::refresh_dimensions()

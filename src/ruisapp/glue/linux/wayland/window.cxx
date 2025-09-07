@@ -4,9 +4,9 @@ void native_window::resize(const r4::vector2<uint32_t>& dims)
 {
 	this->cur_window_dims = dims;
 
-	auto sd = this->wayland_surface.find_scale_and_dpi(this->display.get().wayland_registry.outputs);
+	this->scale_and_dpi = this->wayland_surface.find_scale_and_dpi(this->display.get().wayland_registry.outputs);
 
-	auto d = dims * sd.scale;
+	auto d = dims * this->scale_and_dpi.scale;
 
 	wl_egl_window_resize(
 		this->wayland_egl_window.window, //
@@ -24,13 +24,12 @@ void native_window::resize(const r4::vector2<uint32_t>& dims)
 
 	this->wayland_surface.set_opaque_region(region);
 
-	this->wayland_surface.set_buffer_scale(sd.scale);
+	this->wayland_surface.set_buffer_scale(this->scale_and_dpi.scale);
 
 	this->wayland_surface.commit();
 
 	utki::log_debug([&](auto& o) {
-		o << "final window scale = " << sd.scale << std::endl;
+		o << "final window scale = " << this->scale_and_dpi.scale << '\n';
+		o << "final window dpi = " << this->scale_and_dpi.dpi << std::endl;
 	});
-
-	this->scale = ruis::real(sd.scale);
 }

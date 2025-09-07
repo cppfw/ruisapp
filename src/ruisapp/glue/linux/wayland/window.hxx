@@ -25,7 +25,7 @@ class native_window : public ruis::render::native_window
 	egl_surface_wrapper egl_surface;
 	egl_context_wrapper egl_context;
 
-	ruis::real scale = 1;
+	wayland_surface_wrapper::scale_and_dpi scale_and_dpi;
 
 public:
 	const unsigned sequence_number = []() {
@@ -91,7 +91,12 @@ public:
 
 	ruis::real get_scale() const noexcept
 	{
-		return this->scale;
+		return this->scale_and_dpi.scale;
+	}
+
+	ruis::real get_dpi() const noexcept
+	{
+		return this->scale_and_dpi.dpi;
 	}
 
 	window_id_type get_id() const noexcept
