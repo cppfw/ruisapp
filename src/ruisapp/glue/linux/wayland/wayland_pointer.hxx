@@ -12,7 +12,7 @@ struct wayland_pointer_wrapper {
 
 	wayland_surface_wrapper cursor_wayland_surface;
 
-	// TODO: move to window?
+	// Current pointer position within current surface.
 	ruis::vector2 cur_pointer_pos{0, 0};
 
 	void connect(wl_seat* seat);
@@ -139,8 +139,7 @@ private:
 
 	wl_surface* cur_surface = nullptr;
 
-	// TODO: how does it work with multiple windows? Move it to window?
-	uint32_t last_enter_serial = 0;
+	uint32_t last_enter_event_serial_number = 0;
 
 	void apply_cursor(wl_cursor* cursor);
 };

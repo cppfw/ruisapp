@@ -32,7 +32,6 @@ class wayland_touch_wrapper
 		}
 	}
 
-	// TODO: move implementation here?
 	static void wl_touch_down(
 		void* data, //
 		wl_touch* touch,
@@ -44,7 +43,6 @@ class wayland_touch_wrapper
 		wl_fixed_t y
 	);
 
-	// TODO: move implementation here?
 	static void wl_touch_up(
 		void* data, //
 		wl_touch* touch,
@@ -53,7 +51,6 @@ class wayland_touch_wrapper
 		int32_t id
 	);
 
-	// TODO: move implementation here?
 	static void wl_touch_motion(
 		void* data, //
 		wl_touch* touch,

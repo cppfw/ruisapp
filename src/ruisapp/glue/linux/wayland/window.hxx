@@ -38,6 +38,8 @@ public:
 	// keep track of current window dimensions for restoring them after fullscreen mode
 	r4::vector2<uint32_t> cur_window_dims;
 
+	// save window dimentions before makeing it fullscreen to restore the dimentsions
+	// when window is made non-fullscreen again
 	r4::vector2<uint32_t> pre_fullscreen_win_dims;
 
 	using window_id_type = const wl_surface*;
@@ -80,15 +82,6 @@ public:
 			shared_gl_context_native_window ? shared_gl_context_native_window->egl_context.context : EGL_NO_CONTEXT
 		)
 	{
-		// TODO: is this workaround still needed? Looks like not
-		// WORKAROUND: the following calls are figured out by trial and error. Without those the wayland main loop
-		//             either gets stuck on waiting for events and no events come and window is not shown, or
-		//             some call related to wayland events queue fails with error.
-		// no idea why roundtrip is needed, perhaps to configure the xdg surface before actually drawing to it
-		// wl_display_roundtrip(this->display.get().wayland_display.display);
-		// no idea why initial buffer swap is needed, perhaps it moves the window configure procedure forward somehow
-		// this->swap_frame_buffers();
-
 		utki::log_debug([](auto& o) {
 			o << "native_window constructed" << std::endl;
 		});

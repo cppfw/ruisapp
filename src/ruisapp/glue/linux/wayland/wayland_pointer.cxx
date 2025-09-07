@@ -80,7 +80,7 @@ void wayland_pointer_wrapper::disconnect() noexcept
 void wayland_pointer_wrapper::wl_pointer_enter(
 	void* data, //
 	wl_pointer* pointer,
-	uint32_t serial,
+	uint32_t event_serial_number,
 	wl_surface* surface,
 	wl_fixed_t x,
 	wl_fixed_t y
@@ -94,7 +94,7 @@ void wayland_pointer_wrapper::wl_pointer_enter(
 	utki::assert(self.cur_surface == nullptr, SL);
 	self.cur_surface = surface;
 
-	self.last_enter_serial = serial;
+	self.last_enter_event_serial_number = event_serial_number;
 
 	auto& glue = get_glue();
 
@@ -300,7 +300,7 @@ void wayland_pointer_wrapper::apply_cursor(wl_cursor* cursor)
 	utki::scope_exit scope_exit_empty_cursor([this]() {
 		wl_pointer_set_cursor(
 			this->pointer, //
-			this->last_enter_serial,
+			this->last_enter_event_serial_number,
 			nullptr,
 			0,
 			0
@@ -324,7 +324,7 @@ void wayland_pointer_wrapper::apply_cursor(wl_cursor* cursor)
 
 	wl_pointer_set_cursor(
 		this->pointer, //
-		this->last_enter_serial,
+		this->last_enter_event_serial_number,
 		this->cursor_wayland_surface.surface,
 		int32_t(image->hotspot_x),
 		int32_t(image->hotspot_y)

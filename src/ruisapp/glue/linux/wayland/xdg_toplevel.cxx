@@ -39,7 +39,7 @@ void xdg_toplevel_wrapper::xdg_toplevel_configure(
 )
 {
 	utki::log_debug([](auto& o) {
-		o << "window configure" << std::endl;
+		o << "window CONFIGURE" << std::endl;
 	});
 
 	utki::log_debug([&](auto& o) {
@@ -85,6 +85,16 @@ void xdg_toplevel_wrapper::xdg_toplevel_configure(
 									return "tiled top";
 								case XDG_TOPLEVEL_STATE_TILED_BOTTOM:
 									return "tiled bottom";
+								case XDG_TOPLEVEL_STATE_SUSPENDED:
+									return "suspended";
+								case XDG_TOPLEVEL_STATE_CONSTRAINED_LEFT:
+									return "constrained left";
+								case XDG_TOPLEVEL_STATE_CONSTRAINED_RIGHT:
+									return "constrained right";
+								case XDG_TOPLEVEL_STATE_CONSTRAINED_TOP:
+									return "constrained top";
+								case XDG_TOPLEVEL_STATE_CONSTRAINED_BOTTOM:
+									return "constrained bottom";
 								default:
 									return "unknown";
 							}
@@ -94,16 +104,6 @@ void xdg_toplevel_wrapper::xdg_toplevel_configure(
 				break;
 		}
 	}
-
-	// TODO: is needed? Looks like it is not needed, since wayland messages are not processed until exit from application constructor.
-	// if (!ruisapp::application::is_constructed()) {
-	// 	// unable to obtain window object before application is constructed,
-	// 	// cannot do more without window object
-	// 	utki::log_debug([](auto& o) {
-	// 		o << "  called within application constructor" << std::endl;
-	// 	});
-	// 	return;
-	// }
 
 	utki::assert(data, SL);
 	auto& self = *static_cast<xdg_toplevel_wrapper*>(data);
@@ -117,7 +117,6 @@ void xdg_toplevel_wrapper::xdg_toplevel_configure(
 		return;
 	}
 	auto& win = *window;
-
 	auto& natwin = win.ruis_native_window.get();
 
 	utki::logcat_debug("  window sequence_number: ", natwin.sequence_number, '\n');
@@ -144,6 +143,14 @@ void xdg_toplevel_wrapper::xdg_toplevel_configure(
 			if (!fullscreen) {
 				// exited fullscreen mode
 				win.resize(natwin.pre_fullscreen_win_dims);
+			} else {
+				utki::logcat_debug(
+					"xdg_toplevel_wrapper::xdg_toplevel_configure(): window(", //
+					natwin.sequence_number,
+					") ",
+					"enter fullscreen, cur_window_dims = ",
+					natwin.cur_window_dims
+				);
 			}
 			win.is_actually_fullscreen = fullscreen;
 		}

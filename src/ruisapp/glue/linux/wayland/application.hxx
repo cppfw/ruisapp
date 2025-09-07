@@ -95,7 +95,7 @@ public:
 
 	const utki::version_duplet gl_version;
 
-	// TODO: make windowless sahred egl context
+	// TODO: make windowless shared egl context
 	const utki::shared_ref<native_window> shared_gl_context_native_window;
 	const utki::shared_ref<ruis::render::context> resource_loader_ruis_rendering_context;
 	const utki::shared_ref<const ruis::render::context::shaders> common_shaders;

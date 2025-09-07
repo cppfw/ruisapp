@@ -28,15 +28,6 @@ void wayland_output_wrapper::wl_output_geometry(
 
 	// TODO: is it needed to notify about outputs changed? Aren't wayland surfaces supposed to receive enter output events?
 
-	// if (!application_constructed) {
-	// 	// unable to obtain window_wrapper object before application is constructed,
-	// 	// cannot do more without window_wrapper object
-	// 	utki::log_debug([](auto& o) {
-	// 		o << "  called within application constructor" << std::endl;
-	// 	});
-	// 	return;
-	// }
-
 	// auto& ww = get_impl(ruisapp::application::inst());
 	// ww.notify_outputs_changed();
 }
@@ -59,16 +50,7 @@ void wayland_output_wrapper::wl_output_mode(
 		o << "output(" << self.id << ") resolution = " << self.resolution << std::endl;
 	});
 
-	// TODO: do we need to notify about outputs changed in this case?
-
-	// if (!application_constructed) {
-	// 	// unable to obtain window_wrapper object before application is constructed,
-	// 	// cannot do more without window_wrapper object
-	// 	utki::log_debug([](auto& o) {
-	// 		o << "  called within application constructor" << std::endl;
-	// 	});
-	// 	return;
-	// }
+	// TODO: is it needed to notify about outputs changed? Aren't wayland surfaces supposed to receive enter output events?
 
 	// auto& ww = get_impl(ruisapp::application::inst());
 	// ww.notify_outputs_changed();
@@ -89,16 +71,7 @@ void wayland_output_wrapper::wl_output_scale(
 		o << "output(" << self.id << ") scale = " << self.scale << std::endl;
 	});
 
-	// TODO: notify about outputs changed
-
-	// if (!application_constructed) {
-	// 	// unable to obtain window_wrapper object before application is constructed,
-	// 	// cannot do more without window_wrapper object
-	// 	utki::log_debug([](auto& o) {
-	// 		o << "  called within application constructor" << std::endl;
-	// 	});
-	// 	return;
-	// }
+	// TODO: is it needed to notify about outputs changed? Aren't wayland surfaces supposed to receive enter output events?
 
 	// auto& ww = get_impl(ruisapp::application::inst());
 	// ww.notify_outputs_changed();

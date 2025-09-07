@@ -39,19 +39,5 @@ struct wayland_egl_window_wrapper {
 	{
 		wl_egl_window_destroy(this->window);
 	}
-
-	// TODO: not needed, remove?
-	// r4::vector2<uint32_t> get_buffer_dims() const
-	// {
-	// 	r4::vector2<int> ret;
-
-	// 	wl_egl_window_get_attached_size(
-	// 		this->window, //
-	// 		&ret.x(),
-	// 		&ret.y()
-	// 	);
-
-	// 	return ret.to<uint32_t>();
-	// }
 };
 } // namespace
