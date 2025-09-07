@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ruis/util/mouse_cursor.hpp>
+#include <utki/enum_array.hpp>
 #include <wayland-cursor.h>
 
 #include "wayland_shm.hxx"
@@ -21,22 +22,21 @@ struct wayland_cursor_theme_wrapper {
 			return;
 		}
 
-		this->cursors[size_t(ruis::mouse_cursor::arrow)] = wl_cursor_theme_get_cursor(this->theme, "left_ptr");
-		this->cursors[size_t(ruis::mouse_cursor::top_left_corner)] =
-			wl_cursor_theme_get_cursor(this->theme, "top_left_corner");
-		this->cursors[size_t(ruis::mouse_cursor::top_right_corner)] =
+		this->cursors[ruis::mouse_cursor::arrow] = wl_cursor_theme_get_cursor(this->theme, "left_ptr");
+		this->cursors[ruis::mouse_cursor::top_left_corner] = wl_cursor_theme_get_cursor(this->theme, "top_left_corner");
+		this->cursors[ruis::mouse_cursor::top_right_corner] =
 			wl_cursor_theme_get_cursor(this->theme, "top_right_corner");
-		this->cursors[size_t(ruis::mouse_cursor::bottom_left_corner)] =
+		this->cursors[ruis::mouse_cursor::bottom_left_corner] =
 			wl_cursor_theme_get_cursor(this->theme, "bottom_left_corner");
-		this->cursors[size_t(ruis::mouse_cursor::bottom_right_corner)] =
+		this->cursors[ruis::mouse_cursor::bottom_right_corner] =
 			wl_cursor_theme_get_cursor(this->theme, "bottom_right_corner");
-		this->cursors[size_t(ruis::mouse_cursor::top_side)] = wl_cursor_theme_get_cursor(this->theme, "top_side");
-		this->cursors[size_t(ruis::mouse_cursor::bottom_side)] = wl_cursor_theme_get_cursor(this->theme, "bottom_side");
-		this->cursors[size_t(ruis::mouse_cursor::left_side)] = wl_cursor_theme_get_cursor(this->theme, "left_side");
-		this->cursors[size_t(ruis::mouse_cursor::right_side)] = wl_cursor_theme_get_cursor(this->theme, "right_side");
-		this->cursors[size_t(ruis::mouse_cursor::grab)] = wl_cursor_theme_get_cursor(this->theme, "grabbing");
-		this->cursors[size_t(ruis::mouse_cursor::index_finger)] = wl_cursor_theme_get_cursor(this->theme, "hand1");
-		this->cursors[size_t(ruis::mouse_cursor::caret)] = wl_cursor_theme_get_cursor(this->theme, "xterm");
+		this->cursors[ruis::mouse_cursor::top_side] = wl_cursor_theme_get_cursor(this->theme, "top_side");
+		this->cursors[ruis::mouse_cursor::bottom_side] = wl_cursor_theme_get_cursor(this->theme, "bottom_side");
+		this->cursors[ruis::mouse_cursor::left_side] = wl_cursor_theme_get_cursor(this->theme, "left_side");
+		this->cursors[ruis::mouse_cursor::right_side] = wl_cursor_theme_get_cursor(this->theme, "right_side");
+		this->cursors[ruis::mouse_cursor::grab] = wl_cursor_theme_get_cursor(this->theme, "grabbing");
+		this->cursors[ruis::mouse_cursor::index_finger] = wl_cursor_theme_get_cursor(this->theme, "hand1");
+		this->cursors[ruis::mouse_cursor::caret] = wl_cursor_theme_get_cursor(this->theme, "xterm");
 	}
 
 	wayland_cursor_theme_wrapper(const wayland_cursor_theme_wrapper&) = delete;
@@ -54,15 +54,12 @@ struct wayland_cursor_theme_wrapper {
 
 	wl_cursor* get(ruis::mouse_cursor cursor)
 	{
-		auto index = size_t(cursor);
-		utki::assert(index < this->cursors.size(), SL);
-		return this->cursors[index];
+		return this->cursors[cursor];
 	}
 
 private:
 	wl_cursor_theme* const theme;
 
-	// TODO: use utki::enum_array
-	std::array<wl_cursor*, size_t(ruis::mouse_cursor::enum_size)> cursors = {nullptr};
+	utki::enum_array<wl_cursor*, ruis::mouse_cursor> cursors = {nullptr};
 };
 } // namespace

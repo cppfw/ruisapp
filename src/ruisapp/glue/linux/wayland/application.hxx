@@ -18,7 +18,7 @@ class app_window : public ruisapp::window
 
 public:
 	// keep track of window state as notified by Wayland
-	struct window_state{
+	struct window_state {
 		bool fullscreen = false;
 		bool activated = false;
 	} actual_state;

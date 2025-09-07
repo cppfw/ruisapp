@@ -123,7 +123,7 @@ void xdg_toplevel_wrapper::xdg_toplevel_configure(
 
 	utki::logcat_debug("  window sequence_number: ", natwin.sequence_number, '\n');
 
-	utki::scope_exit save_actual_state_scope_exit([&](){
+	utki::scope_exit save_actual_state_scope_exit([&]() {
 		win.actual_state = state;
 	});
 
