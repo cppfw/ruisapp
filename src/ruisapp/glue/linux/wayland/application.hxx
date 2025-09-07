@@ -17,8 +17,11 @@ class app_window : public ruisapp::window
 	bool outputs_changed_message_pending = false;
 
 public:
-	// keeps track of window fullscreen state as reported by wayland
-	bool is_actually_fullscreen = false;
+	// keep track of window state as notified by Wayland
+	struct window_state{
+		bool fullscreen = false;
+		bool activated = false;
+	} actual_state;
 
 	utki::shared_ref<native_window> ruis_native_window;
 

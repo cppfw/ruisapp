@@ -1,5 +1,7 @@
 #include "xdg_toplevel.hxx"
 
+#include "application.hxx"
+
 xdg_toplevel_wrapper::xdg_toplevel_wrapper(
 	wayland_surface_wrapper& wayland_surface, //
 	xdg_surface_wrapper& xdg_surface,
@@ -46,7 +48,7 @@ void xdg_toplevel_wrapper::xdg_toplevel_configure(
 		o << "  width = " << std::dec << width << ", height = " << height << std::endl;
 	});
 
-	bool fullscreen = false;
+	app_window::window_state state;
 
 	utki::assert(states, SL);
 	utki::assert(states->size % sizeof(uint32_t) == 0, SL);
@@ -64,7 +66,7 @@ void xdg_toplevel_wrapper::xdg_toplevel_configure(
 				utki::log_debug([](auto& o) {
 					o << "    fullscreen" << std::endl;
 				});
-				fullscreen = true;
+				state.fullscreen = true;
 				break;
 			default:
 				utki::log_debug([&](auto& o) {
@@ -121,7 +123,11 @@ void xdg_toplevel_wrapper::xdg_toplevel_configure(
 
 	utki::logcat_debug("  window sequence_number: ", natwin.sequence_number, '\n');
 
-	// if both width and height are zero, then it is one of states checked above
+	utki::scope_exit save_actual_state_scope_exit([&](){
+		win.actual_state = state;
+	});
+
+	// if both width and height are zero, then it is a state change
 	if (width == 0 && height == 0) {
 		if (states_span.empty()) {
 			// The configure callback is invoked with both dimensions 0
@@ -132,6 +138,8 @@ void xdg_toplevel_wrapper::xdg_toplevel_configure(
 			// surface commit for us. This makes the sirface to be mapped to the screen and become visible.
 			// If this sequence is not honored the surface will not appear on the screen.
 
+			utki::logcat_debug("  initial configure call", '\n');
+
 			// swap EGL frame buffers with the window's EGL context made current
 			win.gui.context.get().ren().ctx().apply([&]() {
 				natwin.swap_frame_buffers();
@@ -139,11 +147,12 @@ void xdg_toplevel_wrapper::xdg_toplevel_configure(
 			return;
 		}
 
-		if (win.is_actually_fullscreen != fullscreen) {
-			if (!fullscreen) {
+		if (win.actual_state.fullscreen != state.fullscreen) {
+			if (!state.fullscreen) {
 				// exited fullscreen mode
 				win.resize(natwin.pre_fullscreen_win_dims);
 			} else {
+				// entered fullscreen mode
 				utki::logcat_debug(
 					"xdg_toplevel_wrapper::xdg_toplevel_configure(): window(", //
 					natwin.sequence_number,
@@ -152,7 +161,6 @@ void xdg_toplevel_wrapper::xdg_toplevel_configure(
 					natwin.cur_window_dims
 				);
 			}
-			win.is_actually_fullscreen = fullscreen;
 		}
 
 		return;
@@ -160,8 +168,6 @@ void xdg_toplevel_wrapper::xdg_toplevel_configure(
 
 	utki::assert(width >= 0, SL);
 	utki::assert(height >= 0, SL);
-
-	win.is_actually_fullscreen = fullscreen;
 
 	win.resize(
 		{uint32_t(width), //
