@@ -101,7 +101,6 @@ void mouseButton(NSEvent* e, bool isDown, ruis::mouse_button button){
 }
 
 void macosx_HandleMouseMove(const ruis::vector2& pos, unsigned id){
-//	TRACE(<< "Macosx_HandleMouseMove(): pos = " << pos << std::endl)
 	handle_mouse_move(
 			ruisapp::application::inst(),
 			ruis::vector2(pos.x(), ruisapp::application::inst().window_dims().y() - pos.y()),
@@ -463,8 +462,8 @@ int main(int argc, const char** argv){
 
 	// [ww.applicationObjectId activateIgnoringOtherApps:YES];
 
+	// TODO: what are these?
 	[ww.windowObjectId makeKeyAndOrderFront:nil];
-
 	[ww.windowObjectId orderFrontRegardless];
 
 	// in order to get keyboard events we need to be foreground application

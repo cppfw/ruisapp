@@ -1,9 +1,13 @@
 #pragma once
 
+#import <Cocoa/Cocoa.h>
+
 #include <ruis/render/native_window.hpp>
 
 namespace{
 class native_window : public ruis::render::native_window {
     // TODO:
+
+public:
 };
 }
