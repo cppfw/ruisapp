@@ -1,7 +1,8 @@
 #pragma once
 
-namespace{
-class display_wrapper{
-    // TODO:
+namespace {
+class display_wrapper
+{
+	// TODO:
 };
-}
+} // namespace

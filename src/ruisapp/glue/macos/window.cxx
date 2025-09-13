@@ -2,123 +2,139 @@
 
 @implementation CocoaView
 
--(id)initWithFrame:(NSRect)rect{
+- (id)initWithFrame:(NSRect)rect //
+	associated_app_window:(app_window*)associated_app_window
+{
 	self = [super initWithFrame:rect];
-	if(!self){
+	if (!self) {
 		return nil;
 	}
-	self->ta = [[NSTrackingArea alloc]
-			initWithRect: rect
-			options: (NSTrackingActiveAlways | NSTrackingInVisibleRect | NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved)
-			owner: self
-			userInfo: nil
-		];
+	self->window = associated_app_window;
+	self->ta = [[NSTrackingArea alloc] initWithRect:rect
+											options:(NSTrackingActiveAlways | NSTrackingInVisibleRect |
+													 NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved)
+											  owner:self
+										   userInfo:nil];
 	[self addTrackingArea:self->ta];
 	return self;
 }
 
--(void)dealloc{
+- (void)dealloc
+{
 	[self->ta release];
 	[super dealloc];
 }
 
--(void)mouseDown: (NSEvent*)e{
-//	TRACE(<< "left down!!!!!" << std::endl)
+- (void)mouseDown:(NSEvent*)e
+{
+	//	TRACE(<< "left down!!!!!" << std::endl)
 	mouseButton(e, true, ruis::mouse_button::left);
 }
 
--(void)mouseUp: (NSEvent*)e{
-//	TRACE(<< "left up!!!!!" << std::endl)
+- (void)mouseUp:(NSEvent*)e
+{
+	//	TRACE(<< "left up!!!!!" << std::endl)
 	mouseButton(e, false, ruis::mouse_button::left);
 }
 
--(void)rightMouseDown: (NSEvent*)e{
-//	TRACE(<< "right down!!!!!" << std::endl)
+- (void)rightMouseDown:(NSEvent*)e
+{
+	//	TRACE(<< "right down!!!!!" << std::endl)
 	mouseButton(e, true, ruis::mouse_button::right);
 }
 
--(void)rightMouseUp: (NSEvent*)e{
-//	TRACE(<< "right up!!!!!" << std::endl)
+- (void)rightMouseUp:(NSEvent*)e
+{
+	//	TRACE(<< "right up!!!!!" << std::endl)
 	mouseButton(e, false, ruis::mouse_button::right);
 }
 
--(void)otherMouseDown: (NSEvent*)e{
-//	TRACE(<< "middle down!!!!!" << std::endl)
+- (void)otherMouseDown:(NSEvent*)e
+{
+	//	TRACE(<< "middle down!!!!!" << std::endl)
 	mouseButton(e, true, ruis::mouse_button::middle);
 }
 
--(void)otherMouseUp: (NSEvent*)e{
-//	TRACE(<< "middle up!!!!!" << std::endl)
+- (void)otherMouseUp:(NSEvent*)e
+{
+	//	TRACE(<< "middle up!!!!!" << std::endl)
 	mouseButton(e, false, ruis::mouse_button::middle);
 }
 
--(void)scrollWheel: (NSEvent*)e{
-//	TRACE(<< "mouse wheel!!!!!" << std::endl)
+- (void)scrollWheel:(NSEvent*)e
+{
+	//	TRACE(<< "mouse wheel!!!!!" << std::endl)
 
-	if([e hasPreciseScrollingDeltas] == NO){
+	if ([e hasPreciseScrollingDeltas] == NO) {
 		ruis::mouse_button button;
-//		TRACE(<< "dy = " << float(dy) << std::endl)
-		if([e scrollingDeltaY] < 0){
+		//		TRACE(<< "dy = " << float(dy) << std::endl)
+		if ([e scrollingDeltaY] < 0) {
 			button = ruis::mouse_button::wheel_down;
-		}else if([e scrollingDeltaY] > 0){
+		} else if ([e scrollingDeltaY] > 0) {
 			button = ruis::mouse_button::wheel_up;
-		}else if([e scrollingDeltaX] < 0){
+		} else if ([e scrollingDeltaX] < 0) {
 			button = ruis::mouse_button::wheel_left;
-		}else if([e scrollingDeltaX] > 0){
+		} else if ([e scrollingDeltaX] > 0) {
 			button = ruis::mouse_button::wheel_right;
-		}else{
+		} else {
 			return;
 		}
-//		TRACE(<< "button = " << unsigned(button) << std::endl)
+		//		TRACE(<< "button = " << unsigned(button) << std::endl)
 
 		mouseButton(e, true, button);
 		mouseButton(e, false, button);
-	}else{
-		utki::log_debug([&](auto&o){o << "mouse wheel: precise scrolling deltas, UNIMPLEMENTED!!!!!" << std::endl;});
+	} else {
+		utki::log_debug([&](auto& o) {
+			o << "mouse wheel: precise scrolling deltas, UNIMPLEMENTED!!!!!" << std::endl;
+		});
 	}
 }
 
--(void)mouseMoved: (NSEvent*)e{
-//	TRACE(<< "mouseMoved event!!!!!" << std::endl)
+- (void)mouseMoved:(NSEvent*)e
+{
+	//	TRACE(<< "mouseMoved event!!!!!" << std::endl)
 	NSPoint pos = [e locationInWindow];
-//	TRACE(<< "x = " << pos.x << std::endl)
+	//	TRACE(<< "x = " << pos.x << std::endl)
 	using std::round;
-	macosx_HandleMouseMove(
-			round(ruis::vector2(pos.x, pos.y)),
-			0
-		);
+	macosx_HandleMouseMove(round(ruis::vector2(pos.x, pos.y)), 0);
 }
 
--(void)mouseDragged: (NSEvent*)e{
+- (void)mouseDragged:(NSEvent*)e
+{
 	[self mouseMoved:e];
 }
 
--(void)rightMouseDragged: (NSEvent*)e{
+- (void)rightMouseDragged:(NSEvent*)e
+{
 	[self mouseMoved:e];
 }
 
--(void)otherMouseDragged: (NSEvent*)e{
+- (void)otherMouseDragged:(NSEvent*)e
+{
 	[self mouseMoved:e];
 }
 
--(void)mouseEntered: (NSEvent*)e{
-//	TRACE(<< "mouseEntered event!!!!!" << std::endl)
+- (void)mouseEntered:(NSEvent*)e
+{
+	//	TRACE(<< "mouseEntered event!!!!!" << std::endl)
 	[[self window] setAcceptsMouseMovedEvents:YES];
 	macosx_HandleMouseHover(true);
 }
 
--(void)mouseExited: (NSEvent*)e{
-//	TRACE(<< "mouseExited event!!!!!" << std::endl)
+- (void)mouseExited:(NSEvent*)e
+{
+	//	TRACE(<< "mouseExited event!!!!!" << std::endl)
 	[[self window] setAcceptsMouseMovedEvents:NO];
 	macosx_HandleMouseHover(false);
 }
 
--(void)keyDown:(NSEvent*)e{
-//	TRACE(<< "keyDown event!!!!!" << std::endl)
+- (void)keyDown:(NSEvent*)e
+{
+	//	TRACE(<< "keyDown event!!!!!" << std::endl)
 	std::uint8_t kc = [e keyCode];
 	ruis::key key = keyCodeMap[kc];
 
-	if([e isARepeat] == YES){
+	if ([e isARepeat] == YES) {
 		macosx_HandleCharacterInput([e characters], key);
 		return;
 	}
@@ -128,8 +144,9 @@
 	macosx_HandleCharacterInput([e characters], key);
 }
 
--(void)keyUp:(NSEvent*)e{
-//	TRACE(<< "keyUp event!!!!!" << std::endl)
+- (void)keyUp:(NSEvent*)e
+{
+	//	TRACE(<< "keyUp event!!!!!" << std::endl)
 	std::uint8_t kc = [e keyCode];
 	macosx_HandleKeyEvent(false, keyCodeMap[kc]);
 }
@@ -138,15 +155,21 @@
 
 @implementation CocoaWindow
 
--(id)initWithContentRect:(NSRect)contentRect styleMask:(NSUInteger)windowStyle backing:(NSBackingStoreType)bufferingType defer:(BOOL)deferCreation{
+- (id)initWithContentRect:(NSRect)contentRect
+				styleMask:(NSUInteger)windowStyle
+				  backing:(NSBackingStoreType)bufferingType
+					defer:(BOOL)deferCreation
+	associated_app_window:(app_window*)associated_app_window
+{
 	self = [super initWithContentRect:contentRect styleMask:windowStyle backing:bufferingType defer:deferCreation];
-	if(!self){
+	if (!self) {
 		return nil;
 	}
-//	[self setLevel:NSFloatingWindowLevel];
+	//	[self setLevel:NSFloatingWindowLevel];
 	[self setLevel:NSNormalWindowLevel];
 
-	self->v = [[CocoaView alloc] initWithFrame:[self frameRectForContentRect:contentRect]];
+	self->v = [[CocoaView alloc] initWithFrame:[self frameRectForContentRect:contentRect] //
+						 associated_app_window:associated_app_window];
 	[self setContentView:self->v];
 
 	[self initStuff];
@@ -159,40 +182,77 @@
 	return self;
 }
 
--(void)initStuff{
+- (void)initStuff
+{
 	[self makeFirstResponder:self->v];
 	[self setDelegate:self];
 	[self makeKeyWindow];
 	[self makeMainWindow];
 }
 
--(void)dealloc{
+- (void)dealloc
+{
 	[self->v release];
 	[super dealloc];
 }
 
--(void)windowDidResize:(NSNotification*)n{
-	utki::log_debug([&](auto&o){o << "window resize!!!!" << std::endl;});
+- (void)windowDidResize:(NSNotification*)n
+{
+	utki::log_debug([&](auto& o) {
+		o << "window resize!!!!" << std::endl;
+	});
 	NSWindow* nsw = [n object];
 	NSRect frame = [nsw frame];
 	NSRect rect = [nsw contentRectForFrameRect:frame];
 	macosx_UpdateWindowRect(ruis::rect(0, 0, rect.size.width, rect.size.height));
 }
 
--(NSSize)windowWillResize:(NSWindow*)sender toSize:(NSSize)frameSize{
+- (NSSize)windowWillResize:(NSWindow*)sender toSize:(NSSize)frameSize
+{
 	return frameSize;
 }
 
--(BOOL)windowShouldClose:(id)sender{
-	utki::log_debug([&](auto&o){o << "window wants to close!!!!" << std::endl;});
+- (BOOL)windowShouldClose:(id)sender
+{
+	utki::log_debug([&](auto& o) {
+		o << "window wants to close!!!!" << std::endl;
+	});
 	application::inst().quit();
 	return NO;
 }
 
--(BOOL)canBecomeKeyWindow{return YES;} // This is needed for window without title bar to be able to get key events
--(BOOL)canBecomeMainWindow{return YES;}
--(BOOL)acceptsFirstResponder{return YES;}
+- (BOOL)canBecomeKeyWindow
+{
+	return YES;
+} // This is needed for window without title bar to be able to get key events
 
--(CocoaView*)view{return self->v;}
+- (BOOL)canBecomeMainWindow
+{
+	return YES;
+}
+
+- (BOOL)acceptsFirstResponder
+{
+	return YES;
+}
+
+- (CocoaView*)view
+{
+	return self->v;
+}
 
 @end
+
+void native_window::set_mouse_cursor_visible(bool visible)
+{
+	if (visible) {
+		if (!this->mouse_cursor_currently_visible) {
+			[NSCursor unhide];
+		}
+	} else {
+		if (this->mouse_cursor_currently_visible) {
+			[NSCursor hide];
+		}
+	}
+	this->mouse_cursor_currently_visible = visible;
+}

@@ -1,51 +1,84 @@
 #pragma once
 
 #include <atomic>
-
-#include <utki/destructable.hpp>
+#include <set>
 
 #import <Cocoa/Cocoa.h>
+#include <utki/destructable.hpp>
 
 #include "../../application.hpp"
 
 #include "display.hxx"
+#include "window.hxx"
 
-namespace{
-class application_glue : public utki::destructable {
-    // TODO: is needed?
-    // utki::shared_ref<display_wrapper> display = utki::make_shared<display_wrapper>();
+namespace {
+class app_window : public ruisapp::window
+{
+public:
+	const utki::shared_ref<native_window> ruis_native_window;
+
+	app_window(const ruisapp::window_parameters& window_params);
+};
+} // namespace
+
+namespace {
+class application_glue : public utki::destructable
+{
+	// TODO: is needed?
+	// utki::shared_ref<display_wrapper> display = utki::make_shared<display_wrapper>();
+
+	const utki::version_duplet gl_version;
+
+	const utki::shared_ref<native_window> shared_gl_context_native_window;
+	const utki::shared_ref<ruis::render::context> resource_loader_ruis_rendering_context;
+	const utki::shared_ref<const ruis::render::context::shaders> common_shaders;
+	const utki::shared_ref<const ruis::render::renderer::objects> common_render_objects;
+	const utki::shared_ref<ruis::resource_loader> ruis_resource_loader;
+	const utki::shared_ref<ruis::style_provider> ruis_style_provider;
+
+	std::set<
+		utki::shared_ref<app_window>, //
+		std::less<> //
+		>
+		windows;
 
 public:
-    std::atomic_bool quit_flag = false;
+	std::atomic_bool quit_flag = false;
 
-    struct macos_application_wrapper{
-        const NSApplication* application;
+	const utki::shared_ref<ruis::updater> updater = utki::make_shared<ruis::updater>();
 
-        macos_application_wrapper() :
-            application([NSApplication sharedApplication])
-        {
-            if(!this->application){
-                throw std::runtime_error("failed to create NSApplication instance");
-            }
+	struct macos_application_wrapper {
+		const NSApplication* application;
 
-            // TODO: why is this needed?
-            [this->application activateIgnoringOtherApps:YES];
-        }
+		macos_application_wrapper() :
+			application([NSApplication sharedApplication])
+		{
+			if (!this->application) {
+				throw std::runtime_error("failed to create NSApplication instance");
+			}
 
-        macos_application_wrapper(const macos_application_wrapper&) = delete;
-        macos_application_wrapper& operator=(const macos_application_wrapper&) = delete;
+			// TODO: why is this needed?
+			[this->application activateIgnoringOtherApps:YES];
+		}
 
-        macos_application_wrapper(macos_application_wrapper&&) = delete;
-        macos_application_wrapper& operator=(macos_application_wrapper&&) = delete;
+		macos_application_wrapper(const macos_application_wrapper&) = delete;
+		macos_application_wrapper& operator=(const macos_application_wrapper&) = delete;
 
-        ~macos_application_wrapper(){
-            [this->application release];
-        }
-    } macos_application;
+		macos_application_wrapper(macos_application_wrapper&&) = delete;
+		macos_application_wrapper& operator=(macos_application_wrapper&&) = delete;
 
-    // TODO:
+		~macos_application_wrapper()
+		{
+			[this->application release];
+		}
+	} macos_application;
+
+	application_glue(const utki::version_duplet& gl_version);
+
+	ruisapp::window& make_window(const ruisapp::window_parameters& window_params);
+	void destroy_window(app_window& w);
 };
-}
+} // namespace
 
 namespace {
 inline application_glue& get_glue(ruisapp::application& app)
