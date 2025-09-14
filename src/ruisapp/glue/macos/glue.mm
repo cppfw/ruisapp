@@ -319,114 +319,115 @@ ruis::real getDotsPerPt(){
 }
 }
 
-application::application(
-	std::string name,
-	const window_parameters& wp
-) :
-	name(name),
-	window_pimpl(std::make_unique<WindowWrapper>(wp)),
-	gui(utki::make_shared<ruis::context>(
-		utki::make_shared<ruis::style_provider>(
-			utki::make_shared<ruis::resource_loader>(
-				utki::make_shared<ruis::render::renderer>(
-					utki::make_shared<ruis::render::opengl::context>()
-				)
-			)
-		),
-		utki::make_shared<ruis::updater>(),
-		ruis::context::parameters{
-			.post_to_ui_thread_function = [this](std::function<void()> a){
-				auto& ww = get_impl(get_window_pimpl(*this));
+// application::application(
+// 	std::string name,
+// 	const window_parameters& wp
+// ) :
+// 	name(name),
+// 	window_pimpl(std::make_unique<WindowWrapper>(wp)),
+// 	gui(utki::make_shared<ruis::context>(
+// 		utki::make_shared<ruis::style_provider>(
+// 			utki::make_shared<ruis::resource_loader>(
+// 				utki::make_shared<ruis::render::renderer>(
+// 					utki::make_shared<ruis::render::opengl::context>()
+// 				)
+// 			)
+// 		),
+// 		utki::make_shared<ruis::updater>(),
+// 		ruis::context::parameters{
+// 			.post_to_ui_thread_function = [this](std::function<void()> a){
+// 				auto& ww = get_impl(get_window_pimpl(*this));
 
-				NSEvent* e = [NSEvent
-						otherEventWithType: NSEventTypeApplicationDefined
-						location: NSMakePoint(0, 0)
-						modifierFlags:0
-						timestamp:0
-						windowNumber:0
-						context: nil
-						subtype: 0
-						data1: reinterpret_cast<NSInteger>(new std::function<void()>(std::move(a)))
-						data2: 0
-					];
+// 				NSEvent* e = [NSEvent
+// 						otherEventWithType: NSEventTypeApplicationDefined
+// 						location: NSMakePoint(0, 0)
+// 						modifierFlags:0
+// 						timestamp:0
+// 						windowNumber:0
+// 						context: nil
+// 						subtype: 0
+// 						data1: reinterpret_cast<NSInteger>(new std::function<void()>(std::move(a)))
+// 						data2: 0
+// 					];
 
-				[ww.applicationObjectId postEvent:e atStart:NO];
-			},
-			.set_mouse_cursor_function = [](ruis::mouse_cursor c){
-				// TODO:
-			},
-			.units = ruis::units(
-				getDotsPerInch(), //
-				getDotsPerPt()
-			)
-		}
-	)),
-	directory(get_application_directories(this->name))
-{
-	utki::log_debug([&](auto&o){o << "application::application(): enter" << std::endl;});
-	this->update_window_rect(
-			ruis::rect(
-					0,
-					0,
-					ruis::real(wp.dims.x()),
-					ruis::real(wp.dims.y())
-				)
-		);
-}
+// 				[ww.applicationObjectId postEvent:e atStart:NO];
+// 			},
+// 			.set_mouse_cursor_function = [](ruis::mouse_cursor c){
+// 				// TODO:
+// 			},
+// 			.units = ruis::units(
+// 				getDotsPerInch(), //
+// 				getDotsPerPt()
+// 			)
+// 		}
+// 	)),
+// 	directory(get_application_directories(this->name))
+// {
+// 	utki::log_debug([&](auto&o){o << "application::application(): enter" << std::endl;});
+// 	this->update_window_rect(
+// 			ruis::rect(
+// 					0,
+// 					0,
+// 					ruis::real(wp.dims.x()),
+// 					ruis::real(wp.dims.y())
+// 				)
+// 		);
+// }
 
-void application::swap_frame_buffers(){
-	auto& ww = get_impl(this->window_pimpl);
-	[ww.openglContextId flushBuffer];
-}
+// TODO:
+// void application::swap_frame_buffers(){
+// 	auto& ww = get_impl(this->window_pimpl);
+// 	[ww.openglContextId flushBuffer];
+// }
 
-void application::set_fullscreen(bool enable){
-	if(enable == this->is_fullscreen()){
-		return;
-	}
+// void application::set_fullscreen(bool enable){
+// 	if(enable == this->is_fullscreen()){
+// 		return;
+// 	}
 
-	auto& ww = get_impl(this->window_pimpl);
+// 	auto& ww = get_impl(this->window_pimpl);
 
-	if(enable){
-		// save old window size
-		NSRect rect = [ww.windowObjectId frame];
-		this->before_fullscreen_window_rect.p.x() = rect.origin.x;
-		this->before_fullscreen_window_rect.p.y() = rect.origin.y;
-		this->before_fullscreen_window_rect.d.x() = rect.size.width;
-		this->before_fullscreen_window_rect.d.y() = rect.size.height;
+// 	if(enable){
+// 		// save old window size
+// 		NSRect rect = [ww.windowObjectId frame];
+// 		this->before_fullscreen_window_rect.p.x() = rect.origin.x;
+// 		this->before_fullscreen_window_rect.p.y() = rect.origin.y;
+// 		this->before_fullscreen_window_rect.d.x() = rect.size.width;
+// 		this->before_fullscreen_window_rect.d.y() = rect.size.height;
 
-		[ww.windowObjectId setStyleMask:([ww.windowObjectId styleMask] & (~(NSWindowStyleMaskTitled | NSWindowStyleMaskResizable)))];
+// 		[ww.windowObjectId setStyleMask:([ww.windowObjectId styleMask] & (~(NSWindowStyleMaskTitled | NSWindowStyleMaskResizable)))];
 
-		[ww.windowObjectId setFrame:[[NSScreen mainScreen] frame] display:YES animate:NO];
-		[ww.windowObjectId setLevel:NSScreenSaverWindowLevel];
-	}else{
-		[ww.windowObjectId setStyleMask:([ww.windowObjectId styleMask] | NSWindowStyleMaskTitled | NSWindowStyleMaskResizable)];
+// 		[ww.windowObjectId setFrame:[[NSScreen mainScreen] frame] display:YES animate:NO];
+// 		[ww.windowObjectId setLevel:NSScreenSaverWindowLevel];
+// 	}else{
+// 		[ww.windowObjectId setStyleMask:([ww.windowObjectId styleMask] | NSWindowStyleMaskTitled | NSWindowStyleMaskResizable)];
 
-		NSRect oldFrame;
-		oldFrame.origin.x = this->before_fullscreen_window_rect.p.x();
-		oldFrame.origin.y = this->before_fullscreen_window_rect.p.y();
-		oldFrame.size.width = this->before_fullscreen_window_rect.d.x();
-		oldFrame.size.height = this->before_fullscreen_window_rect.d.y();
+// 		NSRect oldFrame;
+// 		oldFrame.origin.x = this->before_fullscreen_window_rect.p.x();
+// 		oldFrame.origin.y = this->before_fullscreen_window_rect.p.y();
+// 		oldFrame.size.width = this->before_fullscreen_window_rect.d.x();
+// 		oldFrame.size.height = this->before_fullscreen_window_rect.d.y();
 
-		[ww.windowObjectId setFrame:oldFrame display:YES animate:NO];
-		[ww.windowObjectId setLevel:NSNormalWindowLevel];
-	}
+// 		[ww.windowObjectId setFrame:oldFrame display:YES animate:NO];
+// 		[ww.windowObjectId setLevel:NSNormalWindowLevel];
+// 	}
 
-	[ww.windowObjectId initStuff];
+// 	[ww.windowObjectId initStuff];
 
-	this->is_fullscreen_v = enable;
-}
+// 	this->is_fullscreen_v = enable;
+// }
 
-void application::set_mouse_cursor_visible(bool visible){
-	auto& ww = get_impl(this->window_pimpl);
-	if(visible){
-		if(!ww.mouseCursorIsCurrentlyVisible){
-			[NSCursor unhide];
-			ww.mouseCursorIsCurrentlyVisible = true;
-		}
-	}else{
-		if(ww.mouseCursorIsCurrentlyVisible){
-			[NSCursor hide];
-			ww.mouseCursorIsCurrentlyVisible = false;
-		}
-	}
-}
+// void application::set_mouse_cursor_visible(bool visible){
+// 	auto& ww = get_impl(this->window_pimpl);
+// 	if(visible){
+// 		if(!ww.mouseCursorIsCurrentlyVisible){
+// 			[NSCursor unhide];
+// 			ww.mouseCursorIsCurrentlyVisible = true;
+// 		}
+// 	}else{
+// 		if(ww.mouseCursorIsCurrentlyVisible){
+// 			[NSCursor hide];
+// 			ww.mouseCursorIsCurrentlyVisible = false;
+// 		}
+// 	}
+// }

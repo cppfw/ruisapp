@@ -46,8 +46,19 @@ ruisapp::window& application_glue::make_window(const ruisapp::window_parameters&
 
 	auto ruis_context = utki::make_shared<ruis::context>(ruis::context::parameters{
 		.post_to_ui_thread_function =
-			[this](std::function<void()> proc) {
-				this->ui_queue.push_back(std::move(proc));
+			[this](std::function<void()> a) {
+				NSEvent* e =
+					[NSEvent otherEventWithType:NSEventTypeApplicationDefined
+									   location:NSMakePoint(0, 0)
+								  modifierFlags:0
+									  timestamp:0
+								   windowNumber:0
+										context:nil
+										subtype:0
+										  data1:reinterpret_cast<NSInteger>(new std::function<void()>(std::move(a)))
+										  data2:0];
+
+				[this->macos_application.application postEvent:e atStart:NO];
 			},
 		.updater = this->updater,
 		.renderer = utki::make_shared<ruis::render::renderer>(
@@ -89,3 +100,11 @@ void application_glue::destroy_window(app_window& w)
 
 	this->windows.erase(i);
 }
+
+ruisapp::application::application(parameters params) :
+	application(
+		utki::make_unique<application_glue>(params.graphics_api_version), //
+		get_application_directories(params.name),
+		std::move(params)
+	)
+{}
