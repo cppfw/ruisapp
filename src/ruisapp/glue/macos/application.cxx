@@ -91,7 +91,7 @@ ruisapp::window& application_glue::make_window(const ruisapp::window_parameters&
 
 void application_glue::destroy_window(app_window& w)
 {
-	auto i = this->windows.find(w);
+	auto i = std::find(this->windows.begin(), this->windows.end(), w);
 	utki::assert(i != this->windows.end(), SL);
 
 	// Defer actual window object destruction until next main loop cycle,
@@ -101,6 +101,12 @@ void application_glue::destroy_window(app_window& w)
 	this->windows.erase(i);
 }
 
+void application_glue::render(){
+	for(auto& w : this->windows){
+		w.get().render();
+	}
+}
+
 ruisapp::application::application(parameters params) :
 	application(
 		utki::make_unique<application_glue>(params.graphics_api_version), //
@@ -108,3 +114,22 @@ ruisapp::application::application(parameters params) :
 		std::move(params)
 	)
 {}
+
+void ruisapp::application::quit()noexcept{
+	auto& glue = get_glue();
+	glue.quit_flag.store(true);
+}
+
+ruisapp::window& ruisapp::application::make_window(const window_parameters& window_params)
+{
+	auto& glue = get_glue(*this);
+	return glue.make_window(window_params);
+}
+
+void ruisapp::application::destroy_window(ruisapp::window& w)
+{
+	auto& glue = get_glue(*this);
+
+	utki::assert(dynamic_cast<app_window*>(&w), SL);
+	glue.destroy_window(static_cast<app_window&>(w));
+}

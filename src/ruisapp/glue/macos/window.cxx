@@ -1,15 +1,16 @@
 #include "window.hxx"
 
+#include "key_code.map.hxx"
+
 @implementation CocoaView
 
-- (id)initWithFrame:(NSRect)rect //
-	associated_app_window:(app_window*)associated_app_window
+- (id)initWithFrame:(NSRect)rect
 {
 	self = [super initWithFrame:rect];
 	if (!self) {
 		return nil;
 	}
-	self->window = associated_app_window;
+	self->window = nullptr;
 	self->ta = [[NSTrackingArea alloc] initWithRect:rect
 											options:(NSTrackingActiveAlways | NSTrackingInVisibleRect |
 													 NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved)
@@ -28,37 +29,43 @@
 - (void)mouseDown:(NSEvent*)e
 {
 	//	TRACE(<< "left down!!!!!" << std::endl)
-	mouseButton(e, true, ruis::mouse_button::left);
+	// TODO:
+	// mouseButton(e, true, ruis::mouse_button::left);
 }
 
 - (void)mouseUp:(NSEvent*)e
 {
 	//	TRACE(<< "left up!!!!!" << std::endl)
-	mouseButton(e, false, ruis::mouse_button::left);
+	// TODO:
+	// mouseButton(e, false, ruis::mouse_button::left);
 }
 
 - (void)rightMouseDown:(NSEvent*)e
 {
 	//	TRACE(<< "right down!!!!!" << std::endl)
-	mouseButton(e, true, ruis::mouse_button::right);
+	// TODO:
+	// mouseButton(e, true, ruis::mouse_button::right);
 }
 
 - (void)rightMouseUp:(NSEvent*)e
 {
 	//	TRACE(<< "right up!!!!!" << std::endl)
-	mouseButton(e, false, ruis::mouse_button::right);
+	// TODO:
+	// mouseButton(e, false, ruis::mouse_button::right);
 }
 
 - (void)otherMouseDown:(NSEvent*)e
 {
 	//	TRACE(<< "middle down!!!!!" << std::endl)
-	mouseButton(e, true, ruis::mouse_button::middle);
+	// TODO:
+	// mouseButton(e, true, ruis::mouse_button::middle);
 }
 
 - (void)otherMouseUp:(NSEvent*)e
 {
 	//	TRACE(<< "middle up!!!!!" << std::endl)
-	mouseButton(e, false, ruis::mouse_button::middle);
+	// TODO:
+	// mouseButton(e, false, ruis::mouse_button::middle);
 }
 
 - (void)scrollWheel:(NSEvent*)e
@@ -66,23 +73,24 @@
 	//	TRACE(<< "mouse wheel!!!!!" << std::endl)
 
 	if ([e hasPreciseScrollingDeltas] == NO) {
-		ruis::mouse_button button;
-		//		TRACE(<< "dy = " << float(dy) << std::endl)
-		if ([e scrollingDeltaY] < 0) {
-			button = ruis::mouse_button::wheel_down;
-		} else if ([e scrollingDeltaY] > 0) {
-			button = ruis::mouse_button::wheel_up;
-		} else if ([e scrollingDeltaX] < 0) {
-			button = ruis::mouse_button::wheel_left;
-		} else if ([e scrollingDeltaX] > 0) {
-			button = ruis::mouse_button::wheel_right;
-		} else {
-			return;
-		}
+		// ruis::mouse_button button;
+		// //		TRACE(<< "dy = " << float(dy) << std::endl)
+		// if ([e scrollingDeltaY] < 0) {
+		// 	button = ruis::mouse_button::wheel_down;
+		// } else if ([e scrollingDeltaY] > 0) {
+		// 	button = ruis::mouse_button::wheel_up;
+		// } else if ([e scrollingDeltaX] < 0) {
+		// 	button = ruis::mouse_button::wheel_left;
+		// } else if ([e scrollingDeltaX] > 0) {
+		// 	button = ruis::mouse_button::wheel_right;
+		// } else {
+		// 	return;
+		// }
 		//		TRACE(<< "button = " << unsigned(button) << std::endl)
 
-		mouseButton(e, true, button);
-		mouseButton(e, false, button);
+		// TODO:
+		// mouseButton(e, true, button);
+		// mouseButton(e, false, button);
 	} else {
 		utki::log_debug([&](auto& o) {
 			o << "mouse wheel: precise scrolling deltas, UNIMPLEMENTED!!!!!" << std::endl;
@@ -93,10 +101,11 @@
 - (void)mouseMoved:(NSEvent*)e
 {
 	//	TRACE(<< "mouseMoved event!!!!!" << std::endl)
-	NSPoint pos = [e locationInWindow];
+	// NSPoint pos = [e locationInWindow];
 	//	TRACE(<< "x = " << pos.x << std::endl)
-	using std::round;
-	macosx_HandleMouseMove(round(ruis::vector2(pos.x, pos.y)), 0);
+	// TODO:
+	// using std::round;
+	// macosx_HandleMouseMove(round(ruis::vector2(pos.x, pos.y)), 0);
 }
 
 - (void)mouseDragged:(NSEvent*)e
@@ -118,37 +127,41 @@
 {
 	//	TRACE(<< "mouseEntered event!!!!!" << std::endl)
 	[[self window] setAcceptsMouseMovedEvents:YES];
-	macosx_HandleMouseHover(true);
+	// TODO:
+	// macosx_HandleMouseHover(true);
 }
 
 - (void)mouseExited:(NSEvent*)e
 {
 	//	TRACE(<< "mouseExited event!!!!!" << std::endl)
 	[[self window] setAcceptsMouseMovedEvents:NO];
-	macosx_HandleMouseHover(false);
+	// TODO:
+	// macosx_HandleMouseHover(false);
 }
 
 - (void)keyDown:(NSEvent*)e
 {
 	//	TRACE(<< "keyDown event!!!!!" << std::endl)
-	std::uint8_t kc = [e keyCode];
-	ruis::key key = keyCodeMap[kc];
+	// std::uint8_t kc = [e keyCode];
+	// ruis::key key = key_code_map[kc];
 
-	if ([e isARepeat] == YES) {
-		macosx_HandleCharacterInput([e characters], key);
-		return;
-	}
+	// if ([e isARepeat] == YES) {
+	// 	// TODO:
+	// 	// macosx_HandleCharacterInput([e characters], key);
+	// 	return;
+	// }
 
-	macosx_HandleKeyEvent(true, key);
-
-	macosx_HandleCharacterInput([e characters], key);
+	// TODO:
+	// macosx_HandleKeyEvent(true, key);
+	// macosx_HandleCharacterInput([e characters], key);
 }
 
 - (void)keyUp:(NSEvent*)e
 {
 	//	TRACE(<< "keyUp event!!!!!" << std::endl)
-	std::uint8_t kc = [e keyCode];
-	macosx_HandleKeyEvent(false, keyCodeMap[kc]);
+	// TODO:
+	// std::uint8_t kc = [e keyCode];
+	// macosx_HandleKeyEvent(false, keyCodeMap[kc]);
 }
 
 @end
@@ -159,7 +172,6 @@
 				styleMask:(NSUInteger)windowStyle
 				  backing:(NSBackingStoreType)bufferingType
 					defer:(BOOL)deferCreation
-	associated_app_window:(app_window*)associated_app_window
 {
 	self = [super initWithContentRect:contentRect styleMask:windowStyle backing:bufferingType defer:deferCreation];
 	if (!self) {
@@ -168,8 +180,7 @@
 	//	[self setLevel:NSFloatingWindowLevel];
 	[self setLevel:NSNormalWindowLevel];
 
-	self->v = [[CocoaView alloc] initWithFrame:[self frameRectForContentRect:contentRect] //
-						 associated_app_window:associated_app_window];
+	self->v = [[CocoaView alloc] initWithFrame:[self frameRectForContentRect:contentRect]];
 	[self setContentView:self->v];
 
 	[self initStuff];
@@ -201,10 +212,11 @@
 	utki::log_debug([&](auto& o) {
 		o << "window resize!!!!" << std::endl;
 	});
-	NSWindow* nsw = [n object];
-	NSRect frame = [nsw frame];
-	NSRect rect = [nsw contentRectForFrameRect:frame];
-	macosx_UpdateWindowRect(ruis::rect(0, 0, rect.size.width, rect.size.height));
+	// TODO:
+	// NSWindow* nsw = [n object];
+	// NSRect frame = [nsw frame];
+	// NSRect rect = [nsw contentRectForFrameRect:frame];
+	// macosx_UpdateWindowRect(ruis::rect(0, 0, rect.size.width, rect.size.height));
 }
 
 - (NSSize)windowWillResize:(NSWindow*)sender toSize:(NSSize)frameSize
@@ -217,6 +229,7 @@
 	utki::log_debug([&](auto& o) {
 		o << "window wants to close!!!!" << std::endl;
 	});
+	// TODO: call window close handler
 	application::inst().quit();
 	return NO;
 }

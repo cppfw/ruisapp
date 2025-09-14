@@ -3,17 +3,22 @@
 #import <Cocoa/Cocoa.h>
 #include <ruis/render/native_window.hpp>
 
+#include <utki/debug.hpp>
+
+#ifdef assert
+#	undef assert
+#endif
+
 namespace {
 class app_window;
 } // namespace
 
 @interface CocoaView : NSView {
-	app_window* window = nullptr;
+	@public app_window* window;
 	NSTrackingArea* ta;
 }
 
-- (id)initWithFrame:(NSRect)rect //
-	associated_app_window:(app_window*)associated_app_window;
+- (id)initWithFrame:(NSRect)rect;
 - (void)dealloc;
 
 - (void)mouseDown:(NSEvent*)e;
@@ -37,14 +42,13 @@ class app_window;
 @end
 
 @interface CocoaWindow : NSWindow <NSWindowDelegate> {
-	CocoaView* v;
+	@public CocoaView* v;
 }
 
 - (id)initWithContentRect:(NSRect)contentRect //
 				styleMask:(NSUInteger)windowStyle
 				  backing:(NSBackingStoreType)bufferingType
-					defer:(BOOL)deferCreation
-	associated_app_window:(app_window*)associated_app_window;
+					defer:(BOOL)deferCreation;
 - (void)dealloc;
 
 - (BOOL)canBecomeKeyWindow;
@@ -63,11 +67,10 @@ namespace {
 class native_window : public ruis::render::native_window
 {
 	struct cocoa_window_wrapper {
-		const CocoaWindow* window;
+		CocoaWindow* const window;
 
 		cocoa_window_wrapper(
-			const ruisapp::window_parameters& window_params, //
-			app_window* associated_app_window
+			const ruisapp::window_parameters& window_params
 		) :
 			window([&]() {
 				auto w = [[CocoaWindow alloc]
@@ -75,8 +78,7 @@ class native_window : public ruis::render::native_window
 								styleMask:(NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable |
 										   NSWindowStyleMaskClosable | NSWindowStyleMaskTitled)
 								  backing:NSBackingStoreBuffered
-									defer:NO
-					associated_app_window:associated_app_window];
+									defer:NO];
 				if (!w) {
 					throw std::runtime_error(
 						"cocoa_window_wrapper::cocoa_window_wrapper(): failed to create cocoa window object"
@@ -106,11 +108,11 @@ class native_window : public ruis::render::native_window
 	} cocoa_window;
 
 	struct opengl_context_wrapper {
-		const NSOpenGLContext* context;
+		NSOpenGLContext* const context;
 
 		opengl_context_wrapper(
 			const ruisapp::window_parameters& window_params, //
-			const NSOpenGLContext* shared_context
+			NSOpenGLContext* shared_context
 		) :
 			context([&]() {
 				std::vector<NSOpenGLPixelFormatAttribute> attributes;
@@ -140,7 +142,7 @@ class native_window : public ruis::render::native_window
 					[pixel_format release];
 				});
 
-				auto c = [[NSOpenGLContext alloc] initWithFormat:pixelFormat shareContext:shared_context];
+				auto c = [[NSOpenGLContext alloc] initWithFormat: pixel_format shareContext: shared_context];
 
 				if (!c) {
 					throw std::runtime_error(
@@ -150,15 +152,7 @@ class native_window : public ruis::render::native_window
 
 				return c;
 			}())
-		{
-			// if there are no any GL contexts current, then set this one
-			if ([NSOpenGLContext currentContext] == nil) {
-				this->bind_rendering_context();
-			}
-			if (glewInit() != GLEW_OK) {
-				throw std::runtime_error("GLEW initialization failed");
-			}
-		}
+		{}
 
 		opengl_context_wrapper(const opengl_context_wrapper&) = delete;
 		opengl_context_wrapper& operator=(const opengl_context_wrapper&) = delete;
@@ -184,8 +178,7 @@ public:
 		native_window* shared_gl_context_native_window
 	) :
 		cocoa_window(
-			window_params, //
-			associated_app_window
+			window_params
 		),
 		opengl_context(
 			window_params, //
@@ -194,6 +187,14 @@ public:
 		)
 	{
 		[this->opengl_context.context setView:[this->cocoa_window.window contentView]];
+
+		// if there are no any GL contexts current, then set this one
+		if ([NSOpenGLContext currentContext] == nil) {
+			[this->opengl_context.context makeCurrentContext];
+		}
+		if (glewInit() != GLEW_OK) {
+			throw std::runtime_error("GLEW initialization failed");
+		}
 	}
 
 	void set_app_window(app_window* w)
@@ -207,6 +208,6 @@ public:
 		[this->opengl_context.context makeCurrentContext];
 	}
 
-	void set_mouse_cursor_visible(bool visible);
+	void set_mouse_cursor_visible(bool visible)override;
 };
 } // namespace

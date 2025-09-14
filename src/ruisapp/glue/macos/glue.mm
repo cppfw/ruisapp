@@ -17,109 +17,110 @@ using namespace ruisapp;
 
 #include "application.hxx"
 
+// include implementations
+#include "application.cxx"
+#include "window.cxx"
+
+// namespace{
+// struct WindowWrapper : public utki::destructable{
+// 	// NSApplication* applicationObjectId;
+// 	// CocoaWindow* windowObjectId;
+// 	// NSOpenGLContext* openglContextId;
+
+// 	// TODO: use atomic
+// 	bool quitFlag = false;
+
+// 	bool mouseCursorIsCurrentlyVisible = true;
+
+// 	WindowWrapper(const window_parameters& wp);
+
+// 	~WindowWrapper()noexcept;
+// };
+
+// WindowWrapper& get_impl(const std::unique_ptr<utki::destructable>& pimpl){
+// 	ASSERT(dynamic_cast<WindowWrapper*>(pimpl.get()))
+// 	return static_cast<WindowWrapper&>(*pimpl);
+// }
+// }
+
+// namespace{
+// void mouseButton(NSEvent* e, bool isDown, ruis::mouse_button button){
+// 	NSPoint winPos = [e locationInWindow];
+// 	using std::round;
+// 	auto pos = round(ruis::vector2(winPos.x, winPos.y));
+// 	handle_mouse_button(
+// 			ruisapp::application::inst(),
+// 			isDown,
+// 			ruis::vector2(pos.x(), ruisapp::application::inst().window_dims().y() - pos.y()),
+// 			button,
+// 			0
+// 		);
+// }
+
+// void macosx_HandleMouseMove(const ruis::vector2& pos, unsigned id){
+// 	handle_mouse_move(
+// 			ruisapp::application::inst(),
+// 			ruis::vector2(pos.x(), ruisapp::application::inst().window_dims().y() - pos.y()),
+// 			id
+// 		);
+// }
+
+// void macosx_HandleMouseHover(bool isHovered){
+// 	auto& ww = get_impl(get_window_pimpl(ruisapp::application::inst()));
+// 	if(!ww.mouseCursorIsCurrentlyVisible){
+// 		if(isHovered){
+// 			[NSCursor hide];
+// 		}else if(!isHovered){
+// 			[NSCursor unhide];
+// 		}
+// 	}
+
+// 	handle_mouse_hover(ruisapp::application::inst(), isHovered, 0);
+// }
+
+// void macosx_HandleKeyEvent(bool isDown, ruis::key keyCode){
+// 	handle_key_event(ruisapp::application::inst(), isDown, keyCode);
+// }
+
+// class macosx_input_string_provider : public ruis::gui::input_string_provider{
+// 	const NSString* nsStr;
+// public:
+// 	macosx_input_string_provider(const NSString* nsStr = nullptr) :
+// 			nsStr(nsStr)
+// 	{}
+
+// 	std::u32string get()const override{
+// 		if(!this->nsStr){
+// 			return std::u32string();
+// 		}
+
+// 		NSUInteger len = [this->nsStr length];
+
+// 		std::u32string ret(len, 0);
+// 		for(unsigned i = 0; i != len; ++i){
+// 			ret[i] = [this->nsStr characterAtIndex:i];
+// 		}
+
+// 		return ret;
+// 	}
+// };
+
+// void macosx_HandleCharacterInput(const void* nsstring, ruis::key key){
+// 	handle_character_input(ruisapp::application::inst(), macosx_input_string_provider(reinterpret_cast<const NSString*>(nsstring)), key);
+// }
+
+// void macosx_UpdateWindowRect(const ruis::rect& r){
+// 	auto& ww = get_impl(get_window_pimpl(ruisapp::application::inst()));
+// 	[ww.openglContextId update]; // after resizing window we need to update OpenGL context
+// 	update_window_rect(ruisapp::application::inst(), r);
+// }
+// }
 
 
 
-namespace{
-struct WindowWrapper : public utki::destructable{
-	// NSApplication* applicationObjectId;
-	// CocoaWindow* windowObjectId;
-	// NSOpenGLContext* openglContextId;
-
-	// TODO: use atomic
-	bool quitFlag = false;
-
-	bool mouseCursorIsCurrentlyVisible = true;
-
-	WindowWrapper(const window_parameters& wp);
-
-	~WindowWrapper()noexcept;
-};
-
-WindowWrapper& get_impl(const std::unique_ptr<utki::destructable>& pimpl){
-	ASSERT(dynamic_cast<WindowWrapper*>(pimpl.get()))
-	return static_cast<WindowWrapper&>(*pimpl);
-}
-}
-
-namespace{
-void mouseButton(NSEvent* e, bool isDown, ruis::mouse_button button){
-	NSPoint winPos = [e locationInWindow];
-	using std::round;
-	auto pos = round(ruis::vector2(winPos.x, winPos.y));
-	handle_mouse_button(
-			ruisapp::application::inst(),
-			isDown,
-			ruis::vector2(pos.x(), ruisapp::application::inst().window_dims().y() - pos.y()),
-			button,
-			0
-		);
-}
-
-void macosx_HandleMouseMove(const ruis::vector2& pos, unsigned id){
-	handle_mouse_move(
-			ruisapp::application::inst(),
-			ruis::vector2(pos.x(), ruisapp::application::inst().window_dims().y() - pos.y()),
-			id
-		);
-}
-
-void macosx_HandleMouseHover(bool isHovered){
-	auto& ww = get_impl(get_window_pimpl(ruisapp::application::inst()));
-	if(!ww.mouseCursorIsCurrentlyVisible){
-		if(isHovered){
-			[NSCursor hide];
-		}else if(!isHovered){
-			[NSCursor unhide];
-		}
-	}
-
-	handle_mouse_hover(ruisapp::application::inst(), isHovered, 0);
-}
-
-void macosx_HandleKeyEvent(bool isDown, ruis::key keyCode){
-	handle_key_event(ruisapp::application::inst(), isDown, keyCode);
-}
-
-class macosx_input_string_provider : public ruis::gui::input_string_provider{
-	const NSString* nsStr;
-public:
-	macosx_input_string_provider(const NSString* nsStr = nullptr) :
-			nsStr(nsStr)
-	{}
-
-	std::u32string get()const override{
-		if(!this->nsStr){
-			return std::u32string();
-		}
-
-		NSUInteger len = [this->nsStr length];
-
-		std::u32string ret(len, 0);
-		for(unsigned i = 0; i != len; ++i){
-			ret[i] = [this->nsStr characterAtIndex:i];
-		}
-
-		return ret;
-	}
-};
-
-void macosx_HandleCharacterInput(const void* nsstring, ruis::key key){
-	handle_character_input(ruisapp::application::inst(), macosx_input_string_provider(reinterpret_cast<const NSString*>(nsstring)), key);
-}
-
-void macosx_UpdateWindowRect(const ruis::rect& r){
-	auto& ww = get_impl(get_window_pimpl(ruisapp::application::inst()));
-	[ww.openglContextId update]; // after resizing window we need to update OpenGL context
-	update_window_rect(ruisapp::application::inst(), r);
-}
-}
-
-
-
-namespace{
-WindowWrapper::WindowWrapper(const window_parameters& wp){
-	utki::log_debug([&](auto&o){o << "WindowWrapper::WindowWrapper(): enter" << std::endl;});
+// namespace{
+// WindowWrapper::WindowWrapper(const window_parameters& wp){
+// 	utki::log_debug([&](auto&o){o << "WindowWrapper::WindowWrapper(): enter" << std::endl;});
 	// this->applicationObjectId = [NSApplication sharedApplication];
 
 	// if(!this->applicationObjectId){
@@ -147,7 +148,7 @@ WindowWrapper::WindowWrapper(const window_parameters& wp){
 
 	// [this->windowObjectId setTitle:[NSString stringWithUTF8String:wp.title.c_str()]];
 
-	{
+	// {
 		// std::vector<NSOpenGLPixelFormatAttribute> attributes;
 		// attributes.push_back(NSOpenGLPFAAccelerated);
 		// attributes.push_back(NSOpenGLPFAColorSize); attributes.push_back(24);
@@ -172,7 +173,7 @@ WindowWrapper::WindowWrapper(const window_parameters& wp){
 		// if(!this->openglContextId){
 		// 	throw std::runtime_error("WindowWrapper::WindowWrapper(): failed to create OpenGL context");
 		// }
-	}
+	// }
 
 	// utki::scope_exit scopeExitOpenGLContext([this](){
 	// 	[this->openglContextId release];
@@ -190,21 +191,16 @@ WindowWrapper::WindowWrapper(const window_parameters& wp){
 	// scopeExitApplication.release();
 
 	// utki::log_debug([&](auto&o){o << "WindowWrapper::WindowWrapper(): exit" << std::endl;});
-}
-}
+// }
+// }
 
-namespace{
-WindowWrapper::~WindowWrapper()noexcept{
-	[this->openglContextId release];
-	[this->windowObjectId release];
-	// [this->applicationObjectId release];
-}
-}
-
-void application::quit()noexcept{
-	auto& ww = get_impl(this->window_pimpl);
-	ww.quitFlag = true;
-}
+// namespace{
+// WindowWrapper::~WindowWrapper()noexcept{
+// 	[this->openglContextId release];
+// 	[this->windowObjectId release];
+// 	// [this->applicationObjectId release];
+// }
+// }
 
 int main(int argc, const char** argv){
 	utki::log_debug([&](auto&o){o << "main(): enter" << std::endl;});
@@ -219,14 +215,6 @@ int main(int argc, const char** argv){
 
 	utki::log_debug([&](auto&o){o << "main(): application instance created" << std::endl;});
 
-	auto& ww = get_impl(get_window_pimpl(*app));
-
-	// [ww.applicationObjectId activateIgnoringOtherApps:YES];
-
-	// TODO: what are these?
-	// [ww.windowObjectId makeKeyAndOrderFront:nil];
-	// [ww.windowObjectId orderFrontRegardless];
-
 	// in order to get keyboard events we need to be foreground application
 	{
 		ProcessSerialNumber psn = {0, kCurrentProcess};
@@ -237,11 +225,13 @@ int main(int argc, const char** argv){
 	}
 
 	do{
+		glue.windows_to_destroy.clear();
+
 		// main loop cycle sequence as required by ruis:
 		// - update updateables
 		// - render
 		// - wait for events and handle them
-		uint32_t millis = ruisapp::inst().gui.update();
+		uint32_t millis = glue.updater.get().update();
 
 		glue.render();
 
@@ -287,37 +277,38 @@ int main(int argc, const char** argv){
 	return 0;
 }
 
-namespace{
-ruis::real getDotsPerInch(){
-	NSScreen *screen = [NSScreen mainScreen];
-	NSDictionary *description = [screen deviceDescription];
-	NSSize displayPixelSize = [[description objectForKey:NSDeviceSize] sizeValue];
-	CGSize displayPhysicalSize = CGDisplayScreenSize(
-			[[description objectForKey:@"NSScreenNumber"] unsignedIntValue]
-		);
+// TODO:
+// namespace{
+// ruis::real getDotsPerInch(){
+// 	NSScreen *screen = [NSScreen mainScreen];
+// 	NSDictionary *description = [screen deviceDescription];
+// 	NSSize displayPixelSize = [[description objectForKey:NSDeviceSize] sizeValue];
+// 	CGSize displayPhysicalSize = CGDisplayScreenSize(
+// 			[[description objectForKey:@"NSScreenNumber"] unsignedIntValue]
+// 		);
 
-	ruis::real value = ruis::real(((displayPixelSize.width * 10.0f / displayPhysicalSize.width) +
-			(displayPixelSize.height * 10.0f / displayPhysicalSize.height)) / 2.0f);
-	value *= 2.54f;
-	return value;
-}
-}
+// 	ruis::real value = ruis::real(((displayPixelSize.width * 10.0f / displayPhysicalSize.width) +
+// 			(displayPixelSize.height * 10.0f / displayPhysicalSize.height)) / 2.0f);
+// 	value *= 2.54f;
+// 	return value;
+// }
+// }
 
-namespace{
-ruis::real getDotsPerPt(){
-	NSScreen *screen = [NSScreen mainScreen];
-	NSDictionary *description = [screen deviceDescription];
-	NSSize displayPixelSize = [[description objectForKey:NSDeviceSize] sizeValue];
-	CGSize displayPhysicalSize = CGDisplayScreenSize(
-			[[description objectForKey:@"NSScreenNumber"] unsignedIntValue]
-		);
+// namespace{
+// ruis::real getDotsPerPt(){
+// 	NSScreen *screen = [NSScreen mainScreen];
+// 	NSDictionary *description = [screen deviceDescription];
+// 	NSSize displayPixelSize = [[description objectForKey:NSDeviceSize] sizeValue];
+// 	CGSize displayPhysicalSize = CGDisplayScreenSize(
+// 			[[description objectForKey:@"NSScreenNumber"] unsignedIntValue]
+// 		);
 
-	r4::vector2<unsigned> resolution(displayPixelSize.width, displayPixelSize.height);
-	r4::vector2<unsigned> screenSizeMm(displayPhysicalSize.width, displayPhysicalSize.height);
+// 	r4::vector2<unsigned> resolution(displayPixelSize.width, displayPixelSize.height);
+// 	r4::vector2<unsigned> screenSizeMm(displayPhysicalSize.width, displayPhysicalSize.height);
 
-	return application::get_pixels_per_pp(resolution, screenSizeMm);
-}
-}
+// 	return application::get_pixels_per_pp(resolution, screenSizeMm);
+// }
+// }
 
 // application::application(
 // 	std::string name,
