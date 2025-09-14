@@ -36,16 +36,14 @@ class application_glue : public utki::destructable
 	const utki::shared_ref<ruis::resource_loader> ruis_resource_loader;
 	const utki::shared_ref<ruis::style_provider> ruis_style_provider;
 
-	std::set<
-		utki::shared_ref<app_window>, //
-		std::less<> //
-		>
-		windows;
+	std::set<utki::shared_ref<app_window>> windows;
 
 public:
 	std::atomic_bool quit_flag = false;
 
 	const utki::shared_ref<ruis::updater> updater = utki::make_shared<ruis::updater>();
+
+	std::vector<utki::shared_ref<app_window>> windows_to_destroy;
 
 	struct macos_application_wrapper {
 		const NSApplication* application;

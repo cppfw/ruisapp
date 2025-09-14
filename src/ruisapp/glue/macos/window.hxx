@@ -8,7 +8,7 @@ class app_window;
 } // namespace
 
 @interface CocoaView : NSView {
-	app_window* window;
+	app_window* window = nullptr;
 	NSTrackingArea* ta;
 }
 
@@ -181,8 +181,7 @@ public:
 	native_window(
 		const utki::version_duplet& gl_version,
 		const ruisapp::window_parameters& window_params,
-		native_window* shared_gl_context_native_window,
-		app_window* associated_app_window
+		native_window* shared_gl_context_native_window
 	) :
 		cocoa_window(
 			window_params, //
@@ -195,6 +194,12 @@ public:
 		)
 	{
 		[this->opengl_context.context setView:[this->cocoa_window.window contentView]];
+	}
+
+	void set_app_window(app_window* w)
+	{
+		utki::assert(!this->cocoa_window.window->v->window, SL);
+		this->cocoa_window.window->v->window = w;
 	}
 
 	void bind_rendering_context() override
