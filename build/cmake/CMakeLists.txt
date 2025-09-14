@@ -21,7 +21,7 @@ myci_declare_library(${name}-opengl
         ../../src
     INSTALL_INCLUDE_DIRECTORIES
         ../../src/${name}
-    PUBLIC_COMPILE_DEFINITIONS
+    PREPROCESSOR_DEFINITIONS
         "RUISAPP_RENDER_OPENGL"
     DEPENDENCIES
         nitki
@@ -41,7 +41,7 @@ myci_declare_library(${name}-opengles
     # header files are installed by ${name}-opengl target
     # INSTALL_INCLUDE_DIRECTORIES
     #     ../../src/${name}
-    PUBLIC_COMPILE_DEFINITIONS
+    PREPROCESSOR_DEFINITIONS
         "RUISAPP_RENDER_OPENGLES"
     DEPENDENCIES
         nitki
