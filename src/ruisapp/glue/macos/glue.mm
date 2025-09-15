@@ -44,18 +44,6 @@ using namespace ruisapp;
 // }
 
 // namespace{
-// void mouseButton(NSEvent* e, bool isDown, ruis::mouse_button button){
-// 	NSPoint winPos = [e locationInWindow];
-// 	using std::round;
-// 	auto pos = round(ruis::vector2(winPos.x, winPos.y));
-// 	handle_mouse_button(
-// 			ruisapp::application::inst(),
-// 			isDown,
-// 			ruis::vector2(pos.x(), ruisapp::application::inst().window_dims().y() - pos.y()),
-// 			button,
-// 			0
-// 		);
-// }
 
 // void macosx_HandleMouseMove(const ruis::vector2& pos, unsigned id){
 // 	handle_mouse_move(

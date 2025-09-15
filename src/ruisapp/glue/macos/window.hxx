@@ -74,7 +74,8 @@ class native_window : public ruis::render::native_window
 		) :
 			window([&]() {
 				auto w = [[CocoaWindow alloc]
-					  initWithContentRect:NSMakeRect(0, 0, window_params.dims.x(), window_params.dims.y())
+					  initWithContentRect:NSMakeRect(0,//
+						 0, window_params.dims.x(), window_params.dims.y())
 								styleMask:(NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable |
 										   NSWindowStyleMaskClosable | NSWindowStyleMaskTitled)
 								  backing:NSBackingStoreBuffered

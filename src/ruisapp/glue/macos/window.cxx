@@ -2,10 +2,38 @@
 
 #include "key_code.map.hxx"
 
+namespace{
+void handle_mouse_button(NSEvent* e,//
+	 bool is_down, ruis::mouse_button button, app_window& w){
+	NSPoint win_pos = [e locationInWindow];
+	using std::round;
+	auto pos = round(ruis::vector2(win_pos.x, win_pos.y));
+	
+	// TODO:
+	// pos.y() = w.dims().y() - pos.y();
+
+	w.gui.send_mouse_button(is_down, //
+		pos,
+		button,
+		0
+		);
+
+		// TODO: remove
+	// handle_mouse_button(
+	// 		ruisapp::application::inst(),
+	// 		isDown,
+	// 		ruis::vector2(pos.x(), ruisapp::application::inst().window_dims().y() - pos.y()),
+	// 		button,
+	// 		0
+	// 	);
+}
+}
+
 @implementation CocoaView
 
 - (id)initWithFrame:(NSRect)rect
 {
+	utki::log_debug([&](auto&o){o << "CocoaView::initWithFrame(): enter" << std::endl;});
 	self = [super initWithFrame:rect];
 	if (!self) {
 		return nil;
@@ -17,6 +45,7 @@
 											  owner:self
 										   userInfo:nil];
 	[self addTrackingArea:self->ta];
+	utki::log_debug([&](auto&o){o << "CocoaView::initWithFrame(): exit" << std::endl;});
 	return self;
 }
 
@@ -28,49 +57,55 @@
 
 - (void)mouseDown:(NSEvent*)e
 {
-	//	TRACE(<< "left down!!!!!" << std::endl)
-	// TODO:
-	// mouseButton(e, true, ruis::mouse_button::left);
+	utki::log_debug([&](auto&o){o << "left mouse button down!" << std::endl;});
+
+	if(!self->window){
+		return;
+	}
+
+	handle_mouse_button(e,//
+		 true, ruis::mouse_button::left, *self->window);
 }
 
 - (void)mouseUp:(NSEvent*)e
 {
-	//	TRACE(<< "left up!!!!!" << std::endl)
+	utki::log_debug([&](auto&o){o << "left mouse button up!" << std::endl;});
+
 	// TODO:
 	// mouseButton(e, false, ruis::mouse_button::left);
 }
 
 - (void)rightMouseDown:(NSEvent*)e
 {
-	//	TRACE(<< "right down!!!!!" << std::endl)
+	utki::log_debug([&](auto&o){o << "right mouse button down!" << std::endl;});
 	// TODO:
 	// mouseButton(e, true, ruis::mouse_button::right);
 }
 
 - (void)rightMouseUp:(NSEvent*)e
 {
-	//	TRACE(<< "right up!!!!!" << std::endl)
+	utki::log_debug([&](auto&o){o << "right mouse button up!" << std::endl;});
 	// TODO:
 	// mouseButton(e, false, ruis::mouse_button::right);
 }
 
 - (void)otherMouseDown:(NSEvent*)e
 {
-	//	TRACE(<< "middle down!!!!!" << std::endl)
+	utki::log_debug([&](auto&o){o << "middle mouse button down!" << std::endl;});
 	// TODO:
 	// mouseButton(e, true, ruis::mouse_button::middle);
 }
 
 - (void)otherMouseUp:(NSEvent*)e
 {
-	//	TRACE(<< "middle up!!!!!" << std::endl)
+	utki::log_debug([&](auto&o){o << "middle mouse button up!" << std::endl;});
 	// TODO:
 	// mouseButton(e, false, ruis::mouse_button::middle);
 }
 
 - (void)scrollWheel:(NSEvent*)e
 {
-	//	TRACE(<< "mouse wheel!!!!!" << std::endl)
+	utki::log_debug([&](auto&o){o << "mouse wheel!" << std::endl;});
 
 	if ([e hasPreciseScrollingDeltas] == NO) {
 		// ruis::mouse_button button;
@@ -100,7 +135,7 @@
 
 - (void)mouseMoved:(NSEvent*)e
 {
-	//	TRACE(<< "mouseMoved event!!!!!" << std::endl)
+	utki::log_debug([&](auto&o){o << "mouse moved!" << std::endl;});
 	// NSPoint pos = [e locationInWindow];
 	//	TRACE(<< "x = " << pos.x << std::endl)
 	// TODO:
@@ -110,22 +145,25 @@
 
 - (void)mouseDragged:(NSEvent*)e
 {
+	utki::log_debug([&](auto&o){o << "mouse left dragged!" << std::endl;});
 	[self mouseMoved:e];
 }
 
 - (void)rightMouseDragged:(NSEvent*)e
 {
+	utki::log_debug([&](auto&o){o << "mouse right dragged!" << std::endl;});
 	[self mouseMoved:e];
 }
 
 - (void)otherMouseDragged:(NSEvent*)e
 {
+	utki::log_debug([&](auto&o){o << "mouse middle dragged!" << std::endl;});
 	[self mouseMoved:e];
 }
 
 - (void)mouseEntered:(NSEvent*)e
 {
-	//	TRACE(<< "mouseEntered event!!!!!" << std::endl)
+	utki::log_debug([&](auto&o){o << "mouse enter!" << std::endl;});
 	[[self window] setAcceptsMouseMovedEvents:YES];
 	// TODO:
 	// macosx_HandleMouseHover(true);
@@ -133,7 +171,7 @@
 
 - (void)mouseExited:(NSEvent*)e
 {
-	//	TRACE(<< "mouseExited event!!!!!" << std::endl)
+	utki::log_debug([&](auto&o){o << "mouse exit!" << std::endl;});
 	[[self window] setAcceptsMouseMovedEvents:NO];
 	// TODO:
 	// macosx_HandleMouseHover(false);
@@ -141,7 +179,7 @@
 
 - (void)keyDown:(NSEvent*)e
 {
-	//	TRACE(<< "keyDown event!!!!!" << std::endl)
+	utki::log_debug([&](auto&o){o << "key down!" << std::endl;});
 	// std::uint8_t kc = [e keyCode];
 	// ruis::key key = key_code_map[kc];
 
@@ -158,7 +196,7 @@
 
 - (void)keyUp:(NSEvent*)e
 {
-	//	TRACE(<< "keyUp event!!!!!" << std::endl)
+	utki::log_debug([&](auto&o){o << "key up!" << std::endl;});
 	// TODO:
 	// std::uint8_t kc = [e keyCode];
 	// macosx_HandleKeyEvent(false, keyCodeMap[kc]);
@@ -236,8 +274,9 @@
 
 - (BOOL)canBecomeKeyWindow
 {
+	// This is needed for window without title bar to be able to get key events
 	return YES;
-} // This is needed for window without title bar to be able to get key events
+}
 
 - (BOOL)canBecomeMainWindow
 {

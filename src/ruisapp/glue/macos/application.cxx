@@ -21,8 +21,12 @@ application_glue::application_glue(const utki::version_duplet& gl_version) :
 },
 		nullptr // no shared gl context
 	)),
-	resource_loader_ruis_rendering_context(
-		utki::make_shared<ruis::render::opengl::context>(this->shared_gl_context_native_window)
+	resource_loader_ruis_rendering_context([&](){
+			utki::logcat_debug("application_glue::application_glue(): creating shared gl context", '\n');
+			auto c = utki::make_shared<ruis::render::opengl::context>(this->shared_gl_context_native_window);
+			utki::logcat_debug("application_glue::application_glue(): shared gl context created", '\n');
+			return c;
+		}()
 	),
 	common_shaders(this->resource_loader_ruis_rendering_context.get().make_shaders()),
 	common_render_objects(
@@ -37,12 +41,15 @@ application_glue::application_glue(const utki::version_duplet& gl_version) :
 	ruis_style_provider( //
 		utki::make_shared<ruis::style_provider>(this->ruis_resource_loader)
 	)
-{}
+{
+	utki::logcat_debug("application_glue::application_glue(): application_glue created", '\n');
+}
 
 ruisapp::window& application_glue::make_window(const ruisapp::window_parameters& window_params)
 {
 	auto ruis_native_window =
-		utki::make_shared<native_window>(this->gl_version, window_params, &this->shared_gl_context_native_window.get());
+		utki::make_shared<native_window>(this->gl_version,//
+			 window_params, &this->shared_gl_context_native_window.get());
 
 	auto ruis_context = utki::make_shared<ruis::context>(ruis::context::parameters{
 		.post_to_ui_thread_function =
@@ -69,6 +76,8 @@ ruisapp::window& application_glue::make_window(const ruisapp::window_parameters&
 		.style_provider = this->ruis_style_provider
 	});
 
+	utki::logcat_debug("application_glue::make_window(): ruis context created", '\n');
+
 	auto ruisapp_window = utki::make_shared<app_window>(
 		std::move(ruis_context), //
 		std::move(ruis_native_window)
@@ -83,8 +92,12 @@ ruisapp::window& application_glue::make_window(const ruisapp::window_parameters&
 		)
 	);
 
+	utki::logcat_debug("application_glue::make_window(): inserting window to set", '\n');
+
 	auto res = this->windows.insert(std::move(ruisapp_window));
 	utki::assert(res.second, SL);
+
+	utki::logcat_debug("application_glue::make_window(): window created", '\n');
 
 	return res.first->get();
 }

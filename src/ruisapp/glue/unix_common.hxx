@@ -23,6 +23,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "../application.hpp"
 
+#ifdef assert
+#	undef assert
+#endif
+
 namespace {
 
 inline std::string get_xdg_dir_home(
@@ -47,7 +51,7 @@ inline std::string get_xdg_dir_home(
 		throw std::runtime_error("failed to get user home directory. Is HOME environment variable set?");
 	}
 
-	ASSERT(papki::is_dir(default_subdir))
+	utki::assert(papki::is_dir(default_subdir), SL);
 	return utki::cat(
 		papki::as_dir(home_dir), //
 		default_subdir,
