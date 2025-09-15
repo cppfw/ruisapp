@@ -208,6 +208,10 @@ public:
 		[this->opengl_context.context makeCurrentContext];
 	}
 
+	void swap_frame_buffers()override{
+		[this->opengl_context.context flushBuffer];
+	}
+
 	void set_mouse_cursor_visible(bool visible)override;
 };
 } // namespace

@@ -366,11 +366,6 @@ int main(int argc, const char** argv){
 // }
 
 // TODO:
-// void application::swap_frame_buffers(){
-// 	auto& ww = get_impl(this->window_pimpl);
-// 	[ww.openglContextId flushBuffer];
-// }
-
 // void application::set_fullscreen(bool enable){
 // 	if(enable == this->is_fullscreen()){
 // 		return;
