@@ -2,7 +2,6 @@
 
 #import <Cocoa/Cocoa.h>
 #include <ruis/render/native_window.hpp>
-
 #include <utki/debug.hpp>
 
 #ifdef assert
@@ -14,7 +13,8 @@ class app_window;
 } // namespace
 
 @interface CocoaView : NSView {
-	@public app_window* window;
+@public
+	app_window* window;
 	NSTrackingArea* ta;
 }
 
@@ -42,7 +42,8 @@ class app_window;
 @end
 
 @interface CocoaWindow : NSWindow <NSWindowDelegate> {
-	@public CocoaView* v;
+@public
+	CocoaView* v;
 }
 
 - (id)initWithContentRect:(NSRect)contentRect //
@@ -69,17 +70,19 @@ class native_window : public ruis::render::native_window
 	struct cocoa_window_wrapper {
 		CocoaWindow* const window;
 
-		cocoa_window_wrapper(
-			const ruisapp::window_parameters& window_params
-		) :
+		cocoa_window_wrapper(const ruisapp::window_parameters& window_params) :
 			window([&]() {
 				auto w = [[CocoaWindow alloc]
-					  initWithContentRect:NSMakeRect(0,//
-						 0, window_params.dims.x(), window_params.dims.y())
-								styleMask:(NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable |
-										   NSWindowStyleMaskClosable | NSWindowStyleMaskTitled)
-								  backing:NSBackingStoreBuffered
-									defer:NO];
+					initWithContentRect:NSMakeRect(
+											0, //
+											0,
+											window_params.dims.x(),
+											window_params.dims.y()
+										)
+							  styleMask:(NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable |
+										 NSWindowStyleMaskClosable | NSWindowStyleMaskTitled)
+								backing:NSBackingStoreBuffered
+								  defer:NO];
 				if (!w) {
 					throw std::runtime_error(
 						"cocoa_window_wrapper::cocoa_window_wrapper(): failed to create cocoa window object"
@@ -143,7 +146,7 @@ class native_window : public ruis::render::native_window
 					[pixel_format release];
 				});
 
-				auto c = [[NSOpenGLContext alloc] initWithFormat: pixel_format shareContext: shared_context];
+				auto c = [[NSOpenGLContext alloc] initWithFormat:pixel_format shareContext:shared_context];
 
 				if (!c) {
 					throw std::runtime_error(
@@ -178,9 +181,7 @@ public:
 		const ruisapp::window_parameters& window_params,
 		native_window* shared_gl_context_native_window
 	) :
-		cocoa_window(
-			window_params
-		),
+		cocoa_window(window_params),
 		opengl_context(
 			window_params, //
 			shared_gl_context_native_window ? shared_gl_context_native_window->opengl_context.context
@@ -209,10 +210,11 @@ public:
 		[this->opengl_context.context makeCurrentContext];
 	}
 
-	void swap_frame_buffers()override{
+	void swap_frame_buffers() override
+	{
 		[this->opengl_context.context flushBuffer];
 	}
 
-	void set_mouse_cursor_visible(bool visible)override;
+	void set_mouse_cursor_visible(bool visible) override;
 };
 } // namespace

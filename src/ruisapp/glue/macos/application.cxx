@@ -21,13 +21,12 @@ application_glue::application_glue(const utki::version_duplet& gl_version) :
 },
 		nullptr // no shared gl context
 	)),
-	resource_loader_ruis_rendering_context([&](){
-			utki::logcat_debug("application_glue::application_glue(): creating shared gl context", '\n');
-			auto c = utki::make_shared<ruis::render::opengl::context>(this->shared_gl_context_native_window);
-			utki::logcat_debug("application_glue::application_glue(): shared gl context created", '\n');
-			return c;
-		}()
-	),
+	resource_loader_ruis_rendering_context([&]() {
+		utki::logcat_debug("application_glue::application_glue(): creating shared gl context", '\n');
+		auto c = utki::make_shared<ruis::render::opengl::context>(this->shared_gl_context_native_window);
+		utki::logcat_debug("application_glue::application_glue(): shared gl context created", '\n');
+		return c;
+	}()),
 	common_shaders(this->resource_loader_ruis_rendering_context.get().make_shaders()),
 	common_render_objects(
 		utki::make_shared<ruis::render::renderer::objects>(this->resource_loader_ruis_rendering_context)
@@ -47,9 +46,11 @@ application_glue::application_glue(const utki::version_duplet& gl_version) :
 
 ruisapp::window& application_glue::make_window(const ruisapp::window_parameters& window_params)
 {
-	auto ruis_native_window =
-		utki::make_shared<native_window>(this->gl_version,//
-			 window_params, &this->shared_gl_context_native_window.get());
+	auto ruis_native_window = utki::make_shared<native_window>(
+		this->gl_version, //
+		window_params,
+		&this->shared_gl_context_native_window.get()
+	);
 
 	auto ruis_context = utki::make_shared<ruis::context>(ruis::context::parameters{
 		.post_to_ui_thread_function =
@@ -114,8 +115,9 @@ void application_glue::destroy_window(app_window& w)
 	this->windows.erase(i);
 }
 
-void application_glue::render(){
-	for(auto& w : this->windows){
+void application_glue::render()
+{
+	for (auto& w : this->windows) {
 		w.get().render();
 	}
 }
@@ -128,7 +130,8 @@ ruisapp::application::application(parameters params) :
 	)
 {}
 
-void ruisapp::application::quit()noexcept{
+void ruisapp::application::quit() noexcept
+{
 	auto& glue = get_glue();
 	glue.quit_flag.store(true);
 }

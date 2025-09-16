@@ -17,14 +17,18 @@ class app_window : public ruisapp::window
 public:
 	const utki::shared_ref<native_window> ruis_native_window;
 
-	app_window(utki::shared_ref<ruis::context> ruis_context, //
-	utki::shared_ref<native_window> ruis_native_window);
+	app_window(
+		utki::shared_ref<ruis::context> ruis_context, //
+		utki::shared_ref<native_window> ruis_native_window
+	);
 
-	bool operator<(const app_window& w)const noexcept{
+	bool operator<(const app_window& w) const noexcept
+	{
 		return this < &w;
 	}
 
-	bool operator==(const app_window& w)const noexcept{
+	bool operator==(const app_window& w) const noexcept
+	{
 		return this == &w;
 	}
 };

@@ -34,6 +34,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <utki/singleton.hpp>
 #include <utki/unique_ref.hpp>
 #include <utki/util.hpp>
+#include <utki/version.hpp>
 
 #include "config.hpp"
 #include "window.hpp"
