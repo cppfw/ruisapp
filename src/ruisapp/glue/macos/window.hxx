@@ -43,7 +43,7 @@ class app_window;
 
 @interface CocoaWindow : NSWindow <NSWindowDelegate> {
 @public
-	CocoaView* v;
+	CocoaView* view;
 }
 
 - (id)initWithContentRect:(NSRect)contentRect //
@@ -201,8 +201,8 @@ public:
 
 	void set_app_window(app_window* w)
 	{
-		utki::assert(!this->cocoa_window.window->v->window, SL);
-		this->cocoa_window.window->v->window = w;
+		utki::assert(!this->cocoa_window.window->view->window, SL);
+		this->cocoa_window.window->view->window = w;
 	}
 
 	void bind_rendering_context() override

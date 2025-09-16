@@ -17,21 +17,14 @@ void handle_mouse_button(
 	// TODO:
 	// pos.y() = w.dims().y() - pos.y();
 
+	utki::logcat_debug("mouse down pos = ", pos, '\n');
+
 	w.gui.send_mouse_button(
 		is_down, //
 		pos,
 		button,
 		0
 	);
-
-	// TODO: remove
-	// handle_mouse_button(
-	// 		ruisapp::application::inst(),
-	// 		isDown,
-	// 		ruis::vector2(pos.x(), ruisapp::application::inst().window_dims().y() - pos.y()),
-	// 		button,
-	// 		0
-	// 	);
 }
 } // namespace
 
@@ -262,8 +255,8 @@ void handle_mouse_button(
 	//	[self setLevel:NSFloatingWindowLevel];
 	[self setLevel:NSNormalWindowLevel];
 
-	self->v = [[CocoaView alloc] initWithFrame:[self frameRectForContentRect:contentRect]];
-	[self setContentView:self->v];
+	self->view = [[CocoaView alloc] initWithFrame:[self frameRectForContentRect:contentRect]];
+	[self setContentView: self->view];
 
 	[self initStuff];
 
@@ -277,7 +270,7 @@ void handle_mouse_button(
 
 - (void)initStuff
 {
-	[self makeFirstResponder:self->v];
+	[self makeFirstResponder:self->view];
 	[self setDelegate:self];
 	[self makeKeyWindow];
 	[self makeMainWindow];
@@ -285,7 +278,7 @@ void handle_mouse_button(
 
 - (void)dealloc
 {
-	[self->v release];
+	[self->view release];
 	[super dealloc];
 }
 
@@ -330,11 +323,6 @@ void handle_mouse_button(
 - (BOOL)acceptsFirstResponder
 {
 	return YES;
-}
-
-- (CocoaView*)view
-{
-	return self->v;
 }
 
 @end
