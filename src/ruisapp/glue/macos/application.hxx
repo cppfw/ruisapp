@@ -31,6 +31,8 @@ public:
 	{
 		return this == &w;
 	}
+
+	void resize(const ruis::vec2& dims);
 };
 } // namespace
 

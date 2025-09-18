@@ -10,6 +10,25 @@ app_window::app_window(
 	this->ruis_native_window.get().set_app_window(this);
 }
 
+void app_window::resize(const ruis::vec2& dims){
+	auto& natwin = this->ruis_native_window.get();
+
+	natwin.resize(dims);
+
+	// TODO: take scale into account?
+	// auto& units = this->gui.context.get().units;
+	// units.set_dots_per_pp(natwin.get_scale());
+	// units.set_dots_per_inch(natwin.get_dpi());
+
+	this->gui.set_viewport( //
+		ruis::rect(
+			0, //
+			dims
+			// (dims * natwin.get_scale()).to<ruis::real>()
+		)
+	);
+}
+
 application_glue::application_glue(const utki::version_duplet& gl_version) :
 	gl_version(gl_version),
 	shared_gl_context_native_window(utki::make_shared<native_window>(

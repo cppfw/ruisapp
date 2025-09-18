@@ -60,7 +60,7 @@ class app_window;
 - (BOOL)windowShouldClose:(id)sender;
 - (NSSize)windowWillResize:(NSWindow*)sender toSize:(NSSize)frameSize;
 
-- (void)initStuff;
+- (void)init_stuff;
 
 @end
 
@@ -173,7 +173,11 @@ class native_window : public ruis::render::native_window
 		}
 	} opengl_context;
 
+	r4::rectangle<int> before_fullscreen_window_rect{0, 0, 0, 0};
+
 	bool mouse_cursor_currently_visible = true;
+
+	ruis::vec2 cur_win_dims;
 
 public:
 	native_window(
@@ -186,7 +190,8 @@ public:
 			window_params, //
 			shared_gl_context_native_window ? shared_gl_context_native_window->opengl_context.context
 											: nullptr // no shared context
-		)
+		),
+		cur_win_dims(window_params.dims.to<ruis::real>())
 	{
 		[this->opengl_context.context setView:[this->cocoa_window.window contentView]];
 
@@ -221,5 +226,18 @@ public:
 	{
 		return this->mouse_cursor_currently_visible;
 	}
+
+	const ruis::vec2& dims()const noexcept{
+		return this->cur_win_dims;
+	}
+
+	void resize(const ruis::vec2& dims){
+		this->cur_win_dims = dims;
+
+		// after resizing window we need to update the OpenGL context
+		[this->opengl_context.context update];
+	}
+
+	void set_fullscreen_internal(bool enable)override;
 };
 } // namespace

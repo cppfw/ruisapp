@@ -71,9 +71,8 @@ int main(int argc, const char** argv){
 			switch([event type]){
 				case NSEventTypeApplicationDefined:
 					{
-						auto data = [event data1];
+						NSInteger data = [event data1];
 						utki::assert(data, SL);
-						// TODO: use static_cast?
 						std::unique_ptr<std::function<void()>> m(reinterpret_cast<std::function<void()>*>(data));
 						(*m)();
 					}
@@ -182,57 +181,4 @@ int main(int argc, const char** argv){
 // 					ruis::real(wp.dims.y())
 // 				)
 // 		);
-// }
-
-// TODO:
-// void application::set_fullscreen(bool enable){
-// 	if(enable == this->is_fullscreen()){
-// 		return;
-// 	}
-
-// 	auto& ww = get_impl(this->window_pimpl);
-
-// 	if(enable){
-// 		// save old window size
-// 		NSRect rect = [ww.windowObjectId frame];
-// 		this->before_fullscreen_window_rect.p.x() = rect.origin.x;
-// 		this->before_fullscreen_window_rect.p.y() = rect.origin.y;
-// 		this->before_fullscreen_window_rect.d.x() = rect.size.width;
-// 		this->before_fullscreen_window_rect.d.y() = rect.size.height;
-
-// 		[ww.windowObjectId setStyleMask:([ww.windowObjectId styleMask] & (~(NSWindowStyleMaskTitled | NSWindowStyleMaskResizable)))];
-
-// 		[ww.windowObjectId setFrame:[[NSScreen mainScreen] frame] display:YES animate:NO];
-// 		[ww.windowObjectId setLevel:NSScreenSaverWindowLevel];
-// 	}else{
-// 		[ww.windowObjectId setStyleMask:([ww.windowObjectId styleMask] | NSWindowStyleMaskTitled | NSWindowStyleMaskResizable)];
-
-// 		NSRect oldFrame;
-// 		oldFrame.origin.x = this->before_fullscreen_window_rect.p.x();
-// 		oldFrame.origin.y = this->before_fullscreen_window_rect.p.y();
-// 		oldFrame.size.width = this->before_fullscreen_window_rect.d.x();
-// 		oldFrame.size.height = this->before_fullscreen_window_rect.d.y();
-
-// 		[ww.windowObjectId setFrame:oldFrame display:YES animate:NO];
-// 		[ww.windowObjectId setLevel:NSNormalWindowLevel];
-// 	}
-
-// 	[ww.windowObjectId initStuff];
-
-// 	this->is_fullscreen_v = enable;
-// }
-
-// void application::set_mouse_cursor_visible(bool visible){
-// 	auto& ww = get_impl(this->window_pimpl);
-// 	if(visible){
-// 		if(!ww.mouseCursorIsCurrentlyVisible){
-// 			[NSCursor unhide];
-// 			ww.mouseCursorIsCurrentlyVisible = true;
-// 		}
-// 	}else{
-// 		if(ww.mouseCursorIsCurrentlyVisible){
-// 			[NSCursor hide];
-// 			ww.mouseCursorIsCurrentlyVisible = false;
-// 		}
-// 	}
 // }

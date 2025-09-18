@@ -14,8 +14,9 @@ void handle_mouse_button(
 	using std::round;
 	auto pos = round(ruis::vector2(win_pos.x, win_pos.y));
 
-	// TODO:
-	// pos.y() = w.dims().y() - pos.y();
+	auto& natwin = w.ruis_native_window.get();
+
+	pos.y() = natwin.dims().y() - pos.y();
 
 	utki::logcat_debug("mouse down pos = ", pos, '\n');
 
@@ -39,8 +40,9 @@ void handle_mouse_move(
 	using std::round;
 	auto pos = round(ruis::vector2(win_pos.x, win_pos.y));
 
-	// TODO:
-	// pos.y() = w.dims().y() - pos.y();
+	auto& natwin = w.ruis_native_window.get();
+
+	pos.y() = natwin.dims().y() - pos.y();
 
 	utki::logcat_debug("mouse move pos = ", pos, '\n');
 
@@ -455,7 +457,7 @@ void handle_character_input(
 		return nil;
 	}
 
-	// TODO: is remove commented code?
+	// TODO: remove commented code?
 	//	[self setLevel:NSFloatingWindowLevel];
 
 	[self setLevel:NSNormalWindowLevel];
@@ -463,7 +465,7 @@ void handle_character_input(
 	self->view = [[CocoaView alloc] initWithFrame:[self frameRectForContentRect:contentRect]];
 	[self setContentView:self->view];
 
-	[self initStuff];
+	[self init_stuff];
 
 	[self setShowsResizeIndicator:YES];
 	[self setMinSize:NSMakeSize(0, 0)];
@@ -473,7 +475,7 @@ void handle_character_input(
 	return self;
 }
 
-- (void)initStuff
+- (void)init_stuff
 {
 	[self makeFirstResponder:self->view];
 	[self setDelegate:self];
@@ -499,17 +501,13 @@ void handle_character_input(
 		return;
 	}
 
-	//	auto& natwin = w->ruis_native_window.get();
-
 	NSWindow* nsw = [n object];
 	NSRect frame = [nsw frame];
 	NSRect rect = [nsw contentRectForFrameRect:frame];
 
-	ruis::rect new_win_rect(0, 0, rect.size.width, rect.size.height);
+	ruis::vec2 new_win_dims(rect.size.width, rect.size.height);
 
-	// TODO:
-	// 	[ww.openglContextId update]; // after resizing window we need to update OpenGL context
-	// 	update_window_rect(ruisapp::application::inst(), r);
+	w->resize(new_win_dims);
 }
 
 - (NSSize)windowWillResize:(NSWindow*)sender toSize:(NSSize)frameSize
@@ -561,13 +559,40 @@ void handle_character_input(
 void native_window::set_mouse_cursor_visible(bool visible)
 {
 	if (visible) {
-		if (!this->mouse_cursor_currently_visible) {
 			[NSCursor unhide];
-		}
 	} else {
-		if (this->mouse_cursor_currently_visible) {
 			[NSCursor hide];
-		}
 	}
 	this->mouse_cursor_currently_visible = visible;
+}
+
+void native_window::set_fullscreen_internal(bool enable){
+	if(enable){
+		// save old window size
+		NSRect rect = [this->cocoa_window.window frame];
+		this->before_fullscreen_window_rect.p.x() = rect.origin.x;
+		this->before_fullscreen_window_rect.p.y() = rect.origin.y;
+		this->before_fullscreen_window_rect.d.x() = rect.size.width;
+		this->before_fullscreen_window_rect.d.y() = rect.size.height;
+
+		[this->cocoa_window.window setStyleMask:([this->cocoa_window.window styleMask] & (~(NSWindowStyleMaskTitled | NSWindowStyleMaskResizable)))];
+
+		[this->cocoa_window.window //
+			setFrame:[[NSScreen mainScreen] frame] display:YES animate:NO];
+		[this->cocoa_window.window setLevel:NSScreenSaverWindowLevel];
+	}else{
+		[this->cocoa_window.window setStyleMask:([this->cocoa_window.window styleMask] | NSWindowStyleMaskTitled | NSWindowStyleMaskResizable)];
+
+		NSRect oldFrame;
+		oldFrame.origin.x = this->before_fullscreen_window_rect.p.x();
+		oldFrame.origin.y = this->before_fullscreen_window_rect.p.y();
+		oldFrame.size.width = this->before_fullscreen_window_rect.d.x();
+		oldFrame.size.height = this->before_fullscreen_window_rect.d.y();
+
+		[this->cocoa_window.window //
+			 setFrame:oldFrame display:YES animate:NO];
+		[this->cocoa_window.window setLevel:NSNormalWindowLevel];
+	}
+
+	[this->cocoa_window.window init_stuff];
 }
