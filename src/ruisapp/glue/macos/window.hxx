@@ -107,6 +107,13 @@ class native_window : public ruis::render::native_window
 
 		~cocoa_window_wrapper()
 		{
+			// after releasing the cocoa window object, it still can be referenced from somewhere else,
+			// so to prevent forwarding input events to a destroyed ruisapp window, set the pointer to nullptr
+			this->window->view->window = nullptr;
+
+			// Remove window from screen
+			[this->window orderOut:nil];
+
 			[this->window release];
 		}
 	} cocoa_window;
