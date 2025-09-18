@@ -217,7 +217,8 @@ public:
 
 	void set_mouse_cursor_visible(bool visible) override;
 
-	bool is_mouse_cursor_visible() const noexcept{
+	bool is_mouse_cursor_visible() const noexcept
+	{
 		return this->mouse_cursor_currently_visible;
 	}
 };

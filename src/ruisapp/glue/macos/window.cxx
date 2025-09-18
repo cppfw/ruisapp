@@ -28,7 +28,7 @@ void handle_mouse_button(
 }
 } // namespace
 
-namespace{
+namespace {
 void handle_mouse_move(
 	NSEvent* e, //
 	app_window& w
@@ -49,18 +49,18 @@ void handle_mouse_move(
 		0 // pointer id
 	);
 }
-}
+} // namespace
 
-namespace{
+namespace {
 void handle_mouse_hover(
 	bool is_hovered, //
 	app_window& w
 )
 {
-	if(!w.ruis_native_window.get().is_mouse_cursor_visible()){
-		if(is_hovered){
+	if (!w.ruis_native_window.get().is_mouse_cursor_visible()) {
+		if (is_hovered) {
 			[NSCursor hide];
-		}else{
+		} else {
 			[NSCursor unhide];
 		}
 	}
@@ -72,43 +72,48 @@ void handle_mouse_hover(
 		0 // pointer id
 	);
 }
-}
+} // namespace
 
-namespace{
+namespace {
 void handle_key_event(
 	bool is_down, //
 	ruis::key key_code,
 	app_window& w
-){
+)
+{
 	w.gui.send_key(
-		is_down,//
+		is_down, //
 		key_code
 	);
 }
-}
+} // namespace
 
-namespace{
+namespace {
 void handle_character_input(
 	NSEvent* e, //
 	ruis::key key,
 	app_window& w
-){
-	class macos_input_string_provider : public ruis::gui::input_string_provider{
+)
+{
+	class macos_input_string_provider : public ruis::gui::input_string_provider
+	{
 		const NSString* nsStr;
+
 	public:
 		macos_input_string_provider(const NSString* nsStr = nullptr) :
-				nsStr(nsStr)
+			nsStr(nsStr)
 		{}
 
-		std::u32string get()const override{
-			if(!this->nsStr){
+		std::u32string get() const override
+		{
+			if (!this->nsStr) {
 				return std::u32string();
 			}
 
 			NSUInteger len = [this->nsStr length];
 
 			std::u32string ret(len, 0);
-			for(unsigned i = 0; i != len; ++i){
+			for (unsigned i = 0; i != len; ++i) {
 				ret[i] = [this->nsStr characterAtIndex:i];
 			}
 
@@ -117,13 +122,13 @@ void handle_character_input(
 	};
 
 	const void* nsstring = [e characters];
-	
+
 	w.gui.send_character_input(
-		macos_input_string_provider(static_cast<const NSString*>(nsstring)),//
+		macos_input_string_provider(static_cast<const NSString*>(nsstring)), //
 		key
 	);
 }
-}
+} // namespace
 
 @implementation CocoaView
 
@@ -316,7 +321,7 @@ void handle_character_input(
 	if (!self->window) {
 		return;
 	}
-	
+
 	handle_mouse_move(
 		e, //
 		*self->window
@@ -358,8 +363,10 @@ void handle_character_input(
 		return;
 	}
 
-	handle_mouse_hover(true,//
-		*self->window);
+	handle_mouse_hover(
+		true, //
+		*self->window
+	);
 }
 
 - (void)mouseExited:(NSEvent*)e
@@ -373,8 +380,10 @@ void handle_character_input(
 		return;
 	}
 
-	handle_mouse_hover(false,//
-		*self->window);
+	handle_mouse_hover(
+		false, //
+		*self->window
+	);
 }
 
 - (void)keyDown:(NSEvent*)e
@@ -391,19 +400,25 @@ void handle_character_input(
 	ruis::key key = key_code_map[kc];
 
 	if ([e isARepeat] == YES) {
-		handle_character_input(e,//
+		handle_character_input(
+			e, //
 			key,
-		*self->window);
+			*self->window
+		);
 		return;
 	}
 
-	handle_key_event(true, //
+	handle_key_event(
+		true, //
 		key,
-	*self->window);
+		*self->window
+	);
 
-	handle_character_input(e,//
-			key,
-		*self->window);
+	handle_character_input(
+		e, //
+		key,
+		*self->window
+	);
 }
 
 - (void)keyUp:(NSEvent*)e
@@ -419,9 +434,11 @@ void handle_character_input(
 	std::uint8_t kc = [e keyCode];
 	ruis::key key = key_code_map[kc];
 
-	handle_key_event(false, //
+	handle_key_event(
+		false, //
 		key,
-	*self->window);
+		*self->window
+	);
 }
 
 @end
@@ -444,7 +461,7 @@ void handle_character_input(
 	[self setLevel:NSNormalWindowLevel];
 
 	self->view = [[CocoaView alloc] initWithFrame:[self frameRectForContentRect:contentRect]];
-	[self setContentView: self->view];
+	[self setContentView:self->view];
 
 	[self initStuff];
 
@@ -478,11 +495,11 @@ void handle_character_input(
 
 	auto* w = self->view->window;
 
-	if(!w){
+	if (!w) {
 		return;
 	}
 
-//	auto& natwin = w->ruis_native_window.get();
+	//	auto& natwin = w->ruis_native_window.get();
 
 	NSWindow* nsw = [n object];
 	NSRect frame = [nsw frame];
@@ -508,14 +525,14 @@ void handle_character_input(
 
 	auto* w = self->view->window;
 
-	if(!w){
+	if (!w) {
 		// TODO: what does this NO mean?
 		return NO;
 	}
 
 	auto& natwin = w->ruis_native_window.get();
 
-	if(natwin.close_handler){
+	if (natwin.close_handler) {
 		natwin.close_handler();
 	}
 
