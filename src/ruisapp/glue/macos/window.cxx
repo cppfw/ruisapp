@@ -28,6 +28,103 @@ void handle_mouse_button(
 }
 } // namespace
 
+namespace{
+void handle_mouse_move(
+	NSEvent* e, //
+	app_window& w
+)
+{
+	NSPoint win_pos = [e locationInWindow];
+
+	using std::round;
+	auto pos = round(ruis::vector2(win_pos.x, win_pos.y));
+
+	// TODO:
+	// pos.y() = w.dims().y() - pos.y();
+
+	utki::logcat_debug("mouse move pos = ", pos, '\n');
+
+	w.gui.send_mouse_move(
+		pos, //
+		0 // pointer id
+	);
+}
+}
+
+namespace{
+void handle_mouse_hover(
+	bool is_hovered, //
+	app_window& w
+)
+{
+	if(!w.ruis_native_window.get().is_mouse_cursor_visible()){
+		if(is_hovered){
+			[NSCursor hide];
+		}else{
+			[NSCursor unhide];
+		}
+	}
+
+	utki::logcat_debug("window mouse hovered: ", is_hovered, '\n');
+
+	w.gui.send_mouse_hover(
+		is_hovered, //
+		0 // pointer id
+	);
+}
+}
+
+namespace{
+void handle_key_event(
+	bool is_down, //
+	ruis::key key_code,
+	app_window& w
+){
+	w.gui.send_key(
+		is_down,//
+		key_code
+	);
+}
+}
+
+namespace{
+void handle_character_input(
+	NSEvent* e, //
+	ruis::key key,
+	app_window& w
+){
+	class macos_input_string_provider : public ruis::gui::input_string_provider{
+		const NSString* nsStr;
+	public:
+		macos_input_string_provider(const NSString* nsStr = nullptr) :
+				nsStr(nsStr)
+		{}
+
+		std::u32string get()const override{
+			if(!this->nsStr){
+				return std::u32string();
+			}
+
+			NSUInteger len = [this->nsStr length];
+
+			std::u32string ret(len, 0);
+			for(unsigned i = 0; i != len; ++i){
+				ret[i] = [this->nsStr characterAtIndex:i];
+			}
+
+			return ret;
+		}
+	};
+
+	const void* nsstring = [e characters];
+	
+	w.gui.send_character_input(
+		macos_input_string_provider(static_cast<const NSString*>(nsstring)),//
+		key
+	);
+}
+}
+
 @implementation CocoaView
 
 - (id)initWithFrame:(NSRect)rect
@@ -82,8 +179,16 @@ void handle_mouse_button(
 		o << "left mouse button up!" << std::endl;
 	});
 
-	// TODO:
-	// mouseButton(e, false, ruis::mouse_button::left);
+	if (!self->window) {
+		return;
+	}
+
+	handle_mouse_button(
+		e, //
+		false,
+		ruis::mouse_button::left,
+		*self->window
+	);
 }
 
 - (void)rightMouseDown:(NSEvent*)e
@@ -91,8 +196,17 @@ void handle_mouse_button(
 	utki::log_debug([&](auto& o) {
 		o << "right mouse button down!" << std::endl;
 	});
-	// TODO:
-	// mouseButton(e, true, ruis::mouse_button::right);
+
+	if (!self->window) {
+		return;
+	}
+
+	handle_mouse_button(
+		e, //
+		true,
+		ruis::mouse_button::right,
+		*self->window
+	);
 }
 
 - (void)rightMouseUp:(NSEvent*)e
@@ -100,8 +214,17 @@ void handle_mouse_button(
 	utki::log_debug([&](auto& o) {
 		o << "right mouse button up!" << std::endl;
 	});
-	// TODO:
-	// mouseButton(e, false, ruis::mouse_button::right);
+
+	if (!self->window) {
+		return;
+	}
+
+	handle_mouse_button(
+		e, //
+		false,
+		ruis::mouse_button::right,
+		*self->window
+	);
 }
 
 - (void)otherMouseDown:(NSEvent*)e
@@ -109,8 +232,17 @@ void handle_mouse_button(
 	utki::log_debug([&](auto& o) {
 		o << "middle mouse button down!" << std::endl;
 	});
-	// TODO:
-	// mouseButton(e, true, ruis::mouse_button::middle);
+
+	if (!self->window) {
+		return;
+	}
+
+	handle_mouse_button(
+		e, //
+		true,
+		ruis::mouse_button::middle,
+		*self->window
+	);
 }
 
 - (void)otherMouseUp:(NSEvent*)e
@@ -118,8 +250,17 @@ void handle_mouse_button(
 	utki::log_debug([&](auto& o) {
 		o << "middle mouse button up!" << std::endl;
 	});
-	// TODO:
-	// mouseButton(e, false, ruis::mouse_button::middle);
+
+	if (!self->window) {
+		return;
+	}
+
+	handle_mouse_button(
+		e, //
+		false,
+		ruis::mouse_button::middle,
+		*self->window
+	);
 }
 
 - (void)scrollWheel:(NSEvent*)e
@@ -128,25 +269,37 @@ void handle_mouse_button(
 		o << "mouse wheel!" << std::endl;
 	});
 
-	if ([e hasPreciseScrollingDeltas] == NO) {
-		// ruis::mouse_button button;
-		// //		TRACE(<< "dy = " << float(dy) << std::endl)
-		// if ([e scrollingDeltaY] < 0) {
-		// 	button = ruis::mouse_button::wheel_down;
-		// } else if ([e scrollingDeltaY] > 0) {
-		// 	button = ruis::mouse_button::wheel_up;
-		// } else if ([e scrollingDeltaX] < 0) {
-		// 	button = ruis::mouse_button::wheel_left;
-		// } else if ([e scrollingDeltaX] > 0) {
-		// 	button = ruis::mouse_button::wheel_right;
-		// } else {
-		// 	return;
-		// }
-		//		TRACE(<< "button = " << unsigned(button) << std::endl)
+	if (!self->window) {
+		return;
+	}
 
-		// TODO:
-		// mouseButton(e, true, button);
-		// mouseButton(e, false, button);
+	if ([e hasPreciseScrollingDeltas] == NO) {
+		ruis::mouse_button button;
+		if ([e scrollingDeltaY] < 0) {
+			button = ruis::mouse_button::wheel_down;
+		} else if ([e scrollingDeltaY] > 0) {
+			button = ruis::mouse_button::wheel_up;
+		} else if ([e scrollingDeltaX] < 0) {
+			button = ruis::mouse_button::wheel_left;
+		} else if ([e scrollingDeltaX] > 0) {
+			button = ruis::mouse_button::wheel_right;
+		} else {
+			return;
+		}
+
+		handle_mouse_button(
+			e, //
+			true,
+			button,
+			*self->window
+		);
+
+		handle_mouse_button(
+			e, //
+			false,
+			button,
+			*self->window
+		);
 	} else {
 		utki::log_debug([&](auto& o) {
 			o << "mouse wheel: precise scrolling deltas, UNIMPLEMENTED!!!!!" << std::endl;
@@ -159,11 +312,15 @@ void handle_mouse_button(
 	utki::log_debug([&](auto& o) {
 		o << "mouse moved!" << std::endl;
 	});
-	// NSPoint pos = [e locationInWindow];
-	//	TRACE(<< "x = " << pos.x << std::endl)
-	// TODO:
-	// using std::round;
-	// macosx_HandleMouseMove(round(ruis::vector2(pos.x, pos.y)), 0);
+
+	if (!self->window) {
+		return;
+	}
+	
+	handle_mouse_move(
+		e, //
+		*self->window
+	);
 }
 
 - (void)mouseDragged:(NSEvent*)e
@@ -196,8 +353,13 @@ void handle_mouse_button(
 		o << "mouse enter!" << std::endl;
 	});
 	[[self window] setAcceptsMouseMovedEvents:YES];
-	// TODO:
-	// macosx_HandleMouseHover(true);
+
+	if (!self->window) {
+		return;
+	}
+
+	handle_mouse_hover(true,//
+		*self->window);
 }
 
 - (void)mouseExited:(NSEvent*)e
@@ -206,8 +368,13 @@ void handle_mouse_button(
 		o << "mouse exit!" << std::endl;
 	});
 	[[self window] setAcceptsMouseMovedEvents:NO];
-	// TODO:
-	// macosx_HandleMouseHover(false);
+
+	if (!self->window) {
+		return;
+	}
+
+	handle_mouse_hover(false,//
+		*self->window);
 }
 
 - (void)keyDown:(NSEvent*)e
@@ -215,18 +382,28 @@ void handle_mouse_button(
 	utki::log_debug([&](auto& o) {
 		o << "key down!" << std::endl;
 	});
-	// std::uint8_t kc = [e keyCode];
-	// ruis::key key = key_code_map[kc];
 
-	// if ([e isARepeat] == YES) {
-	// 	// TODO:
-	// 	// macosx_HandleCharacterInput([e characters], key);
-	// 	return;
-	// }
+	if (!self->window) {
+		return;
+	}
 
-	// TODO:
-	// macosx_HandleKeyEvent(true, key);
-	// macosx_HandleCharacterInput([e characters], key);
+	std::uint8_t kc = [e keyCode];
+	ruis::key key = key_code_map[kc];
+
+	if ([e isARepeat] == YES) {
+		handle_character_input(e,//
+			key,
+		*self->window);
+		return;
+	}
+
+	handle_key_event(true, //
+		key,
+	*self->window);
+
+	handle_character_input(e,//
+			key,
+		*self->window);
 }
 
 - (void)keyUp:(NSEvent*)e
@@ -234,9 +411,17 @@ void handle_mouse_button(
 	utki::log_debug([&](auto& o) {
 		o << "key up!" << std::endl;
 	});
-	// TODO:
-	// std::uint8_t kc = [e keyCode];
-	// macosx_HandleKeyEvent(false, keyCodeMap[kc]);
+
+	if (!self->window) {
+		return;
+	}
+
+	std::uint8_t kc = [e keyCode];
+	ruis::key key = key_code_map[kc];
+
+	handle_key_event(false, //
+		key,
+	*self->window);
 }
 
 @end
@@ -252,7 +437,10 @@ void handle_mouse_button(
 	if (!self) {
 		return nil;
 	}
+
+	// TODO: is remove commented code?
 	//	[self setLevel:NSFloatingWindowLevel];
+
 	[self setLevel:NSNormalWindowLevel];
 
 	self->view = [[CocoaView alloc] initWithFrame:[self frameRectForContentRect:contentRect]];
@@ -287,11 +475,24 @@ void handle_mouse_button(
 	utki::log_debug([&](auto& o) {
 		o << "window resize!!!!" << std::endl;
 	});
+
+	auto* w = self->view->window;
+
+	if(!w){
+		return;
+	}
+
+//	auto& natwin = w->ruis_native_window.get();
+
+	NSWindow* nsw = [n object];
+	NSRect frame = [nsw frame];
+	NSRect rect = [nsw contentRectForFrameRect:frame];
+
+	ruis::rect new_win_rect(0, 0, rect.size.width, rect.size.height);
+
 	// TODO:
-	// NSWindow* nsw = [n object];
-	// NSRect frame = [nsw frame];
-	// NSRect rect = [nsw contentRectForFrameRect:frame];
-	// macosx_UpdateWindowRect(ruis::rect(0, 0, rect.size.width, rect.size.height));
+	// 	[ww.openglContextId update]; // after resizing window we need to update OpenGL context
+	// 	update_window_rect(ruisapp::application::inst(), r);
 }
 
 - (NSSize)windowWillResize:(NSWindow*)sender toSize:(NSSize)frameSize
@@ -304,8 +505,21 @@ void handle_mouse_button(
 	utki::log_debug([&](auto& o) {
 		o << "window wants to close!!!!" << std::endl;
 	});
-	// TODO: call window close handler
-	application::inst().quit();
+
+	auto* w = self->view->window;
+
+	if(!w){
+		// TODO: what does this NO mean?
+		return NO;
+	}
+
+	auto& natwin = w->ruis_native_window.get();
+
+	if(natwin.close_handler){
+		natwin.close_handler();
+	}
+
+	// TODO: what does this NO mean?
 	return NO;
 }
 

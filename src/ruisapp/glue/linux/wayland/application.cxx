@@ -18,15 +18,17 @@ void app_window::resize(const r4::vector2<uint32_t>& dims)
 		o << "resize window to " << std::dec << dims << std::endl;
 	});
 
-	this->ruis_native_window.get().resize(dims);
-
 	auto& natwin = this->ruis_native_window.get();
+
+	natwin.resize(dims);
 
 	auto& units = this->gui.context.get().units;
 	units.set_dots_per_pp(natwin.get_scale());
 	units.set_dots_per_inch(natwin.get_dpi());
 
-	this->gui.set_viewport(ruis::rect(0, (dims * natwin.get_scale()).to<ruis::real>()));
+	this->gui.set_viewport(//
+		ruis::rect(0,//
+		 (dims * natwin.get_scale()).to<ruis::real>()));
 }
 
 void app_window::refresh_dimensions()
