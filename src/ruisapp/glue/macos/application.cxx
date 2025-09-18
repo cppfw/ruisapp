@@ -1,5 +1,37 @@
 #include "application.hxx"
 
+namespace{
+ruis::real get_dots_per_inch(){
+	NSScreen *screen = [NSScreen mainScreen];
+	NSDictionary *description = [screen deviceDescription];
+	NSSize display_pixel_size = [[description objectForKey:NSDeviceSize] sizeValue];
+	CGSize display_physical_size = CGDisplayScreenSize(
+			[[description objectForKey:@"NSScreenNumber"] unsignedIntValue]
+		);
+
+	ruis::real value = ruis::real(((display_pixel_size.width * 10.0f / display_physical_size.width) +
+			(display_pixel_size.height * 10.0f / display_physical_size.height)) / 2.0f);
+	value *= 2.54f;
+	return value;
+}
+}
+
+namespace{
+ruis::real get_dots_per_pp(){
+	NSScreen *screen = [NSScreen mainScreen];
+	NSDictionary *description = [screen deviceDescription];
+	NSSize display_pixel_size = [[description objectForKey:NSDeviceSize] sizeValue];
+	CGSize display_physical_size = CGDisplayScreenSize(
+			[[description objectForKey:@"NSScreenNumber"] unsignedIntValue]
+		);
+
+	r4::vector2<unsigned> resolution(display_pixel_size.width, display_pixel_size.height);
+	r4::vector2<unsigned> screen_size_mm(display_physical_size.width, display_physical_size.height);
+
+	return application::get_pixels_per_pp(resolution, screen_size_mm);
+}
+}
+
 app_window::app_window(
 	utki::shared_ref<ruis::context> ruis_context, //
 	utki::shared_ref<native_window> ruis_native_window
@@ -24,6 +56,7 @@ void app_window::resize(const ruis::vec2& dims){
 		ruis::rect(
 			0, //
 			dims
+			// TODO: take scale into account?
 			// (dims * natwin.get_scale()).to<ruis::real>()
 		)
 	);
@@ -93,7 +126,11 @@ ruisapp::window& application_glue::make_window(const ruisapp::window_parameters&
 			this->common_shaders,
 			this->common_render_objects
 		),
-		.style_provider = this->ruis_style_provider
+		.style_provider = this->ruis_style_provider,
+		.units = ruis::units(
+						get_dots_per_inch(), //
+						get_dots_per_pp()
+					)
 	});
 
 	utki::logcat_debug("application_glue::make_window(): ruis context created", '\n');

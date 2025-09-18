@@ -44,7 +44,7 @@ void handle_mouse_move(
 
 	pos.y() = natwin.dims().y() - pos.y();
 
-	utki::logcat_debug("mouse move pos = ", pos, '\n');
+	// utki::logcat_debug("mouse move pos = ", pos, '\n');
 
 	w.gui.send_mouse_move(
 		pos, //
@@ -316,9 +316,9 @@ void handle_character_input(
 
 - (void)mouseMoved:(NSEvent*)e
 {
-	utki::log_debug([&](auto& o) {
-		o << "mouse moved!" << std::endl;
-	});
+	// utki::log_debug([&](auto& o) {
+	// 	o << "mouse moved!" << std::endl;
+	// });
 
 	if (!self->window) {
 		return;
