@@ -559,15 +559,16 @@ void handle_character_input(
 void native_window::set_mouse_cursor_visible(bool visible)
 {
 	if (visible) {
-			[NSCursor unhide];
+		[NSCursor unhide];
 	} else {
-			[NSCursor hide];
+		[NSCursor hide];
 	}
 	this->mouse_cursor_currently_visible = visible;
 }
 
-void native_window::set_fullscreen_internal(bool enable){
-	if(enable){
+void native_window::set_fullscreen_internal(bool enable)
+{
+	if (enable) {
 		// save old window size
 		NSRect rect = [this->cocoa_window.window frame];
 		this->before_fullscreen_window_rect.p.x() = rect.origin.x;
@@ -575,13 +576,17 @@ void native_window::set_fullscreen_internal(bool enable){
 		this->before_fullscreen_window_rect.d.x() = rect.size.width;
 		this->before_fullscreen_window_rect.d.y() = rect.size.height;
 
-		[this->cocoa_window.window setStyleMask:([this->cocoa_window.window styleMask] & (~(NSWindowStyleMaskTitled | NSWindowStyleMaskResizable)))];
+		[this->cocoa_window.window setStyleMask:([this->cocoa_window.window styleMask] &
+												 (~(NSWindowStyleMaskTitled | NSWindowStyleMaskResizable)))];
 
 		[this->cocoa_window.window //
-			setFrame:[[NSScreen mainScreen] frame] display:YES animate:NO];
+			setFrame:[[NSScreen mainScreen] frame]
+			 display:YES
+			 animate:NO];
 		[this->cocoa_window.window setLevel:NSScreenSaverWindowLevel];
-	}else{
-		[this->cocoa_window.window setStyleMask:([this->cocoa_window.window styleMask] | NSWindowStyleMaskTitled | NSWindowStyleMaskResizable)];
+	} else {
+		[this->cocoa_window.window setStyleMask:([this->cocoa_window.window styleMask] | NSWindowStyleMaskTitled |
+												 NSWindowStyleMaskResizable)];
 
 		NSRect oldFrame;
 		oldFrame.origin.x = this->before_fullscreen_window_rect.p.x();
@@ -590,7 +595,9 @@ void native_window::set_fullscreen_internal(bool enable){
 		oldFrame.size.height = this->before_fullscreen_window_rect.d.y();
 
 		[this->cocoa_window.window //
-			 setFrame:oldFrame display:YES animate:NO];
+			setFrame:oldFrame
+			 display:YES
+			 animate:NO];
 		[this->cocoa_window.window setLevel:NSNormalWindowLevel];
 	}
 

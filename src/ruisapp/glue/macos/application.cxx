@@ -1,36 +1,37 @@
 #include "application.hxx"
 
-namespace{
-ruis::real get_dots_per_inch(){
-	NSScreen *screen = [NSScreen mainScreen];
-	NSDictionary *description = [screen deviceDescription];
+namespace {
+ruis::real get_dots_per_inch()
+{
+	NSScreen* screen = [NSScreen mainScreen];
+	NSDictionary* description = [screen deviceDescription];
 	NSSize display_pixel_size = [[description objectForKey:NSDeviceSize] sizeValue];
-	CGSize display_physical_size = CGDisplayScreenSize(
-			[[description objectForKey:@"NSScreenNumber"] unsignedIntValue]
-		);
+	CGSize display_physical_size = CGDisplayScreenSize([[description objectForKey:@"NSScreenNumber"] unsignedIntValue]);
 
-	ruis::real value = ruis::real(((display_pixel_size.width * 10.0f / display_physical_size.width) +
-			(display_pixel_size.height * 10.0f / display_physical_size.height)) / 2.0f);
+	ruis::real value = ruis::real(
+		((display_pixel_size.width * 10.0f / display_physical_size.width) +
+		 (display_pixel_size.height * 10.0f / display_physical_size.height)) /
+		2.0f
+	);
 	value *= 2.54f;
 	return value;
 }
-}
+} // namespace
 
-namespace{
-ruis::real get_dots_per_pp(){
-	NSScreen *screen = [NSScreen mainScreen];
-	NSDictionary *description = [screen deviceDescription];
+namespace {
+ruis::real get_dots_per_pp()
+{
+	NSScreen* screen = [NSScreen mainScreen];
+	NSDictionary* description = [screen deviceDescription];
 	NSSize display_pixel_size = [[description objectForKey:NSDeviceSize] sizeValue];
-	CGSize display_physical_size = CGDisplayScreenSize(
-			[[description objectForKey:@"NSScreenNumber"] unsignedIntValue]
-		);
+	CGSize display_physical_size = CGDisplayScreenSize([[description objectForKey:@"NSScreenNumber"] unsignedIntValue]);
 
 	r4::vector2<unsigned> resolution(display_pixel_size.width, display_pixel_size.height);
 	r4::vector2<unsigned> screen_size_mm(display_physical_size.width, display_physical_size.height);
 
 	return application::get_pixels_per_pp(resolution, screen_size_mm);
 }
-}
+} // namespace
 
 app_window::app_window(
 	utki::shared_ref<ruis::context> ruis_context, //
@@ -42,7 +43,8 @@ app_window::app_window(
 	this->ruis_native_window.get().set_app_window(this);
 }
 
-void app_window::resize(const ruis::vec2& dims){
+void app_window::resize(const ruis::vec2& dims)
+{
 	auto& natwin = this->ruis_native_window.get();
 
 	natwin.resize(dims);
@@ -128,9 +130,9 @@ ruisapp::window& application_glue::make_window(const ruisapp::window_parameters&
 		),
 		.style_provider = this->ruis_style_provider,
 		.units = ruis::units(
-						get_dots_per_inch(), //
-						get_dots_per_pp()
-					)
+			get_dots_per_inch(), //
+			get_dots_per_pp()
+		)
 	});
 
 	utki::logcat_debug("application_glue::make_window(): ruis context created", '\n');

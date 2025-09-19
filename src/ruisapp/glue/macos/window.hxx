@@ -234,17 +234,19 @@ public:
 		return this->mouse_cursor_currently_visible;
 	}
 
-	const ruis::vec2& dims()const noexcept{
+	const ruis::vec2& dims() const noexcept
+	{
 		return this->cur_win_dims;
 	}
 
-	void resize(const ruis::vec2& dims){
+	void resize(const ruis::vec2& dims)
+	{
 		this->cur_win_dims = dims;
 
 		// after resizing window we need to update the OpenGL context
 		[this->opengl_context.context update];
 	}
 
-	void set_fullscreen_internal(bool enable)override;
+	void set_fullscreen_internal(bool enable) override;
 };
 } // namespace
