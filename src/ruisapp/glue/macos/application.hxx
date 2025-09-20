@@ -39,9 +39,6 @@ public:
 namespace {
 class application_glue : public utki::destructable
 {
-	// TODO: is needed?
-	// utki::shared_ref<display_wrapper> display = utki::make_shared<display_wrapper>();
-
 	const utki::version_duplet gl_version;
 
 	const utki::shared_ref<native_window> shared_gl_context_native_window;
