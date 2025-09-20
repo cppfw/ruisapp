@@ -390,6 +390,7 @@ native_window::device_context_wrapper::~device_context_wrapper()
 	);
 }
 
+#ifdef RUISAPP_RENDER_OPENGL
 native_window::opengl_context_wrapper::opengl_context_wrapper(
 	const device_context_wrapper& device_context,
 	const ruisapp::window_parameters& window_params
@@ -477,6 +478,7 @@ native_window::opengl_context_wrapper::~opengl_context_wrapper()
 		SL
 	);
 }
+#endif
 
 native_window::native_window(
 	const utki::version_duplet& gl_version,
