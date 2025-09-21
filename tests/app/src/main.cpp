@@ -52,23 +52,28 @@ using namespace ruis::make;
 }
 
 class application : public ruisapp::application{
+	ruisapp::window& window;
 public:
 	application() :
 		ruisapp::application(
-			"ruis-tests", 
+			ruisapp::application::parameters{
+				.name = "ruis-tests"s
+			}
+		),
+		window(this->make_window(
 			{
 				.dims = {1024, 800},
 				.orientation = ruisapp::orientation::landscape,
 				.buffers = {ruisapp::buffer::depth}
 			}
-		)
+		))
 	{
-		this->gui.init_standard_widgets(*this->get_res_file("../../res/ruis_res/"));
+		this->window.gui.init_standard_widgets(*this->get_res_file("../../res/ruis_res/"));
 
-		this->gui.context.get().loader().mount_res_pack(*this->get_res_file("res/"));
+		this->window.gui.context.get().loader().mount_res_pack(*this->get_res_file("res/"));
 
-		auto c = make_root_widget(this->gui.context);
-		this->gui.set_root(c);
+		auto c = make_root_widget(this->window.gui.context);
+		this->window.gui.set_root(c);
 
 		utki::dynamic_reference_cast<ruis::key_proxy>(c).get().key_handler = [this](ruis::key_proxy&, const ruis::key_event& e) -> bool {
 			if(e.is_down){
@@ -88,7 +93,7 @@ public:
 		};
 
 		std::dynamic_pointer_cast<ruis::push_button>(c.get().try_get_widget("push_button_in_scroll_container"))->click_handler = [this](ruis::push_button&){
-			this->gui.context.get().post_to_ui_thread(
+			this->window.gui.context.get().post_to_ui_thread(
 					[](){
 						std::cout << "Print from UI thread!!!!!!!!" << std::endl;
 					}
@@ -101,9 +106,9 @@ public:
 
 			auto& cp = c.get().get_widget_as<ruis::click_proxy>("cube_click_proxy");
 			auto& bg = c.get().get_widget_as<ruis::rectangle>("cube_bg_color");
-			cp.pressed_change_handler = [bg{utki::make_shared_from(bg)}](ruis::click_proxy& w) -> bool {
+			cp.pressed_change_handler = [r{utki::make_shared_from(bg)}](ruis::click_proxy& w) -> bool {
 				// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
-				bg.get().set_color(w.is_pressed() ? 0xff808080 : 0x80808080);
+				r.get().set_color(w.is_pressed() ? 0xff808080 : 0x80808080);
 				return true;
 			};
 			cp.pressed_change_handler(cp); // set initial color
@@ -305,21 +310,23 @@ public:
 
 		// fullscreen
 		{
-			auto b = c.get().try_get_widget_as<ruis::push_button>("fullscreen_button");
-			ASSERT(b)
-			b->click_handler = [this](ruis::push_button&) {
-				this->set_fullscreen(!this->is_fullscreen());
+			auto& b = c.get().get_widget_as<ruis::push_button>("fullscreen_button");
+			b.click_handler = [this](ruis::push_button&) {
+				auto& w = this->window.gui.context.get().window();
+				w.set_fullscreen(
+					!w.is_fullscreen()
+				);
 			};
 		}
 
 		// mouse cursor
 		{
-			auto b = c.get().try_get_widget_as<ruis::push_button>("showhide_mousecursor_button");
+			auto &b = c.get().get_widget_as<ruis::push_button>("showhide_mousecursor_button");
 			bool visible = true;
-			this->set_mouse_cursor_visible(visible);
-			b->click_handler = [visible, this](ruis::push_button&) mutable{
+			this->window.gui.context.get().window().set_mouse_cursor_visible(visible);
+			b.click_handler = [visible, this](ruis::push_button&) mutable{
 				visible = !visible;
-				this->set_mouse_cursor_visible(visible);
+				this->window.gui.context.get().window().set_mouse_cursor_visible(visible);
 			};
 		}
 	}

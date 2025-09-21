@@ -38,45 +38,50 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "../../application.hpp"
 
+#include "application.hxx"
+
+// include implementations
+#include "display.cxx"
+#include "application.cxx"
+#include "window.cxx"
+
 using namespace ruisapp;
 
-namespace {
-constexpr const char* window_class_name = "RuisappWindowClassName";
-} // namespace
+//namespace {
+//constexpr const char* window_class_name = "RuisappWindowClassName";
+//} // namespace
 
-namespace {
-struct window_wrapper : public utki::destructable {
-	HWND hwnd;
-	HDC hdc;
-
-#ifdef RUISAPP_RENDER_OPENGL
-	HGLRC hrc;
-#elif defined(RUISAPP_RENDER_OPENGLES)
-	EGLDisplay egl_display;
-	EGLSurface egl_surface;
-	EGLContext egl_context;
-#else
-#	error "Unknown graphics API"
-#endif
-
-	bool quitFlag = false;
-
-	bool isHovered = false; // for tracking when mouse enters or leaves window.
-
-	utki::flags<ruis::mouse_button> mouseButtonState;
-
-	bool mouseCursorIsCurrentlyVisible = true;
-
-	window_wrapper(const window_parameters& wp);
-
-	window_wrapper(const window_wrapper&) = delete;
-	window_wrapper& operator=(const window_wrapper&) = delete;
-
-	window_wrapper(window_wrapper&&) = delete;
-	window_wrapper& operator=(window_wrapper&&) = delete;
-
-	~window_wrapper() override;
-};
+//namespace {
+//struct window_wrapper : public utki::destructable {
+//	HWND hwnd;
+//	HDC hdc;
+//
+//#ifdef RUISAPP_RENDER_OPENGL
+//	HGLRC hrc;
+//#elif defined(RUISAPP_RENDER_OPENGLES)
+//	EGLDisplay egl_display;
+//	EGLSurface egl_surface;
+//	EGLContext egl_context;
+//#else
+//#	error "Unknown graphics API"
+//#endif
+//
+//	bool isHovered = false; // for tracking when mouse enters or leaves window.
+//
+//	utki::flags<ruis::mouse_button> mouseButtonState;
+//
+//	bool mouseCursorIsCurrentlyVisible = true;
+//
+//	window_wrapper(const window_parameters& wp);
+//
+//	window_wrapper(const window_wrapper&) = delete;
+//	window_wrapper& operator=(const window_wrapper&) = delete;
+//
+//	window_wrapper(window_wrapper&&) = delete;
+//	window_wrapper& operator=(window_wrapper&&) = delete;
+//
+//	~window_wrapper() override;
+//};
 
 // window_wrapper& get_impl(const std::unique_ptr<utki::destructable>& pimpl)
 // {
@@ -84,7 +89,7 @@ struct window_wrapper : public utki::destructable {
 // 	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast)
 // 	return static_cast<window_wrapper&>(*pimpl);
 // }
-} // namespace
+//} // namespace
 
 namespace {
 class windows_input_string_provider : public ruis::gui::input_string_provider
@@ -208,35 +213,53 @@ void winmain(
 
 	auto& glue = get_glue(*app);
 
-	auto& ww = get_impl(get_window_pimpl(*app));
+	while (!glue.quit_flag.load()) {
+		glue.windows_to_destroy.clear();
 
-	ShowWindow(ww.hwnd, SW_SHOW);
-
-	while (!ww.quitFlag) {
 		// main loop cycle sequence as required by ruis:
 		// - update updateables
 		// - render
 		// - wait for events and handle them/next cycle
-		uint32_t timeout = app->gui.update();
-		render(*app);
-		DWORD status = MsgWaitForMultipleObjectsEx(0, nullptr, timeout, QS_ALLINPUT, MWMO_INPUTAVAILABLE);
+		uint32_t timeout = glue.updater.get().update();
 
-		//		TRACE(<< "msg" << std::endl)
+		glue.render();
+
+		DWORD status = MsgWaitForMultipleObjectsEx(
+			0,// number of handles to wait for
+			nullptr,// we do not wait for any handles
+			timeout,
+			QS_ALLINPUT, // we wait for ALL inpuit events
+			MWMO_INPUTAVAILABLE // we wait for inpuit events
+		);
 
 		if (status == WAIT_OBJECT_0) {
+			// not a timeout, some events happened
+
 			MSG msg;
-			while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
-				//				TRACE(<< "msg got, msg.message = " <<
-				// msg.message << std::endl)
+			while (PeekMessage(
+				&msg,//
+				NULL, // retrieve messages for any window, as well as thread messages
+				0, // no message filtering, retrieve all messages
+				0, // no message filtering, retrieve all messages
+				PM_REMOVE // remove messages from queue after processing by PeekMessage()
+			)) {
 				if (msg.message == WM_QUIT) {
-					ww.quitFlag = true;
+					glue.quit_flag.store(true);
 					break;
+				}else if (msg.message == WM_USER)
+				{
+					std::unique_ptr<std::function<void()>> m(
+						// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+						reinterpret_cast<std::function<void()>*>(msg.lParam)
+					);
+					(*m)();
+					continue;
 				}
+
 				TranslateMessage(&msg);
 				DispatchMessage(&msg);
 			}
 		}
-		//		TRACE(<< "loop" << std::endl)
 	}
 }
 } // namespace

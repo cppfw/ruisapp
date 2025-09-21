@@ -22,11 +22,13 @@ public:
 		utki::shared_ref<native_window> ruis_native_window
 	);
 
+	// needed for using with std::set
 	bool operator<(const app_window& w) const noexcept
 	{
 		return this < &w;
 	}
 
+	// needed for using with std::set
 	bool operator==(const app_window& w) const noexcept
 	{
 		return this == &w;

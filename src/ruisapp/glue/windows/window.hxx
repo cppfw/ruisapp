@@ -8,31 +8,24 @@
 
 #include "../../window.hpp"
 
-#ifdef(RUISAPP_RENDER_OPENGLES)
+#ifdef RUISAPP_RENDER_OPENGLES
 #	include "../egl_utils.hxx"
 #endif
+
+#include "display.hxx"
 
 namespace {
 class native_window : public ruis::render::native_window
 {
-	struct window_class_wrapper {
-		const std::string name;
-
-		window_class_wrapper();
-
-		window_class_wrapper(const window_class_wrapper&) = delete;
-		window_class_wrapper& operator=(const window_class_wrapper) = delete;
-
-		window_class_wrapper(window_class_wrapper&&) = delete;
-		window_class_wrapper& operator=(window_class_wrapper&&) = delete;
-
-		~window_class_wrapper();
-	} window_class;
+	utki::shared_ref<display_wrapper> display;
 
 	struct window_wrapper {
 		const HWND handle;
 
-		window_wrapper(const window_class_wrapper& window_class);
+		window_wrapper(
+			const display_wrapper::window_class_wrapper& window_class,
+			const ruisapp::window_parameters& window_params
+			);
 
 		window_wrapper(const window_wrapper&) = delete;
 		window_wrapper& operator=(const window_wrapper&) = delete;
@@ -65,7 +58,8 @@ class native_window : public ruis::render::native_window
 
 		opengl_context_wrapper(
 			const device_context_wrapper& device_context,
-			const ruisapp::window_parameters& window_params
+			const ruisapp::window_parameters& window_params,
+			HGLRC shared_context
 		);
 
 		opengl_context_wrapper(const opengl_context_wrapper&) = delete;
@@ -84,11 +78,20 @@ class native_window : public ruis::render::native_window
 #endif
 
 public:
+	using window_id_type = HWND;
+
+	window_id_type get_id()const noexcept {
+		return this->window.handle;
+	}
+
 	native_window(
+		utki::shared_ref<display_wrapper> display,
 		const utki::version_duplet& gl_version,
 		const ruisapp::window_parameters& window_params,
 		native_window* shared_gl_context_native_window
 	);
+
+	void bind_rendering_context()override;
 
 	void swap_frame_buffers() override;
 };

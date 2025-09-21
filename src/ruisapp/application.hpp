@@ -186,7 +186,7 @@ public:
 	 * @return shared_ref to the created window object.
 	 */
 	// TODO: allow injecting own style provider (along with loader)
-	ruisapp::window& make_window(const window_parameters& window_params);
+	ruisapp::window& make_window(window_parameters window_params);
 
 	/**
 	 * @brief Destroy native window.
