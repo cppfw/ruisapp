@@ -87,7 +87,7 @@ public:
 
 	application_glue(const utki::version_duplet& gl_version);
 
-	ruisapp::window& make_window(const ruisapp::window_parameters& window_params);
+	ruisapp::window& make_window(ruisapp::window_parameters window_params);
 	void destroy_window(app_window& w);
 
 	void render();
