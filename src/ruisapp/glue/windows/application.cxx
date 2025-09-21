@@ -53,7 +53,14 @@ application_glue::application_glue(const utki::version_duplet& gl_version) :
 	)),
 	resource_loader_ruis_rendering_context([&]() {
 		utki::logcat_debug("application_glue::application_glue(): creating shared gl context", '\n');
-		auto c = utki::make_shared<ruis::render::opengl::context>(this->shared_gl_context_native_window);
+#ifdef RUISAPP_RENDER_OPENGL
+		using context_type = ruis::render::opengl::context;
+#elif defined(RUISAPP_RENDER_OPENGLES)
+		using context_type = ruis::render::opengles::context;
+#else
+#	error "Unknown graphics API"
+#endif
+		auto c = utki::make_shared<context_type>(this->shared_gl_context_native_window);
 		utki::logcat_debug("application_glue::application_glue(): shared gl context created", '\n');
 		return c;
 	}()),

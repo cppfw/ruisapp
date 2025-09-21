@@ -278,10 +278,11 @@ struct egl_context_wrapper {
 				context_attrs.data()
 			);
 			if (egl_context == EGL_NO_CONTEXT) {
-				throw std::runtime_error(utki::cat(
+				auto message = utki::cat(
 					"eglCreateContext() failed, error: ", //
 					egl_error_to_string(eglGetError())
-				));
+				);
+				throw std::runtime_error(std::move(message));
 			}
 			return egl_context;
 		}())

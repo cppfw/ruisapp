@@ -199,9 +199,10 @@ native_window::native_window(
 		gl_version,
 		window_params
 	),
-	egl_surface(this->egl_display, this->egl_config, EGLNativeWindowType(this->window.handle)),
+	egl_surface(this->egl_display,//
+		this->egl_config, EGLNativeWindowType(this->window.handle)),
 	egl_context(
-		this->egl_display,
+		this->egl_display,//
 		gl_version,
 		this->egl_config,
 		shared_gl_context_native_window ? shared_gl_context_native_window->egl_context.context : EGL_NO_CONTEXT
