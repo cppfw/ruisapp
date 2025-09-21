@@ -168,62 +168,12 @@ native_window::opengl_context_wrapper::opengl_context_wrapper(
 			graphics_api_version.minor,
 			WGL_CONTEXT_PROFILE_MASK_ARB,
 			WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-			//WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
 			0 // terminate the list
 		};
 
 		HGLRC hrc = display.wgl_procedures.wgl_create_context_attribs_arb(device_context.context,//
 			shared_context,
 			rendering_context_attribs.data());
-
-		//static PIXELFORMATDESCRIPTOR pfd = {
-		//	sizeof(PIXELFORMATDESCRIPTOR),
-		//	1, // Version number of the structure, should be 1
-		//	PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
-		//	BYTE(PFD_TYPE_RGBA),
-		//	BYTE(utki::byte_bits * 4), // 32 bit color depth
-		//	BYTE(0),
-		//	BYTE(0),
-		//	BYTE(0),
-		//	BYTE(0),
-		//	BYTE(0),
-		//	BYTE(0), // color bits ignored
-		//	BYTE(0), // no alpha buffer
-		//	BYTE(0), // shift bit ignored
-		//	BYTE(0), // no accumulation buffer
-		//	BYTE(0),
-		//	BYTE(0),
-		//	BYTE(0),
-		//	BYTE(0), // accumulation bits ignored
-		//	window_params.buffers.get(ruisapp::buffer::depth) ? BYTE(utki::byte_bits * 2)
-		//													  : BYTE(0), // 16 bit depth buffer
-		//	window_params.buffers.get(ruisapp::buffer::stencil) ? BYTE(utki::byte_bits) : BYTE(0),
-		//	BYTE(0), // no auxiliary buffer
-		//	BYTE(PFD_MAIN_PLANE), // main drawing layer
-		//	BYTE(0), // reserved
-		//	0,
-		//	0,
-		//	0 // layer masks ignored
-		//};
-
-		//int pixel_format = ChoosePixelFormat(
-		//	device_context.context, //
-		//	&pfd
-		//);
-		//if (!pixel_format) {
-		//	throw std::runtime_error("Could not find suitable pixel format");
-		//}
-
-		//if (!SetPixelFormat(
-		//		device_context.context, //
-		//		pixel_format,
-		//		&pfd
-		//	))
-		//{
-		//	throw std::runtime_error("Could not set pixel format");
-		//}
-
-		//auto hrc = wglCreateContext(device_context.context);
 
 		if (hrc == NULL) {
 			DWORD error_code = GetLastError();
@@ -263,43 +213,7 @@ native_window::opengl_context_wrapper::opengl_context_wrapper(
 					error_code, ": ", error_message );
 			throw std::runtime_error(
 				std::move(message));
-
-
-
-			//LPVOID msg_buf;
-
-			//const char* error_message = "no info";
-
-			//if (FormatMessage(
-			//	FORMAT_MESSAGE_ALLOCATE_BUFFER | 
-			//	FORMAT_MESSAGE_FROM_SYSTEM |
-			//	FORMAT_MESSAGE_IGNORE_INSERTS,
-			//	NULL,
-			//	error_code,
-			//	MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-			//	(LPTSTR) &msg_buf, // TODO: static_cast?
-			//	0, 
-			//	NULL) == 0) {
-			//	error_message="message format failed";
-			//}
-			//else {
-			//	error_message = (LPCTSTR)msg_buf;// TODO: static_cast?
-			//}
-
-			//utki::scope_exit msg_buf_scope_exit([&]() {
-			//	LocalFree(msg_buf);
-			//});
-
-			//auto message = utki::cat("Failed to create OpenGL rendering context, error = ", //
-			//		error_code, ": ", error_message );
-			//throw std::runtime_error(
-			//	std::move(message));
 		}
-
-		//if(shared_context != NULL){
-		//	wglShareLists(hrc, //
-		//		shared_context);
-		//}
 
 		return hrc;
 	}())
