@@ -332,8 +332,6 @@ display_wrapper::window_class_wrapper::window_class_wrapper(
 	window_class_name(window_class_name)
 {
 	WNDCLASS wc;
-	// TODO: get rid of memset?
-	memset(&wc, 0, sizeof(wc));
 
 	wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC; // redraw on resize, own DC for window
 	wc.lpfnWndProc = window_procedure;
