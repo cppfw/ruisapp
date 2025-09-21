@@ -2,6 +2,10 @@
 
 #include <utki/windows.hpp>
 
+#ifdef RUISAPP_RENDER_OPENGL
+#	include <GL/wglext.h>
+#endif
+
 namespace {
 class display_wrapper {
 public:
@@ -24,6 +28,24 @@ struct window_class_wrapper {
 
 	window_class_wrapper dummy_window_class;
 	window_class_wrapper regular_window_class;
+
+#ifdef RUISAPP_RENDER_OPENGL
+	struct wgl_procedures_wrapper {
+		PFNWGLCHOOSEPIXELFORMATARBPROC wgl_choose_pixel_format_arb = nullptr;
+		PFNWGLCREATECONTEXTATTRIBSARBPROC wgl_create_context_attribs_arb = nullptr;
+
+		wgl_procedures_wrapper();
+
+		wgl_procedures_wrapper(const wgl_procedures_wrapper&) = delete;
+		wgl_procedures_wrapper& operator=(const wgl_procedures_wrapper&) = delete;
+
+		wgl_procedures_wrapper(wgl_procedures_wrapper&&) = delete;
+		wgl_procedures_wrapper& operator=(wgl_procedures_wrapper&&) = delete;
+
+		~wgl_procedures_wrapper() = default;
+
+	}wgl_procedures;
+#endif
 
 	display_wrapper();
 };

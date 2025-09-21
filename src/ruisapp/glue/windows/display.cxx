@@ -351,8 +351,91 @@ display_wrapper::window_class_wrapper::~window_class_wrapper()
 	);
 }
 
+namespace {
+const char* dummy_window_class_name = "ruisapp_dummy_window_class_name";
+}
+
+#ifdef RUISAPP_RENDER_OPENGL
+display_wrapper::wgl_procedures_wrapper::wgl_procedures_wrapper() {
+	HWND dummy_window = CreateWindowExA(
+        0,
+        dummy_window_class_name,
+        "",
+        0,
+        CW_USEDEFAULT,
+        CW_USEDEFAULT,
+        CW_USEDEFAULT,
+        CW_USEDEFAULT,
+        0,
+        0,
+        GetModuleHandle(NULL),
+        0);
+
+    if (!dummy_window) {
+        throw std::runtime_error("CreateWindowExA() failed");
+    }
+
+	utki::scope_exit window_scope_exit([&](){
+		DestroyWindow(dummy_window);
+	});
+
+    HDC dummy_dc = GetDC(dummy_window);
+	if (dummy_dc == NULL) {
+		throw std::runtime_error("GetDC() failed");
+	}
+	utki::scope_exit device_context_scope_exit([&]() {
+		ReleaseDC(dummy_window, //
+			dummy_dc);
+		});
+
+    PIXELFORMATDESCRIPTOR pfd = {
+        .nSize = sizeof(pfd),
+        .nVersion = 1,
+		.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
+        .iPixelType = PFD_TYPE_RGBA,
+        .cColorBits = 32,
+        .cAlphaBits = 8,
+		.cDepthBits = 24,
+        .cStencilBits = 8,
+		.iLayerType = PFD_MAIN_PLANE
+    };
+
+    int pixel_format = ChoosePixelFormat(dummy_dc, &pfd);
+    if (!pixel_format) {
+        throw std::runtime_error("ChoosePixelFormat() failed");
+    }
+    if (!SetPixelFormat(dummy_dc, pixel_format, &pfd)) {
+        throw std::runtime_error("SetPixelFormat() failed");
+    }
+
+    HGLRC dummy_context = wglCreateContext(dummy_dc);
+    if (dummy_context == NULL) {
+        throw std::runtime_error("wglCreateContext() failed");
+    }
+
+	utki::scope_exit rendering_context_scope_exit([&](){
+		wglMakeCurrent(dummy_dc,//
+			NULL);
+    wglDeleteContext(dummy_context);
+		});
+
+    if (!wglMakeCurrent(dummy_dc, dummy_context)) {
+        throw std::runtime_error("wglMakeCurrent() failed");
+    }
+
+	this->wgl_choose_pixel_format_arb = PFNWGLCHOOSEPIXELFORMATARBPROC(wglGetProcAddress("wglChoosePixelFormatARB"));   
+	if (!this->wgl_choose_pixel_format_arb) {
+		throw std::runtime_error("could not get wglChoosePixelFormatARB()");
+	}
+	this->wgl_create_context_attribs_arb= PFNWGLCREATECONTEXTATTRIBSARBPROC(wglGetProcAddress("wglCreateContextAttribsARB"));
+	if (!this->wgl_create_context_attribs_arb) {
+		throw std::runtime_error("could not get wglCreateContextAttribsARB()");
+	}
+}
+#endif
+
 display_wrapper::display_wrapper() :
-	dummy_window_class("ruisapp_dummy_window_class_name",//
+	dummy_window_class(dummy_window_class_name,//
 		DefWindowProc),
 	regular_window_class("ruisapp_window_class_name", //
 		window_procedure)
