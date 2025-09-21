@@ -124,10 +124,10 @@ void ruisapp::application::quit() noexcept
 	glue.quit_flag.store(true);
 }
 
-ruisapp::window& ruisapp::application::make_window(const window_parameters& window_params)
+ruisapp::window& ruisapp::application::make_window(window_parameters window_params)
 {
 	auto& glue = get_glue(*this);
-	return glue.make_window(window_params);
+	return glue.make_window(std::move(window_params));
 }
 
 void ruisapp::application::destroy_window(ruisapp::window& w)
@@ -138,7 +138,7 @@ void ruisapp::application::destroy_window(ruisapp::window& w)
 	glue.destroy_window(static_cast<app_window&>(w));
 }
 
-ruisapp::window& application_glue::make_window(const ruisapp::window_parameters& window_params)
+ruisapp::window& application_glue::make_window(ruisapp::window_parameters window_params)
 {
 	utki::logcat_debug("application_glue::make_window(): enter", '\n');
 

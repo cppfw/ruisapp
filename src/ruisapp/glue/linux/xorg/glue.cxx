@@ -153,7 +153,7 @@ public:
 
 	utki::shared_ref<ruis::updater> updater = utki::make_shared<ruis::updater>();
 
-	app_window& make_window(const ruisapp::window_parameters& window_params)
+	app_window& make_window(ruisapp::window_parameters window_params)
 	{
 		auto ruis_native_window = utki::make_shared<native_window>(
 			this->display, //
@@ -330,10 +330,10 @@ void application::quit() noexcept
 	glue.quit_flag.store(true);
 }
 
-ruisapp::window& application::make_window(const window_parameters& window_params)
+ruisapp::window& application::make_window(window_parameters window_params)
 {
 	auto& glue = get_glue(*this);
-	return glue.make_window(window_params);
+	return glue.make_window(std::move(window_params));
 }
 
 void application::destroy_window(ruisapp::window& w)
