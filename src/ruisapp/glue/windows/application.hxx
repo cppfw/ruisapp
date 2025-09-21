@@ -13,6 +13,11 @@ class app_window : public ruisapp::window{
 public:
 	const utki::shared_ref<native_window> ruis_native_window;
 
+	// for tracking when mouse enters or leaves window
+	bool is_hovered = false;
+
+	utki::flags<ruis::mouse_button> mouse_button_state = false;
+
 	app_window(
 		utki::shared_ref<ruis::context> ruis_context, //
 		utki::shared_ref<native_window> ruis_native_window

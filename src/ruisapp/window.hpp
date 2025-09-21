@@ -119,9 +119,6 @@ struct window_parameters {
 
 class window
 {
-	// TODO: only needed on windows, move to window implementation?
-	r4::rectangle<int> before_fullscreen_window_rect{0, 0, 0, 0};
-
 public:
 	ruis::gui gui;
 

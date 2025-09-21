@@ -130,7 +130,11 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 			this->common_shaders,
 			this->common_render_objects
 		),
-		.style_provider = this->ruis_style_provider
+		.style_provider = this->ruis_style_provider,
+		.units = ruis::units(
+ 				ruis_native_window.get().get_dots_per_inch(), //
+ 				ruis_native_window.get().get_dots_per_pp()
+ 			)
 	});
 
 	auto ruisapp_window = utki::make_shared<app_window>(

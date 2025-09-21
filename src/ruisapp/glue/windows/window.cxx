@@ -5,6 +5,8 @@
 
 #include <utki/windows.hpp>
 
+#include "application.hxx"
+
 native_window::window_wrapper::window_wrapper(
 	const display_wrapper::window_class_wrapper& window_class,
 	const ruisapp::window_parameters& window_params
@@ -336,3 +338,23 @@ void native_window::swap_frame_buffers()
 #	error "Unknown graphics API"
 #endif
 }
+
+ruis::real native_window::get_dots_per_inch()
+	{
+		constexpr auto num_dimensions = 2;
+		// average dots per cm over device dimensions
+		ruis::real dots_per_cm =
+			(ruis::real(GetDeviceCaps(this->device_context.context, HORZRES)) * std::deci::den / ruis::real(GetDeviceCaps(this->device_context.context, HORZSIZE)) +
+			 ruis::real(GetDeviceCaps(this->device_context.context, VERTRES)) * std::deci::den / ruis::real(GetDeviceCaps(this->device_context.context, VERTSIZE))) /
+			ruis::real(num_dimensions);
+
+		return ruis::real(dots_per_cm) * ruis::real(utki::cm_per_inch);
+	}
+
+ruis::real native_window::get_dots_per_pp()
+	{
+		r4::vector2<unsigned> resolution(GetDeviceCaps(this->device_context.context, HORZRES), GetDeviceCaps(this->device_context.context, VERTRES));
+		r4::vector2<unsigned> screen_size_mm(GetDeviceCaps(this->device_context.context, HORZSIZE), GetDeviceCaps(this->device_context.context, VERTSIZE));
+
+		return ruisapp::application::get_pixels_per_pp(resolution, screen_size_mm);
+	}
