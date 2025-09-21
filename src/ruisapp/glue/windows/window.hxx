@@ -73,7 +73,6 @@ class native_window : public ruis::render::native_window
 		~opengl_context_wrapper();
 	} opengl_context;
 #elif defined(RUISAPP_RENDER_OPENGLES)
-	egl_display_wrapper egl_display;
 	egl_config_wrapper egl_config;
 	egl_surface_wrapper egl_surface;
 	egl_context_wrapper egl_context;

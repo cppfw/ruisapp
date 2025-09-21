@@ -267,16 +267,15 @@ native_window::native_window(
 		shared_gl_context_native_window ? shared_gl_context_native_window->opengl_context.context : NULL
 	)
 #elif defined(RUISAPP_RENDER_OPENGLES)
-	egl_display(EGLNativeDisplayType(this->device_context.context)),
 	egl_config(
-		this->egl_display, //
+		this->display.get().egl_display, //
 		gl_version,
 		window_params
 	),
-	egl_surface(this->egl_display,//
+	egl_surface(this->display.get().egl_display,//
 		this->egl_config, EGLNativeWindowType(this->window.handle)),
 	egl_context(
-		this->egl_display,//
+		this->display.get().egl_display,//
 		gl_version,
 		this->egl_config,
 		shared_gl_context_native_window ? shared_gl_context_native_window->egl_context.context : EGL_NO_CONTEXT
@@ -312,7 +311,7 @@ void native_window::bind_rendering_context() {
 	}
 #elif defined(RUISAPP_RENDER_OPENGLES)
 	if (eglMakeCurrent(
-			this->egl_display.display,
+			this->display.get().egl_display.display,
 			this->egl_surface.surface,
 			this->egl_surface.surface,
 			this->egl_context.context
@@ -331,7 +330,7 @@ void native_window::swap_frame_buffers()
 	SwapBuffers(this->device_context.context);
 #elif defined(RUISAPP_RENDER_OPENGLES)
 	eglSwapBuffers(
-		this->egl_display.display, //
+		this->display.get().egl_display.display, //
 		this->egl_surface.surface
 	);
 #else

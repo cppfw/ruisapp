@@ -4,6 +4,8 @@
 
 #ifdef RUISAPP_RENDER_OPENGL
 #	include <GL/wglext.h>
+#elif defined(RUISAPP_RENDER_OPENGLES)
+#	include "../egl_utils.hxx"
 #endif
 
 namespace {
@@ -43,8 +45,9 @@ struct window_class_wrapper {
 		wgl_procedures_wrapper& operator=(wgl_procedures_wrapper&&) = delete;
 
 		~wgl_procedures_wrapper() = default;
-
 	}wgl_procedures;
+#elif defined(RUISAPP_RENDER_OPENGLES)
+	egl_display_wrapper egl_display;
 #endif
 
 	display_wrapper();
