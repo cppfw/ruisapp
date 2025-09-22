@@ -9,7 +9,8 @@
 
 native_window::window_wrapper::window_wrapper(
 	const display_wrapper::window_class_wrapper& window_class,
-	const ruisapp::window_parameters& window_params
+	const ruisapp::window_parameters& window_params,
+	bool visible
 ) :
 	handle([&]() {
 		auto hwnd = CreateWindowEx(
@@ -37,7 +38,7 @@ native_window::window_wrapper::window_wrapper(
 		return hwnd;
 	}())
 {
-	if (window_params.visible) {
+	if (visible) {
 		ShowWindow(
 			this->handle, //
 			SW_SHOW
@@ -270,7 +271,8 @@ native_window::native_window(
 	window(
 		shared_gl_context_native_window ? this->display.get().regular_window_class
 										: this->display.get().dummy_window_class, //
-		window_params
+		window_params,
+		shared_gl_context_native_window != nullptr
 	),
 	device_context(this->window),
 #ifdef RUISAPP_RENDER_OPENGL

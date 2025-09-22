@@ -24,7 +24,8 @@ class native_window : public ruis::render::native_window
 
 		window_wrapper(
 			const display_wrapper::window_class_wrapper& window_class,
-			const ruisapp::window_parameters& window_params
+			const ruisapp::window_parameters& window_params,
+			bool visible
 		);
 
 		window_wrapper(const window_wrapper&) = delete;
