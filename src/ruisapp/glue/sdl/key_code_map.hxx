@@ -11,8 +11,8 @@
 #	include <SDL2/SDL.h>
 #endif
 
-#include <utki/type_traits.hpp>
 #include <ruis/util/key.hpp>
+#include <utki/type_traits.hpp>
 
 namespace {
 const std::array<ruis::key, size_t(std::numeric_limits<uint8_t>::max()) + 1> key_code_map = {
@@ -275,13 +275,4 @@ const std::array<ruis::key, size_t(std::numeric_limits<uint8_t>::max()) + 1> key
      ruis::key::unknown // 255
 	}
 };
-
-inline ruis::key sdl_scancode_to_ruis_key(SDL_Scancode sc)
-{
-	if (size_t(sc) >= key_code_map.size()) {
-		return ruis::key::unknown;
-	}
-
-	return key_code_map[sc];
-}
 } // namespace

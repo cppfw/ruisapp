@@ -183,7 +183,8 @@ void ruisapp::application::quit() noexcept
 {
 	auto& glue = get_glue(*this);
 
-	PostQuitMessage(0 // exit code
+	PostQuitMessage( //
+		0 // exit code
 	);
 }
 
