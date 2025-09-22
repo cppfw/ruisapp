@@ -138,6 +138,7 @@ LRESULT CALLBACK window_procedure(
 				);
 
 				// Report mouse button up events for all pressed mouse buttons
+				// TODO: iterate over enum using utki::enum_iterator
 				for (size_t i = 0; i != win.mouse_button_state.size(); ++i) {
 					auto btn = ruis::mouse_button(i);
 					if (win.mouse_button_state.get(btn)) {
