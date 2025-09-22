@@ -277,7 +277,8 @@ class native_window : public ruis::render::native_window
 			display_wrapper& display, //
 			const ruisapp::window_parameters& window_params,
 			xorg_color_map_wrapper& color_map,
-			xorg_visual_info_wrapper& visual_info
+			xorg_visual_info_wrapper& visual_info,
+			bool visible
 		) :
 			display(display),
 			window([&]() {
@@ -350,7 +351,7 @@ class native_window : public ruis::render::native_window
 				);
 			}
 
-			if (window_params.visible) {
+			if (visible) {
 				XMapWindow(
 					this->display.xorg_display.display, //
 					this->window
@@ -640,7 +641,8 @@ public:
 			this->display, //
 			window_params,
 			this->xorg_color_map,
-			this->xorg_visual_info
+			this->xorg_visual_info,
+			shared_gl_context_native_window != nullptr
 		),
 #ifdef RUISAPP_RENDER_OPENGL
 		glx_context(

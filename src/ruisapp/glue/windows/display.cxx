@@ -2,9 +2,8 @@
 
 #include <stdexcept>
 
-#include <utki/windows.hpp>
 #include <utki/debug.hpp>
-
+#include <utki/windows.hpp>
 #include <windowsx.h> // needed for GET_X_LPARAM macro and other similar macros
 
 #include "application.hxx"
@@ -32,8 +31,12 @@ public:
 } // namespace
 
 namespace {
-LRESULT CALLBACK window_procedure(HWND hwnd,//
-	UINT msg, WPARAM w_param, LPARAM l_param)
+LRESULT CALLBACK window_procedure(
+	HWND hwnd, //
+	UINT msg,
+	WPARAM w_param,
+	LPARAM l_param
+)
 {
 	auto& glue = get_glue();
 
@@ -42,8 +45,12 @@ LRESULT CALLBACK window_procedure(HWND hwnd,//
 		// CreateWindowEx() calls window procedure while creating the window,
 		// at this moment, the app_window object is not yet created, so perform
 		// default window procedure in this case.
-		return DefWindowProc(hwnd,//
-		msg, w_param, l_param);
+		return DefWindowProc(
+			hwnd, //
+			msg,
+			w_param,
+			l_param
+		);
 	}
 
 	auto& win = *window;
@@ -102,13 +109,16 @@ LRESULT CALLBACK window_procedure(HWND hwnd,//
 						}
 					}
 
-					win.gui.send_mouse_hover(true,//
+					win.gui.send_mouse_hover(
+						true, //
 						0 // pointer id
 					);
 				}
 				win.gui.send_mouse_move(
-					ruis::vector2(float(GET_X_LPARAM(l_param)),//
-						float(GET_Y_LPARAM(l_param))),
+					ruis::vector2(
+						float(GET_X_LPARAM(l_param)), //
+						float(GET_Y_LPARAM(l_param))
+					),
 					0 // pointer id
 				);
 				return 0;
@@ -135,8 +145,10 @@ LRESULT CALLBACK window_procedure(HWND hwnd,//
 						constexpr auto outside_of_window_coordinate = 100000000;
 						win.gui.send_mouse_button(
 							false,
-							ruis::vector2(outside_of_window_coordinate,//
-								outside_of_window_coordinate),
+							ruis::vector2(
+								outside_of_window_coordinate, //
+								outside_of_window_coordinate
+							),
 							btn,
 							0 // pointer id
 						);
@@ -149,8 +161,10 @@ LRESULT CALLBACK window_procedure(HWND hwnd,//
 				win.mouse_button_state.set(ruis::mouse_button::left);
 				win.gui.send_mouse_button(
 					true,
-					ruis::vector2(float(GET_X_LPARAM(l_param)),//
-						float(GET_Y_LPARAM(l_param))),
+					ruis::vector2(
+						float(GET_X_LPARAM(l_param)), //
+						float(GET_Y_LPARAM(l_param))
+					),
 					ruis::mouse_button::left,
 					0 // pointer id
 				);
@@ -161,8 +175,10 @@ LRESULT CALLBACK window_procedure(HWND hwnd,//
 				win.mouse_button_state.clear(ruis::mouse_button::left);
 				win.gui.send_mouse_button(
 					false,
-					ruis::vector2(float(GET_X_LPARAM(l_param)),//
-						float(GET_Y_LPARAM(l_param))),
+					ruis::vector2(
+						float(GET_X_LPARAM(l_param)), //
+						float(GET_Y_LPARAM(l_param))
+					),
 					ruis::mouse_button::left,
 					0 // pointer id
 				);
@@ -173,8 +189,10 @@ LRESULT CALLBACK window_procedure(HWND hwnd,//
 				win.mouse_button_state.set(ruis::mouse_button::middle);
 				win.gui.send_mouse_button(
 					true,
-					ruis::vector2(float(GET_X_LPARAM(l_param)),//
-						float(GET_Y_LPARAM(l_param))),
+					ruis::vector2(
+						float(GET_X_LPARAM(l_param)), //
+						float(GET_Y_LPARAM(l_param))
+					),
 					ruis::mouse_button::middle,
 					0 // pointer id
 				);
@@ -185,8 +203,10 @@ LRESULT CALLBACK window_procedure(HWND hwnd,//
 				win.mouse_button_state.clear(ruis::mouse_button::middle);
 				win.gui.send_mouse_button(
 					false,
-					ruis::vector2(float(GET_X_LPARAM(l_param)),//
-						float(GET_Y_LPARAM(l_param))),
+					ruis::vector2(
+						float(GET_X_LPARAM(l_param)), //
+						float(GET_Y_LPARAM(l_param))
+					),
 					ruis::mouse_button::middle,
 					0 // pointer id
 				);
@@ -197,8 +217,10 @@ LRESULT CALLBACK window_procedure(HWND hwnd,//
 				win.mouse_button_state.set(ruis::mouse_button::right);
 				win.gui.send_mouse_button(
 					true,
-					ruis::vector2(float(GET_X_LPARAM(l_param)),//
-						float(GET_Y_LPARAM(l_param))),
+					ruis::vector2(
+						float(GET_X_LPARAM(l_param)), //
+						float(GET_Y_LPARAM(l_param))
+					),
 					ruis::mouse_button::right,
 					0 // pointer id
 				);
@@ -209,8 +231,10 @@ LRESULT CALLBACK window_procedure(HWND hwnd,//
 				win.mouse_button_state.clear(ruis::mouse_button::right);
 				win.gui.send_mouse_button(
 					false,
-					ruis::vector2(float(GET_X_LPARAM(l_param)),//
-						float(GET_Y_LPARAM(l_param))),
+					ruis::vector2(
+						float(GET_X_LPARAM(l_param)), //
+						float(GET_Y_LPARAM(l_param))
+					),
 					ruis::mouse_button::right,
 					0 // pointer id
 				);
@@ -245,16 +269,19 @@ LRESULT CALLBACK window_procedure(HWND hwnd,//
 					win.gui.send_mouse_button(
 						true, //
 						ruis::vector2(
-							float(pos.x),//
+							float(pos.x), //
 							float(pos.y)
 						),
 						button,
 						0 // pointer id
 					);
 					win.gui.send_mouse_button(
-						false,//
-						ruis::vector2(float(pos.x),//
-							float(pos.y)), button,
+						false, //
+						ruis::vector2(
+							float(pos.x), //
+							float(pos.y)
+						),
+						button,
 						0 // pointer id
 					);
 				}
@@ -269,11 +296,15 @@ LRESULT CALLBACK window_procedure(HWND hwnd,//
 				constexpr auto previous_key_state_mask = 0x40000000;
 
 				if ((l_param & previous_key_state_mask) == 0) { // ignore auto-repeated keypress event
-					win.gui.send_key(true,//
-						key);
+					win.gui.send_key(
+						true, //
+						key
+					);
 				}
-				win.gui.send_character_input(windows_input_string_provider(),//
-					key);
+				win.gui.send_character_input(
+					windows_input_string_provider(), //
+					key
+				);
 				return 0;
 			}
 		case WM_KEYUP:
@@ -291,10 +322,7 @@ LRESULT CALLBACK window_procedure(HWND hwnd,//
 				case U'\U0000000d': // Carriage return
 					break;
 				default:
-					win.gui.send_character_input(
-						windows_input_string_provider(char32_t(w_param)),
-						ruis::key::unknown
-					);
+					win.gui.send_character_input(windows_input_string_provider(char32_t(w_param)), ruis::key::unknown);
 					break;
 			}
 			return 0;
@@ -303,14 +331,18 @@ LRESULT CALLBACK window_procedure(HWND hwnd,//
 
 			// Tell Windows that we have redrawn contents
 			// and WM_PAINT message should go away from message queue.
-			ValidateRect(hwnd, //
-				NULL);
+			ValidateRect(
+				hwnd, //
+				NULL
+			);
 			return 0;
 
 		case WM_SIZE:
 			win.gui.set_viewport( //
-				ruis::rect(0, //
-					0, ruis::real(LOWORD(l_param)),// width
+				ruis::rect(
+					0, //
+					0,
+					ruis::real(LOWORD(l_param)), // width
 					ruis::real(HIWORD(l_param)) // height
 				)
 			);
@@ -320,15 +352,16 @@ LRESULT CALLBACK window_procedure(HWND hwnd,//
 			break;
 	}
 
-	return DefWindowProc(hwnd,//
-		msg, w_param, l_param);
+	return DefWindowProc(
+		hwnd, //
+		msg,
+		w_param,
+		l_param
+	);
 }
 } // namespace
 
-display_wrapper::window_class_wrapper::window_class_wrapper(
-	const char* window_class_name,
-		WNDPROC window_procedure
-) :
+display_wrapper::window_class_wrapper::window_class_wrapper(const char* window_class_name, WNDPROC window_procedure) :
 	window_class_name(window_class_name)
 {
 	WNDCLASS wc;
@@ -369,81 +402,88 @@ display_wrapper::window_class_wrapper::~window_class_wrapper()
 
 namespace {
 const char* dummy_window_class_name = "ruisapp_dummy_window_class_name";
-}
+} // namespace
 
 #ifdef RUISAPP_RENDER_OPENGL
-display_wrapper::wgl_procedures_wrapper::wgl_procedures_wrapper() {
+display_wrapper::wgl_procedures_wrapper::wgl_procedures_wrapper()
+{
 	HWND dummy_window = CreateWindowExA(
-        0,
-        dummy_window_class_name,
-        "",
-        0,
-        CW_USEDEFAULT,
-        CW_USEDEFAULT,
-        CW_USEDEFAULT,
-        CW_USEDEFAULT,
-        0,
-        0,
-        GetModuleHandle(NULL),
-        0);
+		0,
+		dummy_window_class_name,
+		"",
+		0,
+		CW_USEDEFAULT,
+		CW_USEDEFAULT,
+		CW_USEDEFAULT,
+		CW_USEDEFAULT,
+		0,
+		0,
+		GetModuleHandle(NULL),
+		0
+	);
 
-    if (!dummy_window) {
-        throw std::runtime_error("CreateWindowExA() failed");
-    }
+	if (!dummy_window) {
+		throw std::runtime_error("CreateWindowExA() failed");
+	}
 
-	utki::scope_exit window_scope_exit([&](){
+	utki::scope_exit window_scope_exit([&]() {
 		DestroyWindow(dummy_window);
 	});
 
-    HDC dummy_dc = GetDC(dummy_window);
+	HDC dummy_dc = GetDC(dummy_window);
 	if (dummy_dc == NULL) {
 		throw std::runtime_error("GetDC() failed");
 	}
 	utki::scope_exit device_context_scope_exit([&]() {
-		ReleaseDC(dummy_window, //
-			dummy_dc);
-		});
+		ReleaseDC(
+			dummy_window, //
+			dummy_dc
+		);
+	});
 
-    PIXELFORMATDESCRIPTOR pfd = {
-        .nSize = sizeof(pfd),
-        .nVersion = 1,
+	PIXELFORMATDESCRIPTOR pfd = {
+		.nSize = sizeof(pfd),
+		.nVersion = 1,
 		.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
-        .iPixelType = PFD_TYPE_RGBA,
-        .cColorBits = 32,
-        .cAlphaBits = 8,
+		.iPixelType = PFD_TYPE_RGBA,
+		.cColorBits = 32,
+		.cAlphaBits = 8,
 		.cDepthBits = 24,
-        .cStencilBits = 8,
+		.cStencilBits = 8,
 		.iLayerType = PFD_MAIN_PLANE
-    };
+	};
 
-    int pixel_format = ChoosePixelFormat(dummy_dc, &pfd);
-    if (!pixel_format) {
-        throw std::runtime_error("ChoosePixelFormat() failed");
-    }
-    if (!SetPixelFormat(dummy_dc, pixel_format, &pfd)) {
-        throw std::runtime_error("SetPixelFormat() failed");
-    }
+	int pixel_format = ChoosePixelFormat(dummy_dc, &pfd);
+	if (!pixel_format) {
+		throw std::runtime_error("ChoosePixelFormat() failed");
+	}
+	if (!SetPixelFormat(dummy_dc, pixel_format, &pfd)) {
+		throw std::runtime_error("SetPixelFormat() failed");
+	}
 
-    HGLRC dummy_context = wglCreateContext(dummy_dc);
-    if (dummy_context == NULL) {
-        throw std::runtime_error("wglCreateContext() failed");
-    }
+	HGLRC dummy_context = wglCreateContext(dummy_dc);
+	if (dummy_context == NULL) {
+		throw std::runtime_error("wglCreateContext() failed");
+	}
 
-	utki::scope_exit rendering_context_scope_exit([&](){
-		wglMakeCurrent(dummy_dc,//
-			NULL);
-    wglDeleteContext(dummy_context);
-		});
+	utki::scope_exit rendering_context_scope_exit([&]() {
+		wglMakeCurrent(
+			dummy_dc, //
+			NULL
+		);
+		wglDeleteContext(dummy_context);
+	});
 
-    if (!wglMakeCurrent(dummy_dc, dummy_context)) {
-        throw std::runtime_error("wglMakeCurrent() failed");
-    }
+	if (!wglMakeCurrent(dummy_dc, dummy_context)) {
+		throw std::runtime_error("wglMakeCurrent() failed");
+	}
 
-	this->wgl_choose_pixel_format_arb = PFNWGLCHOOSEPIXELFORMATARBPROC(wglGetProcAddress("wglChoosePixelFormatARB"));   
+	this->wgl_choose_pixel_format_arb = PFNWGLCHOOSEPIXELFORMATARBPROC(wglGetProcAddress("wglChoosePixelFormatARB"));
 	if (!this->wgl_choose_pixel_format_arb) {
 		throw std::runtime_error("could not get wglChoosePixelFormatARB()");
 	}
-	this->wgl_create_context_attribs_arb= PFNWGLCREATECONTEXTATTRIBSARBPROC(wglGetProcAddress("wglCreateContextAttribsARB"));
+	this->wgl_create_context_attribs_arb =
+		PFNWGLCREATECONTEXTATTRIBSARBPROC(wglGetProcAddress("wglCreateContextAttribsARB"));
 	if (!this->wgl_create_context_attribs_arb) {
 		throw std::runtime_error("could not get wglCreateContextAttribsARB()");
 	}
@@ -451,8 +491,12 @@ display_wrapper::wgl_procedures_wrapper::wgl_procedures_wrapper() {
 #endif
 
 display_wrapper::display_wrapper() :
-	dummy_window_class(dummy_window_class_name,//
-		DefWindowProc),
-	regular_window_class("ruisapp_window_class_name", //
-		window_procedure)
+	dummy_window_class(
+		dummy_window_class_name, //
+		DefWindowProc
+	),
+	regular_window_class(
+		"ruisapp_window_class_name", //
+		window_procedure
+	)
 {}

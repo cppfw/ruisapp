@@ -41,8 +41,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "application.hxx"
 
 // include implementations
-#include "display.cxx"
 #include "application.cxx"
+#include "display.cxx"
 #include "window.cxx"
 
 using namespace ruisapp;
@@ -73,8 +73,8 @@ void winmain(
 		glue.render();
 
 		DWORD status = MsgWaitForMultipleObjectsEx(
-			0,// number of handles to wait for
-			nullptr,// we do not wait for any handles
+			0, // number of handles to wait for
+			nullptr, // we do not wait for any handles
 			timeout,
 			QS_ALLINPUT, // we wait for ALL inpuit events
 			MWMO_INPUTAVAILABLE // we wait for inpuit events
@@ -85,17 +85,17 @@ void winmain(
 
 			MSG msg;
 			while (PeekMessage(
-				&msg,//
+				&msg, //
 				NULL, // retrieve messages for any window, as well as thread messages
 				0, // no message filtering, retrieve all messages
 				0, // no message filtering, retrieve all messages
 				PM_REMOVE // remove messages from queue after processing by PeekMessage()
-			)) {
+			))
+			{
 				if (msg.message == WM_QUIT) {
 					glue.quit_flag.store(true);
 					break;
-				}else if (msg.message == WM_USER)
-				{
+				} else if (msg.message == WM_USER) {
 					std::unique_ptr<std::function<void()>> m(
 						// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
 						reinterpret_cast<std::function<void()>*>(msg.lParam)

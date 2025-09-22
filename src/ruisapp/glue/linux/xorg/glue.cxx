@@ -112,8 +112,7 @@ public:
 				ruisapp::window_parameters{
 					.dims = {1, 1},
 					.title = {},
-					.fullscreen = false,
-					.visible = false
+					.fullscreen = false
     },
 				nullptr
 			)

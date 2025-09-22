@@ -79,13 +79,15 @@ application_glue::application_glue(const utki::version_duplet& gl_version) :
 	)
 {}
 
-void application_glue::render() {
+void application_glue::render()
+{
 	for (auto& w : this->windows) {
 		w.second.get().render();
 	}
 }
 
-app_window* application_glue::get_window(native_window::window_id_type id) {
+app_window* application_glue::get_window(native_window::window_id_type id)
+{
 	auto i = this->windows.find(id);
 	if (i == this->windows.end()) {
 		return nullptr;
@@ -94,7 +96,8 @@ app_window* application_glue::get_window(native_window::window_id_type id) {
 	return &i->second.get();
 }
 
-ruisapp::window& application_glue::make_window(ruisapp::window_parameters window_params) {
+ruisapp::window& application_glue::make_window(ruisapp::window_parameters window_params)
+{
 	auto ruis_native_window = utki::make_shared<native_window>(
 		this->display,
 		this->gl_version,
@@ -106,17 +109,15 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 		.post_to_ui_thread_function =
 			[this](std::function<void()> procedure) {
 				if (PostMessage(
- 						NULL, // post message to UI thread's message queue
- 						WM_USER,
- 						0, // no wParam
- 						// NOLINTNEXTLINE(cppcoreguidelines-owning-memory, cppcoreguidelines-pro-type-reinterpret-cast)
- 						reinterpret_cast<LPARAM>(
- 							new std::remove_reference_t<decltype(procedure)>(std::move(procedure))
- 						)
- 					) == 0)
- 				{
- 					throw std::runtime_error("PostMessage(): failed");
- 				}
+						NULL, // post message to UI thread's message queue
+						WM_USER,
+						0, // no wParam
+						// NOLINTNEXTLINE(cppcoreguidelines-owning-memory, cppcoreguidelines-pro-type-reinterpret-cast)
+						reinterpret_cast<LPARAM>(new std::remove_reference_t<decltype(procedure)>(std::move(procedure)))
+					) == 0)
+				{
+					throw std::runtime_error("PostMessage(): failed");
+				}
 			},
 		.updater = this->updater,
 		.renderer = utki::make_shared<ruis::render::renderer>(
@@ -132,9 +133,9 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 		),
 		.style_provider = this->ruis_style_provider,
 		.units = ruis::units(
- 				ruis_native_window.get().get_dots_per_inch(), //
- 				ruis_native_window.get().get_dots_per_pp()
- 			)
+			ruis_native_window.get().get_dots_per_inch(), //
+			ruis_native_window.get().get_dots_per_pp()
+		)
 	});
 
 	auto ruisapp_window = utki::make_shared<app_window>(
@@ -162,7 +163,8 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 	return res.first->second.get();
 }
 
-void application_glue::destroy_window(native_window::window_id_type id){
+void application_glue::destroy_window(native_window::window_id_type id)
+{
 	auto i = this->windows.find(id);
 	utki::assert(i != this->windows.end(), SL);
 
@@ -178,20 +180,22 @@ ruisapp::application::application(parameters params) :
 	)
 {}
 
-void ruisapp::application::quit() noexcept{
+void ruisapp::application::quit() noexcept
+{
 	auto& glue = get_glue(*this);
 
-	PostQuitMessage(
-		0 // exit code
+	PostQuitMessage(0 // exit code
 	);
 }
 
-ruisapp::window& ruisapp::application::make_window(ruisapp::window_parameters window_params) {
+ruisapp::window& ruisapp::application::make_window(ruisapp::window_parameters window_params)
+{
 	auto& glue = get_glue(*this);
 	return glue.make_window(std::move(window_params));
 }
 
-void ruisapp::application::destroy_window(ruisapp::window& w) {
+void ruisapp::application::destroy_window(ruisapp::window& w)
+{
 	auto& glue = get_glue(*this);
 
 	utki::assert(dynamic_cast<app_window*>(&w), SL);

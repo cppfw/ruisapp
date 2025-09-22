@@ -9,7 +9,8 @@
 #include "window.hxx"
 
 namespace {
-class app_window : public ruisapp::window{
+class app_window : public ruisapp::window
+{
 public:
 	const utki::shared_ref<native_window> ruis_native_window;
 
@@ -21,12 +22,12 @@ public:
 	app_window(
 		utki::shared_ref<ruis::context> ruis_context, //
 		utki::shared_ref<native_window> ruis_native_window
-	):
+	) :
 		ruisapp::window(std::move(ruis_context)),
 		ruis_native_window(std::move(ruis_native_window))
 	{}
 };
-}
+} // namespace
 
 namespace {
 class application_glue : public utki::destructable
@@ -42,9 +43,8 @@ class application_glue : public utki::destructable
 	const utki::shared_ref<ruis::resource_loader> ruis_resource_loader;
 	const utki::shared_ref<ruis::style_provider> ruis_style_provider;
 
-	std::map<
-		native_window::window_id_type,
-		utki::shared_ref<app_window>> windows;
+	std::map<native_window::window_id_type, utki::shared_ref<app_window>> windows;
+
 public:
 	std::atomic_bool quit_flag = false;
 

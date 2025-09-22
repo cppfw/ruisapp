@@ -101,11 +101,6 @@ struct window_parameters {
 	bool fullscreen = false;
 
 	/**
-	 * @brief Indicates whether the window is initially visible or not.
-	 */
-	bool visible = true;
-
-	/**
 	 * @brief Indicates that the window is added to the taskbar.
 	 */
 	bool taskbar = true;

@@ -9,24 +9,22 @@
 #endif
 
 namespace {
-class display_wrapper {
+class display_wrapper
+{
 public:
-struct window_class_wrapper {
-	const char* const window_class_name;
+	struct window_class_wrapper {
+		const char* const window_class_name;
 
-	window_class_wrapper(
-		const char* window_class_name,
-		WNDPROC window_procedure
-	);
+		window_class_wrapper(const char* window_class_name, WNDPROC window_procedure);
 
-	window_class_wrapper(const window_class_wrapper&) = delete;
-	window_class_wrapper& operator=(const window_class_wrapper) = delete;
+		window_class_wrapper(const window_class_wrapper&) = delete;
+		window_class_wrapper& operator=(const window_class_wrapper) = delete;
 
-	window_class_wrapper(window_class_wrapper&&) = delete;
-	window_class_wrapper& operator=(window_class_wrapper&&) = delete;
+		window_class_wrapper(window_class_wrapper&&) = delete;
+		window_class_wrapper& operator=(window_class_wrapper&&) = delete;
 
-	~window_class_wrapper();
-};
+		~window_class_wrapper();
+	};
 
 	window_class_wrapper dummy_window_class;
 	window_class_wrapper regular_window_class;
@@ -45,11 +43,11 @@ struct window_class_wrapper {
 		wgl_procedures_wrapper& operator=(wgl_procedures_wrapper&&) = delete;
 
 		~wgl_procedures_wrapper() = default;
-	}wgl_procedures;
+	} wgl_procedures;
 #elif defined(RUISAPP_RENDER_OPENGLES)
 	egl_display_wrapper egl_display;
 #endif
 
 	display_wrapper();
 };
-}
+} // namespace

@@ -10,7 +10,7 @@
 native_window::window_wrapper::window_wrapper(
 	const display_wrapper::window_class_wrapper& window_class,
 	const ruisapp::window_parameters& window_params
-	) :
+) :
 	handle([&]() {
 		auto hwnd = CreateWindowEx(
 			WS_EX_APPWINDOW | WS_EX_WINDOWEDGE, // extended style
@@ -37,9 +37,11 @@ native_window::window_wrapper::window_wrapper(
 		return hwnd;
 	}())
 {
-	if(window_params.visible){
-		ShowWindow(this->handle,//
-			SW_SHOW);
+	if (window_params.visible) {
+		ShowWindow(
+			this->handle, //
+			SW_SHOW
+		);
 	}
 }
 
@@ -108,8 +110,7 @@ native_window::opengl_context_wrapper::opengl_context_wrapper(
 			32,
 			// depth buffer (use 16 bit depth)
 			WGL_DEPTH_BITS_ARB,
-			window_params.buffers.get(ruisapp::buffer::depth) ? BYTE(utki::byte_bits * 2)
-															  : BYTE(0),
+			window_params.buffers.get(ruisapp::buffer::depth) ? BYTE(utki::byte_bits * 2) : BYTE(0),
 			// stencil buffer (use 8 bit depth)
 			WGL_STENCIL_BITS_ARB,
 			window_params.buffers.get(ruisapp::buffer::stencil) ? BYTE(utki::byte_bits) : BYTE(0),
@@ -118,16 +119,17 @@ native_window::opengl_context_wrapper::opengl_context_wrapper(
 		};
 
 		int format_index = 0;
-		UINT num_formats= 0;
+		UINT num_formats = 0;
 
 		if (!display.wgl_procedures.wgl_choose_pixel_format_arb(
-			device_context.context, //
-			pixel_format_attributes.data(), // int attributes
-			NULL, // no float attributes
-			1, // max num formats to return
-			&format_index, // return index of the chosen format
-			&num_formats // number of matching formats
-		)	) {
+				device_context.context, //
+				pixel_format_attributes.data(), // int attributes
+				NULL, // no float attributes
+				1, // max num formats to return
+				&format_index, // return index of the chosen format
+				&num_formats // number of matching formats
+			))
+		{
 			throw std::runtime_error("wglChoosePixelFormatARB() failed");
 		}
 
@@ -135,33 +137,40 @@ native_window::opengl_context_wrapper::opengl_context_wrapper(
 			throw std::runtime_error("no suitable pixel formats found");
 		}
 
-		 PIXELFORMATDESCRIPTOR pfd;
-		 if (DescribePixelFormat(device_context.context, //
-			 format_index, sizeof(pfd), &pfd) == 0) {
-			 throw std::runtime_error("DescribePixelFormat() failed");
+		PIXELFORMATDESCRIPTOR pfd;
+		if (DescribePixelFormat(
+				device_context.context, //
+				format_index,
+				sizeof(pfd),
+				&pfd
+			) == 0)
+		{
+			throw std::runtime_error("DescribePixelFormat() failed");
 		}
 
-		if (!SetPixelFormat(device_context.context,//
-			format_index, &pfd)) {
+		if (!SetPixelFormat(
+				device_context.context, //
+				format_index,
+				&pfd
+			))
+		{
 			throw std::runtime_error("SetPixelFormat() failed");
 		}
 
 		auto graphics_api_version = [&ver = gl_version]() {
-				if (ver.to_uint32_t() == 0) {
-					// default OpenGL version is 2.0
-					return utki::version_duplet{
-						.major = 2, //
-						.minor = 0
-					};
-				}
+			if (ver.to_uint32_t() == 0) {
+				// default OpenGL version is 2.0
+				return utki::version_duplet{
+					.major = 2, //
+					.minor = 0
+				};
+			}
 
-				if (ver.major < 2) {
-					throw std::invalid_argument(
-						utki::cat("minimal supported OpenGL version is 2.0, requested: ", ver)
-					);
-				}
-				return ver;
-			}();
+			if (ver.major < 2) {
+				throw std::invalid_argument(utki::cat("minimal supported OpenGL version is 2.0, requested: ", ver));
+			}
+			return ver;
+		}();
 
 		std::array<int, 7> rendering_context_attribs = {
 			WGL_CONTEXT_MAJOR_VERSION_ARB,
@@ -173,9 +182,11 @@ native_window::opengl_context_wrapper::opengl_context_wrapper(
 			0 // terminate the list
 		};
 
-		HGLRC hrc = display.wgl_procedures.wgl_create_context_attribs_arb(device_context.context,//
+		HGLRC hrc = display.wgl_procedures.wgl_create_context_attribs_arb(
+			device_context.context, //
 			shared_context,
-			rendering_context_attribs.data());
+			rendering_context_attribs.data()
+		);
 
 		if (hrc == NULL) {
 			DWORD error_code = GetLastError();
@@ -211,10 +222,13 @@ native_window::opengl_context_wrapper::opengl_context_wrapper(
 					break;
 			}
 
-			auto message = utki::cat("Failed to create OpenGL rendering context, error = ", //
-					error_code, ": ", error_message );
-			throw std::runtime_error(
-				std::move(message));
+			auto message = utki::cat(
+				"Failed to create OpenGL rendering context, error = ", //
+				error_code,
+				": ",
+				error_message
+			);
+			throw std::runtime_error(std::move(message));
 		}
 
 		return hrc;
@@ -254,7 +268,8 @@ native_window::native_window(
 ) :
 	display(std::move(display)),
 	window(
-		shared_gl_context_native_window ? this->display.get().regular_window_class : this->display.get().dummy_window_class, //
+		shared_gl_context_native_window ? this->display.get().regular_window_class
+										: this->display.get().dummy_window_class, //
 		window_params
 	),
 	device_context(this->window),
@@ -272,10 +287,13 @@ native_window::native_window(
 		gl_version,
 		window_params
 	),
-	egl_surface(this->display.get().egl_display,//
-		this->egl_config, EGLNativeWindowType(this->window.handle)),
+	egl_surface(
+		this->display.get().egl_display, //
+		this->egl_config,
+		EGLNativeWindowType(this->window.handle)
+	),
 	egl_context(
-		this->display.get().egl_display,//
+		this->display.get().egl_display, //
 		gl_version,
 		this->egl_config,
 		shared_gl_context_native_window ? shared_gl_context_native_window->egl_context.context : EGL_NO_CONTEXT
@@ -300,7 +318,8 @@ native_window::native_window(
 #endif
 }
 
-void native_window::bind_rendering_context() {
+void native_window::bind_rendering_context()
+{
 #ifdef RUISAPP_RENDER_OPENGL
 	auto res = wglMakeCurrent(
 		this->device_context.context, //
@@ -339,21 +358,28 @@ void native_window::swap_frame_buffers()
 }
 
 ruis::real native_window::get_dots_per_inch()
-	{
-		constexpr auto num_dimensions = 2;
-		// average dots per cm over device dimensions
-		ruis::real dots_per_cm =
-			(ruis::real(GetDeviceCaps(this->device_context.context, HORZRES)) * std::deci::den / ruis::real(GetDeviceCaps(this->device_context.context, HORZSIZE)) +
-			 ruis::real(GetDeviceCaps(this->device_context.context, VERTRES)) * std::deci::den / ruis::real(GetDeviceCaps(this->device_context.context, VERTSIZE))) /
-			ruis::real(num_dimensions);
+{
+	constexpr auto num_dimensions = 2;
+	// average dots per cm over device dimensions
+	ruis::real dots_per_cm = (ruis::real(GetDeviceCaps(this->device_context.context, HORZRES)) * std::deci::den /
+								  ruis::real(GetDeviceCaps(this->device_context.context, HORZSIZE)) +
+							  ruis::real(GetDeviceCaps(this->device_context.context, VERTRES)) * std::deci::den /
+								  ruis::real(GetDeviceCaps(this->device_context.context, VERTSIZE))) /
+		ruis::real(num_dimensions);
 
-		return ruis::real(dots_per_cm) * ruis::real(utki::cm_per_inch);
-	}
+	return ruis::real(dots_per_cm) * ruis::real(utki::cm_per_inch);
+}
 
 ruis::real native_window::get_dots_per_pp()
-	{
-		r4::vector2<unsigned> resolution(GetDeviceCaps(this->device_context.context, HORZRES), GetDeviceCaps(this->device_context.context, VERTRES));
-		r4::vector2<unsigned> screen_size_mm(GetDeviceCaps(this->device_context.context, HORZSIZE), GetDeviceCaps(this->device_context.context, VERTSIZE));
+{
+	r4::vector2<unsigned> resolution(
+		GetDeviceCaps(this->device_context.context, HORZRES),
+		GetDeviceCaps(this->device_context.context, VERTRES)
+	);
+	r4::vector2<unsigned> screen_size_mm(
+		GetDeviceCaps(this->device_context.context, HORZSIZE),
+		GetDeviceCaps(this->device_context.context, VERTSIZE)
+	);
 
-		return ruisapp::application::get_pixels_per_pp(resolution, screen_size_mm);
-	}
+	return ruisapp::application::get_pixels_per_pp(resolution, screen_size_mm);
+}
