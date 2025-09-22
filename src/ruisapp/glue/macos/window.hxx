@@ -70,7 +70,9 @@ class native_window : public ruis::render::native_window
 	struct cocoa_window_wrapper {
 		CocoaWindow* const window;
 
-		cocoa_window_wrapper(const ruisapp::window_parameters& window_params) :
+		cocoa_window_wrapper(const ruisapp::window_parameters& window_params,
+			bool visible
+		) :
 			window([&]() {
 				auto w = [[CocoaWindow alloc]
 					initWithContentRect:NSMakeRect(
@@ -93,7 +95,7 @@ class native_window : public ruis::render::native_window
 		{
 			[this->window setTitle:[NSString stringWithUTF8String:window_params.title.c_str()]];
 
-			if (window_params.visible) {
+			if (visible) {
 				[this->window makeKeyAndOrderFront:nil];
 				[this->window orderFrontRegardless];
 			}
@@ -192,7 +194,9 @@ public:
 		const ruisapp::window_parameters& window_params,
 		native_window* shared_gl_context_native_window
 	) :
-		cocoa_window(window_params),
+		cocoa_window(window_params,//
+			shared_gl_context_native_window != nullptr
+			),
 		opengl_context(
 			window_params, //
 			shared_gl_context_native_window ? shared_gl_context_native_window->opengl_context.context

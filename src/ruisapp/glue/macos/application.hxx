@@ -8,7 +8,6 @@
 
 #include "../../application.hpp"
 
-#include "display.hxx"
 #include "window.hxx"
 
 namespace {

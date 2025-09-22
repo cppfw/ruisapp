@@ -70,8 +70,7 @@ application_glue::application_glue(const utki::version_duplet& gl_version) :
 		this->gl_version,
 		ruisapp::window_parameters{
 			.dims = {1, 1},
-			.fullscreen = false,
-			.visible = false
+			.fullscreen = false
 },
 		nullptr // no shared gl context
 	)),
