@@ -4,6 +4,7 @@
 
 #include <utki/debug.hpp>
 #include <utki/windows.hpp>
+#include <utki/enum_iterable.hpp>
 #include <windowsx.h> // needed for GET_X_LPARAM macro and other similar macros
 
 #include "application.hxx"
@@ -138,9 +139,7 @@ LRESULT CALLBACK window_procedure(
 				);
 
 				// Report mouse button up events for all pressed mouse buttons
-				// TODO: iterate over enum using utki::enum_iterator
-				for (size_t i = 0; i != win.mouse_button_state.size(); ++i) {
-					auto btn = ruis::mouse_button(i);
+				for (auto btn : utki::enum_iterable_v<decltype(win.mouse_button_state)::enum_type>){
 					if (win.mouse_button_state.get(btn)) {
 						win.mouse_button_state.clear(btn);
 						constexpr auto outside_of_window_coordinate = 100000000;
