@@ -24,9 +24,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <ctime>
 
 #include <EGL/egl.h>
-#include <android/asset_manager.h>
-#include <android/configuration.h>
-#include <android/window.h>
 #include <nitki/queue.hpp>
 #include <ruis/render/opengles/context.hpp>
 #include <sys/eventfd.h>
@@ -39,148 +36,13 @@ using namespace ruisapp;
 
 namesapce
 {
-	ruisapp::application& get_app(ANativeActivity * activity)
-	{
-		// TODO:
-		ASSERT(activity)
-		ASSERT(activity->instance)
-		return *static_cast<ruisapp::application*>(activity->instance);
-	}
-
-	ANativeWindow* android_window = nullptr;
-
-	class java_functions_wrapper : public utki::destructable
-	{
-		JNIEnv* env;
-		jclass clazz;
-		jobject obj;
-
-		jmethodID resolve_key_unicode_method;
-
-		jmethodID get_dots_per_inch_method;
-
-		jmethodID show_virtual_keyboard_method;
-		jmethodID hide_virtual_keyboard_method;
-
-		jmethodID list_dir_contents_method;
-
-		jmethodID get_storage_dir_method;
-
-	public:
-		java_functions_wrapper(ANativeActivity* a)
-		{
-			this->env = a->env;
-			this->obj = a->clazz;
-			this->clazz = this->env->GetObjectClass(this->obj);
-			ASSERT(this->clazz)
-
-			this->resolve_key_unicode_method = this->env->GetMethodID(this->clazz, "resolveKeyUnicode", "(III)I");
-			ASSERT(this->resolve_key_unicode_method)
-
-			this->get_dots_per_inch_method = this->env->GetMethodID(this->clazz, "getDotsPerInch", "()F");
-
-			this->list_dir_contents_method =
-				this->env->GetMethodID(this->clazz, "listDirContents", "(Ljava/lang/String;)[Ljava/lang/String;");
-			ASSERT(this->list_dir_contents_method)
-
-			this->show_virtual_keyboard_method = this->env->GetMethodID(this->clazz, "showVirtualKeyboard", "()V");
-			ASSERT(this->show_virtual_keyboard_method)
-
-			this->hide_virtual_keyboard_method = this->env->GetMethodID(this->clazz, "hideVirtualKeyboard", "()V");
-			ASSERT(this->hide_virtual_keyboard_method)
-
-			this->get_storage_dir_method = this->env->GetMethodID(this->clazz, "getStorageDir", "()Ljava/lang/String;");
-			ASSERT(this->get_storage_dir_method)
-		}
-
-		~java_functions_wrapper() noexcept {}
-
-		char32_t resolve_key_unicode(int32_t devId, int32_t metaState, int32_t keyCode)
-		{
-			return char32_t(this->env->CallIntMethod(
-				this->obj,
-				this->resolve_key_unicode_method,
-				jint(devId),
-				jint(metaState),
-				jint(keyCode)
-			));
-		}
-
-		float get_dots_per_inch()
-		{
-			return float(this->env->CallFloatMethod(this->obj, this->get_dots_per_inch_method));
-		}
-
-		void hide_virtual_keyboard()
-		{
-			this->env->CallVoidMethod(this->obj, this->hide_virtual_keyboard_method);
-		}
-
-		void show_virtual_keyboard()
-		{
-			this->env->CallVoidMethod(this->obj, this->show_virtual_keyboard_method);
-		}
-
-		std::vector<std::string> list_dir_contents(const std::string& path)
-		{
-			jstring p = this->env->NewStringUTF(path.c_str());
-			jobject res = this->env->CallObjectMethod(this->obj, this->list_dir_contents_method, p);
-			this->env->DeleteLocalRef(p);
-
-			utki::scope_exit scopeExit([this, res]() {
-				this->env->DeleteLocalRef(res);
-			});
-
-			std::vector<std::string> ret;
-
-			if (res == nullptr) {
-				return ret;
-			}
-
-			jobjectArray arr = static_cast<jobjectArray>(res);
-
-			int count = env->GetArrayLength(arr);
-
-			for (int i = 0; i < count; ++i) {
-				jstring str = static_cast<jstring>(env->GetObjectArrayElement(arr, i));
-				auto chars = env->GetStringUTFChars(str, nullptr);
-				ret.push_back(std::string(chars));
-				this->env->ReleaseStringUTFChars(str, chars);
-				this->env->DeleteLocalRef(str);
-			}
-
-			return ret;
-		}
-
-		std::string get_storage_dir()
-		{
-			jobject res = this->env->CallObjectMethod(this->obj, this->get_storage_dir_method);
-			utki::scope_exit resScopeExit([this, &res]() {
-				this->env->DeleteLocalRef(res);
-			});
-
-			jstring str = static_cast<jstring>(res);
-
-			auto chars = env->GetStringUTFChars(str, nullptr);
-			utki::scope_exit charsScopeExit([this, &chars, &str]() {
-				this->env->ReleaseStringUTFChars(str, chars);
-			});
-
-			return std::string(chars);
-		}
-	};
-
-	std::unique_ptr<java_functions_wrapper> java_functions;
-
 	struct window_wrapper : public utki::destructable {
-		EGLDisplay display;
-		EGLSurface surface = EGL_NO_SURFACE;
-		EGLContext context = EGL_NO_CONTEXT;
+		// EGLDisplay display;
+		// EGLSurface surface = EGL_NO_SURFACE;
+		// EGLContext context = EGL_NO_CONTEXT;
 
-		EGLint format;
-		EGLConfig config;
-
-		nitki::queue ui_queue;
+		// EGLint format;
+		// EGLConfig config;
 
 		window_wrapper(const window_parameters& wp)
 		{
@@ -285,16 +147,19 @@ namesapce
 			// it is ok to destroy surface while EGL context is current, so here we do
 			// not unbind the EGL context
 			if (this->surface != EGL_NO_SURFACE) {
-				eglDestroySurface(this->display, this->surface);
+				eglDestroySurface(
+					this->display, //
+					this->surface
+				);
 				this->surface = EGL_NO_SURFACE;
 			}
 		}
 
 		void create_surface()
 		{
-			ASSERT(this->surface == EGL_NO_SURFACE)
+			utki::assert(this->surface == EGL_NO_SURFACE, SL);
 
-			ASSERT(android_window)
+			utki::assert(android_window, SL);
 			ANativeWindow_setBuffersGeometry(android_window, 0, 0, this->format);
 
 			this->surface = eglCreateWindowSurface(this->display, this->config, android_window, NULL);
@@ -307,7 +172,7 @@ namesapce
 			});
 
 			// bind EGL context to the new surface
-			ASSERT(this->context != EGL_NO_CONTEXT)
+			utki::assert(this->context != EGL_NO_CONTEXT, SL);
 			eglMakeCurrent(this->display, EGL_NO_SURFACE, EGL_NO_SURFACE,
 						   EGL_NO_CONTEXT); // unbind EGL context
 			if (eglMakeCurrent(this->display, this->surface, this->surface, this->context) == EGL_FALSE) {
@@ -359,7 +224,7 @@ namesapce
 
 	window_wrapper& get_impl(const std::unique_ptr<utki::destructable>& pimpl)
 	{
-		ASSERT(dynamic_cast<window_wrapper*>(pimpl.get()))
+		utki::assert(dynamic_cast<window_wrapper*>(pimpl.get()), SL);
 		return static_cast<window_wrapper&>(*pimpl);
 	}
 
@@ -383,7 +248,7 @@ namesapce
 			manager(manager),
 			papki::file(pathName)
 		{
-			ASSERT(this->manager)
+			utki::assert(this->manager, SL);
 		}
 
 		virtual void open_internal(papki::mode mode) override
@@ -414,25 +279,25 @@ namesapce
 
 		virtual void close_internal() const noexcept override
 		{
-			ASSERT(this->handle)
+			utki::assert(this->handle, SL);
 			AAsset_close(this->handle);
 			this->handle = 0;
 		}
 
 		virtual size_t read_internal(utki::span<std::uint8_t> buf) const override
 		{
-			ASSERT(this->handle)
+			utki::assert(this->handle, SL);
 			int numBytesRead = AAsset_read(this->handle, buf.data(), buf.size());
 			if (numBytesRead < 0) { // something happened
 				throw std::runtime_error("AAsset_read() error");
 			}
-			ASSERT(numBytesRead >= 0)
+			utki::assert(numBytesRead >= 0, SL);
 			return size_t(numBytesRead);
 		}
 
 		virtual size_t write_internal(utki::span<const std::uint8_t> buf) override
 		{
-			ASSERT(this->handle)
+			utki::assert(this->handle, SL);
 			throw std::runtime_error("write() is not supported by Android assets");
 		}
 
@@ -452,7 +317,7 @@ namesapce
 				throw std::logic_error("file is not opened, cannot rewind");
 			}
 
-			ASSERT(this->handle)
+			utki::assert(this->handle, SL);
 			if (AAsset_seek(this->handle, 0, SEEK_SET) < 0) {
 				throw std::runtime_error("AAsset_seek() failed");
 			}
@@ -492,7 +357,7 @@ namesapce
 			// Trim away trailing '/', as Android does not work with it.
 			auto p = this->path().substr(0, this->path().size() - 1);
 
-			ASSERT(java_functions)
+			utki::assert(java_functions, SL);
 			return java_functions->list_dir_contents(p);
 		}
 
@@ -509,7 +374,7 @@ namesapce
 				throw std::logic_error("file is not opened, cannot seek");
 			}
 
-			ASSERT(this->handle)
+			utki::assert(this->handle, SL);
 
 			// NOTE: AAsset_seek() accepts 'off_t' as offset argument which is signed
 			// and can be
@@ -518,23 +383,24 @@ namesapce
 			//       necessary.
 
 			off_t assetSize = AAsset_getLength(this->handle);
-			ASSERT(assetSize >= 0)
+			utki::assert(assetSize >= 0, SL);
 
 			using std::min;
 			if (seekForward) {
-				ASSERT(size_t(assetSize) >= this->cur_pos())
+				utki::assert(size_t(assetSize) >= this->cur_pos(), SL);
 				numBytesToSeek = min(numBytesToSeek, size_t(assetSize) - this->cur_pos()); // clamp top
 			} else {
 				numBytesToSeek = min(numBytesToSeek, this->cur_pos()); // clamp top
 			}
 
 			typedef off_t T_FSeekOffset;
+			// TODO: naming convention for DMax, numBytesLeft, etc.
 			const size_t DMax = ((size_t(T_FSeekOffset(-1))) >> 1);
-			ASSERT((size_t(1) << ((sizeof(T_FSeekOffset) * 8) - 1)) - 1 == DMax)
+			utki::assert((size_t(1) << ((sizeof(T_FSeekOffset) * 8) - 1)) - 1 == DMax, SL);
 			static_assert(size_t(-(-T_FSeekOffset(DMax))) == DMax, "size mismatch");
 
 			for (size_t numBytesLeft = numBytesToSeek; numBytesLeft != 0;) {
-				ASSERT(numBytesLeft <= numBytesToSeek)
+				utki::assert(numBytesLeft <= numBytesToSeek, SL);
 
 				T_FSeekOffset offset;
 				if (numBytesLeft > DMax) {
@@ -543,14 +409,14 @@ namesapce
 					offset = T_FSeekOffset(numBytesLeft);
 				}
 
-				ASSERT(offset > 0)
+				utki::assert(offset > 0, SL);
 
 				if (AAsset_seek(this->handle, seekForward ? offset : (-offset), SEEK_CUR) < 0) {
 					throw std::runtime_error("AAsset_seek() failed");
 				}
 
-				ASSERT(size_t(offset) < size_t(-1))
-				ASSERT(numBytesLeft >= size_t(offset))
+				utki::assert(size_t(offset) < size_t(-1), SL);
+				utki::assert(numBytesLeft >= size_t(offset), SL);
 
 				numBytesLeft -= size_t(offset);
 			}
@@ -600,7 +466,7 @@ namesapce
 
 		std::u32string get() const
 		{
-			ASSERT(java_functions)
+			utki::assert(java_functions, SL);
 			//		utki::log_debug([&](auto&o){o << "key_event_to_unicode_resolver::Resolve():
 			// this->kc = " << this->kc << std::endl;});
 			char32_t res = java_functions->resolve_key_unicode(this->di, this->ms, this->kc);
@@ -646,7 +512,7 @@ namesapce
 		void set()
 		{
 			if (eventfd_write(this->event_fd, 1) < 0) {
-				ASSERT(false)
+				utki::assert(false, SL);
 			}
 		}
 
@@ -657,7 +523,7 @@ namesapce
 				if (errno == EAGAIN) {
 					return;
 				}
-				ASSERT(false)
+				utki::assert(false, SL);
 			}
 		}
 	} fd_flag;
@@ -690,7 +556,7 @@ namesapce
 			memset(&sa.sa_mask, 0, sizeof(sa.sa_mask));
 
 			res = sigaction(SIGALRM, &sa, 0);
-			ASSERT(res == 0)
+			utki::assert(res == 0, SL);
 		}
 
 		~linux_timer() noexcept
@@ -705,17 +571,17 @@ namesapce
 			int res =
 #endif
 				sigaction(SIGALRM, &sa, 0);
-			ASSERT(res == 0, [&](auto& o) {
+			utki::assert(res == 0, [&](auto& o) {
 				o << " res = " << res << " errno = " << errno;
-			})
+			}, SL);
 
 #ifdef DEBUG
 			res =
 #endif
 				timer_delete(this->timer);
-			ASSERT(res == 0, [&](auto& o) {
+			utki::assert(res == 0, [&](auto& o) {
 				o << " res = " << res << " errno = " << errno;
-			})
+			}, SL);
 		}
 
 		// if timer is already armed, it will re-set the expiration time
@@ -731,9 +597,9 @@ namesapce
 			int res =
 #endif
 				timer_settime(this->timer, 0, &ts, 0);
-			ASSERT(res == 0, [&](auto& o) {
+			utki::assert(res == 0, [&](auto& o) {
 				o << " res = " << res << " errno = " << errno;
-			})
+			}, SL);
 		}
 
 		// returns true if timer was disarmed
@@ -748,9 +614,9 @@ namesapce
 
 			int res = timer_settime(this->timer, 0, &newts, &oldts);
 			if (res != 0) {
-				ASSERT(false, [&](auto& o) {
+				utki::assert(false, [&](auto& o) {
 					o << "errno = " << errno << " res = " << res;
-				})
+				}, SL);
 			}
 
 			if (oldts.it_value.tv_nsec != 0 || oldts.it_value.tv_sec != 0) {
@@ -763,7 +629,7 @@ namesapce
 	ruis::key get_key_from_key_event(AInputEvent & event) noexcept
 	{
 		size_t kc = size_t(AKeyEvent_getKeyCode(&event));
-		ASSERT(kc < key_code_map.size())
+		utki::assert(kc < key_code_map.size(), SL);
 		return key_code_map[kc];
 	}
 
@@ -837,9 +703,9 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 		 "(Ljava/lang/String;)V", (void*)&Java_io_github_cppfw_ruisapp_RuisappActivity_handleCharacterStringInput},
 	};
 	jclass clazz = env->FindClass("io/github/cppfw/ruisapp/RuisappActivity");
-	ASSERT(clazz)
+	utki::assert(clazz, SL);
 	if (env->RegisterNatives(clazz, methods, 1) < 0) {
-		ASSERT(false)
+		utki::assert(false, SL);
 	}
 
 	return JNI_VERSION_1_6;
@@ -848,7 +714,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 namespace {
 ruisapp::application::directories get_application_directories(std::string_view app_name)
 {
-	ASSERT(java_functions)
+	utki::assert(java_functions, SL);
 
 	auto storage_dir = papki::as_dir(java_functions->get_storage_dir());
 
@@ -885,7 +751,7 @@ ruisapp::application::application(
 			.set_mouse_cursor_function = [this](ruis::mouse_cursor) {},
 			.units = ruis::units(
 				[]() -> float {
-					ASSERT(java_functions)
+					utki::assert(java_functions, SL);
 
 					return java_functions->get_dots_per_inch();
 				}(),
@@ -949,7 +815,7 @@ void ruisapp::application::show_virtual_keyboard() noexcept
 	// ANativeActivity_showSoftInput(native_activity,
 	// ANATIVEACTIVITY_SHOW_SOFT_INPUT_FORCED); did not work for some reason.
 
-	ASSERT(java_functions)
+	utki::assert(java_functions, SL);
 	java_functions->show_virtual_keyboard();
 }
 
@@ -959,7 +825,7 @@ void ruisapp::application::hide_virtual_keyboard() noexcept
 	// ANativeActivity_hideSoftInput(native_activity,
 	// ANATIVEACTIVITY_HIDE_SOFT_INPUT_NOT_ALWAYS); did not work for some reason
 
-	ASSERT(java_functions)
+	utki::assert(java_functions, SL);
 	java_functions->hide_virtual_keyboard();
 }
 
@@ -971,7 +837,7 @@ void handle_input_events()
 	// read and handle input events
 	AInputEvent* event;
 	while (AInputQueue_getEvent(input_queue, &event) >= 0) {
-		ASSERT(event)
+		utki::assert(event, SL);
 
 		// utki::log_debug([&](auto&o){o << "New input event: type = " <<
 		// AInputEvent_getType(event) << std::endl;});
@@ -1059,8 +925,9 @@ void handle_input_events()
 						break;
 					case AMOTION_EVENT_ACTION_MOVE:
 						{
+							// TODO: naming convention
 							size_t numPointers = AMotionEvent_getPointerCount(event);
-							ASSERT(numPointers >= 1)
+							utki::assert(numPointers >= 1, SL);
 							for (size_t pointerNum = 0; pointerNum < numPointers; ++pointerNum) {
 								unsigned pointerId = unsigned(AMotionEvent_getPointerId(event, pointerNum));
 								if (pointerId >= pointers.size()) {
@@ -1106,7 +973,7 @@ void handle_input_events()
 				{
 					// utki::log_debug([&](auto&o){o << "AINPUT_EVENT_TYPE_KEY" << std::endl;});
 
-					ASSERT(event)
+					utki::assert(event, SL);
 					ruis::key key = get_key_from_key_event(*event);
 
 					key_input_string_resolver.kc = AKeyEvent_getKeyCode(event);
@@ -1169,20 +1036,23 @@ void on_destroy(ANativeActivity* activity)
 		o << "on_destroy(): invoked" << std::endl;
 	});
 
-	// TODO: move looper related stuff to window_wrapper?
+	// TODO: move looper related stuff to globals?
 	ALooper* looper = ALooper_prepare(0);
-	ASSERT(looper)
+	utki::assert(looper, SL);
 
 	// remove UI message queue descriptor from looper
-	ALooper_removeFd(looper, get_impl(application::inst()).ui_queue.get_handle());
+	ALooper_removeFd(
+		looper, //
+		get_impl(application::inst()).ui_queue.get_handle()
+	);
 
 	// remove fd_flag from looper
-	ALooper_removeFd(looper, fd_flag.get_fd());
+	ALooper_removeFd(
+		looper, //
+		fd_flag.get_fd()
+	);
 
-	delete static_cast<ruisapp::application*>(activity->instance);
-	activity->instance = nullptr;
-
-	java_functions.reset();
+	android_globals_wrapper::destroy();
 }
 
 void on_start(ANativeActivity* activity)
@@ -1255,9 +1125,9 @@ void on_configuration_changed(ANativeActivity* activity)
 				// do nothing
 				break;
 			case ACONFIGURATION_ORIENTATION_ANY:
-				ASSERT(false)
+				utki::assert(false, SL);
 			default:
-				ASSERT(false)
+				utki::assert(false, SL);
 				break;
 		}
 	}
@@ -1336,6 +1206,9 @@ void on_native_window_created(
 			// use local auto-pointer for now because an exception can be thrown and
 			// need to delete object then.
 			auto cfg = std::make_unique<android_configuration_wrapper>();
+
+			// TODO: why is configuration retrieval tied to window creatrion?
+
 			// retrieve current configuration
 			AConfiguration_fromAssetManager(cfg->android_configuration, native_activity->assetManager);
 
@@ -1350,7 +1223,7 @@ void on_native_window_created(
 			cur_config = std::move(cfg);
 
 			ALooper* looper = ALooper_prepare(0);
-			ASSERT(looper)
+			utki::assert(looper, SL);
 
 			// add timer descriptor to looper, this is needed for updatable to work
 			if (ALooper_addFd(
@@ -1450,11 +1323,11 @@ int on_input_events_ready_for_reading_from_queue(int fd, int events, void* data)
 	//	utki::log_debug([](auto&o){o << "on_input_events_ready_for_reading_from_queue():
 	// invoked" << std::endl;});
 
-	ASSERT(input_queue) // if we get events we should have input queue
+	utki::assert(input_queue, SL); // if we get events we should have input queue
 
 	// if window is not created yet, ignore events
 	if (!ruisapp::application::is_created()) {
-		ASSERT(false)
+		utki::assert(false, SL);
 		AInputEvent* event;
 		while (AInputQueue_getEvent(input_queue, &event) >= 0) {
 			if (AInputQueue_preDispatchEvent(input_queue, event)) {
@@ -1466,7 +1339,7 @@ int on_input_events_ready_for_reading_from_queue(int fd, int events, void* data)
 		return 1;
 	}
 
-	ASSERT(ruisapp::application::is_created())
+	utki::assert(ruisapp::application::is_created(), SL);
 
 	handle_input_events();
 
@@ -1479,8 +1352,8 @@ void on_input_queue_created(ANativeActivity* activity, AInputQueue* queue)
 	utki::log_debug([](auto& o) {
 		o << "on_input_queue_created(): invoked" << std::endl;
 	});
-	ASSERT(queue);
-	ASSERT(!input_queue)
+	utki::assert(queue, SL);
+	utki::assert(!input_queue, SL);
 	input_queue = queue;
 
 	// attach queue to looper
@@ -1498,8 +1371,8 @@ void on_input_queue_destroyed(ANativeActivity* activity, AInputQueue* queue)
 	utki::log_debug([](auto& o) {
 		o << "on_input_queue_destroyed(): invoked" << std::endl;
 	});
-	ASSERT(queue)
-	ASSERT(input_queue == queue)
+	utki::assert(queue, SL);
+	utki::assert(input_queue == queue, SL);
 
 	// detach queue from looper
 	AInputQueue_detachLooper(queue);
@@ -1507,7 +1380,7 @@ void on_input_queue_destroyed(ANativeActivity* activity, AInputQueue* queue)
 	input_queue = nullptr;
 }
 
-// Called when indow dimensions have changed, for example due to on-screen keyboard has been shown.
+// Called when window dimensions have changed, for example due to on-screen keyboard has been shown.
 void on_content_rect_changed(ANativeActivity* activity, const ARect* rect)
 {
 	utki::log_debug([&](auto& o) {
@@ -1548,15 +1421,17 @@ void on_content_rect_changed(ANativeActivity* activity, const ARect* rect)
 }
 } // namespace
 
-void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_t savedStateSize)
+void ANativeActivity_onCreate(
+	ANativeActivity* activity, //
+	void* saved_state,
+	size_t saved_state_size
+)
 {
 	utki::log_debug([&](auto& o) {
 		o << "ANativeActivity_onCreate(): invoked" << std::endl;
 	});
 
-	utki::assert(!android_globals_wrapper::native_activity, SL);
-	android_globals_wrapper::native_activity = activity;
-
+	// TODO: move to globals wrapper?
 	activity->callbacks->onDestroy = &on_destroy;
 	activity->callbacks->onStart = &on_start;
 	activity->callbacks->onResume = &on_resume;
@@ -1574,9 +1449,5 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
 	activity->callbacks->onInputQueueDestroyed = &on_input_queue_destroyed;
 	activity->callbacks->onContentRectChanged = &on_content_rect_changed;
 
-	activity->instance = new android_globals_wrapper();
-	utki::assert(activity->instance, SL);
-
-	// TODO: move to ruisapp_android_globals
-	java_functions = std::make_unique<java_functions_wrapper>(native_activity);
+	android_globals_wrapper::create(activity);
 }
