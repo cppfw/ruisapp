@@ -1,7 +1,5 @@
 #pragma once
 
-#include <android/asset_manager.h>
-#include <android/configuration.h>
 #include <android/native_activity.h>
 #include <android/window.h>
 #include <nitki/queue.hpp>
@@ -9,7 +7,10 @@
 
 #include "../../application.hpp"
 
+#include "android_configuration.hxx"
+#include "event_fd.hxx"
 #include "java_functions.hxx"
+#include "linux_timer.hxx"
 
 namespace {
 struct android_globals_wrapper final {
@@ -25,13 +26,39 @@ struct android_globals_wrapper final {
 		return
 	}
 
+	android_globals_wrapper();
+
+	android_globals_wrapper(const android_globals_wrapper&) = delete;
+	android_globals_wrapper& operator=(const android_globals_wrapper&) = delete;
+
+	android_globals_wrapper(android_globals_wrapper&&) = delete;
+	android_globals_wrapper& operator=(android_globals_wrapper&&) = delete;
+
+	~android_globals_wrapper();
+
 	java_functions_wrapper java_functions;
+
+	// save pointer to current thread's looper
+	ALooper* looper = []() {
+		auto l = ALooper_prepare(0);
+		utki::assert(l, SL);
+		return l;
+	}();
+
+	event_fd_wrapper fd_flag; // TODO: rename to main_loop_event_fd
+	linux_timer timer{[&]() {
+		this->fd_flag.set();
+	}};
 
 	nitki::queue ui_queue;
 
-	std::unique_ptr<ruisapp::application> app;
+	utki::unique_ref<android_configuration_wrapper> cur_android_configuration =
+		utki::make_unique<android_configuration_wrapper>(*android_configuration_wrapper::native_activity->assetManager);
 
+	AInputQueue* input_queue = nullptr;
 	ANativeWindow* android_window = nullptr;
+
+	std::unique_ptr<ruisapp::application> app;
 };
 } // namespace
 

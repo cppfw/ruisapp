@@ -16,6 +16,7 @@ namespace {
 class application_glue : public utki::destructable
 {
 public:
+	utki::shared_ref<ruis::updater> updater = utki::make_shared<ruis::updater>();
 };
 } // namespace
 

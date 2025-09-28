@@ -19,17 +19,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 /* ================ LICENSE END ================ */
 
-#include <cerrno>
-#include <csignal>
-#include <ctime>
-
-#include <EGL/egl.h>
-#include <nitki/queue.hpp>
-#include <ruis/render/opengles/context.hpp>
-#include <sys/eventfd.h>
-#include <utki/destructable.hpp>
-#include <utki/unicode.hpp>
-
 #include "android_globals.hxx"
 
 using namespace ruisapp;
@@ -41,7 +30,6 @@ namesapce
 		// EGLSurface surface = EGL_NO_SURFACE;
 		// EGLContext context = EGL_NO_CONTEXT;
 
-		// EGLint format;
 		// EGLConfig config;
 
 		window_wrapper(const window_parameters& wp)
@@ -104,17 +92,15 @@ namesapce
 			// sample, we have a very simplified selection process, where we pick
 			// the first EGLConfig that matches our criteria
 			EGLint numConfigs;
-			eglChooseConfig(this->display, attribs.data(), &this->config, 1, &numConfigs);
+			eglChooseConfig(
+				this->display, //
+				attribs.data(),
+				&this->config,
+				1,
+				&numConfigs
+			);
 			if (numConfigs <= 0) {
 				throw std::runtime_error("eglChooseConfig() failed, no matching config found");
-			}
-
-			// EGL_NATIVE_VISUAL_ID is an attribute of the EGLConfig that is
-			// guaranteed to be accepted by ANativeWindow_setBuffersGeometry().
-			// As soon as we picked a EGLConfig, we can safely reconfigure the
-			// ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID.
-			if (eglGetConfigAttrib(this->display, this->config, EGL_NATIVE_VISUAL_ID, &this->format) == EGL_FALSE) {
-				throw std::runtime_error("eglGetConfigAttrib() failed");
 			}
 
 			std::array<EGLint, 5> context_attrs = {
@@ -159,8 +145,29 @@ namesapce
 		{
 			utki::assert(this->surface == EGL_NO_SURFACE, SL);
 
+			EGLint format;
+
+			// EGL_NATIVE_VISUAL_ID is an attribute of the EGLConfig that is
+			// guaranteed to be accepted by ANativeWindow_setBuffersGeometry().
+			// As soon as we picked a EGLConfig, we can safely reconfigure the
+			// ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID.
+			if (eglGetConfigAttrib(
+					this->display, //
+					this->config,
+					EGL_NATIVE_VISUAL_ID,
+					&format
+				) == EGL_FALSE)
+			{
+				throw std::runtime_error("eglGetConfigAttrib() failed");
+			}
+
 			utki::assert(android_window, SL);
-			ANativeWindow_setBuffersGeometry(android_window, 0, 0, this->format);
+			ANativeWindow_setBuffersGeometry(
+				android_window, //
+				0,
+				0,
+				format
+			);
 
 			this->surface = eglCreateWindowSurface(this->display, this->config, android_window, NULL);
 			if (this->surface == EGL_NO_SURFACE) {
@@ -233,229 +240,23 @@ namesapce
 		return get_impl(get_window_pimpl(app));
 	}
 
-	class asset_file : public papki::file
-	{
-		AAssetManager* manager;
-
-		mutable AAsset* handle = nullptr;
-
-	public:
-		asset_file(
-			AAssetManager* manager,
-			// TODO: naming convention
-			std::string_view pathName = std::string_view()
-		) :
-			manager(manager),
-			papki::file(pathName)
-		{
-			utki::assert(this->manager, SL);
-		}
-
-		virtual void open_internal(papki::mode mode) override
-		{
-			switch (mode) {
-				case papki::mode::write:
-				case papki::mode::create:
-					throw std::invalid_argument(
-						"'write' and 'create' open modes are not "
-						"supported by Android assets"
-					);
-				case papki::mode::read:
-					break;
-				default:
-					throw std::invalid_argument("unknown mode");
-			}
-			this->handle = AAssetManager_open(
-				this->manager,
-				this->path().c_str(),
-				AASSET_MODE_UNKNOWN
-			); // don't know what this MODE means at all
-			if (!this->handle) {
-				std::stringstream ss;
-				ss << "AAssetManager_open(" << this->path() << ") failed";
-				throw std::runtime_error(ss.str());
-			}
-		}
-
-		virtual void close_internal() const noexcept override
-		{
-			utki::assert(this->handle, SL);
-			AAsset_close(this->handle);
-			this->handle = 0;
-		}
-
-		virtual size_t read_internal(utki::span<std::uint8_t> buf) const override
-		{
-			utki::assert(this->handle, SL);
-			int numBytesRead = AAsset_read(this->handle, buf.data(), buf.size());
-			if (numBytesRead < 0) { // something happened
-				throw std::runtime_error("AAsset_read() error");
-			}
-			utki::assert(numBytesRead >= 0, SL);
-			return size_t(numBytesRead);
-		}
-
-		virtual size_t write_internal(utki::span<const std::uint8_t> buf) override
-		{
-			utki::assert(this->handle, SL);
-			throw std::runtime_error("write() is not supported by Android assets");
-		}
-
-		virtual size_t seek_forward_internal(size_t numBytesToSeek) const override
-		{
-			return this->seek(numBytesToSeek, true);
-		}
-
-		virtual size_t seek_backward_internal(size_t numBytesToSeek) const override
-		{
-			return this->seek(numBytesToSeek, false);
-		}
-
-		virtual void rewind_internal() const override
-		{
-			if (!this->is_open()) {
-				throw std::logic_error("file is not opened, cannot rewind");
-			}
-
-			utki::assert(this->handle, SL);
-			if (AAsset_seek(this->handle, 0, SEEK_SET) < 0) {
-				throw std::runtime_error("AAsset_seek() failed");
-			}
-		}
-
-		virtual bool exists() const override
-		{
-			if (this->is_open()) { // file is opened => it exists
-				return true;
-			}
-
-			if (this->path().size() == 0) {
-				return false;
-			}
-
-			if (this->is_dir()) {
-				// try opening the directory to check its existence
-				AAssetDir* pdir = AAssetManager_openDir(this->manager, this->path().c_str());
-
-				if (!pdir) {
-					return false;
-				} else {
-					AAssetDir_close(pdir);
-					return true;
-				}
-			} else {
-				return this->file::exists();
-			}
-		}
-
-		virtual std::vector<std::string> list_dir(size_t maxEntries = 0) const override
-		{
-			if (!this->is_dir()) {
-				throw std::logic_error("asset_file::list_dir(): this is not a directory");
-			}
-
-			// Trim away trailing '/', as Android does not work with it.
-			auto p = this->path().substr(0, this->path().size() - 1);
-
-			utki::assert(java_functions, SL);
-			return java_functions->list_dir_contents(p);
-		}
-
-		std::unique_ptr<papki::file> spawn() override
-		{
-			return std::make_unique<asset_file>(this->manager);
-		}
-
-		~asset_file() noexcept {}
-
-		size_t seek(size_t numBytesToSeek, bool seekForward) const
-		{
-			if (!this->is_open()) {
-				throw std::logic_error("file is not opened, cannot seek");
-			}
-
-			utki::assert(this->handle, SL);
-
-			// NOTE: AAsset_seek() accepts 'off_t' as offset argument which is signed
-			// and can be
-			//       less than size_t value passed as argument to this function.
-			//       Therefore, do several seek operations with smaller offset if
-			//       necessary.
-
-			off_t assetSize = AAsset_getLength(this->handle);
-			utki::assert(assetSize >= 0, SL);
-
-			using std::min;
-			if (seekForward) {
-				utki::assert(size_t(assetSize) >= this->cur_pos(), SL);
-				numBytesToSeek = min(numBytesToSeek, size_t(assetSize) - this->cur_pos()); // clamp top
-			} else {
-				numBytesToSeek = min(numBytesToSeek, this->cur_pos()); // clamp top
-			}
-
-			typedef off_t T_FSeekOffset;
-			// TODO: naming convention for DMax, numBytesLeft, etc.
-			const size_t DMax = ((size_t(T_FSeekOffset(-1))) >> 1);
-			utki::assert((size_t(1) << ((sizeof(T_FSeekOffset) * 8) - 1)) - 1 == DMax, SL);
-			static_assert(size_t(-(-T_FSeekOffset(DMax))) == DMax, "size mismatch");
-
-			for (size_t numBytesLeft = numBytesToSeek; numBytesLeft != 0;) {
-				utki::assert(numBytesLeft <= numBytesToSeek, SL);
-
-				T_FSeekOffset offset;
-				if (numBytesLeft > DMax) {
-					offset = T_FSeekOffset(DMax);
-				} else {
-					offset = T_FSeekOffset(numBytesLeft);
-				}
-
-				utki::assert(offset > 0, SL);
-
-				if (AAsset_seek(this->handle, seekForward ? offset : (-offset), SEEK_CUR) < 0) {
-					throw std::runtime_error("AAsset_seek() failed");
-				}
-
-				utki::assert(size_t(offset) < size_t(-1), SL);
-				utki::assert(numBytesLeft >= size_t(offset), SL);
-
-				numBytesLeft -= size_t(offset);
-			}
-			return numBytesToSeek;
-		}
-	};
-
 	ruis::vector2 cur_window_dims(0, 0);
-
-	AInputQueue* input_queue = nullptr;
 
 	// array of current pointer positions, needed to detect which pointers have
 	// actually moved.
 	std::array<ruis::vector2, 10> pointers;
 
-	inline ruis::vector2 android_win_coords_to_ruis_win_rect_coords(const ruis::vector2& winDim, const ruis::vector2& p)
+	inline ruis::vector2 android_win_coords_to_ruis_win_rect_coords(
+		const ruis::vector2& win_dim,
+		const ruis::vector2& p
+	)
 	{
-		ruis::vector2 ret(p.x(), p.y() - (cur_window_dims.y() - winDim.y()));
+		ruis::vector2 ret(p.x(), p.y() - (cur_window_dims.y() - win_dim.y()));
 		//	utki::log_debug([&](auto&o){o << "android_win_coords_to_ruis_win_rect_coords(): ret
 		//= " << ret << std::endl;});
 		using std::round;
 		return round(ret);
 	}
-
-	struct android_configuration_wrapper {
-		AConfiguration* android_configuration;
-
-		android_configuration_wrapper()
-		{
-			this->android_configuration = AConfiguration_new();
-		}
-
-		~android_configuration_wrapper() noexcept
-		{
-			AConfiguration_delete(this->android_configuration);
-		}
-	};
-
-	std::unique_ptr<android_configuration_wrapper> cur_config;
 
 	class key_event_to_input_string_resolver : public ruis::gui::input_string_provider
 	{
@@ -483,149 +284,6 @@ namesapce
 		}
 	} key_input_string_resolver;
 
-	//================
-	// for updatable
-	//================
-	class event_fd_wrapper
-	{
-		int event_fd;
-
-	public:
-		event_fd_wrapper()
-		{
-			this->event_fd = eventfd(0, EFD_NONBLOCK);
-			if (this->event_fd < 0) {
-				throw std::system_error(errno, std::generic_category(), "could not create eventFD (*nix)");
-			}
-		}
-
-		~event_fd_wrapper() noexcept
-		{
-			close(this->event_fd);
-		}
-
-		int get_fd() noexcept
-		{
-			return this->event_fd;
-		}
-
-		void set()
-		{
-			if (eventfd_write(this->event_fd, 1) < 0) {
-				utki::assert(false, SL);
-			}
-		}
-
-		void clear()
-		{
-			eventfd_t value;
-			if (eventfd_read(this->event_fd, &value) < 0) {
-				if (errno == EAGAIN) {
-					return;
-				}
-				utki::assert(false, SL);
-			}
-		}
-	} fd_flag;
-
-	class linux_timer
-	{
-		timer_t timer;
-
-		// Handler for SIGALRM signal
-		static void on_SIGALRM(int)
-		{
-			fd_flag.set();
-		}
-
-	public:
-		linux_timer()
-		{
-			int res = timer_create(
-				CLOCK_MONOTONIC,
-				0, // means SIGALRM signal is emitted when timer expires
-				&this->timer
-			);
-			if (res != 0) {
-				throw std::runtime_error("timer_create() failed");
-			}
-
-			struct sigaction sa;
-			sa.sa_handler = &linux_timer::on_SIGALRM;
-			sa.sa_flags = SA_NODEFER;
-			memset(&sa.sa_mask, 0, sizeof(sa.sa_mask));
-
-			res = sigaction(SIGALRM, &sa, 0);
-			utki::assert(res == 0, SL);
-		}
-
-		~linux_timer() noexcept
-		{
-			// set default handler for SIGALRM
-			struct sigaction sa;
-			sa.sa_handler = SIG_DFL;
-			sa.sa_flags = 0;
-			memset(&sa.sa_mask, 0, sizeof(sa.sa_mask));
-
-#ifdef DEBUG
-			int res =
-#endif
-				sigaction(SIGALRM, &sa, 0);
-			utki::assert(res == 0, [&](auto& o) {
-				o << " res = " << res << " errno = " << errno;
-			}, SL);
-
-#ifdef DEBUG
-			res =
-#endif
-				timer_delete(this->timer);
-			utki::assert(res == 0, [&](auto& o) {
-				o << " res = " << res << " errno = " << errno;
-			}, SL);
-		}
-
-		// if timer is already armed, it will re-set the expiration time
-		void arm(uint32_t dt)
-		{
-			itimerspec ts;
-			ts.it_value.tv_sec = dt / 1000;
-			ts.it_value.tv_nsec = (dt % 1000) * 1000000;
-			ts.it_interval.tv_nsec = 0; // one shot timer
-			ts.it_interval.tv_sec = 0; // one shot timer
-
-#ifdef DEBUG
-			int res =
-#endif
-				timer_settime(this->timer, 0, &ts, 0);
-			utki::assert(res == 0, [&](auto& o) {
-				o << " res = " << res << " errno = " << errno;
-			}, SL);
-		}
-
-		// returns true if timer was disarmed
-		// returns false if timer has fired before it was disarmed.
-		// TODO: this function is not used anywhere, remove?
-		bool disarm()
-		{
-			itimerspec oldts;
-			itimerspec newts;
-			newts.it_value.tv_nsec = 0;
-			newts.it_value.tv_sec = 0;
-
-			int res = timer_settime(this->timer, 0, &newts, &oldts);
-			if (res != 0) {
-				utki::assert(false, [&](auto& o) {
-					o << "errno = " << errno << " res = " << res;
-				}, SL);
-			}
-
-			if (oldts.it_value.tv_nsec != 0 || oldts.it_value.tv_sec != 0) {
-				return true;
-			}
-			return false;
-		}
-	} timer;
-
 	ruis::key get_key_from_key_event(AInputEvent & event) noexcept
 	{
 		size_t kc = size_t(AKeyEvent_getKeyCode(&event));
@@ -646,8 +304,11 @@ namesapce
 
 namespace {
 
-JNIEXPORT void JNICALL
-Java_io_github_cppfw_ruisapp_RuisappActivity_handleCharacterStringInput(JNIEnv* env, jclass clazz, jstring chars)
+JNIEXPORT void JNICALL Java_io_github_cppfw_ruisapp_RuisappActivity_handleCharacterStringInput(
+	JNIEnv* env, //
+	jclass clazz,
+	jstring chars
+)
 {
 	utki::log_debug([](auto& o) {
 		o << "handleCharacterStringInput(): invoked" << std::endl;
@@ -687,7 +348,11 @@ Java_io_github_cppfw_ruisapp_RuisappActivity_handleCharacterStringInput(JNIEnv* 
 
 } // namespace
 
-jint JNI_OnLoad(JavaVM* vm, void* reserved)
+// this has to be named exactly JNI_OnLoad()
+jint JNI_OnLoad(
+	JavaVM* vm, //
+	void* reserved
+)
 {
 	utki::log_debug([](auto& o) {
 		o << "JNI_OnLoad(): invoked" << std::endl;
@@ -769,100 +434,97 @@ ruisapp::application::application(
 	this->update_window_rect(ruis::rect(ruis::vector2(0), win_size.to<ruis::real>()));
 }
 
-std::unique_ptr<papki::file> ruisapp::application::get_res_file(std::string_view path) const
-{
-	return std::make_unique<asset_file>(native_activity->assetManager, path);
-}
+// TODO:
+// void ruisapp::application::swap_frame_buffers()
+// {
+// 	auto& ww = get_impl(*this);
+// 	ww.swap_buffers();
+// }
 
-void ruisapp::application::swap_frame_buffers()
-{
-	auto& ww = get_impl(*this);
-	ww.swap_buffers();
-}
+// TODO:
+// void ruisapp::application::set_fullscreen(bool enable)
+// {
+// 	utki::assert(native_activity, SL);
+// 	if (enable) {
+// 		ANativeActivity_setWindowFlags(
+// 			native_activity,
+// 			AWINDOW_FLAG_FULLSCREEN, // add flags
+// 			0 // remove flags
+// 		);
+// 	} else {
+// 		ANativeActivity_setWindowFlags(
+// 			native_activity,
+// 			0, // add flags
+// 			AWINDOW_FLAG_FULLSCREEN // remove flags
+// 		);
+// 	}
+// }
 
-void ruisapp::application::set_mouse_cursor_visible(bool visible)
-{
-	// do nothing
-}
+// TODO :
+// void ruisapp::application::quit() noexcept
+// {
+// 	utki::assert(native_activity, SL);
+// 	ANativeActivity_finish(native_activity);
+// }
 
-void ruisapp::application::set_fullscreen(bool enable)
-{
-	utki::assert(native_activity, SL);
-	if (enable) {
-		ANativeActivity_setWindowFlags(
-			native_activity,
-			AWINDOW_FLAG_FULLSCREEN, // add flags
-			0 // remove flags
-		);
-	} else {
-		ANativeActivity_setWindowFlags(
-			native_activity,
-			0, // add flags
-			AWINDOW_FLAG_FULLSCREEN // remove flags
-		);
-	}
-}
+// TODO:
+// void ruisapp::application::show_virtual_keyboard() noexcept
+// {
+// 	// NOTE:
+// 	// ANativeActivity_showSoftInput(native_activity,
+// 	// ANATIVEACTIVITY_SHOW_SOFT_INPUT_FORCED); did not work for some reason.
 
-void ruisapp::application::quit() noexcept
-{
-	utki::assert(native_activity, SL);
-	ANativeActivity_finish(native_activity);
-}
+// 	utki::assert(java_functions, SL);
+// 	java_functions->show_virtual_keyboard();
+// }
 
-void ruisapp::application::show_virtual_keyboard() noexcept
-{
-	// NOTE:
-	// ANativeActivity_showSoftInput(native_activity,
-	// ANATIVEACTIVITY_SHOW_SOFT_INPUT_FORCED); did not work for some reason.
+// TODO:
+// void ruisapp::application::hide_virtual_keyboard() noexcept
+// {
+// 	// NOTE:
+// 	// ANativeActivity_hideSoftInput(native_activity,
+// 	// ANATIVEACTIVITY_HIDE_SOFT_INPUT_NOT_ALWAYS); did not work for some reason
 
-	utki::assert(java_functions, SL);
-	java_functions->show_virtual_keyboard();
-}
-
-void ruisapp::application::hide_virtual_keyboard() noexcept
-{
-	// NOTE:
-	// ANativeActivity_hideSoftInput(native_activity,
-	// ANATIVEACTIVITY_HIDE_SOFT_INPUT_NOT_ALWAYS); did not work for some reason
-
-	utki::assert(java_functions, SL);
-	java_functions->hide_virtual_keyboard();
-}
+// 	utki::assert(java_functions, SL);
+// 	java_functions->hide_virtual_keyboard();
+// }
 
 namespace {
 void handle_input_events()
 {
+	auto& glob = get_glob();
+	utki::assert(glob.input_queue, SL);
+
 	auto& app = ruisapp::inst();
 
 	// read and handle input events
 	AInputEvent* event;
-	while (AInputQueue_getEvent(input_queue, &event) >= 0) {
+	while (AInputQueue_getEvent(glob.input_queue, &event) >= 0) {
 		utki::assert(event, SL);
 
 		// utki::log_debug([&](auto&o){o << "New input event: type = " <<
 		// AInputEvent_getType(event) << std::endl;});
-		if (AInputQueue_preDispatchEvent(input_queue, event)) {
+		if (AInputQueue_preDispatchEvent(glob.input_queue, event)) {
 			continue;
 		}
 
-		int32_t eventType = AInputEvent_getType(event);
-		int32_t eventAction = AMotionEvent_getAction(event);
+		int32_t event_action = AMotionEvent_getAction(event);
 
 		bool consume = false;
 
-		switch (eventType) {
+		switch (AInputEvent_getType(event)) {
 			case AINPUT_EVENT_TYPE_MOTION:
-				switch (eventAction & AMOTION_EVENT_ACTION_MASK) {
+				switch (event_action & AMOTION_EVENT_ACTION_MASK) {
 					case AMOTION_EVENT_ACTION_POINTER_DOWN:
 						// utki::log_debug([&](auto&o){o << "Pointer down" << std::endl;});
 					case AMOTION_EVENT_ACTION_DOWN:
 						{
-							unsigned pointerIndex =
-								((eventAction & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >>
+							unsigned pointer_index =
+								((event_action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >>
 								 AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
-							unsigned pointerId = unsigned(AMotionEvent_getPointerId(event, pointerIndex));
+							unsigned pointer_id = unsigned(AMotionEvent_getPointerId(event, pointer_index));
 
-							if (pointerId >= pointers.size()) {
+							if (pointer_id >= pointers.size()) {
 								utki::log_debug([&](auto& o) {
 									o << "Pointer ID is too big, only " << pointers.size()
 									  << " pointers supported at maximum";
@@ -870,21 +532,21 @@ void handle_input_events()
 								continue;
 							}
 
-							// utki::log_debug([&](auto&o){o << "Action down, ptr id = " << pointerId <<
+							// utki::log_debug([&](auto&o){o << "Action down, ptr id = " << pointer_id <<
 							// std::endl;});
 
 							ruis::vector2 p(
-								AMotionEvent_getX(event, pointerIndex),
-								AMotionEvent_getY(event, pointerIndex)
+								AMotionEvent_getX(event, pointer_index),
+								AMotionEvent_getY(event, pointer_index)
 							);
-							pointers[pointerId] = p;
+							pointers[pointer_id] = p;
 
 							handle_mouse_button(
 								app,
 								true,
 								android_win_coords_to_ruis_win_rect_coords(app.window_dims(), p),
 								ruis::mouse_button::left,
-								pointerId
+								pointer_id
 							);
 						}
 						break;
@@ -892,12 +554,12 @@ void handle_input_events()
 						// utki::log_debug([&](auto&o){o << "Pointer up" << std::endl;});
 					case AMOTION_EVENT_ACTION_UP:
 						{
-							unsigned pointerIndex =
-								((eventAction & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >>
+							unsigned pointer_index =
+								((event_action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >>
 								 AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
-							unsigned pointerId = unsigned(AMotionEvent_getPointerId(event, pointerIndex));
+							unsigned pointer_id = unsigned(AMotionEvent_getPointerId(event, pointer_index));
 
-							if (pointerId >= pointers.size()) {
+							if (pointer_id >= pointers.size()) {
 								utki::log_debug([&](auto& o) {
 									o << "Pointer ID is too big, only " << pointers.size()
 									  << " pointers supported at maximum";
@@ -905,32 +567,32 @@ void handle_input_events()
 								continue;
 							}
 
-							// utki::log_debug([&](auto&o){o << "Action up, ptr id = " << pointerId <<
+							// utki::log_debug([&](auto&o){o << "Action up, ptr id = " << pointer_id <<
 							// std::endl;});
 
 							ruis::vector2 p(
-								AMotionEvent_getX(event, pointerIndex),
-								AMotionEvent_getY(event, pointerIndex)
+								AMotionEvent_getX(event, pointer_index),
+								AMotionEvent_getY(event, pointer_index)
 							);
-							pointers[pointerId] = p;
+							pointers[pointer_id] = p;
 
 							handle_mouse_button(
 								app,
 								false,
 								android_win_coords_to_ruis_win_rect_coords(app.window_dims(), p),
 								ruis::mouse_button::left,
-								pointerId
+								pointer_id
 							);
 						}
 						break;
 					case AMOTION_EVENT_ACTION_MOVE:
 						{
 							// TODO: naming convention
-							size_t numPointers = AMotionEvent_getPointerCount(event);
-							utki::assert(numPointers >= 1, SL);
-							for (size_t pointerNum = 0; pointerNum < numPointers; ++pointerNum) {
-								unsigned pointerId = unsigned(AMotionEvent_getPointerId(event, pointerNum));
-								if (pointerId >= pointers.size()) {
+							size_t num_pointers = AMotionEvent_getPointerCount(event);
+							utki::assert(num_pointers >= 1, SL);
+							for (size_t pointer_num = 0; pointer_num < num_pointers; ++pointer_num) {
+								unsigned pointer_id = unsigned(AMotionEvent_getPointerId(event, pointer_num));
+								if (pointer_id >= pointers.size()) {
 									utki::log_debug([&](auto& o) {
 										o << "Pointer ID is too big, only " << pointers.size()
 										  << " pointers supported at maximum";
@@ -940,30 +602,30 @@ void handle_input_events()
 
 								// notify root container only if there was actual movement
 								ruis::vector2 p(
-									AMotionEvent_getX(event, pointerNum),
-									AMotionEvent_getY(event, pointerNum)
+									AMotionEvent_getX(event, pointer_num),
+									AMotionEvent_getY(event, pointer_num)
 								);
-								if (pointers[pointerId] == p) {
+								if (pointers[pointer_id] == p) {
 									// pointer position did not change
 									continue;
 								}
 
-								// utki::log_debug([&](auto&o){o << "Action move, ptr id = " << pointerId <<
+								// utki::log_debug([&](auto&o){o << "Action move, ptr id = " << pointer_id <<
 								// std::endl;});
 
-								pointers[pointerId] = p;
+								pointers[pointer_id] = p;
 
 								handle_mouse_move(
 									app,
 									android_win_coords_to_ruis_win_rect_coords(app.window_dims(), p),
-									pointerId
+									pointer_id
 								);
 							}
 						}
 						break;
 					default:
 						utki::log_debug([&](auto& o) {
-							o << "unknown eventAction = " << eventAction << std::endl;
+							o << "unknown event_action = " << event_action << std::endl;
 						});
 						break;
 				}
@@ -984,7 +646,7 @@ void handle_input_events()
 					// key_input_string_resolver.kc = " << key_input_string_resolver.kc <<
 					// std::endl;});
 
-					switch (eventAction) {
+					switch (event_action) {
 						case AKEY_EVENT_ACTION_DOWN:
 							// utki::log_debug([&](auto&o){o << "AKEY_EVENT_ACTION_DOWN, count = " <<
 							// AKeyEvent_getRepeatCount(event) << std::endl;});
@@ -1010,7 +672,7 @@ void handle_input_events()
 							break;
 						default:
 							utki::log_debug([&](auto& o) {
-								o << "unknown AINPUT_EVENT_TYPE_KEY eventAction: " << eventAction << std::endl;
+								o << "unknown AINPUT_EVENT_TYPE_KEY event_action: " << event_action << std::endl;
 							});
 							break;
 					}
@@ -1020,7 +682,11 @@ void handle_input_events()
 				break;
 		}
 
-		AInputQueue_finishEvent(input_queue, event, consume);
+		AInputQueue_finishEvent(
+			glob.input_queue, //
+			event,
+			consume
+		);
 	}
 
 	get_impl(app).render(app);
@@ -1030,31 +696,6 @@ void handle_input_events()
 } // namespace
 
 namespace {
-void on_destroy(ANativeActivity* activity)
-{
-	utki::log_debug([](auto& o) {
-		o << "on_destroy(): invoked" << std::endl;
-	});
-
-	// TODO: move looper related stuff to globals?
-	ALooper* looper = ALooper_prepare(0);
-	utki::assert(looper, SL);
-
-	// remove UI message queue descriptor from looper
-	ALooper_removeFd(
-		looper, //
-		get_impl(application::inst()).ui_queue.get_handle()
-	);
-
-	// remove fd_flag from looper
-	ALooper_removeFd(
-		looper, //
-		fd_flag.get_fd()
-	);
-
-	android_globals_wrapper::destroy();
-}
-
 void on_start(ANativeActivity* activity)
 {
 	utki::log_debug([](auto& o) {
@@ -1069,7 +710,10 @@ void on_resume(ANativeActivity* activity)
 	});
 }
 
-void* on_save_instance_state(ANativeActivity* activity, size_t* outSize)
+void* on_save_instance_state(
+	ANativeActivity* activity, //
+	size_t* out_size
+)
 {
 	utki::log_debug([](auto& o) {
 		o << "on_save_instance_state(): invoked" << std::endl;
@@ -1096,26 +740,30 @@ void on_stop(ANativeActivity* activity)
 
 void on_configuration_changed(ANativeActivity* activity)
 {
+	utki::assert(android_globals_wrapper::native_activity, SL);
+	utki::assert(activity == android_globals_wrapper::native_activity, SL);
+
 	utki::log_debug([](auto& o) {
 		o << "on_configuration_changed(): invoked" << std::endl;
 	});
 
+	auto& glob = get_glob();
+
 	// find out what exactly has changed in the configuration
 	int32_t diff;
 	{
-		auto config = std::make_unique<android_configuration_wrapper>();
-		AConfiguration_fromAssetManager(config->android_configuration, native_activity->assetManager);
+		utki::assert(activity->assetManager, SL);
+		auto config = utki::make_unique<android_configuration_wrapper>(*activity->assetManager);
 
-		diff = AConfiguration_diff(cur_config->android_configuration, config->android_configuration);
+		diff = glob.cur_android_configuration.diff(config);
 
 		// store new configuration
-		cur_config = std::move(config);
+		glob.cur_android_configuration = std::move(config);
 	}
 
 	// if orientation has changed
 	if (diff & ACONFIGURATION_ORIENTATION) {
-		int32_t orientation = AConfiguration_getOrientation(cur_config->android_configuration);
-		switch (orientation) {
+		switch (glob.cur_android_configuration.get_orientation()) {
 			case ACONFIGURATION_ORIENTATION_LAND:
 			case ACONFIGURATION_ORIENTATION_PORT:
 				using std::swap;
@@ -1140,46 +788,14 @@ void on_low_memory(ANativeActivity* activity)
 	});
 }
 
-void on_window_focus_changed(ANativeActivity* activity, int hasFocus)
+void on_window_focus_changed(
+	ANativeActivity* activity, //
+	int has_focus
+)
 {
 	utki::log_debug([](auto& o) {
 		o << "on_window_focus_changed(): invoked" << std::endl;
 	});
-}
-
-int on_update_timer_expired(int fd, int events, void* data)
-{
-	//	utki::log_debug([&](auto&o){o << "on_update_timer_expired(): invoked" <<
-	// std::endl;});
-
-	auto& app = application::inst();
-
-	uint32_t dt = app.gui.update();
-	if (dt == 0) {
-		// do not arm the timer and do not clear the flag
-	} else {
-		fd_flag.clear();
-		timer.arm(dt);
-	}
-
-	// after updating need to re-render everything
-	get_impl(app).render(app);
-
-	//	utki::log_debug([&](auto&o){o << "on_update_timer_expired(): armed timer for " << dt
-	//<< std::endl;});
-
-	return 1; // 1 means do not remove descriptor from looper
-}
-
-int on_queue_has_messages(int fd, int events, void* data)
-{
-	auto& ww = get_impl(application::inst());
-
-	while (auto m = ww.ui_queue.pop_front()) {
-		m();
-	}
-
-	return 1; // 1 means do not remove descriptor from looper
 }
 
 void on_native_window_created(
@@ -1187,13 +803,17 @@ void on_native_window_created(
 	ANativeWindow* window
 )
 {
+	utki::assert(android_globals_wrapper::native_activity, SL);
+	utki::assert(activity == android_globals_wrapper::native_activity, SL);
+
 	utki::log_debug([](auto& o) {
 		o << "on_native_window_created(): invoked" << std::endl;
 	});
 
-	// save window in a static var, so it is accessible for OpenGL initializers
-	// from ruis::application class
-	android_window = window;
+	auto& glob = get_glob();
+
+	// save window in a static var, so it is accessible for creating window surface
+	glob.android_window = window;
 
 	cur_window_dims.x() = float(ANativeWindow_getWidth(window));
 	cur_window_dims.y() = float(ANativeWindow_getHeight(window));
@@ -1201,61 +821,24 @@ void on_native_window_created(
 	// If we have no application instance yet, create it now.
 	// Otherwise the window was re-created after moving the app from background to foreground
 	// and we just need to create EGL surface for the new window.
-	if (!activity->instance) {
+	if (!glob.app) {
 		try {
-			// use local auto-pointer for now because an exception can be thrown and
-			// need to delete object then.
-			auto cfg = std::make_unique<android_configuration_wrapper>();
-
-			// TODO: why is configuration retrieval tied to window creatrion?
-
-			// retrieve current configuration
-			AConfiguration_fromAssetManager(cfg->android_configuration, native_activity->assetManager);
-
-			application* app = ruisapp::application_factory::make_application(0, nullptr).release();
+			// TODO: create application in globals_wrapper, do not create surface there, create surface here
+			application* app = ruisapp::application_factory::make_application(
+								   0, // argc
+								   nullptr // argv
+			)
+								   .release();
 
 			// android application should always have GUI
 			utki::assert_always(app, SL);
 
 			activity->instance = app;
 
-			// save current configuration in global variable
-			cur_config = std::move(cfg);
-
-			ALooper* looper = ALooper_prepare(0);
-			utki::assert(looper, SL);
-
-			// add timer descriptor to looper, this is needed for updatable to work
-			if (ALooper_addFd(
-					looper,
-					fd_flag.get_fd(),
-					ALOOPER_POLL_CALLBACK,
-					ALOOPER_EVENT_INPUT,
-					&on_update_timer_expired,
-					0
-				) == -1)
-			{
-				throw std::runtime_error("failed to add timer descriptor to looper");
-			}
-
-			// add UI message queue descriptor to looper
-			if (ALooper_addFd(
-					looper,
-					get_impl(*app).ui_queue.get_handle(),
-					ALOOPER_POLL_CALLBACK,
-					ALOOPER_EVENT_INPUT,
-					&on_queue_has_messages,
-					0
-				) == -1)
-			{
-				throw std::runtime_error("failed to add UI message queue descriptor to looper");
-			}
-
 			// Set the fd_flag to call the update() for the first time if there
 			// were any updateables started during creating application
 			// object.
-			fd_flag.set();
-
+			glob.fd_flag.set();
 		} catch (std::exception& e) {
 			utki::log_debug([&](auto& o) {
 				o << "std::exception uncaught while creating application instance: " << e.what() << std::endl;
@@ -1272,7 +855,8 @@ void on_native_window_created(
 	}
 }
 
-void on_native_window_resized(ANativeActivity* activity, ANativeWindow* window)
+void on_native_window_resized(ANativeActivity* activity,//
+	 ANativeWindow* window)
 {
 	utki::log_debug([](auto& o) {
 		o << "on_native_window_resized(): invoked" << std::endl;
@@ -1287,7 +871,8 @@ void on_native_window_resized(ANativeActivity* activity, ANativeWindow* window)
 	});
 }
 
-void on_native_window_redraw_needed(ANativeActivity* activity, ANativeWindow* window)
+void on_native_window_redraw_needed(ANativeActivity* activity, //
+	ANativeWindow* window)
 {
 	utki::log_debug([](auto& o) {
 		o << "on_native_window_redraw_needed(): invoked" << std::endl;
@@ -1301,7 +886,8 @@ void on_native_window_redraw_needed(ANativeActivity* activity, ANativeWindow* wi
 // This function is called right before destroying Window object, according to
 // documentation:
 // https://developer.android.com/ndk/reference/struct/a-native-activity-callbacks#onnativewindowdestroyed
-void on_native_window_destroyed(ANativeActivity* activity, ANativeWindow* window)
+void on_native_window_destroyed(ANativeActivity* activity, //
+	ANativeWindow* window)
 {
 	utki::log_debug([](auto& o) {
 		o << "on_native_window_destroyed(): invoked" << std::endl;
@@ -1312,31 +898,49 @@ void on_native_window_destroyed(ANativeActivity* activity, ANativeWindow* window
 	// textures, vertex buffers, etc.
 	get_impl(get_app(activity)).destroy_surface();
 
-	// delete configuration object
-	cur_config.reset();
-
 	android_window = nullptr;
 }
 
-int on_input_events_ready_for_reading_from_queue(int fd, int events, void* data)
+int on_input_events_ready_for_reading_from_queue(
+	int fd, //
+	int events,
+	void* data
+)
 {
 	//	utki::log_debug([](auto&o){o << "on_input_events_ready_for_reading_from_queue():
 	// invoked" << std::endl;});
 
-	utki::assert(input_queue, SL); // if we get events we should have input queue
+	auto& glob = get_glob();
+
+	// if we get events we should have input queue
+	utki::assert(glob.input_queue, SL);
 
 	// if window is not created yet, ignore events
 	if (!ruisapp::application::is_created()) {
+		// normally, should not get here
 		utki::assert(false, SL);
+
 		AInputEvent* event;
-		while (AInputQueue_getEvent(input_queue, &event) >= 0) {
-			if (AInputQueue_preDispatchEvent(input_queue, event)) {
+		while (AInputQueue_getEvent(
+				   glob.input_queue, //
+				   &event
+			   ) >= 0)
+		{
+			if (AInputQueue_preDispatchEvent(
+					glob.input_queue, //
+					event
+				))
+			{
 				continue;
 			}
 
-			AInputQueue_finishEvent(input_queue, event, false);
+			AInputQueue_finishEvent(
+				glob.input_queue, //
+				event,
+				false
+			);
 		}
-		return 1;
+		return 1; // we don't want to remove input queue descriptor from looper
 	}
 
 	utki::assert(ruisapp::application::is_created(), SL);
@@ -1347,18 +951,25 @@ int on_input_events_ready_for_reading_from_queue(int fd, int events, void* data)
 }
 
 // NOTE: this callback is called before on_native_window_created()
-void on_input_queue_created(ANativeActivity* activity, AInputQueue* queue)
+void on_input_queue_created(
+	ANativeActivity* activity, //
+	AInputQueue* queue
+)
 {
 	utki::log_debug([](auto& o) {
 		o << "on_input_queue_created(): invoked" << std::endl;
 	});
+
+	auto& glob = get_glob();
+
 	utki::assert(queue, SL);
-	utki::assert(!input_queue, SL);
-	input_queue = queue;
+	utki::assert(!glob.input_queue, SL);
+	glob.input_queue = queue;
 
 	// attach queue to looper
 	AInputQueue_attachLooper(
-		input_queue,
+		glob.input_queue,
+		// TODO: use glob.looper?
 		ALooper_prepare(0), // get looper for current thread (main thread)
 		0, // 'ident' is ignored since we are using callback
 		&on_input_events_ready_for_reading_from_queue,
@@ -1366,22 +977,31 @@ void on_input_queue_created(ANativeActivity* activity, AInputQueue* queue)
 	);
 }
 
-void on_input_queue_destroyed(ANativeActivity* activity, AInputQueue* queue)
+void on_input_queue_destroyed(
+	ANativeActivity* activity, //
+	AInputQueue* queue
+)
 {
 	utki::log_debug([](auto& o) {
 		o << "on_input_queue_destroyed(): invoked" << std::endl;
 	});
-	utki::assert(queue, SL);
-	utki::assert(input_queue == queue, SL);
+
+	auto& glob = get_glob();
+
+	utki::assert(glob.input_queue, SL);
+	utki::assert(glob.input_queue == queue, SL);
 
 	// detach queue from looper
-	AInputQueue_detachLooper(queue);
+	AInputQueue_detachLooper(glob.input_queue);
 
-	input_queue = nullptr;
+	glob.input_queue = nullptr;
 }
 
 // Called when window dimensions have changed, for example due to on-screen keyboard has been shown.
-void on_content_rect_changed(ANativeActivity* activity, const ARect* rect)
+void on_content_rect_changed(
+	ANativeActivity* activity, //
+	const ARect* rect
+)
 {
 	utki::log_debug([&](auto& o) {
 		o << "on_content_rect_changed(): invoked, left = " << rect->left << " right = " << rect->right
@@ -1419,6 +1039,15 @@ void on_content_rect_changed(ANativeActivity* activity, const ARect* rect)
 	// redraw, since WindowRedrawNeeded not always comes
 	get_impl(app).render(app);
 }
+
+void on_destroy(ANativeActivity* activity)
+{
+	utki::log_debug([](auto& o) {
+		o << "on_destroy(): invoked" << std::endl;
+	});
+
+	android_globals_wrapper::destroy();
+}
 } // namespace
 
 void ANativeActivity_onCreate(
@@ -1431,7 +1060,6 @@ void ANativeActivity_onCreate(
 		o << "ANativeActivity_onCreate(): invoked" << std::endl;
 	});
 
-	// TODO: move to globals wrapper?
 	activity->callbacks->onDestroy = &on_destroy;
 	activity->callbacks->onStart = &on_start;
 	activity->callbacks->onResume = &on_resume;
