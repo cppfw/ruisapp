@@ -23,7 +23,7 @@ void native_window::swap_frame_buffers(){
     }
 }
 
-void native_window::create_surface(){
+void native_window::create_surface(ANativeWindow& android_window){
     utki::assert(!this->egl_surface.has_value(), SL);
 
     EGLint format;
@@ -42,21 +42,18 @@ void native_window::create_surface(){
         throw std::runtime_error("eglGetConfigAttrib() failed");
     }
 
-    utki::assert(android_window, SL);
-
-    // TODO: get android_window from somewhere
-    utki::assert(android_window, SL);
+    // if both buffer width and height are 0 then it will be sized to the window dimensions
     ANativeWindow_setBuffersGeometry(
-        android_window, //
-        0,
-        0,
+        &android_window, //
+        0, // buffer width in pixels
+        0, // buffer height in pixels
         format
     );
     
     this->egl_surface.emplace(
         this->egl_display,//
         this->egl_config,
-        EGLNativeWindowType(android_window)
+        EGLNativeWindowType(&android_window)
     );
 }
 

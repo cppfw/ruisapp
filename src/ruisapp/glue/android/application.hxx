@@ -25,6 +25,22 @@ public:
 	utki::shared_ref<ruis::updater> updater = utki::make_shared<ruis::updater>();
 
 	application_glue(utki::version_duplet gl_version);
+
+	app_window& make_window(ruisapp::window_parameters window_params);
+
+	void render();
+
+	void create_window_surface(ANativeWindow& android_window){
+		if(this->window.has_value()){
+			this->window.create_surface(android_window);
+		}
+	}
+
+	void destroy_window_surface(){
+		if(this->window.has_value()){
+			this->window.value().destroy_surface();
+		}
+	}
 };
 } // namespace
 

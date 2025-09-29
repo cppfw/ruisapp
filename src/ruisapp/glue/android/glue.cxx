@@ -481,11 +481,13 @@ void handle_input_events()
 	auto& glob = get_glob();
 	utki::assert(glob.input_queue, SL);
 
+	auto& glue = get_glue();
+
+	// TODO: remove
 	auto& app = ruisapp::inst();
 
 	// read and handle input events
-	AInputEvent* event;
-	while (AInputQueue_getEvent(glob.input_queue, &event) >= 0) {
+	while (AInputEvent* event; AInputQueue_getEvent(glob.input_queue, &event) >= 0) {
 		utki::assert(event, SL);
 
 		// utki::log_debug([&](auto&o){o << "New input event: type = " <<
@@ -675,9 +677,9 @@ void handle_input_events()
 		);
 	}
 
-	get_impl(app).render(app);
+	glue.render();
 
-	fd_flag.set();
+	glob.fd_flag.set();
 }
 } // namespace
 
@@ -735,17 +737,14 @@ void on_configuration_changed(ANativeActivity* activity)
 
 	auto& glob = get_glob();
 
-	// find out what exactly has changed in the configuration
-	int32_t diff;
-	{
-		utki::assert(activity->assetManager, SL);
-		auto config = utki::make_unique<android_configuration_wrapper>(*activity->assetManager);
+	// find out what exactly has changed in the configuration	
+	utki::assert(activity->assetManager, SL);
+	auto config = utki::make_unique<android_configuration_wrapper>(*activity->assetManager);
 
-		diff = glob.cur_android_configuration.diff(config);
+	int32_t diff = glob.cur_android_configuration.diff(config);
 
-		// store new configuration
-		glob.cur_android_configuration = std::move(config);
-	}
+	// store new configuration
+	glob.cur_android_configuration = std::move(config);
 
 	// if orientation has changed
 	if (diff & ACONFIGURATION_ORIENTATION) {
@@ -792,53 +791,22 @@ void on_native_window_created(
 	utki::assert(globals_wrapper::native_activity, SL);
 	utki::assert(activity == globals_wrapper::native_activity, SL);
 
+	utki::assert(window, SL);
+
 	utki::log_debug([](auto& o) {
 		o << "on_native_window_created(): invoked" << std::endl;
 	});
 
 	auto& glob = get_glob();
 
-	// save window in a static var, so it is accessible for creating window surface
-	glob.android_window = window;
-
 	glob.cur_window_dims.x() = float(ANativeWindow_getWidth(window));
 	glob.cur_window_dims.y() = float(ANativeWindow_getHeight(window));
 
-	// If we have no application instance yet, create it now.
-	// Otherwise the window was re-created after moving the app from background to foreground
-	// and we just need to create EGL surface for the new window.
-	if (!glob.app) {
-		try {
-			// TODO: create application in globals_wrapper, do not create surface there, create surface here
-			application* app = ruisapp::application_factory::make_application(
-								   0, // argc
-								   nullptr // argv
-			)
-								   .release();
+	auto& glue = get_glue();
 
-			// android application should always have GUI
-			utki::assert_always(app, SL);
-
-			activity->instance = app;
-
-			// Set the fd_flag to call the update() for the first time if there
-			// were any updateables started during creating application
-			// object.
-			glob.fd_flag.set();
-		} catch (std::exception& e) {
-			utki::log_debug([&](auto& o) {
-				o << "std::exception uncaught while creating application instance: " << e.what() << std::endl;
-			});
-			throw;
-		} catch (...) {
-			utki::log_debug([](auto& o) {
-				o << "unknown exception uncaught while creating application instance!" << std::endl;
-			});
-			throw;
-		}
-	} else {
-		get_impl(get_app(activity)).create_surface();
-	}
+	// The android window was just initially created or was re-created after moving the app
+	// from background to foreground. In any case we just need to create EGL surface for the new android window.
+	glue.create_window_surface(*window);
 }
 
 void on_native_window_resized(ANativeActivity* activity,//
@@ -847,6 +815,10 @@ void on_native_window_resized(ANativeActivity* activity,//
 	utki::log_debug([](auto& o) {
 		o << "on_native_window_resized(): invoked" << std::endl;
 	});
+
+	utki::assert(window, SL);
+
+	auto& glob = get_glob();
 
 	// save window dimensions
 	glob.cur_window_dims.x() = float(ANativeWindow_getWidth(window));
@@ -864,9 +836,8 @@ void on_native_window_redraw_needed(ANativeActivity* activity, //
 		o << "on_native_window_redraw_needed(): invoked" << std::endl;
 	});
 
-	auto& app = get_app(activity);
-
-	get_impl(app).render(app);
+	auto& glue = get_glue();
+	glue.render();
 }
 
 // This function is called right before destroying Window object, according to
@@ -879,12 +850,12 @@ void on_native_window_destroyed(ANativeActivity* activity, //
 		o << "on_native_window_destroyed(): invoked" << std::endl;
 	});
 
+	auto& glue = get_glue();
+
 	// destroy EGL drawing surface associated with the window.
 	// the EGL context remains existing and should preserve all resources like
 	// textures, vertex buffers, etc.
-	get_impl(get_app(activity)).destroy_surface();
-
-	android_window = nullptr;
+	glue.destroy_window_surface();
 }
 
 int on_input_events_ready_for_reading_from_queue(
@@ -999,6 +970,7 @@ void on_content_rect_changed(
 		o << "on_content_rect_changed(): cur_window_dims = " << glob.cur_window_dims << std::endl;
 	});
 
+	// TODO: this check is not needed anymore, since app object outlives window now
 	// Sometimes Android calls on_content_rect_changed() even after native window
 	// was destroyed, i.e. on_native_window_destroyed() was called and, thus,
 	// application object was destroyed. So need to check if our application is
@@ -1017,7 +989,7 @@ void on_content_rect_changed(
 	update_window_rect(
 		app,
 		ruis::rect(
-			float(rect->left),
+			float(rect->left), //
 			glob.cur_window_dims.y() - float(rect->bottom),
 			float(rect->right - rect->left),
 			float(rect->bottom - rect->top)
@@ -1025,7 +997,7 @@ void on_content_rect_changed(
 	);
 
 	// redraw, since WindowRedrawNeeded not always comes
-	get_impl(app).render(app);
+	glob.render();
 }
 
 void on_destroy(ANativeActivity* activity)

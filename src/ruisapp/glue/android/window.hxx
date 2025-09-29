@@ -23,7 +23,7 @@ public:
 
     void swap_frame_buffers()override;
 
-    void create_surface();
+    void create_surface(ANativeWindow& android_window);
     void destroy_surface();
 
     r4::vector2<unsigned> get_dims();

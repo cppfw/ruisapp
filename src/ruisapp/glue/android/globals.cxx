@@ -79,7 +79,11 @@ int on_update_timer_expired(
 }
 } // namespace
 
-globals_wrapper()
+globals_wrapper() :
+	app(std::move(ruisapp::application_factory::make_application(
+								   0, // argc
+								   nullptr // argv
+			)))
 {
 	// add timer descriptor to looper, this is needed for updatable to work
 	if (ALooper_addFd(
@@ -106,6 +110,11 @@ globals_wrapper()
 	{
 		throw std::runtime_error("failed to add UI message queue descriptor to looper");
 	}
+
+	// Set the fd_flag to call the update() for the first time if there
+	// were any updateables started during creating application
+	// object.
+	this->fd_flag.set();
 }
 
 ~globals_wrapper()

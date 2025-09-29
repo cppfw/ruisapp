@@ -4,6 +4,7 @@
 #include <android/window.h>
 #include <nitki/queue.hpp>
 #include <utki/debug.hpp>
+#include <utki/unique_ref.hpp>
 
 #include "../../application.hpp"
 
@@ -56,11 +57,10 @@ struct globals_wrapper final {
 		utki::make_unique<android_configuration_wrapper>(*android_configuration_wrapper::native_activity->assetManager);
 
 	AInputQueue* input_queue = nullptr;
-	ANativeWindow* android_window = nullptr;
 
 	ruis::vector2 cur_window_dims(0, 0);
 
-	std::unique_ptr<ruisapp::application> app;
+	utki::unique_ref<ruisapp::application> app;
 };
 } // namespace
 
