@@ -106,10 +106,7 @@ public:
 
 	void swap_frame_buffers() override
 	{
-		eglSwapBuffers(
-			this->display.get().egl_display.display, //
-			this->egl_surface.surface
-		);
+		this->egl_surface.swap_frame_buffers();
 	}
 
 	void bind_rendering_context() override

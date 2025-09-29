@@ -350,10 +350,7 @@ void native_window::swap_frame_buffers()
 #ifdef RUISAPP_RENDER_OPENGL
 	SwapBuffers(this->device_context.context);
 #elif defined(RUISAPP_RENDER_OPENGLES)
-	eglSwapBuffers(
-		this->display.get().egl_display.display, //
-		this->egl_surface.surface
-	);
+		this->egl_surface.swap_frame_buffers();
 #else
 #	error "Unknown graphics API"
 #endif

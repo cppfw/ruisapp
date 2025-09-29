@@ -21,224 +21,216 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "android_globals.hxx"
 
+// TODO: remove
 using namespace ruisapp;
 
 namesapce
 {
-	struct window_wrapper : public utki::destructable {
-		// EGLDisplay display;
-		// EGLSurface surface = EGL_NO_SURFACE;
-		// EGLContext context = EGL_NO_CONTEXT;
+	// struct window_wrapper : public utki::destructable {
+	// 	// EGLDisplay display;
+	// 	// EGLSurface surface = EGL_NO_SURFACE;
+	// 	// EGLContext context = EGL_NO_CONTEXT;
 
-		// EGLConfig config;
+	// 	// EGLConfig config;
 
-		window_wrapper(const window_parameters& wp)
-		{
-			this->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-			if (this->display == EGL_NO_DISPLAY) {
-				throw std::runtime_error("eglGetDisplay(): failed, no matching display connection found");
-			}
+	// 	window_wrapper(const window_parameters& wp)
+	// 	{
+	// 		this->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+	// 		if (this->display == EGL_NO_DISPLAY) {
+	// 			throw std::runtime_error("eglGetDisplay(): failed, no matching display connection found");
+	// 		}
 
-			utki::scope_exit eglDisplayScopeExit([this]() {
-				eglTerminate(this->display);
-			});
+	// 		utki::scope_exit eglDisplayScopeExit([this]() {
+	// 			eglTerminate(this->display);
+	// 		});
 
-			if (eglInitialize(this->display, 0, 0) == EGL_FALSE) {
-				throw std::runtime_error("eglInitialize() failed");
-			}
+	// 		if (eglInitialize(this->display, 0, 0) == EGL_FALSE) {
+	// 			throw std::runtime_error("eglInitialize() failed");
+	// 		}
 
-			auto graphics_api_version = [&ver = wp.graphics_api_version]() {
-				if (ver.to_uint32_t() == 0) {
-					// default OpenGL ES version is 2.0
-					return utki::version_duplet{
-						.major = 2, //
-						.minor = 0
-					};
-				}
-				return ver;
-			}();
+	// 		auto graphics_api_version = [&ver = wp.graphics_api_version]() {
+	// 			if (ver.to_uint32_t() == 0) {
+	// 				// default OpenGL ES version is 2.0
+	// 				return utki::version_duplet{
+	// 					.major = 2, //
+	// 					.minor = 0
+	// 				};
+	// 			}
+	// 			return ver;
+	// 		}();
 
-			// Specify the attributes of the desired configuration.
-			// We need an EGLConfig with at least 8 bits per color
-			// component compatible with on-screen windows.
-			const std::array<EGLint, 15> attribs = {
-				EGL_SURFACE_TYPE,
-				EGL_WINDOW_BIT,
-				EGL_RENDERABLE_TYPE,
-				// We cannot set bits for all OpenGL ES versions because on platforms which do not
-				// support later versions the matching config will not be found by eglChooseConfig().
-				// So, set bits according to requested OpenGL ES version.
-				[&ver = wp.graphics_api_version]() {
-					EGLint ret = EGL_OPENGL_ES2_BIT; // OpenGL ES 2 is the minimum
-					if (ver.major >= 3) {
-						ret |= EGL_OPENGL_ES3_BIT;
-					}
-					return ret;
-				}(),
-				EGL_BLUE_SIZE,
-				8,
-				EGL_GREEN_SIZE,
-				8,
-				EGL_RED_SIZE,
-				8,
-				EGL_DEPTH_SIZE,
-				wp.buffers.get(ruisapp::buffer::depth) ? int(utki::byte_bits * sizeof(uint16_t)) : 0,
-				EGL_STENCIL_SIZE,
-				wp.buffers.get(ruisapp::buffer::stencil) ? utki::byte_bits : 0,
-				EGL_NONE
-			};
+	// 		// Specify the attributes of the desired configuration.
+	// 		// We need an EGLConfig with at least 8 bits per color
+	// 		// component compatible with on-screen windows.
+	// 		const std::array<EGLint, 15> attribs = {
+	// 			EGL_SURFACE_TYPE,
+	// 			EGL_WINDOW_BIT,
+	// 			EGL_RENDERABLE_TYPE,
+	// 			// We cannot set bits for all OpenGL ES versions because on platforms which do not
+	// 			// support later versions the matching config will not be found by eglChooseConfig().
+	// 			// So, set bits according to requested OpenGL ES version.
+	// 			[&ver = wp.graphics_api_version]() {
+	// 				EGLint ret = EGL_OPENGL_ES2_BIT; // OpenGL ES 2 is the minimum
+	// 				if (ver.major >= 3) {
+	// 					ret |= EGL_OPENGL_ES3_BIT;
+	// 				}
+	// 				return ret;
+	// 			}(),
+	// 			EGL_BLUE_SIZE,
+	// 			8,
+	// 			EGL_GREEN_SIZE,
+	// 			8,
+	// 			EGL_RED_SIZE,
+	// 			8,
+	// 			EGL_DEPTH_SIZE,
+	// 			wp.buffers.get(ruisapp::buffer::depth) ? int(utki::byte_bits * sizeof(uint16_t)) : 0,
+	// 			EGL_STENCIL_SIZE,
+	// 			wp.buffers.get(ruisapp::buffer::stencil) ? utki::byte_bits : 0,
+	// 			EGL_NONE
+	// 		};
 
-			// Here, the application chooses the configuration it desires. In this
-			// sample, we have a very simplified selection process, where we pick
-			// the first EGLConfig that matches our criteria
-			EGLint numConfigs;
-			eglChooseConfig(
-				this->display, //
-				attribs.data(),
-				&this->config,
-				1,
-				&numConfigs
-			);
-			if (numConfigs <= 0) {
-				throw std::runtime_error("eglChooseConfig() failed, no matching config found");
-			}
+	// 		// Here, the application chooses the configuration it desires. In this
+	// 		// sample, we have a very simplified selection process, where we pick
+	// 		// the first EGLConfig that matches our criteria
+	// 		EGLint numConfigs;
+	// 		eglChooseConfig(
+	// 			this->display, //
+	// 			attribs.data(),
+	// 			&this->config,
+	// 			1,
+	// 			&numConfigs
+	// 		);
+	// 		if (numConfigs <= 0) {
+	// 			throw std::runtime_error("eglChooseConfig() failed, no matching config found");
+	// 		}
 
-			std::array<EGLint, 5> context_attrs = {
-				EGL_CONTEXT_MAJOR_VERSION,
-				graphics_api_version.major,
-				EGL_CONTEXT_MINOR_VERSION,
-				graphics_api_version.minor,
-				EGL_NONE
-			};
+	// 		std::array<EGLint, 5> context_attrs = {
+	// 			EGL_CONTEXT_MAJOR_VERSION,
+	// 			graphics_api_version.major,
+	// 			EGL_CONTEXT_MINOR_VERSION,
+	// 			graphics_api_version.minor,
+	// 			EGL_NONE
+	// 		};
 
-			this->context = eglCreateContext(this->display, this->config, NULL, context_attrs.data());
-			if (this->context == EGL_NO_CONTEXT) {
-				throw std::runtime_error("eglCreateContext() failed");
-			}
+	// 		this->context = eglCreateContext(this->display, this->config, NULL, context_attrs.data());
+	// 		if (this->context == EGL_NO_CONTEXT) {
+	// 			throw std::runtime_error("eglCreateContext() failed");
+	// 		}
 
-			utki::scope_exit eglContextScopeExit([this]() {
-				eglDestroyContext(this->display, this->context);
-			});
+	// 		utki::scope_exit eglContextScopeExit([this]() {
+	// 			eglDestroyContext(this->display, this->context);
+	// 		});
 
-			this->create_surface();
+	// 		this->create_surface();
 
-			eglContextScopeExit.release();
-			eglDisplayScopeExit.release();
-		}
+	// 		eglContextScopeExit.release();
+	// 		eglDisplayScopeExit.release();
+	// 	}
 
-		void destroy_surface() noexcept
-		{
-			// according to
-			// https://www.khronos.org/registry/EGL/sdk/docs/man/html/eglMakeCurrent.xhtml
-			// it is ok to destroy surface while EGL context is current, so here we do
-			// not unbind the EGL context
-			if (this->surface != EGL_NO_SURFACE) {
-				eglDestroySurface(
-					this->display, //
-					this->surface
-				);
-				this->surface = EGL_NO_SURFACE;
-			}
-		}
+	// 	void destroy_surface() noexcept
+	// 	{
+	// 		// according to
+	// 		// https://www.khronos.org/registry/EGL/sdk/docs/man/html/eglMakeCurrent.xhtml
+	// 		// it is ok to destroy surface while EGL context is current, so here we do
+	// 		// not unbind the EGL context
+	// 		if (this->surface != EGL_NO_SURFACE) {
+	// 			eglDestroySurface(
+	// 				this->display, //
+	// 				this->surface
+	// 			);
+	// 			this->surface = EGL_NO_SURFACE;
+	// 		}
+	// 	}
 
-		void create_surface()
-		{
-			utki::assert(this->surface == EGL_NO_SURFACE, SL);
+	// 	void create_surface()
+	// 	{
+	// 		utki::assert(this->surface == EGL_NO_SURFACE, SL);
 
-			EGLint format;
+	// 		EGLint format;
 
-			// EGL_NATIVE_VISUAL_ID is an attribute of the EGLConfig that is
-			// guaranteed to be accepted by ANativeWindow_setBuffersGeometry().
-			// As soon as we picked a EGLConfig, we can safely reconfigure the
-			// ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID.
-			if (eglGetConfigAttrib(
-					this->display, //
-					this->config,
-					EGL_NATIVE_VISUAL_ID,
-					&format
-				) == EGL_FALSE)
-			{
-				throw std::runtime_error("eglGetConfigAttrib() failed");
-			}
+	// 		// EGL_NATIVE_VISUAL_ID is an attribute of the EGLConfig that is
+	// 		// guaranteed to be accepted by ANativeWindow_setBuffersGeometry().
+	// 		// As soon as we picked a EGLConfig, we can safely reconfigure the
+	// 		// ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID.
+	// 		if (eglGetConfigAttrib(
+	// 				this->display, //
+	// 				this->config,
+	// 				EGL_NATIVE_VISUAL_ID,
+	// 				&format
+	// 			) == EGL_FALSE)
+	// 		{
+	// 			throw std::runtime_error("eglGetConfigAttrib() failed");
+	// 		}
 
-			utki::assert(android_window, SL);
-			ANativeWindow_setBuffersGeometry(
-				android_window, //
-				0,
-				0,
-				format
-			);
+	// 		utki::assert(android_window, SL);
+	// 		ANativeWindow_setBuffersGeometry(
+	// 			android_window, //
+	// 			0,
+	// 			0,
+	// 			format
+	// 		);
 
-			this->surface = eglCreateWindowSurface(this->display, this->config, android_window, NULL);
-			if (this->surface == EGL_NO_SURFACE) {
-				throw std::runtime_error("eglCreateWindowSurface() failed");
-			}
+	// 		this->surface = eglCreateWindowSurface(this->display, this->config, android_window, NULL);
+	// 		if (this->surface == EGL_NO_SURFACE) {
+	// 			throw std::runtime_error("eglCreateWindowSurface() failed");
+	// 		}
 
-			utki::scope_exit surface_scope_exit([this]() {
-				this->destroy_surface();
-			});
+	// 		utki::scope_exit surface_scope_exit([this]() {
+	// 			this->destroy_surface();
+	// 		});
 
-			// bind EGL context to the new surface
-			utki::assert(this->context != EGL_NO_CONTEXT, SL);
-			eglMakeCurrent(this->display, EGL_NO_SURFACE, EGL_NO_SURFACE,
-						   EGL_NO_CONTEXT); // unbind EGL context
-			if (eglMakeCurrent(this->display, this->surface, this->surface, this->context) == EGL_FALSE) {
-				throw std::runtime_error("eglMakeCurrent() failed");
-			}
+	// 		// bind EGL context to the new surface
+	// 		utki::assert(this->context != EGL_NO_CONTEXT, SL);
+	// 		eglMakeCurrent(this->display, EGL_NO_SURFACE, EGL_NO_SURFACE,
+	// 					   EGL_NO_CONTEXT); // unbind EGL context
+	// 		if (eglMakeCurrent(this->display, this->surface, this->surface, this->context) == EGL_FALSE) {
+	// 			throw std::runtime_error("eglMakeCurrent() failed");
+	// 		}
 
-			surface_scope_exit.release();
-		}
+	// 		surface_scope_exit.release();
+	// 	}
 
-		r4::vector2<unsigned> get_window_size()
-		{
-			if (this->surface == EGL_NO_SURFACE) {
-				return {0, 0};
-			}
+	// 	// r4::vector2<unsigned> get_window_size()
+	// 	// {
+	// 	// 	if (this->surface == EGL_NO_SURFACE) {
+	// 	// 		return {0, 0};
+	// 	// 	}
 
-			EGLint width, height;
-			eglQuerySurface(this->display, this->surface, EGL_WIDTH, &width);
-			eglQuerySurface(this->display, this->surface, EGL_HEIGHT, &height);
-			return r4::vector2<unsigned>(width, height);
-		}
+	// 	// 	EGLint width, height;
+	// 	// 	eglQuerySurface(this->display, this->surface, EGL_WIDTH, &width);
+	// 	// 	eglQuerySurface(this->display, this->surface, EGL_HEIGHT, &height);
+	// 	// 	return r4::vector2<unsigned>(width, height);
+	// 	// }
 
-		void swap_buffers()
-		{
-			if (this->surface == EGL_NO_SURFACE) {
-				return;
-			}
+	// 	void render(ruisapp::application& app)
+	// 	{
+	// 		if (this->surface == EGL_NO_SURFACE) {
+	// 			return;
+	// 		}
 
-			eglSwapBuffers(this->display, this->surface);
-		}
+	// 		ruisapp::render(app);
+	// 	}
 
-		void render(ruisapp::application& app)
-		{
-			if (this->surface == EGL_NO_SURFACE) {
-				return;
-			}
+	// 	~window_wrapper() noexcept
+	// 	{
+	// 		eglMakeCurrent(this->display, EGL_NO_SURFACE, EGL_NO_SURFACE,
+	// 					   EGL_NO_CONTEXT); // unbind EGL context
+	// 		eglDestroyContext(this->display, this->context);
+	// 		this->destroy_surface();
+	// 		eglTerminate(this->display);
+	// 	}
+	// };
 
-			ruisapp::render(app);
-		}
+	// window_wrapper& get_impl(const std::unique_ptr<utki::destructable>& pimpl)
+	// {
+	// 	utki::assert(dynamic_cast<window_wrapper*>(pimpl.get()), SL);
+	// 	return static_cast<window_wrapper&>(*pimpl);
+	// }
 
-		~window_wrapper() noexcept
-		{
-			eglMakeCurrent(this->display, EGL_NO_SURFACE, EGL_NO_SURFACE,
-						   EGL_NO_CONTEXT); // unbind EGL context
-			eglDestroyContext(this->display, this->context);
-			this->destroy_surface();
-			eglTerminate(this->display);
-		}
-	};
-
-	window_wrapper& get_impl(const std::unique_ptr<utki::destructable>& pimpl)
-	{
-		utki::assert(dynamic_cast<window_wrapper*>(pimpl.get()), SL);
-		return static_cast<window_wrapper&>(*pimpl);
-	}
-
-	window_wrapper& get_impl(application & app)
-	{
-		return get_impl(get_window_pimpl(app));
-	}
+	// window_wrapper& get_impl(application & app)
+	// {
+	// 	return get_impl(get_window_pimpl(app));
+	// }
 
 	ruis::vector2 cur_window_dims(0, 0);
 
@@ -433,13 +425,6 @@ ruisapp::application::application(
 	auto win_size = get_impl(*this).get_window_size();
 	this->update_window_rect(ruis::rect(ruis::vector2(0), win_size.to<ruis::real>()));
 }
-
-// TODO:
-// void ruisapp::application::swap_frame_buffers()
-// {
-// 	auto& ww = get_impl(*this);
-// 	ww.swap_buffers();
-// }
 
 // TODO:
 // void ruisapp::application::set_fullscreen(bool enable)

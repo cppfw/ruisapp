@@ -228,6 +228,11 @@ struct egl_surface_wrapper {
 			this->surface
 		);
 	}
+
+	void swap_frame_buffers(){
+		eglSwapBuffers(this->egl_display.display,//
+			this->surface);
+	}
 };
 } // namespace
 
