@@ -2,6 +2,8 @@
 
 #include <ruis/render/native_window.hpp>
 
+#include "../../window.hpp"
+
 #include "../egl_utils.hxx"
 
 namespace {
@@ -14,6 +16,11 @@ class native_window : public ruis::render::native_window
     std::optional<egl_surface_wrapper> egl_surface;
 
 public:
+    native_window(
+        const utki::version_duplet& gl_version,//
+		const ruisapp::window_parameters& window_params
+    );
+
     void swap_frame_buffers()override;
 
     void create_surface();

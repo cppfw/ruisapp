@@ -19,12 +19,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 /* ================ LICENSE END ================ */
 
-#include "android_globals.hxx"
+#include "globals.hxx"
 
 // TODO: remove
 using namespace ruisapp;
 
-namesapce
+namespace
 {
 	// struct window_wrapper : public utki::destructable {
 	// 	// EGLDisplay display;
@@ -232,8 +232,6 @@ namesapce
 	// 	return get_impl(get_window_pimpl(app));
 	// }
 
-	ruis::vector2 cur_window_dims(0, 0);
-
 	// array of current pointer positions, needed to detect which pointers have
 	// actually moved.
 	std::array<ruis::vector2, 10> pointers;
@@ -243,7 +241,10 @@ namesapce
 		const ruis::vector2& p
 	)
 	{
-		ruis::vector2 ret(p.x(), p.y() - (cur_window_dims.y() - win_dim.y()));
+		auto& glob = get_glob();
+
+		ruis::vector2 ret(p.x(), //
+		p.y() - (glob.cur_window_dims.y() - win_dim.y()));
 		//	utki::log_debug([&](auto&o){o << "android_win_coords_to_ruis_win_rect_coords(): ret
 		//= " << ret << std::endl;});
 		using std::round;
@@ -725,8 +726,8 @@ void on_stop(ANativeActivity* activity)
 
 void on_configuration_changed(ANativeActivity* activity)
 {
-	utki::assert(android_globals_wrapper::native_activity, SL);
-	utki::assert(activity == android_globals_wrapper::native_activity, SL);
+	utki::assert(globals_wrapper::native_activity, SL);
+	utki::assert(activity == globals_wrapper::native_activity, SL);
 
 	utki::log_debug([](auto& o) {
 		o << "on_configuration_changed(): invoked" << std::endl;
@@ -752,7 +753,7 @@ void on_configuration_changed(ANativeActivity* activity)
 			case ACONFIGURATION_ORIENTATION_LAND:
 			case ACONFIGURATION_ORIENTATION_PORT:
 				using std::swap;
-				swap(cur_window_dims.x(), cur_window_dims.y());
+				swap(glob.cur_window_dims.x(), glob.cur_window_dims.y());
 				break;
 			case ACONFIGURATION_ORIENTATION_SQUARE:
 				// do nothing
@@ -788,8 +789,8 @@ void on_native_window_created(
 	ANativeWindow* window
 )
 {
-	utki::assert(android_globals_wrapper::native_activity, SL);
-	utki::assert(activity == android_globals_wrapper::native_activity, SL);
+	utki::assert(globals_wrapper::native_activity, SL);
+	utki::assert(activity == globals_wrapper::native_activity, SL);
 
 	utki::log_debug([](auto& o) {
 		o << "on_native_window_created(): invoked" << std::endl;
@@ -800,8 +801,8 @@ void on_native_window_created(
 	// save window in a static var, so it is accessible for creating window surface
 	glob.android_window = window;
 
-	cur_window_dims.x() = float(ANativeWindow_getWidth(window));
-	cur_window_dims.y() = float(ANativeWindow_getHeight(window));
+	glob.cur_window_dims.x() = float(ANativeWindow_getWidth(window));
+	glob.cur_window_dims.y() = float(ANativeWindow_getHeight(window));
 
 	// If we have no application instance yet, create it now.
 	// Otherwise the window was re-created after moving the app from background to foreground
@@ -848,11 +849,11 @@ void on_native_window_resized(ANativeActivity* activity,//
 	});
 
 	// save window dimensions
-	cur_window_dims.x() = float(ANativeWindow_getWidth(window));
-	cur_window_dims.y() = float(ANativeWindow_getHeight(window));
+	glob.cur_window_dims.x() = float(ANativeWindow_getWidth(window));
+	glob.cur_window_dims.y() = float(ANativeWindow_getHeight(window));
 
 	utki::log_debug([&](auto& o) {
-		o << "on_native_window_resized(): cur_window_dims = " << cur_window_dims << std::endl;
+		o << "on_native_window_resized(): cur_window_dims = " << glob.cur_window_dims << std::endl;
 	});
 }
 
@@ -988,12 +989,14 @@ void on_content_rect_changed(
 	const ARect* rect
 )
 {
+	auto& glob = get_glob();
+
 	utki::log_debug([&](auto& o) {
 		o << "on_content_rect_changed(): invoked, left = " << rect->left << " right = " << rect->right
 		  << " top = " << rect->top << " bottom = " << rect->bottom << std::endl;
 	});
 	utki::log_debug([&](auto& o) {
-		o << "on_content_rect_changed(): cur_window_dims = " << cur_window_dims << std::endl;
+		o << "on_content_rect_changed(): cur_window_dims = " << glob.cur_window_dims << std::endl;
 	});
 
 	// Sometimes Android calls on_content_rect_changed() even after native window
@@ -1015,7 +1018,7 @@ void on_content_rect_changed(
 		app,
 		ruis::rect(
 			float(rect->left),
-			cur_window_dims.y() - float(rect->bottom),
+			glob.cur_window_dims.y() - float(rect->bottom),
 			float(rect->right - rect->left),
 			float(rect->bottom - rect->top)
 		)
@@ -1031,7 +1034,7 @@ void on_destroy(ANativeActivity* activity)
 		o << "on_destroy(): invoked" << std::endl;
 	});
 
-	android_globals_wrapper::destroy();
+	globals_wrapper::destroy();
 }
 } // namespace
 
@@ -1062,5 +1065,5 @@ void ANativeActivity_onCreate(
 	activity->callbacks->onInputQueueDestroyed = &on_input_queue_destroyed;
 	activity->callbacks->onContentRectChanged = &on_content_rect_changed;
 
-	android_globals_wrapper::create(activity);
+	globals_wrapper::create(activity);
 }

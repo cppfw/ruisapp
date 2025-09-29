@@ -13,28 +13,28 @@
 #include "linux_timer.hxx"
 
 namespace {
-struct android_globals_wrapper final {
+struct globals_wrapper final {
 	static ANativeActivity* native_activity = nullptr;
 
-	static void create(ANativeActivity* native_activity);
+	static void create(ANativeActivity* activity);
 	static void destroy();
 
-	static android_globals_wrapper& get()
+	static globals_wrapper& get()
 	{
 		utki::assert(native_activity, SL);
 		utki::assert(native_activity->instance, SL);
 		return
 	}
 
-	android_globals_wrapper();
+	globals_wrapper();
 
-	android_globals_wrapper(const android_globals_wrapper&) = delete;
-	android_globals_wrapper& operator=(const android_globals_wrapper&) = delete;
+	globals_wrapper(const globals_wrapper&) = delete;
+	globals_wrapper& operator=(const globals_wrapper&) = delete;
 
-	android_globals_wrapper(android_globals_wrapper&&) = delete;
-	android_globals_wrapper& operator=(android_globals_wrapper&&) = delete;
+	globals_wrapper(globals_wrapper&&) = delete;
+	globals_wrapper& operator=(globals_wrapper&&) = delete;
 
-	~android_globals_wrapper();
+	~globals_wrapper();
 
 	java_functions_wrapper java_functions;
 
@@ -58,16 +58,18 @@ struct android_globals_wrapper final {
 	AInputQueue* input_queue = nullptr;
 	ANativeWindow* android_window = nullptr;
 
+	ruis::vector2 cur_window_dims(0, 0);
+
 	std::unique_ptr<ruisapp::application> app;
 };
 } // namespace
 
 namespace {
-inline android_globals_wrapper& get_glob()
+inline globals_wrapper& get_glob()
 {
-	auto na = android_globals_wrapper::native_activity;
+	auto na = globals_wrapper::native_activity;
 	utki::assert(na, SL);
 	utki::assert(na->instance, SL);
-	return *static_cast<android_globals_wrapper*>(na->instance);
+	return *static_cast<globals_wrapper*>(na->instance);
 }
 } // namespace

@@ -9,14 +9,22 @@ namespace {
 class app_window : public ruisapp::window
 {
 public:
+	utki::shared_ref<native_window> ruis_native_Window;
+
 };
 } // namespace
 
 namespace {
 class application_glue : public utki::destructable
 {
+	const utki::version_duplet gl_version;
+
+	// Only one window on android.
+	std::optional<app_window> window;
 public:
 	utki::shared_ref<ruis::updater> updater = utki::make_shared<ruis::updater>();
+
+	application_glue(utki::version_duplet gl_version);
 };
 } // namespace
 

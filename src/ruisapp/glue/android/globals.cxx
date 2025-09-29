@@ -1,32 +1,32 @@
 #include "android_globals.hxx"
 
-void android_globals_wrapper::create(ANativeActivity* native_activity)
+void globals_wrapper::create(ANativeActivity* activity)
 {
-	utki::assert(native_activity, SL);
-	utki::assert(!native_activity->instance, SL);
+	utki::assert(activity, SL);
+	utki::assert(!activity->instance, SL);
 
-	utki::assert(!android_globals_wrapper::native_activity, SL);
+	utki::assert(!globals_wrapper::native_activity, SL);
 
 	try {
-		android_globals_wrapper::native_activity = native_activity;
+		globals_wrapper::native_activity = activity;
 
-		native_activity->instance = new android_globals_wrapper();
+		activity->instance = new globals_wrapper();
 	} catch (...) {
-		android_globals_wrapper::native_activity = nullptr;
+		globals_wrapper::native_activity = nullptr;
 		throw;
 	}
 }
 
-void android_globals_wrapper::destroy()
+void globals_wrapper::destroy()
 {
-	utki::assert(android_globals_wrapper::native_activity, SL);
-	utki::assert(android_globals_wrapper::native_activity->instance, SL);
+	utki::assert(globals_wrapper::native_activity, SL);
+	utki::assert(globals_wrapper::native_activity->instance, SL);
 
-	auto wrapper = static_cast<android_globals_wrapper*>(android_globals_wrapper::native_activity->instance);
+	auto wrapper = static_cast<globals_wrapper*>(globals_wrapper::native_activity->instance);
 	delete wrapper;
 
-	android_globals_wrapper::native_activity->instance = nullptr;
-	android_globals_wrapper::native_activity = nullptr;
+	globals_wrapper::native_activity->instance = nullptr;
+	globals_wrapper::native_activity = nullptr;
 }
 
 namespace {
@@ -79,7 +79,7 @@ int on_update_timer_expired(
 }
 } // namespace
 
-android_globals_wrapper()
+globals_wrapper()
 {
 	// add timer descriptor to looper, this is needed for updatable to work
 	if (ALooper_addFd(
@@ -108,7 +108,7 @@ android_globals_wrapper()
 	}
 }
 
-~android_globals_wrapper()
+~globals_wrapper()
 {
 	// remove UI message queue descriptor from looper
 	ALooper_removeFd(

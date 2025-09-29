@@ -6,7 +6,7 @@
 
 java_functions_wrapper::java_functions_wrapper()
 {
-	auto a = android_globals_wrapper::native_activity;
+	auto a = globals_wrapper::native_activity;
 
 	this->env = a->env;
 	this->obj = a->clazz;

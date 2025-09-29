@@ -1,5 +1,22 @@
 #include "window.hxx"
 
+native_window::native_window(
+    const utki::version_duplet& gl_version,//
+	const ruisapp::window_parameters& window_params
+) :
+    egl_config(
+        this->egl_display, //
+        gl_version,
+        window_params
+    ),
+    egl_context(
+        this->egl_display, //
+        gl_version,
+        this->egl_config,
+        EGL_NO_CONTEXT // no shared context
+    )
+{}
+
 void native_window::swap_frame_buffers(){
     if(this->egl_surface.has_value()){
         this->egl_surface.value().swap_frame_buffers();
