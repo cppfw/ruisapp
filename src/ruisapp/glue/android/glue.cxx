@@ -19,7 +19,19 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 /* ================ LICENSE END ================ */
 
+#include <utki/unicode.hpp>
+
+#include "application.hxx"
 #include "globals.hxx"
+#include "key_code_map.hxx"
+
+// include implementations
+#include "android_configuration.cxx"
+#include "application.cxx"
+#include "globals.cxx"
+#include "java_functions.cxx"
+#include "linux_timer.cxx"
+#include "window.cxx"
 
 // TODO: remove
 using namespace ruisapp;
@@ -245,10 +257,15 @@ public:
 
 	std::u32string get() const
 	{
-		utki::assert(java_functions, SL);
+		auto& glob = get_glob();
+
 		//		utki::log_debug([&](auto&o){o << "key_event_to_unicode_resolver::Resolve():
 		// this->kc = " << this->kc << std::endl;});
-		char32_t res = java_functions->resolve_key_unicode(this->di, this->ms, this->kc);
+		char32_t res = glob.java_functions.resolve_key_unicode(
+			this->di, //
+			this->ms,
+			this->kc
+		);
 
 		// 0 means that key did not produce any unicode character
 		if (res == 0) {
@@ -260,7 +277,7 @@ public:
 
 		return std::u32string(&res, 1);
 	}
-} key_input_string_resolver;
+};
 
 ruis::key get_key_from_key_event(AInputEvent& event) noexcept
 {
@@ -321,7 +338,11 @@ JNIEXPORT void JNICALL Java_io_github_cppfw_ruisapp_RuisappActivity_handleCharac
 	//    utki::log_debug([&](auto&o){o << "handleCharacterStringInput(): provider.chars = "
 	//    << provider.chars << std::endl;});
 
-	ruisapp::handle_character_input(ruisapp::inst(), provider, ruis::key::unknown);
+	auto& glue = get_glue();
+
+	if (auto win = glue.get_window()) {
+		win->gui.send_character_input(provider, ruis::key::unknown);
+	}
 }
 
 } // namespace
@@ -414,35 +435,6 @@ jint JNI_OnLoad(
 // 	}
 // }
 
-// TODO :
-// void ruisapp::application::quit() noexcept
-// {
-// 	utki::assert(native_activity, SL);
-// 	ANativeActivity_finish(native_activity);
-// }
-
-// TODO:
-// void ruisapp::application::show_virtual_keyboard() noexcept
-// {
-// 	// NOTE:
-// 	// ANativeActivity_showSoftInput(native_activity,
-// 	// ANATIVEACTIVITY_SHOW_SOFT_INPUT_FORCED); did not work for some reason.
-
-// 	utki::assert(java_functions, SL);
-// 	java_functions->show_virtual_keyboard();
-// }
-
-// TODO:
-// void ruisapp::application::hide_virtual_keyboard() noexcept
-// {
-// 	// NOTE:
-// 	// ANativeActivity_hideSoftInput(native_activity,
-// 	// ANATIVEACTIVITY_HIDE_SOFT_INPUT_NOT_ALWAYS); did not work for some reason
-
-// 	utki::assert(java_functions, SL);
-// 	java_functions->hide_virtual_keyboard();
-// }
-
 namespace {
 void handle_input_events()
 {
@@ -451,11 +443,12 @@ void handle_input_events()
 
 	auto& glue = get_glue();
 
-	// TODO: remove
-	auto& app = ruisapp::inst();
+	key_event_to_input_string_resolver key_input_string_resolver;
+
+	auto* win = glue.get_window();
 
 	// read and handle input events
-	while (AInputEvent * event; AInputQueue_getEvent(glob.input_queue, &event) >= 0) {
+	for (AInputEvent* event = nullptr; AInputQueue_getEvent(glob.input_queue, &event) >= 0;) {
 		utki::assert(event, SL);
 
 		// utki::log_debug([&](auto&o){o << "New input event: type = " <<
@@ -464,9 +457,22 @@ void handle_input_events()
 			continue;
 		}
 
-		int32_t event_action = AMotionEvent_getAction(event);
-
 		bool consume = false;
+
+		utki::scope_exit finish_event_sope_exit([&]() {
+			AInputQueue_finishEvent(
+				glob.input_queue, //
+				event,
+				consume
+			);
+		});
+
+		if (!win) {
+			// we have no window, thus, do not handle any input events
+			continue;
+		}
+
+		int32_t event_action = AMotionEvent_getAction(event);
 
 		switch (AInputEvent_getType(event)) {
 			case AINPUT_EVENT_TYPE_MOTION:
@@ -497,10 +503,11 @@ void handle_input_events()
 							);
 							pointers[pointer_id] = p;
 
-							handle_mouse_button(
-								app,
-								true,
-								glob.android_win_coords_to_ruis_win_rect_coords(app.window_dims(), p),
+							utki::assert(win, SL);
+
+							win->gui.send_mouse_button(
+								true, // is_down
+								glob.android_win_coords_to_ruis_win_rect_coords(win->get_win_dims(), p), // pos
 								ruis::mouse_button::left,
 								pointer_id
 							);
@@ -532,10 +539,11 @@ void handle_input_events()
 							);
 							pointers[pointer_id] = p;
 
-							handle_mouse_button(
-								app,
-								false,
-								glob.android_win_coords_to_ruis_win_rect_coords(app.window_dims(), p),
+							utki::assert(win, SL);
+
+							win->gui.send_mouse_button(
+								false, // is_down
+								glob.android_win_coords_to_ruis_win_rect_coords(win->get_win_dims(), p), // pos
 								ruis::mouse_button::left,
 								pointer_id
 							);
@@ -571,9 +579,10 @@ void handle_input_events()
 
 								pointers[pointer_id] = p;
 
-								handle_mouse_move(
-									app,
-									glob.android_win_coords_to_ruis_win_rect_coords(app.window_dims(), p),
+								utki::assert(win, SL);
+
+								win->gui.send_mouse_move(
+									glob.android_win_coords_to_ruis_win_rect_coords(win->get_win_dims(), p), // pos
 									pointer_id
 								);
 							}
@@ -607,15 +616,27 @@ void handle_input_events()
 							// utki::log_debug([&](auto&o){o << "AKEY_EVENT_ACTION_DOWN, count = " <<
 							// AKeyEvent_getRepeatCount(event) << std::endl;});
 
+							utki::assert(win, SL);
+
 							// detect auto-repeated key events
 							if (AKeyEvent_getRepeatCount(event) == 0) {
-								handle_key_event(app, true, key);
+								win->gui.send_key(
+									true, // is_down
+									key
+								);
 							}
-							handle_character_input(app, key_input_string_resolver, key);
+
+							win->gui.send_character_input(
+								key_input_string_resolver, //
+								key
+							);
 							break;
 						case AKEY_EVENT_ACTION_UP:
 							// utki::log_debug([&](auto&o){o << "AKEY_EVENT_ACTION_UP" << std::endl;});
-							handle_key_event(app, false, key);
+							win->gui.send_key(
+								false, // is_down
+								key
+							);
 							break;
 						case AKEY_EVENT_ACTION_MULTIPLE:
 							// utki::log_debug([&](auto&o){o << "AKEY_EVENT_ACTION_MULTIPLE"
@@ -637,12 +658,6 @@ void handle_input_events()
 			default:
 				break;
 		}
-
-		AInputQueue_finishEvent(
-			glob.input_queue, //
-			event,
-			consume
-		);
 	}
 
 	glue.render();
@@ -709,14 +724,14 @@ void on_configuration_changed(ANativeActivity* activity)
 	utki::assert(activity->assetManager, SL);
 	auto config = utki::make_unique<android_configuration_wrapper>(*activity->assetManager);
 
-	int32_t diff = glob.cur_android_configuration.diff(config);
+	int32_t diff = glob.cur_android_configuration.get().diff(config);
 
 	// store new configuration
 	glob.cur_android_configuration = std::move(config);
 
 	// if orientation has changed
 	if (diff & ACONFIGURATION_ORIENTATION) {
-		switch (glob.cur_android_configuration.get_orientation()) {
+		switch (glob.cur_android_configuration.get().get_orientation()) {
 			case ACONFIGURATION_ORIENTATION_LAND:
 			case ACONFIGURATION_ORIENTATION_PORT:
 				using std::swap;
@@ -974,8 +989,8 @@ void on_content_rect_changed(
 	// 	)
 	// );
 
-	if(auto win = glue.get_window()){
-		win->gui.set_viewport( //
+	if (auto win = glue.get_window()) {
+		win->set_win_rect( //
 			ruis::rect(
 				float(rect->left), //
 				glob.cur_window_dims.y() - float(rect->bottom),

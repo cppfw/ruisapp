@@ -5,11 +5,36 @@
 #include "../../application.hpp"
 #include "../../window.hpp"
 
+#include "window.hxx"
+
 namespace {
 class app_window : public ruisapp::window
 {
+	ruis::rect cur_win_rect{0, 0, 0, 0};
+
 public:
-	utki::shared_ref<native_window> ruis_native_Window;
+	utki::shared_ref<native_window> ruis_native_window;
+
+	app_window(utki::shared_ref<ruis::context> ruis_context, utki::shared_ref<native_window> ruis_native_window) :
+		ruisapp::window(std::move(ruis_context)),
+		ruis_native_window(std::move(ruis_native_window))
+	{}
+
+	void set_win_rect(const ruis::rect& r)
+	{
+		this->cur_win_rect = r;
+		this->gui.set_viewport(this->cur_win_rect);
+	}
+
+	const ruis::rect& get_win_rect() const noexcept
+	{
+		return this->cur_win_rect;
+	}
+
+	const ruis::vec2& get_win_dims() const noexcept
+	{
+		return this->get_win_rect().d;
+	}
 };
 } // namespace
 
@@ -28,28 +53,35 @@ public:
 
 	app_window& make_window(ruisapp::window_parameters window_params);
 
+	void destroy_window()
+	{
+		// TODO: defer destruction
+		this->window.reset();
+	}
+
 	void render();
 
 	void create_window_surface(ANativeWindow& android_window)
 	{
 		if (this->window.has_value()) {
-			this->window.create_surface(android_window);
+			this->window.value().ruis_native_window.get().create_surface(android_window);
 		}
 	}
 
 	void destroy_window_surface()
 	{
 		if (this->window.has_value()) {
-			this->window.value().destroy_surface();
+			this->window.value().ruis_native_window.get().destroy_surface();
 		}
 	}
 
-    app_window* get_window(){
-        if(this->window.has_value()){
-            return &this->window.value();
-        }
-        return nullptr;
-    }
+	app_window* get_window()
+	{
+		if (this->window.has_value()) {
+			return &this->window.value();
+		}
+		return nullptr;
+	}
 };
 } // namespace
 

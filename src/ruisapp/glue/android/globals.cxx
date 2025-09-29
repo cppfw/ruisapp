@@ -1,4 +1,6 @@
-#include "android_globals.hxx"
+#include "globals.hxx"
+
+ANativeActivity* globals_wrapper::native_activity = nullptr;
 
 void globals_wrapper::create(ANativeActivity* activity)
 {
@@ -95,7 +97,7 @@ int on_update_timer_expired(
 }
 } // namespace
 
-globals_wrapper()
+globals_wrapper::globals_wrapper()
 {
 	// add timer descriptor to looper, this is needed for updatable to work
 	if (ALooper_addFd(
@@ -124,7 +126,7 @@ globals_wrapper()
 	}
 }
 
-~globals_wrapper()
+globals_wrapper::~globals_wrapper()
 {
 	// remove UI message queue descriptor from looper
 	ALooper_removeFd(

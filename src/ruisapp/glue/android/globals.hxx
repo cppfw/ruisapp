@@ -15,17 +15,10 @@
 
 namespace {
 struct globals_wrapper final {
-	static ANativeActivity* native_activity = nullptr;
+	static ANativeActivity* native_activity;
 
 	static void create(ANativeActivity* activity);
 	static void destroy();
-
-	static globals_wrapper& get()
-	{
-		utki::assert(native_activity, SL);
-		utki::assert(native_activity->instance, SL);
-		return
-	}
 
 	globals_wrapper();
 
@@ -54,11 +47,11 @@ struct globals_wrapper final {
 	nitki::queue ui_queue;
 
 	utki::unique_ref<android_configuration_wrapper> cur_android_configuration =
-		utki::make_unique<android_configuration_wrapper>(*android_configuration_wrapper::native_activity->assetManager);
+		utki::make_unique<android_configuration_wrapper>(*globals_wrapper::native_activity->assetManager);
 
 	AInputQueue* input_queue = nullptr;
 
-	ruis::vector2 cur_window_dims(0, 0);
+	ruis::vector2 cur_window_dims{0, 0};
 
 	ruis::vector2 android_win_coords_to_ruis_win_rect_coords(
 		const ruis::vector2& ruis_win_dims, //

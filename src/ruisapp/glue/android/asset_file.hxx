@@ -138,8 +138,9 @@ public:
 			this->path().size() - 1
 		);
 
-		utki::assert(java_functions, SL);
-		return java_functions->list_dir_contents(p);
+		auto& glob = get_glob();
+
+		return glob.java_functions.list_dir_contents(p);
 	}
 
 	std::unique_ptr<papki::file> spawn() override

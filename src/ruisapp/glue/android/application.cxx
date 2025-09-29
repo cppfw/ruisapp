@@ -1,7 +1,9 @@
 #include "application.hxx"
 
-#include "android_globals.hxx"
+#include <ruis/render/opengles/context.hpp>
+
 #include "asset_file.hxx"
+#include "globals.hxx"
 #include "window.hxx"
 
 application_glue::application_glue(utki::version_duplet gl_version) :
@@ -18,10 +20,22 @@ app_window& application_glue::make_window(ruisapp::window_parameters window_para
 
 	utki::assert(!this->window.has_value(), SL);
 
-	auto ruis_native_window = utki::make_shared<native_window>(this->gl_version, window_params);
+	auto ruis_native_window = utki::make_shared<native_window>(
+		this->gl_version, //
+		window_params
+	);
 
-	// TODO: std::move(ruis_native_window)?
 	auto rendering_context = utki::make_shared<ruis::render::opengles::context>(ruis_native_window);
+
+	auto common_render_objects = utki::make_shared<ruis::render::renderer::objects>(rendering_context);
+	auto common_shaders = rendering_context.get().make_shaders();
+
+	auto ruis_resource_loader = utki::make_shared<ruis::resource_loader>(
+		rendering_context, //
+		common_render_objects
+	);
+
+	auto ruis_style_provider = utki::make_shared<ruis::style_provider>(std::move(ruis_resource_loader));
 
 	auto ruis_context = utki::make_shared<ruis::context>(ruis::context::parameters{
 		.post_to_ui_thread_function =
@@ -40,11 +54,11 @@ app_window& application_glue::make_window(ruisapp::window_parameters window_para
 			},
 		.updater = this->updater,
 		.renderer = utki::make_shared<ruis::render::renderer>(
-			rendering_context,
-			this->rendering_context.get().make_shaders(),
-			utki::make_shared<ruis::render::renderer::objects>(rendering_context)
+			std::move(rendering_context),
+			std::move(common_shaders),
+			std::move(common_render_objects)
 		),
-		.style_provider = this->ruis_style_provider,
+		.style_provider = std::move(ruis_style_provider),
 		// TODO:
 		// .units = ruis::units(
 		// 	ruis_native_window.get().get_dots_per_inch(), //
@@ -52,7 +66,7 @@ app_window& application_glue::make_window(ruisapp::window_parameters window_para
 		// )
 	});
 
-	auto ruisapp_window = utki::make_shared<app_window>(
+	this->window.emplace(
 		std::move(ruis_context), //
 		std::move(ruis_native_window)
 	);
@@ -66,8 +80,6 @@ app_window& application_glue::make_window(ruisapp::window_parameters window_para
 	// 		ruis::real(window_params.dims.y())
 	// 	)
 	// );
-
-	this->window = std::move(ruisapp_window);
 
 	utki::assert(this->window.has_value(), SL);
 	return this->window.value();
@@ -120,4 +132,40 @@ ruisapp::window& ruisapp::application::make_window(ruisapp::window_parameters wi
 {
 	auto& glue = get_glue(*this);
 	return glue.make_window(std::move(window_params));
+}
+
+void ruisapp::application::destroy_window(ruisapp::window& w)
+{
+	auto& glue = get_glue(*this);
+
+	utki::assert(dynamic_cast<app_window*>(&w), SL);
+	glue.destroy_window();
+}
+
+void ruisapp::application::quit() noexcept
+{
+	utki::assert(globals_wrapper::native_activity, SL);
+	ANativeActivity_finish(globals_wrapper::native_activity);
+}
+
+void ruisapp::application::show_virtual_keyboard() noexcept
+{
+	// NOTE:
+	// ANativeActivity_showSoftInput(native_activity,
+	// ANATIVEACTIVITY_SHOW_SOFT_INPUT_FORCED); did not work for some reason.
+
+	auto& glob = get_glob();
+
+	glob.java_functions.show_virtual_keyboard();
+}
+
+void ruisapp::application::hide_virtual_keyboard() noexcept
+{
+	// NOTE:
+	// ANativeActivity_hideSoftInput(native_activity,
+	// ANATIVEACTIVITY_HIDE_SOFT_INPUT_NOT_ALWAYS); did not work for some reason
+
+	auto& glob = get_glob();
+
+	glob.java_functions.hide_virtual_keyboard();
 }

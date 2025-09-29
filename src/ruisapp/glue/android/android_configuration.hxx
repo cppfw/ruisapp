@@ -5,10 +5,16 @@
 namespace {
 class android_configuration_wrapper
 {
-	const AConfiguration* config;
+	AConfiguration* config;
 
 public:
-	android_configuration_wrapper(AAssetManager& am);
+	explicit android_configuration_wrapper(AAssetManager& am);
+
+	android_configuration_wrapper(const android_configuration_wrapper&) = delete;
+	android_configuration_wrapper& operator=(const android_configuration_wrapper&) = delete;
+
+	android_configuration_wrapper(android_configuration_wrapper&&) = delete;
+	android_configuration_wrapper& operator=(android_configuration_wrapper&&) = delete;
 
 	~android_configuration_wrapper();
 
