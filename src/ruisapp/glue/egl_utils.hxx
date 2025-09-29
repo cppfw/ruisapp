@@ -26,6 +26,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include <EGL/egl.h>
 #include <utki/string.hpp>
+#include <utki/version.hpp>
 
 #include "../window.hpp"
 
@@ -229,9 +230,32 @@ struct egl_surface_wrapper {
 		);
 	}
 
-	void swap_frame_buffers(){
-		eglSwapBuffers(this->egl_display.display,//
-			this->surface);
+	void swap_frame_buffers()
+	{
+		eglSwapBuffers(
+			this->egl_display.display, //
+			this->surface
+		);
+	}
+
+	r4::vector2<unsigned> get_dims()
+	{
+		EGLint width;
+		eglQuerySurface(
+			this->egl_display.display, //
+			this->surface,
+			EGL_WIDTH,
+			&width
+		);
+
+		EGLint height;
+		eglQuerySurface(
+			this->egl_display.display, //
+			this->surface,
+			EGL_HEIGHT,
+			&height
+		);
+		return r4::vector2<unsigned>(width, height);
 	}
 };
 } // namespace

@@ -24,274 +24,259 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 // TODO: remove
 using namespace ruisapp;
 
-namespace
+namespace {
+// TODO: remove
+// struct window_wrapper : public utki::destructable {
+// 	// EGLDisplay display;
+// 	// EGLSurface surface = EGL_NO_SURFACE;
+// 	// EGLContext context = EGL_NO_CONTEXT;
+
+// 	// EGLConfig config;
+
+// 	window_wrapper(const window_parameters& wp)
+// 	{
+// 		this->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+// 		if (this->display == EGL_NO_DISPLAY) {
+// 			throw std::runtime_error("eglGetDisplay(): failed, no matching display connection found");
+// 		}
+
+// 		utki::scope_exit eglDisplayScopeExit([this]() {
+// 			eglTerminate(this->display);
+// 		});
+
+// 		if (eglInitialize(this->display, 0, 0) == EGL_FALSE) {
+// 			throw std::runtime_error("eglInitialize() failed");
+// 		}
+
+// 		auto graphics_api_version = [&ver = wp.graphics_api_version]() {
+// 			if (ver.to_uint32_t() == 0) {
+// 				// default OpenGL ES version is 2.0
+// 				return utki::version_duplet{
+// 					.major = 2, //
+// 					.minor = 0
+// 				};
+// 			}
+// 			return ver;
+// 		}();
+
+// 		// Specify the attributes of the desired configuration.
+// 		// We need an EGLConfig with at least 8 bits per color
+// 		// component compatible with on-screen windows.
+// 		const std::array<EGLint, 15> attribs = {
+// 			EGL_SURFACE_TYPE,
+// 			EGL_WINDOW_BIT,
+// 			EGL_RENDERABLE_TYPE,
+// 			// We cannot set bits for all OpenGL ES versions because on platforms which do not
+// 			// support later versions the matching config will not be found by eglChooseConfig().
+// 			// So, set bits according to requested OpenGL ES version.
+// 			[&ver = wp.graphics_api_version]() {
+// 				EGLint ret = EGL_OPENGL_ES2_BIT; // OpenGL ES 2 is the minimum
+// 				if (ver.major >= 3) {
+// 					ret |= EGL_OPENGL_ES3_BIT;
+// 				}
+// 				return ret;
+// 			}(),
+// 			EGL_BLUE_SIZE,
+// 			8,
+// 			EGL_GREEN_SIZE,
+// 			8,
+// 			EGL_RED_SIZE,
+// 			8,
+// 			EGL_DEPTH_SIZE,
+// 			wp.buffers.get(ruisapp::buffer::depth) ? int(utki::byte_bits * sizeof(uint16_t)) : 0,
+// 			EGL_STENCIL_SIZE,
+// 			wp.buffers.get(ruisapp::buffer::stencil) ? utki::byte_bits : 0,
+// 			EGL_NONE
+// 		};
+
+// 		// Here, the application chooses the configuration it desires. In this
+// 		// sample, we have a very simplified selection process, where we pick
+// 		// the first EGLConfig that matches our criteria
+// 		EGLint numConfigs;
+// 		eglChooseConfig(
+// 			this->display, //
+// 			attribs.data(),
+// 			&this->config,
+// 			1,
+// 			&numConfigs
+// 		);
+// 		if (numConfigs <= 0) {
+// 			throw std::runtime_error("eglChooseConfig() failed, no matching config found");
+// 		}
+
+// 		std::array<EGLint, 5> context_attrs = {
+// 			EGL_CONTEXT_MAJOR_VERSION,
+// 			graphics_api_version.major,
+// 			EGL_CONTEXT_MINOR_VERSION,
+// 			graphics_api_version.minor,
+// 			EGL_NONE
+// 		};
+
+// 		this->context = eglCreateContext(this->display, this->config, NULL, context_attrs.data());
+// 		if (this->context == EGL_NO_CONTEXT) {
+// 			throw std::runtime_error("eglCreateContext() failed");
+// 		}
+
+// 		utki::scope_exit eglContextScopeExit([this]() {
+// 			eglDestroyContext(this->display, this->context);
+// 		});
+
+// 		this->create_surface();
+
+// 		eglContextScopeExit.release();
+// 		eglDisplayScopeExit.release();
+// 	}
+
+// 	void destroy_surface() noexcept
+// 	{
+// 		// according to
+// 		// https://www.khronos.org/registry/EGL/sdk/docs/man/html/eglMakeCurrent.xhtml
+// 		// it is ok to destroy surface while EGL context is current, so here we do
+// 		// not unbind the EGL context
+// 		if (this->surface != EGL_NO_SURFACE) {
+// 			eglDestroySurface(
+// 				this->display, //
+// 				this->surface
+// 			);
+// 			this->surface = EGL_NO_SURFACE;
+// 		}
+// 	}
+
+// 	void create_surface()
+// 	{
+// 		utki::assert(this->surface == EGL_NO_SURFACE, SL);
+
+// 		EGLint format;
+
+// 		// EGL_NATIVE_VISUAL_ID is an attribute of the EGLConfig that is
+// 		// guaranteed to be accepted by ANativeWindow_setBuffersGeometry().
+// 		// As soon as we picked a EGLConfig, we can safely reconfigure the
+// 		// ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID.
+// 		if (eglGetConfigAttrib(
+// 				this->display, //
+// 				this->config,
+// 				EGL_NATIVE_VISUAL_ID,
+// 				&format
+// 			) == EGL_FALSE)
+// 		{
+// 			throw std::runtime_error("eglGetConfigAttrib() failed");
+// 		}
+
+// 		utki::assert(android_window, SL);
+// 		ANativeWindow_setBuffersGeometry(
+// 			android_window, //
+// 			0,
+// 			0,
+// 			format
+// 		);
+
+// 		this->surface = eglCreateWindowSurface(this->display, this->config, android_window, NULL);
+// 		if (this->surface == EGL_NO_SURFACE) {
+// 			throw std::runtime_error("eglCreateWindowSurface() failed");
+// 		}
+
+// 		utki::scope_exit surface_scope_exit([this]() {
+// 			this->destroy_surface();
+// 		});
+
+// 		// bind EGL context to the new surface
+// 		utki::assert(this->context != EGL_NO_CONTEXT, SL);
+// 		eglMakeCurrent(this->display, EGL_NO_SURFACE, EGL_NO_SURFACE,
+// 					   EGL_NO_CONTEXT); // unbind EGL context
+// 		if (eglMakeCurrent(this->display, this->surface, this->surface, this->context) == EGL_FALSE) {
+// 			throw std::runtime_error("eglMakeCurrent() failed");
+// 		}
+
+// 		surface_scope_exit.release();
+// 	}
+
+// 	// r4::vector2<unsigned> get_window_size()
+// 	// {
+// 	// 	if (this->surface == EGL_NO_SURFACE) {
+// 	// 		return {0, 0};
+// 	// 	}
+
+// 	// 	EGLint width, height;
+// 	// 	eglQuerySurface(this->display, this->surface, EGL_WIDTH, &width);
+// 	// 	eglQuerySurface(this->display, this->surface, EGL_HEIGHT, &height);
+// 	// 	return r4::vector2<unsigned>(width, height);
+// 	// }
+
+// 	void render(ruisapp::application& app)
+// 	{
+// 		if (this->surface == EGL_NO_SURFACE) {
+// 			return;
+// 		}
+
+// 		ruisapp::render(app);
+// 	}
+
+// 	~window_wrapper() noexcept
+// 	{
+// 		eglMakeCurrent(this->display, EGL_NO_SURFACE, EGL_NO_SURFACE,
+// 					   EGL_NO_CONTEXT); // unbind EGL context
+// 		eglDestroyContext(this->display, this->context);
+// 		this->destroy_surface();
+// 		eglTerminate(this->display);
+// 	}
+// };
+
+// window_wrapper& get_impl(const std::unique_ptr<utki::destructable>& pimpl)
+// {
+// 	utki::assert(dynamic_cast<window_wrapper*>(pimpl.get()), SL);
+// 	return static_cast<window_wrapper&>(*pimpl);
+// }
+
+// window_wrapper& get_impl(application & app)
+// {
+// 	return get_impl(get_window_pimpl(app));
+// }
+
+// array of current pointer positions, needed to detect which pointers have
+// actually moved.
+std::array<ruis::vector2, 10> pointers;
+
+class key_event_to_input_string_resolver : public ruis::gui::input_string_provider
 {
-	// struct window_wrapper : public utki::destructable {
-	// 	// EGLDisplay display;
-	// 	// EGLSurface surface = EGL_NO_SURFACE;
-	// 	// EGLContext context = EGL_NO_CONTEXT;
+public:
+	int32_t kc; // key code
+	int32_t ms; // meta state
+	int32_t di; // device id
 
-	// 	// EGLConfig config;
-
-	// 	window_wrapper(const window_parameters& wp)
-	// 	{
-	// 		this->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-	// 		if (this->display == EGL_NO_DISPLAY) {
-	// 			throw std::runtime_error("eglGetDisplay(): failed, no matching display connection found");
-	// 		}
-
-	// 		utki::scope_exit eglDisplayScopeExit([this]() {
-	// 			eglTerminate(this->display);
-	// 		});
-
-	// 		if (eglInitialize(this->display, 0, 0) == EGL_FALSE) {
-	// 			throw std::runtime_error("eglInitialize() failed");
-	// 		}
-
-	// 		auto graphics_api_version = [&ver = wp.graphics_api_version]() {
-	// 			if (ver.to_uint32_t() == 0) {
-	// 				// default OpenGL ES version is 2.0
-	// 				return utki::version_duplet{
-	// 					.major = 2, //
-	// 					.minor = 0
-	// 				};
-	// 			}
-	// 			return ver;
-	// 		}();
-
-	// 		// Specify the attributes of the desired configuration.
-	// 		// We need an EGLConfig with at least 8 bits per color
-	// 		// component compatible with on-screen windows.
-	// 		const std::array<EGLint, 15> attribs = {
-	// 			EGL_SURFACE_TYPE,
-	// 			EGL_WINDOW_BIT,
-	// 			EGL_RENDERABLE_TYPE,
-	// 			// We cannot set bits for all OpenGL ES versions because on platforms which do not
-	// 			// support later versions the matching config will not be found by eglChooseConfig().
-	// 			// So, set bits according to requested OpenGL ES version.
-	// 			[&ver = wp.graphics_api_version]() {
-	// 				EGLint ret = EGL_OPENGL_ES2_BIT; // OpenGL ES 2 is the minimum
-	// 				if (ver.major >= 3) {
-	// 					ret |= EGL_OPENGL_ES3_BIT;
-	// 				}
-	// 				return ret;
-	// 			}(),
-	// 			EGL_BLUE_SIZE,
-	// 			8,
-	// 			EGL_GREEN_SIZE,
-	// 			8,
-	// 			EGL_RED_SIZE,
-	// 			8,
-	// 			EGL_DEPTH_SIZE,
-	// 			wp.buffers.get(ruisapp::buffer::depth) ? int(utki::byte_bits * sizeof(uint16_t)) : 0,
-	// 			EGL_STENCIL_SIZE,
-	// 			wp.buffers.get(ruisapp::buffer::stencil) ? utki::byte_bits : 0,
-	// 			EGL_NONE
-	// 		};
-
-	// 		// Here, the application chooses the configuration it desires. In this
-	// 		// sample, we have a very simplified selection process, where we pick
-	// 		// the first EGLConfig that matches our criteria
-	// 		EGLint numConfigs;
-	// 		eglChooseConfig(
-	// 			this->display, //
-	// 			attribs.data(),
-	// 			&this->config,
-	// 			1,
-	// 			&numConfigs
-	// 		);
-	// 		if (numConfigs <= 0) {
-	// 			throw std::runtime_error("eglChooseConfig() failed, no matching config found");
-	// 		}
-
-	// 		std::array<EGLint, 5> context_attrs = {
-	// 			EGL_CONTEXT_MAJOR_VERSION,
-	// 			graphics_api_version.major,
-	// 			EGL_CONTEXT_MINOR_VERSION,
-	// 			graphics_api_version.minor,
-	// 			EGL_NONE
-	// 		};
-
-	// 		this->context = eglCreateContext(this->display, this->config, NULL, context_attrs.data());
-	// 		if (this->context == EGL_NO_CONTEXT) {
-	// 			throw std::runtime_error("eglCreateContext() failed");
-	// 		}
-
-	// 		utki::scope_exit eglContextScopeExit([this]() {
-	// 			eglDestroyContext(this->display, this->context);
-	// 		});
-
-	// 		this->create_surface();
-
-	// 		eglContextScopeExit.release();
-	// 		eglDisplayScopeExit.release();
-	// 	}
-
-	// 	void destroy_surface() noexcept
-	// 	{
-	// 		// according to
-	// 		// https://www.khronos.org/registry/EGL/sdk/docs/man/html/eglMakeCurrent.xhtml
-	// 		// it is ok to destroy surface while EGL context is current, so here we do
-	// 		// not unbind the EGL context
-	// 		if (this->surface != EGL_NO_SURFACE) {
-	// 			eglDestroySurface(
-	// 				this->display, //
-	// 				this->surface
-	// 			);
-	// 			this->surface = EGL_NO_SURFACE;
-	// 		}
-	// 	}
-
-	// 	void create_surface()
-	// 	{
-	// 		utki::assert(this->surface == EGL_NO_SURFACE, SL);
-
-	// 		EGLint format;
-
-	// 		// EGL_NATIVE_VISUAL_ID is an attribute of the EGLConfig that is
-	// 		// guaranteed to be accepted by ANativeWindow_setBuffersGeometry().
-	// 		// As soon as we picked a EGLConfig, we can safely reconfigure the
-	// 		// ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID.
-	// 		if (eglGetConfigAttrib(
-	// 				this->display, //
-	// 				this->config,
-	// 				EGL_NATIVE_VISUAL_ID,
-	// 				&format
-	// 			) == EGL_FALSE)
-	// 		{
-	// 			throw std::runtime_error("eglGetConfigAttrib() failed");
-	// 		}
-
-	// 		utki::assert(android_window, SL);
-	// 		ANativeWindow_setBuffersGeometry(
-	// 			android_window, //
-	// 			0,
-	// 			0,
-	// 			format
-	// 		);
-
-	// 		this->surface = eglCreateWindowSurface(this->display, this->config, android_window, NULL);
-	// 		if (this->surface == EGL_NO_SURFACE) {
-	// 			throw std::runtime_error("eglCreateWindowSurface() failed");
-	// 		}
-
-	// 		utki::scope_exit surface_scope_exit([this]() {
-	// 			this->destroy_surface();
-	// 		});
-
-	// 		// bind EGL context to the new surface
-	// 		utki::assert(this->context != EGL_NO_CONTEXT, SL);
-	// 		eglMakeCurrent(this->display, EGL_NO_SURFACE, EGL_NO_SURFACE,
-	// 					   EGL_NO_CONTEXT); // unbind EGL context
-	// 		if (eglMakeCurrent(this->display, this->surface, this->surface, this->context) == EGL_FALSE) {
-	// 			throw std::runtime_error("eglMakeCurrent() failed");
-	// 		}
-
-	// 		surface_scope_exit.release();
-	// 	}
-
-	// 	// r4::vector2<unsigned> get_window_size()
-	// 	// {
-	// 	// 	if (this->surface == EGL_NO_SURFACE) {
-	// 	// 		return {0, 0};
-	// 	// 	}
-
-	// 	// 	EGLint width, height;
-	// 	// 	eglQuerySurface(this->display, this->surface, EGL_WIDTH, &width);
-	// 	// 	eglQuerySurface(this->display, this->surface, EGL_HEIGHT, &height);
-	// 	// 	return r4::vector2<unsigned>(width, height);
-	// 	// }
-
-	// 	void render(ruisapp::application& app)
-	// 	{
-	// 		if (this->surface == EGL_NO_SURFACE) {
-	// 			return;
-	// 		}
-
-	// 		ruisapp::render(app);
-	// 	}
-
-	// 	~window_wrapper() noexcept
-	// 	{
-	// 		eglMakeCurrent(this->display, EGL_NO_SURFACE, EGL_NO_SURFACE,
-	// 					   EGL_NO_CONTEXT); // unbind EGL context
-	// 		eglDestroyContext(this->display, this->context);
-	// 		this->destroy_surface();
-	// 		eglTerminate(this->display);
-	// 	}
-	// };
-
-	// window_wrapper& get_impl(const std::unique_ptr<utki::destructable>& pimpl)
-	// {
-	// 	utki::assert(dynamic_cast<window_wrapper*>(pimpl.get()), SL);
-	// 	return static_cast<window_wrapper&>(*pimpl);
-	// }
-
-	// window_wrapper& get_impl(application & app)
-	// {
-	// 	return get_impl(get_window_pimpl(app));
-	// }
-
-	// array of current pointer positions, needed to detect which pointers have
-	// actually moved.
-	std::array<ruis::vector2, 10> pointers;
-
-	inline ruis::vector2 android_win_coords_to_ruis_win_rect_coords(
-		const ruis::vector2& win_dim,
-		const ruis::vector2& p
-	)
+	std::u32string get() const
 	{
-		auto& glob = get_glob();
+		utki::assert(java_functions, SL);
+		//		utki::log_debug([&](auto&o){o << "key_event_to_unicode_resolver::Resolve():
+		// this->kc = " << this->kc << std::endl;});
+		char32_t res = java_functions->resolve_key_unicode(this->di, this->ms, this->kc);
 
-		ruis::vector2 ret(p.x(), //
-		p.y() - (glob.cur_window_dims.y() - win_dim.y()));
-		//	utki::log_debug([&](auto&o){o << "android_win_coords_to_ruis_win_rect_coords(): ret
-		//= " << ret << std::endl;});
-		using std::round;
-		return round(ret);
-	}
-
-	class key_event_to_input_string_resolver : public ruis::gui::input_string_provider
-	{
-	public:
-		int32_t kc; // key code
-		int32_t ms; // meta state
-		int32_t di; // device id
-
-		std::u32string get() const
-		{
-			utki::assert(java_functions, SL);
-			//		utki::log_debug([&](auto&o){o << "key_event_to_unicode_resolver::Resolve():
-			// this->kc = " << this->kc << std::endl;});
-			char32_t res = java_functions->resolve_key_unicode(this->di, this->ms, this->kc);
-
-			// 0 means that key did not produce any unicode character
-			if (res == 0) {
-				utki::log_debug([](auto& o) {
-					o << "key did not produce any unicode character, returning empty string" << std::endl;
-				});
-				return std::u32string();
-			}
-
-			return std::u32string(&res, 1);
+		// 0 means that key did not produce any unicode character
+		if (res == 0) {
+			utki::log_debug([](auto& o) {
+				o << "key did not produce any unicode character, returning empty string" << std::endl;
+			});
+			return std::u32string();
 		}
-	} key_input_string_resolver;
 
-	ruis::key get_key_from_key_event(AInputEvent & event) noexcept
-	{
-		size_t kc = size_t(AKeyEvent_getKeyCode(&event));
-		utki::assert(kc < key_code_map.size(), SL);
-		return key_code_map[kc];
+		return std::u32string(&res, 1);
 	}
+} key_input_string_resolver;
 
-	struct input_string_provider : public ruis::gui::input_string_provider {
-		std::u32string chars;
+ruis::key get_key_from_key_event(AInputEvent& event) noexcept
+{
+	size_t kc = size_t(AKeyEvent_getKeyCode(&event));
+	utki::assert(kc < key_code_map.size(), SL);
+	return key_code_map[kc];
+}
 
-		std::u32string get() const override
-		{
-			return std::move(this->chars);
-		}
-	};
+struct input_string_provider : public ruis::gui::input_string_provider {
+	std::u32string chars;
+
+	std::u32string get() const override
+	{
+		return std::move(this->chars);
+	}
+};
 
 } // namespace
 
@@ -309,7 +294,7 @@ JNIEXPORT void JNICALL Java_io_github_cppfw_ruisapp_RuisappActivity_handleCharac
 
 	const char* utf8Chars = env->GetStringUTFChars(chars, 0);
 
-	utki::scope_exit scopeExit([env, &chars, utf8Chars]() {
+	utki::scope_exit utf8_chars_scope_exit([env, &chars, utf8Chars]() {
 		env->ReleaseStringUTFChars(chars, utf8Chars);
 	});
 
@@ -369,63 +354,46 @@ jint JNI_OnLoad(
 	return JNI_VERSION_1_6;
 }
 
-namespace {
-ruisapp::application::directories get_application_directories(std::string_view app_name)
-{
-	utki::assert(java_functions, SL);
+// ruisapp::application::application(
+// 	std::string name, //
+// 	const window_parameters& wp
+// ) :
+// 	name(name),
+// 	window_pimpl(std::make_unique<window_wrapper>(wp)),
+// 	gui(utki::make_shared<ruis::context>(
+// 		utki::make_shared<ruis::style_provider>( //
+// 			utki::make_shared<ruis::resource_loader>( //
+// 				utki::make_shared<ruis::render::renderer>( //
+// 					utki::make_shared<ruis::render::opengles::context>()
+// 				)
+// 			)
+// 		),
+// 		utki::make_shared<ruis::updater>(),
+// 		ruis::context::parameters{
+// 			.post_to_ui_thread_function =
+// 				[this](std::function<void()> a) {
+// 					get_impl(*this).ui_queue.push_back(std::move(a));
+// 				},
+// 			.set_mouse_cursor_function = [this](ruis::mouse_cursor) {},
+// 			.units = ruis::units(
+// 				[]() -> float {
+// 					utki::assert(java_functions, SL);
 
-	auto storage_dir = papki::as_dir(java_functions->get_storage_dir());
-
-	ruisapp::application::directories dirs;
-
-	dirs.cache = utki::cat(storage_dir, "cache/");
-	dirs.config = utki::cat(storage_dir, "config/");
-	dirs.state = utki::cat(storage_dir, "state/");
-
-	return dirs;
-}
-} // namespace
-
-ruisapp::application::application(
-	std::string name, //
-	const window_parameters& wp
-) :
-	name(name),
-	window_pimpl(std::make_unique<window_wrapper>(wp)),
-	gui(utki::make_shared<ruis::context>(
-		utki::make_shared<ruis::style_provider>( //
-			utki::make_shared<ruis::resource_loader>( //
-				utki::make_shared<ruis::render::renderer>( //
-					utki::make_shared<ruis::render::opengles::context>()
-				)
-			)
-		),
-		utki::make_shared<ruis::updater>(),
-		ruis::context::parameters{
-			.post_to_ui_thread_function =
-				[this](std::function<void()> a) {
-					get_impl(*this).ui_queue.push_back(std::move(a));
-				},
-			.set_mouse_cursor_function = [this](ruis::mouse_cursor) {},
-			.units = ruis::units(
-				[]() -> float {
-					utki::assert(java_functions, SL);
-
-					return java_functions->get_dots_per_inch();
-				}(),
-				[this]() -> float {
-					auto res = get_impl(*this).get_window_size();
-					auto dim = (res.to<float>() / java_functions->get_dots_per_inch()) * float(utki::mm_per_inch);
-					return application::get_pixels_per_pp(res, dim.to<unsigned>());
-				}()
-			)
-		}
-	)),
-	directory(get_application_directories(this->name))
-{
-	auto win_size = get_impl(*this).get_window_size();
-	this->update_window_rect(ruis::rect(ruis::vector2(0), win_size.to<ruis::real>()));
-}
+// 					return java_functions->get_dots_per_inch();
+// 				}(),
+// 				[this]() -> float {
+// 					auto res = get_impl(*this).get_window_size();
+// 					auto dim = (res.to<float>() / java_functions->get_dots_per_inch()) * float(utki::mm_per_inch);
+// 					return application::get_pixels_per_pp(res, dim.to<unsigned>());
+// 				}()
+// 			)
+// 		}
+// 	)),
+// 	directory(get_application_directories(this->name))
+// {
+// 	auto win_size = get_impl(*this).get_window_size();
+// 	this->update_window_rect(ruis::rect(ruis::vector2(0), win_size.to<ruis::real>()));
+// }
 
 // TODO:
 // void ruisapp::application::set_fullscreen(bool enable)
@@ -487,7 +455,7 @@ void handle_input_events()
 	auto& app = ruisapp::inst();
 
 	// read and handle input events
-	while (AInputEvent* event; AInputQueue_getEvent(glob.input_queue, &event) >= 0) {
+	while (AInputEvent * event; AInputQueue_getEvent(glob.input_queue, &event) >= 0) {
 		utki::assert(event, SL);
 
 		// utki::log_debug([&](auto&o){o << "New input event: type = " <<
@@ -532,7 +500,7 @@ void handle_input_events()
 							handle_mouse_button(
 								app,
 								true,
-								android_win_coords_to_ruis_win_rect_coords(app.window_dims(), p),
+								glob.android_win_coords_to_ruis_win_rect_coords(app.window_dims(), p),
 								ruis::mouse_button::left,
 								pointer_id
 							);
@@ -567,7 +535,7 @@ void handle_input_events()
 							handle_mouse_button(
 								app,
 								false,
-								android_win_coords_to_ruis_win_rect_coords(app.window_dims(), p),
+								glob.android_win_coords_to_ruis_win_rect_coords(app.window_dims(), p),
 								ruis::mouse_button::left,
 								pointer_id
 							);
@@ -605,7 +573,7 @@ void handle_input_events()
 
 								handle_mouse_move(
 									app,
-									android_win_coords_to_ruis_win_rect_coords(app.window_dims(), p),
+									glob.android_win_coords_to_ruis_win_rect_coords(app.window_dims(), p),
 									pointer_id
 								);
 							}
@@ -679,7 +647,7 @@ void handle_input_events()
 
 	glue.render();
 
-	glob.fd_flag.set();
+	glob.main_loop_event_fd.set();
 }
 } // namespace
 
@@ -737,7 +705,7 @@ void on_configuration_changed(ANativeActivity* activity)
 
 	auto& glob = get_glob();
 
-	// find out what exactly has changed in the configuration	
+	// find out what exactly has changed in the configuration
 	utki::assert(activity->assetManager, SL);
 	auto config = utki::make_unique<android_configuration_wrapper>(*activity->assetManager);
 
@@ -799,8 +767,8 @@ void on_native_window_created(
 
 	auto& glob = get_glob();
 
-	glob.cur_window_dims.x() = float(ANativeWindow_getWidth(window));
-	glob.cur_window_dims.y() = float(ANativeWindow_getHeight(window));
+	glob.cur_window_dims.x() = ruis::real(ANativeWindow_getWidth(window));
+	glob.cur_window_dims.y() = ruis::real(ANativeWindow_getHeight(window));
 
 	auto& glue = get_glue();
 
@@ -809,8 +777,10 @@ void on_native_window_created(
 	glue.create_window_surface(*window);
 }
 
-void on_native_window_resized(ANativeActivity* activity,//
-	 ANativeWindow* window)
+void on_native_window_resized(
+	ANativeActivity* activity, //
+	ANativeWindow* window
+)
 {
 	utki::log_debug([](auto& o) {
 		o << "on_native_window_resized(): invoked" << std::endl;
@@ -821,16 +791,21 @@ void on_native_window_resized(ANativeActivity* activity,//
 	auto& glob = get_glob();
 
 	// save window dimensions
-	glob.cur_window_dims.x() = float(ANativeWindow_getWidth(window));
-	glob.cur_window_dims.y() = float(ANativeWindow_getHeight(window));
+	glob.cur_window_dims.x() = ruis::real(ANativeWindow_getWidth(window));
+	glob.cur_window_dims.y() = ruis::real(ANativeWindow_getHeight(window));
+
+	// expecting that on_content_rect_changed() will be called right after
+	// and it will update the GL viewport
 
 	utki::log_debug([&](auto& o) {
 		o << "on_native_window_resized(): cur_window_dims = " << glob.cur_window_dims << std::endl;
 	});
 }
 
-void on_native_window_redraw_needed(ANativeActivity* activity, //
-	ANativeWindow* window)
+void on_native_window_redraw_needed(
+	ANativeActivity* activity, //
+	ANativeWindow* window
+)
 {
 	utki::log_debug([](auto& o) {
 		o << "on_native_window_redraw_needed(): invoked" << std::endl;
@@ -843,8 +818,10 @@ void on_native_window_redraw_needed(ANativeActivity* activity, //
 // This function is called right before destroying Window object, according to
 // documentation:
 // https://developer.android.com/ndk/reference/struct/a-native-activity-callbacks#onnativewindowdestroyed
-void on_native_window_destroyed(ANativeActivity* activity, //
-	ANativeWindow* window)
+void on_native_window_destroyed(
+	ANativeActivity* activity, //
+	ANativeWindow* window
+)
 {
 	utki::log_debug([](auto& o) {
 		o << "on_native_window_destroyed(): invoked" << std::endl;
@@ -961,6 +938,7 @@ void on_content_rect_changed(
 )
 {
 	auto& glob = get_glob();
+	auto& glue = get_glue();
 
 	utki::log_debug([&](auto& o) {
 		o << "on_content_rect_changed(): invoked, left = " << rect->left << " right = " << rect->right
@@ -975,29 +953,40 @@ void on_content_rect_changed(
 	// was destroyed, i.e. on_native_window_destroyed() was called and, thus,
 	// application object was destroyed. So need to check if our application is
 	// still alive.
-	if (!activity->instance) {
-		utki::log_debug([&](auto& o) {
-			o << "on_content_rect_changed(): application is not alive, ignoring "
-				 "content rect change."
-			  << std::endl;
-		});
-		return;
+	// if (!activity->instance) {
+	// 	utki::log_debug([&](auto& o) {
+	// 		o << "on_content_rect_changed(): application is not alive, ignoring "
+	// 			 "content rect change."
+	// 		  << std::endl;
+	// 	});
+	// 	return;
+	// }
+
+	// auto& app = get_app(activity);
+
+	// update_window_rect(
+	// 	app,
+	// 	ruis::rect(
+	// 		float(rect->left), //
+	// 		glob.cur_window_dims.y() - float(rect->bottom),
+	// 		float(rect->right - rect->left),
+	// 		float(rect->bottom - rect->top)
+	// 	)
+	// );
+
+	if(auto win = glue.get_window()){
+		win->gui.set_viewport( //
+			ruis::rect(
+				float(rect->left), //
+				glob.cur_window_dims.y() - float(rect->bottom),
+				float(rect->right - rect->left),
+				float(rect->bottom - rect->top)
+			)
+		);
 	}
 
-	auto& app = get_app(activity);
-
-	update_window_rect(
-		app,
-		ruis::rect(
-			float(rect->left), //
-			glob.cur_window_dims.y() - float(rect->bottom),
-			float(rect->right - rect->left),
-			float(rect->bottom - rect->top)
-		)
-	);
-
 	// redraw, since WindowRedrawNeeded not always comes
-	glob.render();
+	glue.render();
 }
 
 void on_destroy(ANativeActivity* activity)

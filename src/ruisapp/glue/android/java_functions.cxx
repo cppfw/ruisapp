@@ -2,7 +2,7 @@
 
 #include <utki/debug.hpp>
 
-#include "android_globals.hxx"
+#include "globals.hxx"
 
 java_functions_wrapper::java_functions_wrapper()
 {
@@ -18,8 +18,11 @@ java_functions_wrapper::java_functions_wrapper()
 
 	this->get_dots_per_inch_method = this->env->GetMethodID(this->clazz, "getDotsPerInch", "()F");
 
-	this->list_dir_contents_method =
-		this->env->GetMethodID(this->clazz, "listDirContents", "(Ljava/lang/String;)[Ljava/lang/String;");
+	this->list_dir_contents_method = this->env->GetMethodID(
+		this->clazz, //
+		"listDirContents",
+		"(Ljava/lang/String;)[Ljava/lang/String;"
+	);
 	utki::assert(this->list_dir_contents_method, SL);
 
 	this->show_virtual_keyboard_method = this->env->GetMethodID(this->clazz, "showVirtualKeyboard", "()V");

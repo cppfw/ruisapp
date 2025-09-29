@@ -10,7 +10,6 @@ class app_window : public ruisapp::window
 {
 public:
 	utki::shared_ref<native_window> ruis_native_Window;
-
 };
 } // namespace
 
@@ -21,6 +20,7 @@ class application_glue : public utki::destructable
 
 	// Only one window on android.
 	std::optional<app_window> window;
+
 public:
 	utki::shared_ref<ruis::updater> updater = utki::make_shared<ruis::updater>();
 
@@ -30,17 +30,26 @@ public:
 
 	void render();
 
-	void create_window_surface(ANativeWindow& android_window){
-		if(this->window.has_value()){
+	void create_window_surface(ANativeWindow& android_window)
+	{
+		if (this->window.has_value()) {
 			this->window.create_surface(android_window);
 		}
 	}
 
-	void destroy_window_surface(){
-		if(this->window.has_value()){
+	void destroy_window_surface()
+	{
+		if (this->window.has_value()) {
 			this->window.value().destroy_surface();
 		}
 	}
+
+    app_window* get_window(){
+        if(this->window.has_value()){
+            return &this->window.value();
+        }
+        return nullptr;
+    }
 };
 } // namespace
 

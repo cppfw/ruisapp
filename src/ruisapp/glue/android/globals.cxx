@@ -11,6 +11,22 @@ void globals_wrapper::create(ANativeActivity* activity)
 		globals_wrapper::native_activity = activity;
 
 		activity->instance = new globals_wrapper();
+
+		auto& glob = get_glob();
+
+		glob.app = ruisapp::application_factory::make_application(
+			0, // argc
+			nullptr // argv
+		);
+
+		// On android it makes no sense if the app doesn't show any GUI, since it is not possible to
+		// launch an android app as command line app.
+		utki::assert(glob.app, SL);
+
+		// Set the main loop event flag to call the update() for the first time if there
+		// were any updateables started during creating application
+		// object.
+		glob.main_loop_event_fd.set();
 	} catch (...) {
 		globals_wrapper::native_activity = nullptr;
 		throw;
@@ -65,7 +81,7 @@ int on_update_timer_expired(
 	if (dt == 0) {
 		// do not arm the timer and do not clear the flag
 	} else {
-		glob.fd_flag.clear();
+		glob.main_loop_event_fd.clear();
 		glob.timer.arm(dt);
 	}
 
@@ -79,16 +95,12 @@ int on_update_timer_expired(
 }
 } // namespace
 
-globals_wrapper() :
-	app(std::move(ruisapp::application_factory::make_application(
-								   0, // argc
-								   nullptr // argv
-			)))
+globals_wrapper()
 {
 	// add timer descriptor to looper, this is needed for updatable to work
 	if (ALooper_addFd(
 			this->looper,
-			this->fd_flag.get_fd(),
+			this->main_loop_event_fd.get_fd(),
 			ALOOPER_POLL_CALLBACK,
 			ALOOPER_EVENT_INPUT,
 			&on_update_timer_expired,
@@ -110,11 +122,6 @@ globals_wrapper() :
 	{
 		throw std::runtime_error("failed to add UI message queue descriptor to looper");
 	}
-
-	// Set the fd_flag to call the update() for the first time if there
-	// were any updateables started during creating application
-	// object.
-	this->fd_flag.set();
 }
 
 ~globals_wrapper()
@@ -125,9 +132,26 @@ globals_wrapper() :
 		this->ui_queue.get_handle()
 	);
 
-	// remove fd_flag from looper
+	// remove main_loop_event_fd from looper
 	ALooper_removeFd(
 		this->looper, //
-		this->fd_flag.get_fd()
+		this->main_loop_event_fd.get_fd()
 	);
+}
+
+ruis::vector2 globals_wrapper::android_win_coords_to_ruis_win_rect_coords(
+	const ruis::vector2& ruis_win_dims, //
+	const ruis::vector2& p
+)
+{
+	auto& glob = get_glob();
+
+	ruis::vector2 ret(
+		p.x(), //
+		p.y() - (glob.cur_window_dims.y() - ruis_win_dims.y())
+	);
+	//	utki::log_debug([&](auto&o){o << "android_win_coords_to_ruis_win_rect_coords(): ret
+	//= " << ret << std::endl;});
+	using std::round;
+	return round(ret);
 }

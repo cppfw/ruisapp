@@ -46,9 +46,9 @@ struct globals_wrapper final {
 		return l;
 	}();
 
-	event_fd_wrapper fd_flag; // TODO: rename to main_loop_event_fd
+	event_fd_wrapper main_loop_event_fd;
 	linux_timer timer{[&]() {
-		this->fd_flag.set();
+		this->main_loop_event_fd.set();
 	}};
 
 	nitki::queue ui_queue;
@@ -60,7 +60,16 @@ struct globals_wrapper final {
 
 	ruis::vector2 cur_window_dims(0, 0);
 
-	utki::unique_ref<ruisapp::application> app;
+	ruis::vector2 android_win_coords_to_ruis_win_rect_coords(
+		const ruis::vector2& ruis_win_dims, //
+		const ruis::vector2& p
+	);
+
+	// Application object constructor needs accessing the stuff from globals_wrapper,
+	// so we need to postpone application object construction to be done after the
+	// globals_wrapper object is set to the static native_activity pointer.
+	// This is why we don't use unique_ref here.
+	std::unique_ptr<ruisapp::application> app;
 };
 } // namespace
 
