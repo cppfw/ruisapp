@@ -359,7 +359,18 @@ struct egl_context_wrapper {
 			}
 			return egl_context;
 		}())
-	{}
+	{
+		if (eglGetCurrentContext() == EGL_NO_CONTEXT) {
+			// TODO: if khr_surfaceless_context is not supported, create a PBuffer surface using eglCreatePBufferSurface()
+			utki::assert(this->egl_display.extensions.get(egl::extension::khr_surfaceless_context), SL);
+			eglMakeCurrent(
+				this->egl_display.display, //
+				EGL_NO_SURFACE,
+				EGL_NO_SURFACE,
+				this->context
+			);
+		}
+	}
 
 	egl_context_wrapper(const egl_context_wrapper&) = delete;
 	egl_context_wrapper& operator=(const egl_context_wrapper&) = delete;

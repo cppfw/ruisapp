@@ -57,8 +57,6 @@ void native_window::create_surface(ANativeWindow& android_window)
 		this->egl_config,
 		EGLNativeWindowType(&android_window)
 	);
-
-	if ()
 }
 
 void native_window::destroy_surface()
