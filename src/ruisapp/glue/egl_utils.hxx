@@ -72,8 +72,49 @@ std::string_view egl_error_to_string(EGLint err)
 } // namespace
 
 namespace {
+namespace egl {
+enum class extension {
+	khr_surfaceless_context,
+
+	enum_size
+};
+} // namespace egl
+} // namespace
+
+namespace {
 struct egl_display_wrapper {
 	const EGLDisplay display;
+
+	utki::flags<egl::extension> extensions;
+
+	utki::flags<egl::extension> get_egl_extensions()
+	{
+		utki::flags<egl::extension> exts{false};
+
+		const char* exts_str = eglQueryString(this->display, EGL_EXTENSIONS);
+		utki::assert(
+			exts_str, //
+			[](auto& o) {
+				o << "eglQueryString(EGL_EXTENSIONS) failed, error: " << egl_error_to_string(eglGetError());
+			},
+			SL
+		);
+		utki::logcat_debug("EGL extensions string = ", exts_str, '\n');
+
+		auto ext_strs = utki::split(std::string_view(exts_str));
+
+		utki::logcat_debug("EGL extensions detected:", '\n');
+		for (auto& e : ext_strs) {
+			using namespace std::string_view_literals;
+
+			if (e == "EGL_KHR_surfaceless_context"sv) {
+				exts.set(egl::extension::khr_surfaceless_context);
+				utki::logcat_debug("  EGL_KHR_surfaceless_context", '\n');
+			}
+		}
+
+		return exts;
+	}
 
 	egl_display_wrapper(EGLNativeDisplayType display_id = EGL_DEFAULT_DISPLAY) :
 		display([&]() {
@@ -84,19 +125,22 @@ struct egl_display_wrapper {
 					egl_error_to_string(eglGetError())
 				));
 			}
-			return d;
-		}())
-	{
-		try {
+
 			if (eglInitialize(
-					this->display, //
+					d, //
 					nullptr,
 					nullptr
 				) == EGL_FALSE)
 			{
+				eglTerminate(d);
 				throw std::runtime_error("eglInitialize() failed");
 			}
 
+			return d;
+		}()),
+		extensions(this->get_egl_extensions())
+	{
+		try {
 			if (eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE) {
 				throw std::runtime_error("eglBindApi() failed");
 			}
