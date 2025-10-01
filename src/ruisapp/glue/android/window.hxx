@@ -14,6 +14,8 @@ class native_window : public ruis::render::native_window
 
 	std::optional<egl_surface_wrapper> egl_surface;
 
+	std::optional<egl_pbuffer_surface_wrapper> egl_dummy_surface;
+
 public:
 	native_window(
 		const utki::version_duplet& gl_version, //
@@ -21,6 +23,8 @@ public:
 	);
 
 	void swap_frame_buffers() override;
+
+	void bind_rendering_context() override;
 
 	void create_surface(ANativeWindow& android_window);
 	void destroy_surface();

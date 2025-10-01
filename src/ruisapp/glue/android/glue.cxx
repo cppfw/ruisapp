@@ -809,6 +809,12 @@ void on_native_window_resized(
 	glob.cur_window_dims.x() = ruis::real(ANativeWindow_getWidth(window));
 	glob.cur_window_dims.y() = ruis::real(ANativeWindow_getHeight(window));
 
+	utki::logcat_debug(
+		"glob.cur_window_dims = ", //
+		glob.cur_window_dims,
+		'\n'
+	);
+
 	// expecting that on_content_rect_changed() will be called right after
 	// and it will update the GL viewport
 
@@ -1000,6 +1006,7 @@ void on_content_rect_changed(
 		);
 	}
 
+	// TODO: request redraw instead of redrawing right here?
 	// redraw, since WindowRedrawNeeded not always comes
 	glue.render();
 }

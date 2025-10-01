@@ -17,11 +17,48 @@ native_window::native_window(
 	)
 {}
 
-void native_window::swap_frame_buffers()
+void native_window::bind_rendering_context()
 {
 	if (this->egl_surface.has_value()) {
-		this->egl_surface.value().swap_frame_buffers();
+		eglMakeCurrent(
+			this->egl_display.display, //
+			this->egl_surface.value().surface,
+			this->egl_surface.value().surface,
+			this->egl_context.context
+		);
+	} else {
+		if (this->egl_display.extensions.get(egl::extension::khr_surfaceless_context)) {
+			eglMakeCurrent(
+				this->egl_display.display, //
+				EGL_NO_SURFACE,
+				EGL_NO_SURFACE,
+				this->egl_context.context
+			);
+		} else {
+			// KHR_surfaceless_context EGL extension is not available, create a dummy pbuffer surface to make the context current
+			if (!this->egl_dummy_surface.has_value()) {
+				this->egl_dummy_surface.emplace(
+					this->egl_display, //
+					egl_config
+				);
+			}
+			eglMakeCurrent(
+				this->egl_display.display, //
+				this->egl_dummy_surface.value().surface,
+				this->egl_dummy_surface.value().surface,
+				this->egl_context.context
+			);
+		}
 	}
+}
+
+void native_window::swap_frame_buffers()
+{
+	if (!this->egl_surface.has_value()) {
+		return;
+	}
+
+	this->egl_surface.value().swap_frame_buffers();
 }
 
 void native_window::create_surface(ANativeWindow& android_window)
@@ -57,15 +94,29 @@ void native_window::create_surface(ANativeWindow& android_window)
 		this->egl_config,
 		EGLNativeWindowType(&android_window)
 	);
+
+	if (eglGetCurrentContext() == this->egl_context.context) {
+		// This context is current, that means it was bound to a EGL_NO_SURFACE or to a dummy surface.
+		// Need to re-bind it to the just created surface.
+		this->bind_rendering_context();
+	}
 }
 
 void native_window::destroy_surface()
 {
+	bool context_was_bound = eglGetCurrentContext() == this->egl_context.context;
+
 	// according to
 	// https://www.khronos.org/registry/EGL/sdk/docs/man/html/eglMakeCurrent.xhtml
 	// it is ok to destroy surface while EGL context is current, so here we do
 	// not unbind the EGL context
 	this->egl_surface.reset();
+
+	if (context_was_bound) {
+		// Need to re-bind the context to EGL_NO_SURFACE or to a dummy surface, as by ruisapp convention,
+		// if there are any rendering contexts exist then there should always be one of them bound.
+		this->bind_rendering_context();
+	}
 }
 
 r4::vector2<unsigned> native_window::get_dims()

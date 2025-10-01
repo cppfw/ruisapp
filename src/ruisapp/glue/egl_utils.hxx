@@ -83,10 +83,14 @@ enum class extension {
 
 namespace {
 struct egl_display_wrapper {
+public:
 	const EGLDisplay display;
 
-	utki::flags<egl::extension> extensions;
+	const utki::version_duplet egl_version;
 
+	const utki::flags<egl::extension> extensions;
+
+private:
 	utki::flags<egl::extension> get_egl_extensions()
 	{
 		utki::flags<egl::extension> exts{false};
@@ -116,6 +120,7 @@ struct egl_display_wrapper {
 		return exts;
 	}
 
+public:
 	egl_display_wrapper(EGLNativeDisplayType display_id = EGL_DEFAULT_DISPLAY) :
 		display([&]() {
 			auto d = eglGetDisplay(display_id);
@@ -126,20 +131,29 @@ struct egl_display_wrapper {
 				));
 			}
 
+			return d;
+		}()),
+		egl_version([&]() {
+			EGLint major, minor;
+
 			if (eglInitialize(
-					d, //
-					nullptr,
-					nullptr
+					this->display, //
+					&major,
+					&minor
 				) == EGL_FALSE)
 			{
-				eglTerminate(d);
+				eglTerminate(this->display);
 				throw std::runtime_error("eglInitialize() failed");
 			}
-
-			return d;
+			return utki::version_duplet{
+				uint16_t(major), //
+				uint16_t(minor)
+			};
 		}()),
 		extensions(this->get_egl_extensions())
 	{
+		utki::logcat_debug("EGL version = ", this->egl_version, '\n');
+
 		try {
 			if (eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE) {
 				throw std::runtime_error("eglBindApi() failed");
@@ -305,8 +319,55 @@ struct egl_surface_wrapper {
 } // namespace
 
 namespace {
+struct egl_pbuffer_surface_wrapper {
+	egl_display_wrapper& egl_display;
+
+	const EGLSurface surface;
+
+	egl_pbuffer_surface_wrapper(
+		egl_display_wrapper& egl_display, //
+		const egl_config_wrapper& egl_config
+	) :
+		egl_display(egl_display),
+		surface([&]() {
+			const std::array<EGLint, 1> attribs = {EGL_NONE};
+
+			auto s = eglCreatePbufferSurface(
+				this->egl_display.display, //
+				egl_config.config,
+				attribs.data()
+			);
+			if (s == EGL_NO_SURFACE) {
+				throw std::runtime_error(utki::cat(
+					"eglCreatePbufferSurface() failed, error: ", //
+					egl_error_to_string(eglGetError())
+				));
+			}
+			return s;
+		}())
+	{}
+
+	egl_pbuffer_surface_wrapper(const egl_pbuffer_surface_wrapper&) = delete;
+	egl_pbuffer_surface_wrapper& operator=(const egl_pbuffer_surface_wrapper&) = delete;
+
+	egl_pbuffer_surface_wrapper(egl_pbuffer_surface_wrapper&&) = delete;
+	egl_pbuffer_surface_wrapper& operator=(egl_pbuffer_surface_wrapper&&) = delete;
+
+	~egl_pbuffer_surface_wrapper()
+	{
+		eglDestroySurface(
+			this->egl_display.display, //
+			this->surface
+		);
+	}
+};
+} // namespace
+
+namespace {
 struct egl_context_wrapper {
 	egl_display_wrapper& egl_display;
+
+	std::unique_ptr<egl_pbuffer_surface_wrapper> pbuffer_surface;
 
 	const EGLContext context;
 
@@ -359,18 +420,7 @@ struct egl_context_wrapper {
 			}
 			return egl_context;
 		}())
-	{
-		if (eglGetCurrentContext() == EGL_NO_CONTEXT) {
-			// TODO: if khr_surfaceless_context is not supported, create a PBuffer surface using eglCreatePBufferSurface()
-			utki::assert(this->egl_display.extensions.get(egl::extension::khr_surfaceless_context), SL);
-			eglMakeCurrent(
-				this->egl_display.display, //
-				EGL_NO_SURFACE,
-				EGL_NO_SURFACE,
-				this->context
-			);
-		}
-	}
+	{}
 
 	egl_context_wrapper(const egl_context_wrapper&) = delete;
 	egl_context_wrapper& operator=(const egl_context_wrapper&) = delete;
