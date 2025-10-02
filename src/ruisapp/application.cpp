@@ -118,12 +118,15 @@ void application::hide_virtual_keyboard() noexcept
 }
 #endif
 
-ruis::real application::get_pixels_per_pp(r4::vector2<unsigned> resolution, r4::vector2<unsigned> screen_size_mm)
+ruis::real application::get_pixels_per_pp(
+	r4::vector2<unsigned> resolution, //
+	r4::vector2<unsigned> screen_size_mm
+)
 {
-	utki::log([&](auto& o) {
+	utki::log_debug([&](auto& o) {
 		o << "screen resolution = " << resolution << std::endl;
 	});
-	utki::log([&](auto& o) {
+	utki::log_debug([&](auto& o) {
 		o << "physical screen size, mm = " << screen_size_mm << std::endl;
 	});
 

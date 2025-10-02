@@ -50,11 +50,24 @@ app_window& application_glue::make_window(ruisapp::window_parameters window_para
 			std::move(common_render_objects)
 		),
 		.style_provider = std::move(ruis_style_provider),
-		// TODO:
-		// .units = ruis::units(
-		// 	ruis_native_window.get().get_dots_per_inch(), //
-		// 	ruis_native_window.get().get_dots_per_pp()
-		// )
+		.units = ruis::units(
+			[]() -> float {
+				auto& glob = get_glob();
+				float dpi = glob.java_functions.get_dots_per_inch();
+				utki::logcat_debug("dpi = ", dpi, '\n');
+				return dpi;
+			}(),
+			[ruis_native_window]() -> float {
+				auto& glob = get_glob();
+
+				auto dims_px = glob.java_functions.get_screen_dims();
+				auto dims_mm = (dims_px.to<float>() / glob.java_functions.get_dots_per_inch()) * float(utki::mm_per_inch);
+				return ruisapp::application::get_pixels_per_pp(
+					dims_px, // dimensions in pixels
+					dims_mm.to<unsigned>() // dimensions in millimeters
+				);
+			}()
+		)
 	});
 
 	this->window.emplace(

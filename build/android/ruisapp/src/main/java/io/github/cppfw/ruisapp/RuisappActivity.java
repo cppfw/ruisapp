@@ -51,6 +51,15 @@ public class RuisappActivity extends NativeActivity {
 		return (m.xdpi + m.ydpi) / 2.0f;
 	}
 
+	public int[] getScreenDims(){
+		DisplayMetrics metrics = new DisplayMetrics();
+		getWindowManager().getDefaultDisplay().getRealMetrics(metrics);
+		int width = metrics.widthPixels;
+		int height = metrics.heightPixels;
+		Log.d(LOGTAG, "getScreenDims(): width = " + width + ", height = " + height);
+		return new int[] {width, height};
+	}
+
 	private static native void handleCharacterStringInput(String str);
 
 	@Override
@@ -66,7 +75,7 @@ public class RuisappActivity extends NativeActivity {
 		return super.dispatchKeyEvent(event);
 	}
 
-	//Override the Back button handler to prevent activity from automatically closing by Back key.
+	// Override the Back button handler to prevent activity from automatically closing by Back key.
 	@Override
 	public void onBackPressed() {
 	}
