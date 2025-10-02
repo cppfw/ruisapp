@@ -650,8 +650,7 @@ void on_input_queue_created(
 	// attach queue to looper
 	AInputQueue_attachLooper(
 		glob.input_queue,
-		// TODO: use glob.looper?
-		ALooper_prepare(0), // get looper for current thread (main thread)
+		glob.looper,
 		0, // 'ident' is ignored since we are using callback
 		&on_input_events_ready_for_reading_from_queue,
 		nullptr
@@ -710,6 +709,7 @@ void on_content_rect_changed(
 	);
 
 	// TODO: request redraw instead of redrawing right here?
+
 	// redraw, since WindowRedrawNeeded not always comes
 	glue.render();
 }

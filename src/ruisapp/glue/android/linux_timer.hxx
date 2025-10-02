@@ -23,7 +23,6 @@ public:
 
 	// returns true if timer was disarmed
 	// returns false if timer has fired before it was disarmed.
-	// TODO: this function is not used anywhere, remove?
 	bool disarm();
 };
 } // namespace
