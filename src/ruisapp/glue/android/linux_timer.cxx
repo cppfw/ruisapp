@@ -53,6 +53,8 @@ linux_timer::linux_timer(std::function<void()> on_expire)
 
 linux_timer::~linux_timer()
 {
+	linux_timer::on_expire = nullptr;
+
 	// set default handler for SIGALRM
 	struct sigaction sa;
 	sa.sa_handler = SIG_DFL;

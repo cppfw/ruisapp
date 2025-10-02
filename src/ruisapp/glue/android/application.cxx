@@ -61,7 +61,8 @@ app_window& application_glue::make_window(ruisapp::window_parameters window_para
 				auto& glob = get_glob();
 
 				auto dims_px = glob.java_functions.get_screen_dims();
-				auto dims_mm = (dims_px.to<float>() / glob.java_functions.get_dots_per_inch()) * float(utki::mm_per_inch);
+				auto dims_mm =
+					(dims_px.to<float>() / glob.java_functions.get_dots_per_inch()) * float(utki::mm_per_inch);
 				return ruisapp::application::get_pixels_per_pp(
 					dims_px, // dimensions in pixels
 					dims_mm.to<unsigned>() // dimensions in millimeters
@@ -75,15 +76,10 @@ app_window& application_glue::make_window(ruisapp::window_parameters window_para
 		std::move(ruis_native_window)
 	);
 
-	// TODO: window surface will likely be created later, so defer setting viewport till that time?
-	// ruisapp_window.get().gui.set_viewport( //
-	// 	ruis::rect(
-	// 		0, //
-	// 		0,
-	// 		ruis::real(window_params.dims.x()),
-	// 		ruis::real(window_params.dims.y())
-	// 	)
-	// );
+	// NOTE: Window surface will be created later,
+	// when android creates an android window for the activity.
+	// Android will also send content_rect_changed notifications to the
+	// activity, and there we will set the GL viewport, so no need to do it here.
 
 	utki::assert(this->window.has_value(), SL);
 	return this->window.value();
@@ -140,10 +136,13 @@ ruisapp::window& ruisapp::application::make_window(ruisapp::window_parameters wi
 
 void ruisapp::application::destroy_window(ruisapp::window& w)
 {
-	auto& glue = get_glue(*this);
-
-	utki::assert(dynamic_cast<app_window*>(&w), SL);
-	glue.destroy_window();
+	utki::assert(
+		false,
+		[](auto& o) {
+			o << "ruisapp::application::destroy_window(): programmatically destroying window on android is not allowed. The window is destroyed along with the activity.";
+		},
+		SL
+	);
 }
 
 void ruisapp::application::quit() noexcept

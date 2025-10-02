@@ -30,5 +30,7 @@ public:
 	void destroy_surface();
 
 	r4::vector2<unsigned> get_dims();
+
+	void set_fullscreen_internal(bool enable) override;
 };
 } // namespace

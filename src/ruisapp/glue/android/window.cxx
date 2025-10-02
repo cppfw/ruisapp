@@ -1,5 +1,7 @@
 #include "window.hxx"
 
+#include "globals.hxx"
+
 native_window::native_window(
 	const utki::version_duplet& gl_version, //
 	const ruisapp::window_parameters& window_params
@@ -126,4 +128,22 @@ r4::vector2<unsigned> native_window::get_dims()
 	}
 
 	return this->egl_surface.value().get_dims();
+}
+
+void native_window::set_fullscreen_internal(bool enable)
+{
+	utki::assert(globals_wrapper::native_activity, SL);
+	if (enable) {
+		ANativeActivity_setWindowFlags(
+			globals_wrapper::native_activity,
+			AWINDOW_FLAG_FULLSCREEN, // flags to add
+			0 // flags to remove
+		);
+	} else {
+		ANativeActivity_setWindowFlags(
+			globals_wrapper::native_activity,
+			0, // flags to add
+			AWINDOW_FLAG_FULLSCREEN // flags to remove
+		);
+	}
 }

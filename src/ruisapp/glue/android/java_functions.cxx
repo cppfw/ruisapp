@@ -101,7 +101,7 @@ r4::vector2<unsigned> java_functions_wrapper::get_screen_dims()
 
 	jsize arr_count = env->GetArrayLength(arr);
 
-    size_t count = std::max(0, arr_count); // clamp bottom
+	size_t count = std::max(0, arr_count); // clamp bottom
 
 	jboolean is_copy;
 	jint* elements = this->env->GetIntArrayElements(arr, &is_copy);

@@ -168,66 +168,6 @@ jint JNI_OnLoad(
 	return JNI_VERSION_1_6;
 }
 
-// ruisapp::application::application(
-// 	std::string name, //
-// 	const window_parameters& wp
-// ) :
-// 	name(name),
-// 	window_pimpl(std::make_unique<window_wrapper>(wp)),
-// 	gui(utki::make_shared<ruis::context>(
-// 		utki::make_shared<ruis::style_provider>( //
-// 			utki::make_shared<ruis::resource_loader>( //
-// 				utki::make_shared<ruis::render::renderer>( //
-// 					utki::make_shared<ruis::render::opengles::context>()
-// 				)
-// 			)
-// 		),
-// 		utki::make_shared<ruis::updater>(),
-// 		ruis::context::parameters{
-// 			.post_to_ui_thread_function =
-// 				[this](std::function<void()> a) {
-// 					get_impl(*this).ui_queue.push_back(std::move(a));
-// 				},
-// 			.set_mouse_cursor_function = [this](ruis::mouse_cursor) {},
-// 			.units = ruis::units(
-// 				[]() -> float {
-// 					utki::assert(java_functions, SL);
-
-// 					return java_functions->get_dots_per_inch();
-// 				}(),
-// 				[this]() -> float {
-// 					auto res = get_impl(*this).get_window_size();
-// 					auto dim = (res.to<float>() / java_functions->get_dots_per_inch()) * float(utki::mm_per_inch);
-// 					return application::get_pixels_per_pp(res, dim.to<unsigned>());
-// 				}()
-// 			)
-// 		}
-// 	)),
-// 	directory(get_application_directories(this->name))
-// {
-// 	auto win_size = get_impl(*this).get_window_size();
-// 	this->update_window_rect(ruis::rect(ruis::vector2(0), win_size.to<ruis::real>()));
-// }
-
-// TODO:
-// void ruisapp::application::set_fullscreen(bool enable)
-// {
-// 	utki::assert(native_activity, SL);
-// 	if (enable) {
-// 		ANativeActivity_setWindowFlags(
-// 			native_activity,
-// 			AWINDOW_FLAG_FULLSCREEN, // add flags
-// 			0 // remove flags
-// 		);
-// 	} else {
-// 		ANativeActivity_setWindowFlags(
-// 			native_activity,
-// 			0, // add flags
-// 			AWINDOW_FLAG_FULLSCREEN // remove flags
-// 		);
-// 	}
-// }
-
 namespace {
 void handle_input_events()
 {

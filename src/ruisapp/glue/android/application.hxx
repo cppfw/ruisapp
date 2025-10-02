@@ -53,12 +53,6 @@ public:
 
 	app_window& make_window(ruisapp::window_parameters window_params);
 
-	void destroy_window()
-	{
-		// TODO: defer destruction
-		this->window.reset();
-	}
-
 	void render();
 
 	void create_window_surface(ANativeWindow& android_window)
