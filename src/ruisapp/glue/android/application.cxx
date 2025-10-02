@@ -40,17 +40,8 @@ app_window& application_glue::make_window(ruisapp::window_parameters window_para
 	auto ruis_context = utki::make_shared<ruis::context>(ruis::context::parameters{
 		.post_to_ui_thread_function =
 			[this](std::function<void()> procedure) {
-				// TODO:
-				// if (PostMessage(
-				// 		NULL, // post message to UI thread's message queue
-				// 		WM_USER,
-				// 		0, // no wParam
-				// 		// NOLINTNEXTLINE(cppcoreguidelines-owning-memory, cppcoreguidelines-pro-type-reinterpret-cast)
-				// 		reinterpret_cast<LPARAM>(new std::remove_reference_t<decltype(procedure)>(std::move(procedure)))
-				// 	) == 0)
-				// {
-				// 	throw std::runtime_error("PostMessage(): failed");
-				// }
+				auto& glob = get_glob();
+				glob.ui_queue.push_back(std::move(procedure));
 			},
 		.updater = this->updater,
 		.renderer = utki::make_shared<ruis::render::renderer>(
