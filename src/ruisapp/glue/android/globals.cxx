@@ -140,20 +140,3 @@ globals_wrapper::~globals_wrapper()
 		this->main_loop_event_fd.get_fd()
 	);
 }
-
-ruis::vector2 globals_wrapper::android_win_coords_to_ruis_win_rect_coords(
-	const ruis::vector2& ruis_win_dims, //
-	const ruis::vector2& p
-)
-{
-	auto& glob = get_glob();
-
-	ruis::vector2 ret(
-		p.x(), //
-		p.y() - (glob.cur_window_dims.y() - ruis_win_dims.y())
-	);
-	//	utki::log_debug([&](auto&o){o << "android_win_coords_to_ruis_win_rect_coords(): ret
-	//= " << ret << std::endl;});
-	using std::round;
-	return round(ret);
-}

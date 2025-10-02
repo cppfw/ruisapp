@@ -33,14 +33,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "linux_timer.cxx"
 #include "window.cxx"
 
-// TODO: remove
-using namespace ruisapp;
-
 namespace {
-// array of current pointer positions, needed to detect which pointers have
-// actually moved.
-std::array<ruis::vector2, 10> pointers;
-
 class key_event_to_input_string_resolver : public ruis::gui::input_string_provider
 {
 public:
@@ -219,28 +212,29 @@ void handle_input_events()
 								 AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
 							unsigned pointer_id = unsigned(AMotionEvent_getPointerId(event, pointer_index));
 
-							if (pointer_id >= pointers.size()) {
+							if (pointer_id >= glob.pointers.size()) {
 								utki::log_debug([&](auto& o) {
-									o << "Pointer ID is too big, only " << pointers.size()
+									o << "Pointer ID is too big, only " << glob.pointers.size()
 									  << " pointers supported at maximum";
 								});
 								continue;
 							}
 
-							// utki::log_debug([&](auto&o){o << "Action down, ptr id = " << pointer_id <<
-							// std::endl;});
+							utki::log_debug([&](auto& o) {
+								o << "Action down, ptr id = " << pointer_id << std::endl;
+							});
 
 							ruis::vector2 p(
 								AMotionEvent_getX(event, pointer_index),
 								AMotionEvent_getY(event, pointer_index)
 							);
-							pointers[pointer_id] = p;
+							glob.pointers[pointer_id] = p;
 
 							utki::assert(win, SL);
 
 							win->gui.send_mouse_button(
 								true, // is_down
-								glob.android_win_coords_to_ruis_win_rect_coords(win->get_win_dims(), p), // pos
+								win->android_win_coords_to_ruisapp_win_rect_coords(p), // pos
 								ruis::mouse_button::left,
 								pointer_id
 							);
@@ -255,28 +249,29 @@ void handle_input_events()
 								 AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
 							unsigned pointer_id = unsigned(AMotionEvent_getPointerId(event, pointer_index));
 
-							if (pointer_id >= pointers.size()) {
+							if (pointer_id >= glob.pointers.size()) {
 								utki::log_debug([&](auto& o) {
-									o << "Pointer ID is too big, only " << pointers.size()
+									o << "Pointer ID is too big, only " << glob.pointers.size()
 									  << " pointers supported at maximum";
 								});
 								continue;
 							}
 
-							// utki::log_debug([&](auto&o){o << "Action up, ptr id = " << pointer_id <<
-							// std::endl;});
+							utki::log_debug([&](auto& o) {
+								o << "Action up, ptr id = " << pointer_id << std::endl;
+							});
 
 							ruis::vector2 p(
 								AMotionEvent_getX(event, pointer_index),
 								AMotionEvent_getY(event, pointer_index)
 							);
-							pointers[pointer_id] = p;
+							glob.pointers[pointer_id] = p;
 
 							utki::assert(win, SL);
 
 							win->gui.send_mouse_button(
 								false, // is_down
-								glob.android_win_coords_to_ruis_win_rect_coords(win->get_win_dims(), p), // pos
+								win->android_win_coords_to_ruisapp_win_rect_coords(p), // pos
 								ruis::mouse_button::left,
 								pointer_id
 							);
@@ -288,9 +283,9 @@ void handle_input_events()
 							utki::assert(num_pointers >= 1, SL);
 							for (size_t pointer_num = 0; pointer_num < num_pointers; ++pointer_num) {
 								unsigned pointer_id = unsigned(AMotionEvent_getPointerId(event, pointer_num));
-								if (pointer_id >= pointers.size()) {
+								if (pointer_id >= glob.pointers.size()) {
 									utki::log_debug([&](auto& o) {
-										o << "Pointer ID is too big, only " << pointers.size()
+										o << "Pointer ID is too big, only " << glob.pointers.size()
 										  << " pointers supported at maximum";
 									});
 									continue;
@@ -301,7 +296,7 @@ void handle_input_events()
 									AMotionEvent_getX(event, pointer_num),
 									AMotionEvent_getY(event, pointer_num)
 								);
-								if (pointers[pointer_id] == p) {
+								if (glob.pointers[pointer_id] == p) {
 									// pointer position did not change
 									continue;
 								}
@@ -309,12 +304,11 @@ void handle_input_events()
 								// utki::log_debug([&](auto&o){o << "Action move, ptr id = " << pointer_id <<
 								// std::endl;});
 
-								pointers[pointer_id] = p;
+								glob.pointers[pointer_id] = p;
 
 								utki::assert(win, SL);
-
 								win->gui.send_mouse_move(
-									glob.android_win_coords_to_ruis_win_rect_coords(win->get_win_dims(), p), // pos
+									win->android_win_coords_to_ruisapp_win_rect_coords(p), // pos
 									pointer_id
 								);
 							}
@@ -709,7 +703,7 @@ void on_content_rect_changed(
 	win->set_win_rect( //
 		ruis::rect(
 			float(rect->left), //
-			glob.cur_window_dims.y() - float(rect->bottom),
+			float(rect->top),
 			float(rect->right - rect->left),
 			float(rect->bottom - rect->top)
 		)

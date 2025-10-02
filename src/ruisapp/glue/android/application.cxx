@@ -6,6 +6,17 @@
 #include "globals.hxx"
 #include "window.hxx"
 
+void app_window::set_win_rect(const ruis::rect& r)
+{
+	this->cur_win_rect = r;
+
+	auto& glob = get_glob();
+
+	ruis::rect viewport_rect = r;
+	viewport_rect.p.y() = glob.cur_window_dims.y() - viewport_rect.y2();
+	this->gui.set_viewport(viewport_rect);
+}
+
 application_glue::application_glue(utki::version_duplet gl_version) :
 	gl_version(std::move(gl_version))
 {}

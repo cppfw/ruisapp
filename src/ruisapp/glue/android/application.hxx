@@ -20,20 +20,20 @@ public:
 		ruis_native_window(std::move(ruis_native_window))
 	{}
 
-	void set_win_rect(const ruis::rect& r)
-	{
-		this->cur_win_rect = r;
-		this->gui.set_viewport(this->cur_win_rect);
-	}
+	void set_win_rect(const ruis::rect& r);
 
 	const ruis::rect& get_win_rect() const noexcept
 	{
 		return this->cur_win_rect;
 	}
 
-	const ruis::vec2& get_win_dims() const noexcept
+	ruis::vector2 android_win_coords_to_ruisapp_win_rect_coords(const ruis::vector2& p)
 	{
-		return this->get_win_rect().d;
+		// utki::logcat_debug("p = ", p, '\n');
+		// utki::logcat_debug("this->get_win_rect() = ", this->get_win_rect(), '\n');
+		ruis::vector2 ret = p - this->get_win_rect().p;
+		using std::round;
+		return round(ret);
 	}
 };
 } // namespace

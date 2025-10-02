@@ -53,10 +53,9 @@ struct globals_wrapper final {
 
 	ruis::vector2 cur_window_dims{0, 0};
 
-	ruis::vector2 android_win_coords_to_ruis_win_rect_coords(
-		const ruis::vector2& ruis_win_dims, //
-		const ruis::vector2& p
-	);
+	// Array of current pointer positions, needed to detect which pointers have
+	// actually moved.
+	std::array<ruis::vector2, 10> pointers;
 
 	// Application object constructor needs accessing the stuff from globals_wrapper,
 	// so we need to postpone application object construction to be done after the
