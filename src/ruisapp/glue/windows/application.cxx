@@ -202,8 +202,6 @@ ruisapp::application::application(parameters params) :
 
 void ruisapp::application::quit() noexcept
 {
-	auto& glue = get_glue(*this);
-
 	PostQuitMessage( //
 		0 // exit code
 	);
