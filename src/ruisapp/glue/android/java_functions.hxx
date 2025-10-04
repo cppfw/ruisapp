@@ -10,7 +10,7 @@ class java_functions_wrapper
 	jmethodID resolve_key_unicode_method;
 
 	jmethodID get_dots_per_inch_method;
-	jmethodID get_screen_dims_method;
+	jmethodID get_screen_resolution_method;
 
 	jmethodID show_virtual_keyboard_method;
 	jmethodID hide_virtual_keyboard_method;
@@ -29,7 +29,7 @@ public:
 	);
 
 	float get_dots_per_inch();
-	r4::vector2<unsigned> get_screen_dims();
+	r4::vector2<unsigned> get_screen_resolution();
 
 	void hide_virtual_keyboard();
 	void show_virtual_keyboard();

@@ -71,7 +71,7 @@ app_window& application_glue::make_window(ruisapp::window_parameters window_para
 			[ruis_native_window]() -> float {
 				auto& glob = get_glob();
 
-				auto dims_px = glob.java_functions.get_screen_dims();
+				auto dims_px = glob.java_functions.get_screen_resolution();
 				auto dims_mm =
 					(dims_px.to<float>() / glob.java_functions.get_dots_per_inch()) * float(utki::mm_per_inch);
 				return ruisapp::application::get_pixels_per_pp(

@@ -51,12 +51,12 @@ public class RuisappActivity extends NativeActivity {
 		return (m.xdpi + m.ydpi) / 2.0f;
 	}
 
-	public int[] getScreenDims(){
+	public int[] getScreenResolution(){
 		DisplayMetrics metrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getRealMetrics(metrics);
 		int width = metrics.widthPixels;
 		int height = metrics.heightPixels;
-		Log.d(LOGTAG, "getScreenDims(): width = " + width + ", height = " + height);
+		Log.d(LOGTAG, "getScreenResolution(): width = " + width + ", height = " + height);
 		return new int[] {width, height};
 	}
 

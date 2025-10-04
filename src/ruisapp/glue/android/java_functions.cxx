@@ -25,9 +25,9 @@ java_functions_wrapper::java_functions_wrapper()
 		"getDotsPerInch",
 		"()F" // function signature: no arguments, returns float
 	);
-	this->get_screen_dims_method = this->env->GetMethodID(
+	this->get_screen_resolution_method = this->env->GetMethodID(
 		this->clazz,
-		"getScreenDims",
+		"getScreenResolution",
 		"()[I" // function signature: no arguments, returns array of ints
 	);
 
@@ -80,11 +80,11 @@ float java_functions_wrapper::get_dots_per_inch()
 	));
 }
 
-r4::vector2<unsigned> java_functions_wrapper::get_screen_dims()
+r4::vector2<unsigned> java_functions_wrapper::get_screen_resolution()
 {
 	jobject res = this->env->CallObjectMethod(
 		this->obj, //
-		this->get_screen_dims_method
+		this->get_screen_resolution_method
 	);
 
 	utki::scope_exit scopeExit([this, res]() {
