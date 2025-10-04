@@ -403,3 +403,72 @@ ruis::real native_window::get_dots_per_pp()
 
 	return ruisapp::application::get_pixels_per_pp(resolution, screen_size_mm);
 }
+
+void native_window::set_fullscreen_internal(bool enable)
+{
+	if (enable) {
+		// save original window size
+		RECT rect;
+		if (GetWindowRect(
+				this->window.handle, //
+				&rect
+			) == 0)
+		{
+			throw std::runtime_error("Failed to get window rect");
+		}
+		this->before_fullscreen_window_rect.p.x() = rect.left;
+		this->before_fullscreen_window_rect.p.y() = rect.top;
+		this->before_fullscreen_window_rect.d.x() = rect.right - rect.left;
+		this->before_fullscreen_window_rect.d.y() = rect.bottom - rect.top;
+
+		// Set new window style
+		SetWindowLong(
+			this->window.handle, //
+			GWL_STYLE,
+			GetWindowLong(this->window.handle, GWL_STYLE) & ~(WS_CAPTION | WS_THICKFRAME)
+		);
+		SetWindowLong(
+			this->window.handle, //
+			GWL_EXSTYLE,
+			GetWindowLong(this->window.handle, GWL_EXSTYLE) &
+				~(WS_EX_DLGMODALFRAME | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE)
+		);
+
+		// set new window size and position
+		MONITORINFO mi;
+		mi.cbSize = sizeof(mi);
+		GetMonitorInfo(MonitorFromWindow(this->window.handle, MONITOR_DEFAULTTONEAREST), &mi);
+		SetWindowPos(
+			this->window.handle,
+			nullptr,
+			mi.rcMonitor.left,
+			mi.rcMonitor.top,
+			mi.rcMonitor.right - mi.rcMonitor.left,
+			mi.rcMonitor.bottom - mi.rcMonitor.top,
+			SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED
+		);
+	} else {
+		// Reset original window style
+		SetWindowLong(
+			this->window.handle, //
+			GWL_STYLE,
+			GetWindowLong(this->window.handle, GWL_STYLE) | (WS_CAPTION | WS_THICKFRAME)
+		);
+		SetWindowLong(
+			this->window.handle, //
+			GWL_EXSTYLE,
+			GetWindowLong(this->window.handle, GWL_EXSTYLE) |
+				(WS_EX_DLGMODALFRAME | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE)
+		);
+
+		SetWindowPos(
+			this->window.handle,
+			nullptr, // no z-order change
+			this->before_fullscreen_window_rect.p.x(),
+			this->before_fullscreen_window_rect.p.y(),
+			this->before_fullscreen_window_rect.d.x(),
+			this->before_fullscreen_window_rect.d.y(),
+			SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED
+		);
+	}
+}
