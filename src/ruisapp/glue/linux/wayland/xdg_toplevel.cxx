@@ -108,16 +108,19 @@ void xdg_toplevel_wrapper::xdg_toplevel_configure(
 									return "tiled top";
 								case XDG_TOPLEVEL_STATE_TILED_BOTTOM:
 									return "tiled bottom";
-								case XDG_TOPLEVEL_STATE_SUSPENDED:
-									return "suspended";
-								case XDG_TOPLEVEL_STATE_CONSTRAINED_LEFT:
-									return "constrained left";
-								case XDG_TOPLEVEL_STATE_CONSTRAINED_RIGHT:
-									return "constrained right";
-								case XDG_TOPLEVEL_STATE_CONSTRAINED_TOP:
-									return "constrained top";
-								case XDG_TOPLEVEL_STATE_CONSTRAINED_BOTTOM:
-									return "constrained bottom";
+
+									// TODO: these are not supported in Debian bookworm and Ubuntu Noble, though supported in Debian trixie. Enagle these when support becomes more common.
+									// case XDG_TOPLEVEL_STATE_SUSPENDED:
+									// 	return "suspended";
+									// case XDG_TOPLEVEL_STATE_CONSTRAINED_LEFT:
+									// 	return "constrained left";
+									// case XDG_TOPLEVEL_STATE_CONSTRAINED_RIGHT:
+									// 	return "constrained right";
+									// case XDG_TOPLEVEL_STATE_CONSTRAINED_TOP:
+									// 	return "constrained top";
+									// case XDG_TOPLEVEL_STATE_CONSTRAINED_BOTTOM:
+									// 	return "constrained bottom";
+
 								default:
 									return "unknown";
 							}
