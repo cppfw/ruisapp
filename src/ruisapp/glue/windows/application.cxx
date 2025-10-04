@@ -127,7 +127,7 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 
 	auto ruis_context = utki::make_shared<ruis::context>(ruis::context::parameters{
 		.post_to_ui_thread_function =
-			[this](std::function<void()> procedure) {
+			[](std::function<void()> procedure) {
 				if (PostMessage(
 						NULL, // post message to UI thread's message queue
 						WM_USER,
