@@ -145,6 +145,6 @@ public:
 		return this->mouse_cursor_visible;
 	}
 
-	void set_fullscreen_internal(bool enable);
+	void set_fullscreen_internal(bool enable) override;
 };
 } // namespace
