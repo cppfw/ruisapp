@@ -49,7 +49,7 @@ ruis::real get_display_scaling_factor(int display_index = 0)
 
 #if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
 namespace {
-static bool on_emscripten_canvas_size_changed_callback(
+bool native_window::on_emscripten_canvas_size_changed_callback(
 	int event_type, //
 	const void* reserved,
 	void* user_data

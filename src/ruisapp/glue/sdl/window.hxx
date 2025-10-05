@@ -34,6 +34,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 namespace {
 class native_window : public ruis::render::native_window
 {
+#if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
+	static bool on_emscripten_canvas_size_changed_callback(
+		int event_type, //
+		const void* reserved,
+		void* user_data
+	);
+#endif
+
 	utki::shared_ref<display_wrapper> display;
 
 	struct sdl_window_wrapper {
