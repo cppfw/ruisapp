@@ -25,18 +25,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <utki/enum_array.hpp>
 #include <utki/unicode.hpp>
 
-// TODO:
-// #if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
-// #	include <emscripten.h>
-// #	include <emscripten/html5.h>
-// #endif
-
-#if CFG_COMPILER == CFG_COMPILER_MSVC
-#	include <SDL.h>
-#else
-#	include <SDL2/SDL.h>
-#endif
-
 #include "application.hxx"
 #include "key_code_map.hxx"
 
@@ -133,7 +121,7 @@ void main_loop_iteration(void* user_data)
 							win.new_win_dims.x() = ruis::real(e.window.data1);
 							win.new_win_dims.y() = ruis::real(e.window.data2);
 #if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
-							new_win_dims *= ww.window.scale_factor;
+							win.new_win_dims *= natwin.get_scale_factor();
 #endif
 							// std::cout << "new window dims = " << new_win_dims << std::endl;
 							break;
@@ -170,7 +158,8 @@ void main_loop_iteration(void* user_data)
 					ruis::vector2 pos(x, y);
 
 #if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
-					pos *= ww.window.scale_factor;
+					auto& natwin = win.ruis_native_window.get();
+					pos *= natwin.get_scale_factor();
 #endif
 
 					win.gui.send_mouse_move(
@@ -192,7 +181,8 @@ void main_loop_iteration(void* user_data)
 					ruis::vector2 pos(x, y);
 
 #if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
-					pos *= ww.window.scale_factor;
+					auto& natwin = win.ruis_native_window.get();
+					pos *= natwin.get_scale_factor();
 #endif
 
 					win.gui.send_mouse_button(
@@ -291,13 +281,18 @@ int main(int argc, const char** argv) noexcept(false)
 		}
 		// std::cout << "main(): app created" << std::endl;
 
-		auto& glue = get_glue(*app);
-
 #if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
-		emscripten_set_main_loop_arg(&main_loop_iteration, app.release(), 0, false);
+		emscripten_set_main_loop_arg(
+			&main_loop_iteration, // iteration callback
+			app.release(), // user data
+			0, // fps, 0=vsync
+			false // false = do not simulate infinite loop (throwing an exception)
+		);
 		// std::cout << "main(): emscripten loop is set up" << std::endl;
 		return 0;
 #else
+		auto& glue = get_glue(*app);
+
 		while (!glue.quit_flag.load()) {
 			main_loop_iteration(app.get());
 		}

@@ -21,6 +21,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "window.hxx"
 
+#include <utki/config.hpp>
+
+#if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
+#	include <emscripten.h>
+#	include <emscripten/html5.h>
+#endif
+
 namespace {
 ruis::real get_display_dpi(int display_index = 0)
 {
@@ -295,7 +302,7 @@ ruis::vec2 native_window::get_dims() const noexcept
 	// std::cout << "actual window size = " << dims << std::endl;
 
 #if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
-	dims *= ww.window.scale_factor;
+	dims *= this->get_scale_factor();
 #endif
 
 	return dims;
