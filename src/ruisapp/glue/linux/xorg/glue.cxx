@@ -78,8 +78,7 @@ public:
 } // namespace
 
 namespace {
-// TODO: rename to application_glue
-class os_platform_glue : public utki::destructable
+class application_glue : public utki::destructable
 {
 public:
 	const utki::shared_ref<display_wrapper> display = utki::make_shared<display_wrapper>();
@@ -103,7 +102,7 @@ private:
 public:
 	std::vector<utki::shared_ref<app_window>> windows_to_destroy;
 
-	os_platform_glue(const utki::version_duplet& gl_version) :
+	application_glue(const utki::version_duplet& gl_version) :
 		gl_version(gl_version),
 		shared_gl_context_native_window( //
 			utki::make_shared<native_window>(
@@ -255,17 +254,18 @@ public:
 } // namespace
 
 namespace {
-os_platform_glue& get_glue(ruisapp::application& app)
+application_glue& get_glue(ruisapp::application& app)
 {
-	return static_cast<os_platform_glue&>(app.pimpl.get());
+	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast, "false-positive")
+	return static_cast<application_glue&>(app.pimpl.get());
 }
 } // namespace
 
 application::application(parameters params) :
 	application(
-		utki::make_unique<os_platform_glue>(params.graphics_api_version), //
-		get_application_directories(params.name),
-		std::move(params)
+		{utki::make_unique<application_glue>(params.graphics_api_version), //
+		 get_application_directories(params.name),
+		 std::move(params)}
 	)
 {}
 
@@ -340,7 +340,10 @@ void application::destroy_window(ruisapp::window& w)
 	auto& glue = get_glue(*this);
 
 	utki::assert(dynamic_cast<app_window*>(&w), SL);
-	glue.destroy_window(static_cast<app_window&>(w));
+	glue.destroy_window(
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast, "assert(dynamic_cast) done")
+		static_cast<app_window&>(w)
+	);
 }
 
 int main(int argc, const char** argv)

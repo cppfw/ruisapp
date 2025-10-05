@@ -41,9 +41,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "key_code_map.hxx"
 
 // include implementations
-#include "application.cxx"
-#include "display.cxx"
-#include "window.cxx"
+#include "application.cxx" // NOLINT(bugprone-suspicious-include, "not suspicious")
+#include "display.cxx" // NOLINT(bugprone-suspicious-include, "not suspicious")
+#include "window.cxx" // NOLINT(bugprone-suspicious-include, "not suspicious")
 
 using namespace std::string_view_literals;
 
@@ -280,7 +280,7 @@ void main_loop_iteration(void* user_data)
 }
 } // namespace
 
-int main(int argc, const char** argv)
+int main(int argc, const char** argv) noexcept(false)
 {
 	try {
 		// std::cout << "main(): enter" << std::endl;

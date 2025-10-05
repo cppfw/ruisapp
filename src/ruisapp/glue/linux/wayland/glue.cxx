@@ -48,15 +48,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "application.hxx"
 
 // include implementations
-#include "application.cxx"
-#include "wayland_keyboard.cxx"
-#include "wayland_output.cxx"
-#include "wayland_pointer.cxx"
-#include "wayland_registry.cxx"
-#include "wayland_surface.cxx"
-#include "wayland_touch.cxx"
-#include "window.cxx"
-#include "xdg_toplevel.cxx"
+#include "application.cxx" // NOLINT(bugprone-suspicious-include, "not suspicious")
+#include "wayland_keyboard.cxx" // NOLINT(bugprone-suspicious-include, "not suspicious")
+#include "wayland_output.cxx" // NOLINT(bugprone-suspicious-include, "not suspicious")
+#include "wayland_pointer.cxx" // NOLINT(bugprone-suspicious-include, "not suspicious")
+#include "wayland_registry.cxx" // NOLINT(bugprone-suspicious-include, "not suspicious")
+#include "wayland_surface.cxx" // NOLINT(bugprone-suspicious-include, "not suspicious")
+#include "wayland_touch.cxx" // NOLINT(bugprone-suspicious-include, "not suspicious")
+#include "window.cxx" // NOLINT(bugprone-suspicious-include, "not suspicious")
+#include "xdg_toplevel.cxx" // NOLINT(bugprone-suspicious-include, "not suspicious")
 
 using namespace std::string_view_literals;
 

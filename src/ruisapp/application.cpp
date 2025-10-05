@@ -78,14 +78,10 @@ application_factory::application_factory(factory_type factory)
 	f = std::move(factory);
 }
 
-application::application(
-	utki::unique_ref<utki::destructable> pimpl, //
-	ruisapp::application::directories directories,
-	parameters params
-) :
-	pimpl(std::move(pimpl)),
-	name(std::move(params.name)),
-	directory(directories)
+application::application(private_parameters params) :
+	pimpl(std::move(params.pimpl)),
+	name(std::move(params.params.name)),
+	directory(std::move(params.directories))
 {
 	is_constructed_v = true;
 }

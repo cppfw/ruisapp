@@ -63,9 +63,15 @@ public:
 		);
 	}
 
-	~app_window()
+	app_window(const app_window&) = delete;
+	app_window& operator=(const app_window&) = delete;
+
+	app_window(app_window&&) = delete;
+	app_window& operator=(app_window&&) = delete;
+
+	~app_window() override
 	{
-		// If we have pending frame callback, then destroy it to in order to cancel the callback.
+		// If we have a pending frame callback, then destroy it in order to cancel the callback.
 		// This is to avoid the callback being called after the window object has been destroyed.
 		if (this->frame_callback) {
 			wl_callback_destroy(this->frame_callback);
@@ -206,6 +212,7 @@ public:
 namespace {
 inline application_glue& get_glue(ruisapp::application& app)
 {
+	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast, "false-positive")
 	return static_cast<application_glue&>(app.pimpl.get());
 }
 } // namespace

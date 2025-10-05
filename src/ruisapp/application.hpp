@@ -131,11 +131,15 @@ public:
 	};
 
 private:
-	application(
-		utki::unique_ref<utki::destructable> pimpl, //
-		ruisapp::application::directories directories,
-		parameters params
-	);
+	// this structure is to define order of arguments evaluation for application constructor call,
+	// because we want to std::move(params), and other args construction can depend on params
+	struct private_parameters {
+		utki::unique_ref<utki::destructable> pimpl;
+		ruisapp::application::directories directories;
+		parameters params;
+	};
+
+	application(private_parameters params);
 
 protected:
 	/**

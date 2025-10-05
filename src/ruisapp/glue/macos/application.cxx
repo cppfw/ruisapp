@@ -202,9 +202,9 @@ void application_glue::render()
 
 ruisapp::application::application(parameters params) :
 	application(
-		utki::make_unique<application_glue>(params.graphics_api_version), //
-		get_application_directories(params.name),
-		std::move(params)
+		{utki::make_unique<application_glue>(params.graphics_api_version), //
+		 get_application_directories(params.name),
+		 std::move(params)}
 	)
 {}
 

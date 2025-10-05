@@ -103,6 +103,7 @@ public:
 namespace {
 inline application_glue& get_glue(ruisapp::application& app)
 {
+	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast, "false-positive")
 	return static_cast<application_glue&>(app.pimpl.get());
 }
 } // namespace

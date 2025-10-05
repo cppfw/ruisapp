@@ -50,7 +50,7 @@ void app_window::resize(const r4::vector2<uint32_t>& dims)
 	this->gui.set_viewport( //
 		ruis::rect(
 			0, //
-			(dims * natwin.get_scale()).to<ruis::real>()
+			dims.to<ruis::real>() * natwin.get_scale()
 		)
 	);
 }
@@ -133,9 +133,9 @@ void app_window::schedule_rendering()
 
 ruisapp::application::application(parameters params) :
 	application(
-		utki::make_unique<application_glue>(params.graphics_api_version), //
-		get_application_directories(params.name),
-		std::move(params)
+		{utki::make_unique<application_glue>(params.graphics_api_version), //
+		 get_application_directories(params.name),
+		 std::move(params)}
 	)
 {}
 
@@ -156,7 +156,10 @@ void ruisapp::application::destroy_window(ruisapp::window& w)
 	auto& glue = get_glue(*this);
 
 	utki::assert(dynamic_cast<app_window*>(&w), SL);
-	glue.destroy_window(static_cast<app_window&>(w));
+	glue.destroy_window(
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast, "assert(dynamic_cast) done")
+		static_cast<app_window&>(w)
+	);
 }
 
 ruisapp::window& application_glue::make_window(ruisapp::window_parameters window_params)

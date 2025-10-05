@@ -112,7 +112,7 @@ public:
 
 	ruis::real get_scale() const noexcept
 	{
-		return this->scale_and_dpi.scale;
+		return ruis::real(this->scale_and_dpi.scale);
 	}
 
 	ruis::real get_dpi() const noexcept

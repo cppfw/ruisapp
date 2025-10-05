@@ -196,9 +196,9 @@ ruisapp::application::directories get_application_directories(std::string_view a
 
 ruisapp::application::application(parameters params) :
 	application(
-		utki::make_unique<application_glue>(params.graphics_api_version), //
-		get_application_directories(params.name),
-		std::move(params)
+		{utki::make_unique<application_glue>(params.graphics_api_version), //
+		 get_application_directories(params.name),
+		 std::move(params)}
 	)
 {}
 
@@ -221,6 +221,8 @@ void ruisapp::application::destroy_window(ruisapp::window& w)
 	auto& glue = get_glue(*this);
 
 	utki::assert(dynamic_cast<app_window*>(&w), SL);
-	auto& app_win = static_cast<app_window&>(w);
+	auto& app_win =
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast, "assert(dynamic_cast) done")
+		static_cast<app_window&>(w);
 	glue.destroy_window(app_win.ruis_native_window.get().get_id());
 }

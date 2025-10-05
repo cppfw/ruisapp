@@ -247,7 +247,7 @@ native_window::native_window(
 										: this->sdl_window
 	)
 {
-	if (SDL_GL_GetCurrentContext() == NULL) {
+	if (SDL_GL_GetCurrentContext() == nullptr) {
 		if (SDL_GL_MakeCurrent(
 				this->sdl_window.window, //
 				this->sdl_gl_context.context

@@ -344,8 +344,9 @@ class native_window : public ruis::render::native_window
 					this->window,
 					wm_state,
 					XA_ATOM, // type of data
-					32, // data is a list of 32-bit values
+					4 * utki::byte_bits, // data is a list of 32-bit values
 					PropModeReplace,
+					// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast, "using C API")
 					reinterpret_cast<unsigned char*>(&skip_taskbar), // data
 					1 // only one value in the data
 				);
@@ -582,16 +583,18 @@ class native_window : public ruis::render::native_window
 			const xorg_window_wrapper& window
 		) :
 			input_context([&]() {
-				auto ic = XCreateIC(
-					display.xorg_input_method.xim,
-					XNClientWindow,
-					window.window,
-					XNFocusWindow,
-					window.window,
-					XNInputStyle,
-					XIMPreeditNothing | XIMStatusNothing,
-					nullptr
-				);
+				auto ic =
+					// NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg, "using C API")
+					XCreateIC(
+						display.xorg_input_method.xim,
+						XNClientWindow,
+						window.window,
+						XNFocusWindow,
+						window.window,
+						XNInputStyle,
+						XIMPreeditNothing | XIMStatusNothing,
+						nullptr
+					);
 				if (ic == nullptr) {
 					throw std::runtime_error("XCreateIC() failed");
 				}
@@ -672,7 +675,7 @@ public:
 	{
 #ifdef RUISAPP_RENDER_OPENGL
 		// if there are no any GL contexts current, then set this one
-		if (glXGetCurrentContext() == NULL) {
+		if (glXGetCurrentContext() == nullptr) {
 			this->bind_rendering_context();
 		}
 		if (glewInit() != GLEW_OK) {
@@ -686,6 +689,8 @@ public:
 
 	native_window(native_window&&) = delete;
 	native_window& operator=(native_window&&) = delete;
+
+	~native_window() override = default;
 
 	// TODO: make this function part of ruis::native_window interface
 	void disable_vsync()

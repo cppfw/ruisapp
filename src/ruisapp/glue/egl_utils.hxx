@@ -134,7 +134,8 @@ public:
 			return d;
 		}()),
 		egl_version([&]() {
-			EGLint major, minor;
+			EGLint major = 0;
+			EGLint minor = 0;
 
 			if (eglInitialize(
 					this->display, //
@@ -163,6 +164,12 @@ public:
 			throw;
 		}
 	}
+
+	egl_display_wrapper(const egl_display_wrapper&) = delete;
+	egl_display_wrapper& operator=(const egl_display_wrapper&) = delete;
+
+	egl_display_wrapper(egl_display_wrapper&&) = delete;
+	egl_display_wrapper& operator=(egl_display_wrapper&&) = delete;
 
 	~egl_display_wrapper()
 	{
@@ -298,7 +305,7 @@ struct egl_surface_wrapper {
 
 	r4::vector2<unsigned> get_dims()
 	{
-		EGLint width;
+		EGLint width = 0;
 		eglQuerySurface(
 			this->egl_display.display, //
 			this->surface,
@@ -306,7 +313,7 @@ struct egl_surface_wrapper {
 			&width
 		);
 
-		EGLint height;
+		EGLint height = 0;
 		eglQuerySurface(
 			this->egl_display.display, //
 			this->surface,

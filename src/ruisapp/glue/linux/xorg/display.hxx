@@ -57,6 +57,12 @@ public:
 			}())
 		{}
 
+		xorg_input_method_wrapper(const xorg_input_method_wrapper&) = delete;
+		xorg_input_method_wrapper& operator=(const xorg_input_method_wrapper&) = delete;
+
+		xorg_input_method_wrapper(xorg_input_method_wrapper&&) = delete;
+		xorg_input_method_wrapper& operator=(xorg_input_method_wrapper&&) = delete;
+
 		~xorg_input_method_wrapper()
 		{
 			XCloseIM(this->xim);
