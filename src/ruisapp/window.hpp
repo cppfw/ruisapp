@@ -21,7 +21,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
+#include <functional>
+
 #include <r4/vector.hpp>
+#include <ruis/gui.hpp>
 #include <utki/flags.hpp>
 
 namespace ruisapp {
@@ -77,6 +80,16 @@ struct window_parameters {
 	std::string title = "ruisapp";
 
 	/**
+	 * @brief Monitor index to place the window on.
+	 * Index of the monitor to initially place the window on.
+	 * The indexing starts from 1.
+	 * Value of 0 means to pick monitor automatically.
+	 * If the index exceeds the number of monitors the system actually has then
+	 * the window is placed to a monitor picked automatically as if the index was 0.
+	 */
+	unsigned monitor = 0;
+
+	/**
 	 * @brief Orientation policy.
 	 */
 	ruisapp::orientation orientation = ruisapp::orientation::dynamic;
@@ -88,23 +101,33 @@ struct window_parameters {
 	bool fullscreen = false;
 
 	/**
+	 * @brief Indicates that the window is added to the taskbar.
+	 */
+	bool taskbar = true;
+
+	/**
 	 * @brief Flags describing desired buffers for rendering context.
 	 * Color buffer is always there implicitly.
 	 */
 	utki::flags<ruisapp::buffer> buffers = false;
-
-	// version 0.0 means default version
-	// clang-format off
-	utki::version_duplet graphics_api_version = {
-		.major = 0,
-		.minor = 0
-	};
-	// clang-format on
 };
 
 class window
 {
 public:
+	ruis::gui gui;
+
+	window(utki::shared_ref<ruis::context> ruis_context);
+
+	window(const window&) = delete;
+	window& operator=(const window&) = delete;
+
+	window(window&&) = delete;
+	window& operator=(window&&) = delete;
+
+	virtual ~window() = default;
+
+	void render();
 };
 
 } // namespace ruisapp

@@ -98,10 +98,10 @@ define ruisapp_rules
         this_ldlibs += -framework OpenGL
         this_ldlibs += -l dl # TODO: perhaps not needed anymore?
 
-        this_mm_obj := $$(d)$$(this_out_dir)obj_$$(this_name)/objc/ruisapp/glue/macosx/glue.mm.o
+        this_mm_obj := $$(d)$$(this_out_dir)obj_$$(this_name)/objc/ruisapp/glue/macos/glue.mm.o
 
         define this_subrules
-            $$(this_mm_obj): $$(d)ruisapp/glue/macosx/glue.mm
+            $$(this_mm_obj): $$(d)ruisapp/glue/macos/glue.mm
 $(.RECIPEPREFIX)@echo compile $$$$<
 $(.RECIPEPREFIX)$(a)mkdir -p $$$$(dir $$$$@)
 $(.RECIPEPREFIX)$(a)$(this_cc) -ObjC++ -c -o "$$$$@" $$(this_cxxflags) $$(OBJCXXFLAGS) $$(CXXFLAGS) $$ $$$$<

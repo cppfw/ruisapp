@@ -19,26 +19,31 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 /* ================ LICENSE END ================ */
 
-#include "window.hpp"
+#pragma once
 
-using namespace ruisapp;
+#include <ctime>
 
-window::window(utki::shared_ref<ruis::context> ruis_context) :
-	gui(std::move(ruis_context))
-{}
+#include <utki/debug.hpp>
 
-void window::render()
+namespace {
+class linux_timer
 {
-	this->gui.context.get().ren().ctx().apply([this]() {
-		// TODO: render only if needed?
-		this->gui.context.get().ren().ctx().clear_framebuffer_color();
+	timer_t timer;
 
-		// no clear of depth and stencil buffers, it will be done by individual widgets if needed
+	static std::function<void()> on_expire;
 
-		this->gui.render(this->gui.context.get().ren().ctx().initial_matrix);
+	static void on_sigalrm(int);
 
-		// std::cout << "swap frame buffers" << std::endl;
-		this->gui.context.get().window().swap_frame_buffers();
-		// std::cout << "swapped" << std::endl;
-	});
-}
+public:
+	linux_timer(std::function<void()> on_expire);
+
+	~linux_timer();
+
+	// if timer is already armed, it will re-set the expiration time
+	void arm(uint32_t dt);
+
+	// returns true if timer was disarmed
+	// returns false if timer has fired before it was disarmed.
+	bool disarm();
+};
+} // namespace

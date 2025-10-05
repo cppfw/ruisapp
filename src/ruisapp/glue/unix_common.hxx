@@ -19,18 +19,17 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 /* ================ LICENSE END ================ */
 
+#pragma once
+
 #include "../application.hpp"
 
-using namespace std::string_view_literals;
+#ifdef assert
+#	undef assert
+#endif
 
 namespace {
 
-std::unique_ptr<ruisapp::application> create_app_unix(int argc, const char** argv)
-{
-	return ruisapp::application_factory::make_application(argc, argv);
-}
-
-std::string get_xdg_dir_home(
+inline std::string get_xdg_dir_home(
 	const char* xdg_env_var, //
 	std::string_view default_subdir,
 	std::string_view app_name
@@ -52,7 +51,7 @@ std::string get_xdg_dir_home(
 		throw std::runtime_error("failed to get user home directory. Is HOME environment variable set?");
 	}
 
-	ASSERT(papki::is_dir(default_subdir))
+	utki::assert(papki::is_dir(default_subdir), SL);
 	return utki::cat(
 		papki::as_dir(home_dir), //
 		default_subdir,
@@ -61,9 +60,11 @@ std::string get_xdg_dir_home(
 	);
 }
 
-ruisapp::application::directories get_application_directories(std::string_view app_name)
+inline ruisapp::application::directories get_application_directories(std::string_view app_name)
 {
 	ruisapp::application::directories dirs;
+
+	using namespace std::string_view_literals;
 
 	dirs.cache = get_xdg_dir_home("XDG_CACHE_HOME", ".cache/"sv, app_name);
 	dirs.config = get_xdg_dir_home("XDG_CONFIG_HOME", ".config/"sv, app_name);

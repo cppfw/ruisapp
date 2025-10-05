@@ -31,108 +31,7 @@ using namespace ruisapp;
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 application::instance_type application::instance;
 
-void application::render()
-{
-	// TODO: render only if needed?
-	this->gui.context.get().renderer.get().render_context.get().clear_framebuffer_color();
-
-	// no clear of depth and stencil buffers, it will be done by individual widgets if needed
-
-	this->gui.render(this->gui.context.get().renderer.get().render_context.get().initial_matrix);
-
-	this->swap_frame_buffers();
-}
-
-void application::update_window_rect(const ruis::rect& rect)
-{
-	if (this->cur_window_rect == rect) {
-		return;
-	}
-
-	this->cur_window_rect = rect;
-
-	utki::log_debug([&](auto& o) {
-		o << "application::update_window_rect(): this->cur_window_rect = " << this->cur_window_rect << std::endl;
-	});
-
-	this->gui.context.get().renderer.get().render_context.get().set_viewport(r4::rectangle<uint32_t>(
-		uint32_t(this->cur_window_rect.p.x()),
-		uint32_t(this->cur_window_rect.p.y()),
-		uint32_t(this->cur_window_rect.d.x()),
-		uint32_t(this->cur_window_rect.d.y())
-	));
-
-	this->gui.set_viewport(this->cur_window_rect.d);
-}
-
-#if CFG_OS_NAME != CFG_OS_NAME_ANDROID && CFG_OS_NAME != CFG_OS_NAME_IOS
-std::unique_ptr<papki::file> application::get_res_file(std::string_view path) const
-{
-	return std::make_unique<papki::fs_file>(path);
-}
-
-void application::show_virtual_keyboard() noexcept
-{
-	utki::log_debug([](auto& o) {
-		o << "application::show_virtual_keyboard(): invoked" << std::endl;
-	});
-	// do nothing
-}
-
-void application::hide_virtual_keyboard() noexcept
-{
-	utki::log_debug([](auto& o) {
-		o << "application::hide_virtual_keyboard(): invoked" << std::endl;
-	});
-	// do nothing
-}
-#endif
-
-ruis::real application::get_pixels_per_pp(r4::vector2<unsigned> resolution, r4::vector2<unsigned> screen_size_mm)
-{
-	utki::log([&](auto& o) {
-		o << "screen resolution = " << resolution << std::endl;
-	});
-	utki::log([&](auto& o) {
-		o << "physical screen size, mm = " << screen_size_mm << std::endl;
-	});
-
-	// NOTE: for ordinary desktop displays the DP size should be equal to 1 pixel.
-	// For high density displays it should be more than one pixel, depending on
-	// display dpi. For hand held devices the size of DP should be determined from
-	// physical screen size and pixel resolution.
-
-#if CFG_OS_NAME == CFG_OS_NAME_IOS
-	return ruis::real(1); // TODO:
-#else
-	unsigned x_index = [&resolution]() {
-		if (resolution.x() > resolution.y()) {
-			return 0;
-		} else {
-			return 1;
-		}
-	}();
-
-	// using std::max;
-	// unsigned max_dim_px = max(resolution.x(), resolution.y());
-	// unsigned max_dim_mm = max(screen_size_mm.x(), screen_size_mm.y());
-
-	// ruis::real dpmm = ruis::real(max_dim_px) / ruis::real(max_dim_mm);
-
-	if (screen_size_mm[x_index] < 300) { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-		return ruis::real(resolution[x_index]) / ruis::real(700); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-	} else if (screen_size_mm[x_index] < 150) { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-		return ruis::real(resolution[x_index]) / ruis::real(200); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-	}
-
-	return ruis::real(1);
-#endif
-}
-
-void application::handle_key_event(bool is_down, ruis::key key_code)
-{
-	this->gui.send_key(is_down, key_code);
-}
+bool application::is_constructed_v = false;
 
 application_factory::factory_type& application_factory::get_factory_internal()
 {
@@ -177,4 +76,88 @@ application_factory::application_factory(factory_type factory)
 		throw std::logic_error("application factory is already registered");
 	}
 	f = std::move(factory);
+}
+
+application::application(
+	utki::unique_ref<utki::destructable> pimpl, //
+	ruisapp::application::directories directories,
+	parameters params
+) :
+	pimpl(std::move(pimpl)),
+	name(std::move(params.name)),
+	directory(directories)
+{
+	is_constructed_v = true;
+}
+
+application::~application()
+{
+	is_constructed_v = false;
+}
+
+#if CFG_OS_NAME != CFG_OS_NAME_ANDROID && CFG_OS_NAME != CFG_OS_NAME_IOS
+std::unique_ptr<papki::file> application::get_res_file(std::string_view path) const
+{
+	return std::make_unique<papki::fs_file>(path);
+}
+
+void application::show_virtual_keyboard() noexcept
+{
+	utki::log_debug([](auto& o) {
+		o << "application::show_virtual_keyboard(): invoked" << std::endl;
+	});
+	// do nothing
+}
+
+void application::hide_virtual_keyboard() noexcept
+{
+	utki::log_debug([](auto& o) {
+		o << "application::hide_virtual_keyboard(): invoked" << std::endl;
+	});
+	// do nothing
+}
+#endif
+
+ruis::real application::get_pixels_per_pp(
+	r4::vector2<unsigned> resolution, //
+	r4::vector2<unsigned> screen_size_mm
+)
+{
+	utki::log_debug([&](auto& o) {
+		o << "screen resolution = " << resolution << std::endl;
+	});
+	utki::log_debug([&](auto& o) {
+		o << "physical screen size, mm = " << screen_size_mm << std::endl;
+	});
+
+	// NOTE: for ordinary desktop displays the DP size should be equal to 1 pixel.
+	// For high density displays it should be more than one pixel, depending on
+	// display dpi. For hand held devices the size of DP should be determined from
+	// physical screen size and pixel resolution.
+
+#if CFG_OS_NAME == CFG_OS_NAME_IOS
+	return ruis::real(1); // TODO:
+#else
+	unsigned x_index = [&resolution]() {
+		if (resolution.x() > resolution.y()) {
+			return 0;
+		} else {
+			return 1;
+		}
+	}();
+
+	// using std::max;
+	// unsigned max_dim_px = max(resolution.x(), resolution.y());
+	// unsigned max_dim_mm = max(screen_size_mm.x(), screen_size_mm.y());
+
+	// ruis::real dpmm = ruis::real(max_dim_px) / ruis::real(max_dim_mm);
+
+	if (screen_size_mm[x_index] < 300) { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+		return ruis::real(resolution[x_index]) / ruis::real(700); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+	} else if (screen_size_mm[x_index] < 150) { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+		return ruis::real(resolution[x_index]) / ruis::real(200); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+	}
+
+	return ruis::real(1);
+#endif
 }

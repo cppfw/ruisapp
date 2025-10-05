@@ -19,26 +19,31 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 /* ================ LICENSE END ================ */
 
-#include "window.hpp"
+#include "android_configuration.hxx"
 
-using namespace ruisapp;
-
-window::window(utki::shared_ref<ruis::context> ruis_context) :
-	gui(std::move(ruis_context))
-{}
-
-void window::render()
+android_configuration_wrapper::android_configuration_wrapper(AAssetManager& am) :
+	config(AConfiguration_new())
 {
-	this->gui.context.get().ren().ctx().apply([this]() {
-		// TODO: render only if needed?
-		this->gui.context.get().ren().ctx().clear_framebuffer_color();
+	AConfiguration_fromAssetManager(
+		this->config, //
+		&am
+	);
+}
 
-		// no clear of depth and stencil buffers, it will be done by individual widgets if needed
+android_configuration_wrapper::~android_configuration_wrapper()
+{
+	AConfiguration_delete(this->config);
+}
 
-		this->gui.render(this->gui.context.get().ren().ctx().initial_matrix);
+int32_t android_configuration_wrapper::diff(const android_configuration_wrapper& cfg)
+{
+	return AConfiguration_diff(
+		this->config, //
+		cfg.config
+	);
+}
 
-		// std::cout << "swap frame buffers" << std::endl;
-		this->gui.context.get().window().swap_frame_buffers();
-		// std::cout << "swapped" << std::endl;
-	});
+int32_t android_configuration_wrapper::get_orientation() const noexcept
+{
+	return AConfiguration_getOrientation(this->config);
 }

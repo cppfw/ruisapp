@@ -1,0 +1,188 @@
+/*
+ruisapp - ruis GUI adaptation layer
+
+Copyright (C) 2016-2025  Ivan Gagis <igagis@gmail.com>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/* ================ LICENSE END ================ */
+
+#pragma once
+
+#include <r4/vector.hpp>
+#include <utki/debug.hpp>
+#include <wayland-client-protocol.h>
+
+namespace {
+class wayland_output_wrapper
+{
+	wl_output* output;
+
+	static void wl_output_geometry(
+		void* data,
+		struct wl_output* wl_output,
+		int32_t x,
+		int32_t y,
+		int32_t physical_width,
+		int32_t physical_height,
+		int32_t subpixel,
+		const char* make,
+		const char* model,
+		int32_t transform
+	);
+
+	static void wl_output_mode(
+		void* data,
+		struct wl_output* wl_output,
+		uint32_t flags,
+		int32_t width,
+		int32_t height,
+		int32_t refresh
+	);
+
+	// NOTE: done event only comes from wl_output_interface version 2 or above.
+	static void wl_output_done(
+		void* data, //
+		struct wl_output* wl_output
+	)
+	{
+		utki::assert(data, SL);
+
+		auto& self = *static_cast<wayland_output_wrapper*>(data);
+
+		utki::log_debug([&](auto& o) {
+			o << "output(" << self.id << ") done" << std::endl;
+		});
+	}
+
+	static void wl_output_scale(
+		void* data, //
+		struct wl_output* wl_output,
+		int32_t factor
+	);
+
+	static void wl_output_name(
+		void* data, //
+		struct wl_output* wl_output,
+		const char* name
+	)
+	{
+		utki::assert(data, SL);
+		auto& self = *static_cast<wayland_output_wrapper*>(data);
+
+		self.name = name;
+
+		utki::log_debug([&](auto& o) {
+			o << "output(" << self.id << ") name = " << self.name << std::endl;
+		});
+	}
+
+	static void wl_output_description(
+		void* data, //
+		struct wl_output* wl_output,
+		const char* description
+	)
+	{
+		utki::assert(data, SL);
+		auto& self = *static_cast<wayland_output_wrapper*>(data);
+
+		self.description = description;
+
+		utki::log_debug([&](auto& o) {
+			o << "output(" << self.id << ") description = " << self.description << std::endl;
+		});
+	}
+
+	constexpr static const wl_output_listener listener = {
+		.geometry = &wl_output_geometry,
+		.mode = &wl_output_mode,
+		.done = &wl_output_done,
+		.scale = &wl_output_scale,
+
+		// TODO: wayland version included in debian bullseye does not support these fields,
+		//       uncomment them when debian bullseye support can be dropped
+		// .name = &wl_output_name,
+		// .description = &wl_output_description
+	};
+
+public:
+	static uint32_t get_output_id(wl_output* output)
+	{
+		utki::assert(output, SL);
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+		return wl_proxy_get_id(reinterpret_cast<wl_proxy*>(output));
+	}
+
+	const uint32_t wayland_global_object_name;
+	const uint32_t id;
+
+	r4::vector2<uint32_t> position = {0, 0};
+	r4::vector2<uint32_t> resolution = {0, 0};
+	r4::vector2<uint32_t> physical_size_mm = {0, 0};
+	std::string name;
+	std::string description;
+	uint32_t scale = 1;
+
+	float get_dpi() const noexcept
+	{
+		auto dpi = (this->resolution.to<float>() * utki::mm_per_inch).comp_div(this->physical_size_mm.to<float>());
+		return (dpi.x() + dpi.y()) / 2;
+	}
+
+	wayland_output_wrapper(
+		wl_registry& registry, //
+		uint32_t name,
+		uint32_t interface_version
+	) :
+		output([&]() {
+			void* output = wl_registry_bind(
+				&registry, //
+				name,
+				&wl_output_interface,
+				std::min(interface_version, 2u)
+			);
+			utki::assert(output, SL);
+			return static_cast<wl_output*>(output);
+		}()),
+		wayland_global_object_name(name),
+		id(get_output_id(this->output))
+	{
+		utki::assert(
+			this->id == get_output_id(this->output),
+			[this](auto& o) {
+				o << "this->id = " << this->id << ", get_output_id(this->output) = " << get_output_id(this->output);
+			},
+			SL
+		);
+
+		wl_output_add_listener(this->output, &listener, this);
+	}
+
+	wayland_output_wrapper(const wayland_output_wrapper&) = delete;
+	wayland_output_wrapper& operator=(const wayland_output_wrapper&) = delete;
+
+	wayland_output_wrapper(wayland_output_wrapper&&) = delete;
+	wayland_output_wrapper& operator=(wayland_output_wrapper&&) = delete;
+
+	~wayland_output_wrapper()
+	{
+		if (wl_output_get_version(this->output) >= WL_OUTPUT_RELEASE_SINCE_VERSION) {
+			wl_output_release(this->output);
+		} else {
+			wl_output_destroy(this->output);
+		}
+	}
+};
+} // namespace
