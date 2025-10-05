@@ -49,18 +49,28 @@ ruis::real get_display_scaling_factor(int display_index = 0)
 
 #if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
 namespace {
-static bool on_emscripten_canvas_size_changed_callback(int event_type, const void* reserved, void* user_data)
+static bool on_emscripten_canvas_size_changed_callback(
+	int event_type, //
+	const void* reserved,
+	void* user_data
+)
 {
 	if (!user_data) {
 		std::cout << "emscripten_get_canvas_element_size(#canvas): user_data is nullptr" << std::endl;
 		return false;
 	}
-	auto* ww = reinterpret_cast<sdl_window_wrapper*>(user_data);
+	auto* ww = reinterpret_cast<native_window::sdl_window_wrapper*>(user_data);
 
 	double width = 0;
 	double height = 0;
 
-	if (auto res = emscripten_get_element_css_size("#canvas", &width, &height); res != EMSCRIPTEN_RESULT_SUCCESS) {
+	if (auto res = emscripten_get_element_css_size(
+			"#canvas", //
+			&width,
+			&height
+		);
+		res != EMSCRIPTEN_RESULT_SUCCESS)
+	{
 		std::cout << "emscripten_get_canvas_element_size(#canvas): failed, error = " << res << std::endl;
 		return false;
 	}
