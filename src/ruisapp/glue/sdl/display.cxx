@@ -117,11 +117,6 @@ display_wrapper::display_wrapper() :
 		}
 		return t;
 	}())
-{
-	SDL_StartTextInput();
-}
+{}
 
-display_wrapper::~display_wrapper()
-{
-	SDL_StopTextInput();
-}
+display_wrapper::~display_wrapper() {}

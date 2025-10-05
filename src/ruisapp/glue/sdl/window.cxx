@@ -147,22 +147,6 @@ native_window::sdl_window_wrapper::sdl_window_wrapper(
 			emscripten_lock_orientation(emsc_orient);
 		}
 
-		// Change to soft fullscreen mode before creating the window to set correct OpenGL viewport initially.
-		{
-			EmscriptenFullscreenStrategy strategy{};
-			strategy = {
-				.scaleMode = EMSCRIPTEN_FULLSCREEN_SCALE_STRETCH,
-				.canvasResolutionScaleMode = EMSCRIPTEN_FULLSCREEN_CANVAS_SCALE_HIDEF,
-				.filteringMode = EMSCRIPTEN_FULLSCREEN_FILTERING_NEAREST,
-				.canvasResizedCallback = &on_emscripten_canvas_size_changed_callback,
-				.canvasResizedCallbackUserData = this
-			};
-			emscripten_enter_soft_fullscreen(
-				"#canvas", //
-				&strategy
-			);
-		}
-
 		auto dims = []() {
 			double width;
 			double height;
@@ -283,6 +267,27 @@ native_window::native_window(
 		if (glewInit() != GLEW_OK) {
 			throw std::runtime_error("Could not initialize GLEW");
 		}
+	}
+#endif
+
+#if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
+	// Change to soft fullscreen mode.
+	// This should be done after the SDL window is created and
+	// the GL context made current. Otherwise canvas may not be ready and
+	// this will result in black screen.
+	{
+		EmscriptenFullscreenStrategy strategy{};
+		strategy = {
+			.scaleMode = EMSCRIPTEN_FULLSCREEN_SCALE_STRETCH,
+			.canvasResolutionScaleMode = EMSCRIPTEN_FULLSCREEN_CANVAS_SCALE_HIDEF,
+			.filteringMode = EMSCRIPTEN_FULLSCREEN_FILTERING_NEAREST,
+			.canvasResizedCallback = &on_emscripten_canvas_size_changed_callback,
+			.canvasResizedCallbackUserData = &this->sdl_window
+		};
+		emscripten_enter_soft_fullscreen(
+			"#canvas", //
+			&strategy
+		);
 	}
 #endif
 }

@@ -66,12 +66,15 @@ public:
 private:
 	const utki::version_duplet gl_version;
 
+// only one window allowed on emscripten, so we don't create hidden window for shared GL context
+#if CFG_OS_NAME != CFG_OS_NAME_EMSCRIPTEN
 	const utki::shared_ref<native_window> shared_gl_context_native_window;
 	const utki::shared_ref<ruis::render::context> resource_loader_ruis_rendering_context;
 	const utki::shared_ref<const ruis::render::context::shaders> common_shaders;
 	const utki::shared_ref<const ruis::render::renderer::objects> common_render_objects;
 	const utki::shared_ref<ruis::resource_loader> ruis_resource_loader;
 	const utki::shared_ref<ruis::style_provider> ruis_style_provider;
+#endif
 
 	std::map<
 		native_window::window_id_type, //
@@ -92,6 +95,11 @@ public:
 	void destroy_window(native_window::window_id_type id);
 
 	app_window* get_window(native_window::window_id_type id);
+
+	size_t get_num_windows() const noexcept
+	{
+		return this->windows.size();
+	}
 
 	// render all windows if needed
 	void render();

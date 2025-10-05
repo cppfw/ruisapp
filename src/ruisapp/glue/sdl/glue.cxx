@@ -123,7 +123,7 @@ void main_loop_iteration(void* user_data)
 #if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
 							win.new_win_dims *= natwin.get_scale_factor();
 #endif
-							// std::cout << "new window dims = " << new_win_dims << std::endl;
+							// std::cout << "new window dims = " << win.new_win_dims << std::endl;
 							break;
 						case SDL_WINDOWEVENT_ENTER:
 							natwin.set_hovered(true);
@@ -148,6 +148,7 @@ void main_loop_iteration(void* user_data)
 				}
 				break;
 			case SDL_MOUSEMOTION:
+				// utki::logcat("mouse MOVE, e.motion.windowID = ", e.motion.windowID, '\n');
 				if (auto window = glue.get_window(e.motion.windowID)) {
 					auto& win = *window;
 
@@ -162,6 +163,8 @@ void main_loop_iteration(void* user_data)
 					pos *= natwin.get_scale_factor();
 #endif
 
+					// utki::logcat("mouse move event: pos = ", pos, '\n');
+
 					win.gui.send_mouse_move(
 						pos, //
 						0 // pointer id
@@ -169,8 +172,10 @@ void main_loop_iteration(void* user_data)
 				}
 				break;
 			case SDL_MOUSEBUTTONDOWN:
+				// utki::logcat("mouse button DOWN, e.motion.windowID = ", e.motion.windowID, '\n');
 				[[fallthrough]];
 			case SDL_MOUSEBUTTONUP:
+				// utki::logcat("mouse button UP or DOWN", '\n');
 				if (auto window = glue.get_window(e.button.windowID)) {
 					auto& win = *window;
 
@@ -184,6 +189,8 @@ void main_loop_iteration(void* user_data)
 					auto& natwin = win.ruis_native_window.get();
 					pos *= natwin.get_scale_factor();
 #endif
+
+					// utki::logcat("mouse button event: pos = ", pos, '\n');
 
 					win.gui.send_mouse_button(
 						e.button.type == SDL_MOUSEBUTTONDOWN,

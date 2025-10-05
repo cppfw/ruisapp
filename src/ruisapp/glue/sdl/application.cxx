@@ -34,7 +34,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 using namespace std::string_view_literals;
 
 application_glue::application_glue(const utki::version_duplet& gl_version) :
-	gl_version(gl_version),
+	gl_version(gl_version)
+#if CFG_OS_NAME != CFG_OS_NAME_EMSCRIPTEN
+	,
 	shared_gl_context_native_window( //
 		utki::make_shared<native_window>(
 			this->display, //
@@ -48,13 +50,13 @@ application_glue::application_glue(const utki::version_duplet& gl_version) :
 		)
 	),
 	resource_loader_ruis_rendering_context(
-#ifdef RUISAPP_RENDER_OPENGL
+#	ifdef RUISAPP_RENDER_OPENGL
 		utki::make_shared<ruis::render::opengl::context>(this->shared_gl_context_native_window)
-#elif defined(RUISAPP_RENDER_OPENGLES)
+#	elif defined(RUISAPP_RENDER_OPENGLES)
 		utki::make_shared<ruis::render::opengles::context>(this->shared_gl_context_native_window)
-#else
-#	error "Unknown graphics API"
-#endif
+#	else
+#		error "Unknown graphics API"
+#	endif
 	),
 	common_shaders( //
 		[&]() {
@@ -74,6 +76,7 @@ application_glue::application_glue(const utki::version_duplet& gl_version) :
 	ruis_style_provider( //
 		utki::make_shared<ruis::style_provider>(this->ruis_resource_loader)
 	)
+#endif
 {}
 
 app_window* application_glue::get_window(native_window::window_id_type id)
@@ -109,8 +112,26 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 		this->display,
 		this->gl_version,
 		window_params,
+#if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
+		nullptr
+#else
 		&this->shared_gl_context_native_window.get()
+#endif
 	);
+
+#if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
+	auto rendering_context = utki::make_shared<ruis::render::opengles::context>(ruis_native_window);
+
+	auto common_render_objects = utki::make_shared<ruis::render::renderer::objects>(rendering_context);
+	auto common_shaders = rendering_context.get().make_shaders();
+
+	auto ruis_resource_loader = utki::make_shared<ruis::resource_loader>(
+		rendering_context, //
+		common_render_objects
+	);
+
+	auto ruis_style_provider = utki::make_shared<ruis::style_provider>(std::move(ruis_resource_loader));
+#endif
 
 	auto ruis_context = utki::make_shared<ruis::context>(ruis::context::parameters{
 		.post_to_ui_thread_function =
@@ -125,18 +146,32 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 				SDL_PushEvent(&e);
 			},
 		.updater = this->updater,
-		.renderer = utki::make_shared<ruis::render::renderer>(
-#ifdef RUISAPP_RENDER_OPENGL
-			utki::make_shared<ruis::render::opengl::context>(ruis_native_window),
-#elif defined(RUISAPP_RENDER_OPENGLES)
-			utki::make_shared<ruis::render::opengles::context>(ruis_native_window),
+		.renderer =
+#if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
+			utki::make_shared<ruis::render::renderer>(
+				std::move(rendering_context),
+				std::move(common_shaders),
+				std::move(common_render_objects)
+			),
 #else
-#	error "Unknown graphics API"
+			utki::make_shared<ruis::render::renderer>(
+#	ifdef RUISAPP_RENDER_OPENGL
+				utki::make_shared<ruis::render::opengl::context>(ruis_native_window),
+#	elif defined(RUISAPP_RENDER_OPENGLES)
+				utki::make_shared<ruis::render::opengles::context>(ruis_native_window),
+#	else
+#		error "Unknown graphics API"
+#	endif
+				this->common_shaders,
+				this->common_render_objects
+			),
 #endif
-			this->common_shaders,
-			this->common_render_objects
-		),
-		.style_provider = this->ruis_style_provider,
+		.style_provider =
+#if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
+			std::move(ruis_style_provider),
+#else
+			this->ruis_style_provider,
+#endif
 		.units = ruis::units(
 			ruis_native_window.get().get_dpi(), //
 			ruis_native_window.get().get_scale_factor()
@@ -213,11 +248,25 @@ void ruisapp::application::quit() noexcept
 ruisapp::window& ruisapp::application::make_window(ruisapp::window_parameters window_params)
 {
 	auto& glue = get_glue(*this);
+
+#if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
+	if (glue.get_num_windows() == 1) {
+		throw std::logic_error(
+			"ruisapp::application::make_window(): one window already exists. Only one window is allowed on emscripten."
+		);
+	}
+#endif
+
 	return glue.make_window(std::move(window_params));
 }
 
 void ruisapp::application::destroy_window(ruisapp::window& w)
 {
+#if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
+	throw std::logic_error(
+		"ruisapp::application::destroy_window(): programmatically destroying window on emscripten is not allowed. The window is destroyed along with the browser window/tab."
+	);
+#else
 	auto& glue = get_glue(*this);
 
 	utki::assert(dynamic_cast<app_window*>(&w), SL);
@@ -225,4 +274,17 @@ void ruisapp::application::destroy_window(ruisapp::window& w)
 		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast, "assert(dynamic_cast) done")
 		static_cast<app_window&>(w);
 	glue.destroy_window(app_win.ruis_native_window.get().get_id());
+#endif
 }
+
+#if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
+void ruisapp::application::show_virtual_keyboard() noexcept
+{
+	SDL_StartTextInput();
+}
+
+void ruisapp::application::hide_virtual_keyboard() noexcept
+{
+	SDL_StopTextInput();
+}
+#endif

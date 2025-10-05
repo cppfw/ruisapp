@@ -97,6 +97,7 @@ std::unique_ptr<papki::file> application::get_res_file(std::string_view path) co
 	return std::make_unique<papki::fs_file>(path);
 }
 
+#	if CFG_OS_NAME != CFG_OS_NAME_EMSCRIPTEN
 void application::show_virtual_keyboard() noexcept
 {
 	utki::log_debug([](auto& o) {
@@ -112,6 +113,7 @@ void application::hide_virtual_keyboard() noexcept
 	});
 	// do nothing
 }
+#	endif
 #endif
 
 ruis::real application::get_pixels_per_pp(
