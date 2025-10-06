@@ -692,8 +692,7 @@ public:
 
 	~native_window() override = default;
 
-	// TODO: make this function part of ruis::native_window interface
-	void disable_vsync()
+	void set_vsync_enabled(bool enable) noexcept override
 	{
 		utki::assert(
 			[this]() {
@@ -721,7 +720,7 @@ public:
 			glx_swap_interval_ext(
 				this->display.get().xorg_display.display, //
 				this->xorg_window.window,
-				0
+				enable ? 1 : 0 // swap interval in vsync frames
 			);
 		} else if (this->glx_context.supported_extensions.get(glx_context_wrapper::glx_extension::glx_mesa_swap_control
 				   ))
@@ -738,8 +737,11 @@ public:
 			utki::assert(glx_swap_interval_mesa, SL);
 
 			// disable v-sync
-			if (glx_swap_interval_mesa(0) != 0) {
-				throw std::runtime_error("glXSwapIntervalMESA() failed");
+			if (glx_swap_interval_mesa(
+					enable ? 1 : 0 // swap interval in vsync frames
+				) != 0)
+			{
+				utki::logcat("WARNING: glXSwapIntervalMESA(", enable, ") failed");
 			}
 		} else {
 			std::cout << "none of GLX_EXT_swap_control, GLX_MESA_swap_control GLX "
@@ -754,10 +756,10 @@ public:
 #elif defined(RUISAPP_RENDER_OPENGLES)
 		if (eglSwapInterval(
 				this->display.get().egl_display.display, //
-				0
+				enable ? 1 : 0 // swap interval in vsync frames
 			) != EGL_TRUE)
 		{
-			throw std::runtime_error("eglSwapInterval() failed");
+			utki::logcat("WARNING: eglSwapInterval(", enable, ") failed");
 		}
 #endif
 	}
@@ -956,8 +958,7 @@ private:
 #endif
 	}
 
-	// TODO: make this function part of ruis::native_window interface
-	bool is_rendering_context_bound() const noexcept
+	bool is_rendering_context_bound() const noexcept override
 	{
 #ifdef RUISAPP_RENDER_OPENGL
 		return glXGetCurrentContext() == this->glx_context.context;

@@ -143,8 +143,7 @@ public:
 		}
 	}
 
-	// TODO: make this function part of ruis::native_window interface
-	bool is_rendering_context_bound() const noexcept
+	bool is_rendering_context_bound() const noexcept override
 	{
 		return eglGetCurrentContext() == this->egl_context.context;
 	}
@@ -193,8 +192,7 @@ public:
 		this->update_mouse_cursor();
 	}
 
-	// TODO: make part of ruis::native_window intrface
-	void disable_vsync()
+	void set_vsync_enabled(bool enabled) noexcept override
 	{
 		utki::assert(
 			[this]() {
@@ -203,7 +201,7 @@ public:
 			SL
 		);
 
-		this->egl_context.disable_vsync();
+		this->egl_context.set_vsync_enabled(enabled);
 	}
 
 	wl_callback* make_frame_callback()

@@ -184,7 +184,7 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 	);
 
 	ruisapp_window.get().gui.set_viewport( //
-		ruis::rect({0, 0}, ruisapp_window.get().ruis_native_window.get().get_dims())
+		ruis::rect({0, 0}, ruisapp_window.get().ruis_native_window.get().get_dims().to<ruis::real>())
 	);
 
 	auto res = this->windows.insert( //
@@ -239,10 +239,8 @@ ruisapp::application::application(parameters params) :
 
 void ruisapp::application::quit() noexcept
 {
-	auto& glue = get_glue(*this);
-
-	// TODO: send SDL_QUIT event instead of setting the flag?
-	glue.quit_flag.store(true);
+	SDL_Event event = {SDL_QUIT};
+	SDL_PushEvent(&event);
 }
 
 ruisapp::window& ruisapp::application::make_window(ruisapp::window_parameters window_params)

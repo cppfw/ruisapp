@@ -292,7 +292,7 @@ native_window::native_window(
 #endif
 }
 
-ruis::vec2 native_window::get_dims() const noexcept
+r4::vector2<unsigned> native_window::get_dims() const noexcept
 {
 	int width = 0;
 	int height = 0;
@@ -310,7 +310,7 @@ ruis::vec2 native_window::get_dims() const noexcept
 	dims *= this->get_scale_factor();
 #endif
 
-	return dims;
+	return dims.to<unsigned>();
 }
 
 void native_window::set_mouse_cursor(ruis::mouse_cursor c)

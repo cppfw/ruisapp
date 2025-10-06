@@ -132,7 +132,7 @@ public:
 		return this->sdl_window.scale_factor;
 	}
 
-	ruis::vec2 get_dims() const noexcept;
+	r4::vector2<unsigned> get_dims() const noexcept override;
 
 	void set_mouse_cursor(ruis::mouse_cursor c) override;
 

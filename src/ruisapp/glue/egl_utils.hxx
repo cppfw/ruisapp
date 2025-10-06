@@ -451,7 +451,7 @@ struct egl_context_wrapper {
 		);
 	}
 
-	void disable_vsync()
+	void set_vsync_enabled(bool enabled)
 	{
 		utki::assert(
 			eglGetCurrentContext() == this->context,
@@ -461,7 +461,11 @@ struct egl_context_wrapper {
 			SL
 		);
 
-		if (eglSwapInterval(this->egl_display.display, 0) != EGL_TRUE) {
+		if (eglSwapInterval(
+				this->egl_display.display, //
+				enabled ? 1 : 0 // number of vsync frames before framebuffer buffer swap
+			) != EGL_TRUE)
+		{
 			throw std::runtime_error("egl_context_wrapper::disable_vsync(): eglSwapInterval(0) failed");
 		}
 	}

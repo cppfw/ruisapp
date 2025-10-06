@@ -48,7 +48,6 @@ void wayland_output_wrapper::wl_output_geometry(
 	});
 
 	// TODO: is it needed to notify about outputs changed? Aren't wayland surfaces supposed to receive enter output events?
-
 	// auto& ww = get_impl(ruisapp::application::inst());
 	// ww.notify_outputs_changed();
 }
@@ -72,7 +71,6 @@ void wayland_output_wrapper::wl_output_mode(
 	});
 
 	// TODO: is it needed to notify about outputs changed? Aren't wayland surfaces supposed to receive enter output events?
-
 	// auto& ww = get_impl(ruisapp::application::inst());
 	// ww.notify_outputs_changed();
 }
@@ -93,7 +91,6 @@ void wayland_output_wrapper::wl_output_scale(
 	});
 
 	// TODO: is it needed to notify about outputs changed? Aren't wayland surfaces supposed to receive enter output events?
-
 	// auto& ww = get_impl(ruisapp::application::inst());
 	// ww.notify_outputs_changed();
 }
