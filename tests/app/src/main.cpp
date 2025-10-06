@@ -91,9 +91,9 @@ public:
 //		ruis::ZipFile zf(papki::FSFile::New("res.zip"), "test.gui.stob");
 //		std::shared_ptr<ruis::widget> c = ruis::gui::inst().inflater().Inflate(zf);
 
-		ASSERT(c.get().try_get_widget_as<ruis::push_button>("show_VK_button"))
-		std::dynamic_pointer_cast<ruis::push_button>(c.get().try_get_widget("show_VK_button"))->click_handler = [this](ruis::push_button&){
-			this->show_virtual_keyboard();
+		utki::assert(c.get().try_get_widget_as<ruis::push_button>("show_VK_button"), SL);
+		std::dynamic_pointer_cast<ruis::push_button>(c.get().try_get_widget("show_VK_button"))->click_handler = [](ruis::push_button& b){
+			b.context.get().window().set_virtual_keyboard_visible(true);
 		};
 
 		std::dynamic_pointer_cast<ruis::push_button>(c.get().try_get_widget("push_button_in_scroll_container"))->click_handler = [this](ruis::push_button&){
