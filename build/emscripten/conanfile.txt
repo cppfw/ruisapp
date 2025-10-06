@@ -1,6 +1,6 @@
 [requires]
-ruis/[>=0.5.278]@cppfw/main
-ruis-render-opengles/[>=0.0.0]@cppfw/main
+ruis/[>=0.6.2]@cppfw/main
+ruis-render-opengles/[>=0.3.1]@cppfw/main
 
 [generators]
 AutotoolsDeps

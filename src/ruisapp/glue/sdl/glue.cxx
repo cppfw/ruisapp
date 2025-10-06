@@ -203,7 +203,15 @@ void main_loop_iteration(void* user_data)
 			case SDL_KEYDOWN:
 				[[fallthrough]];
 			case SDL_KEYUP:
-				if (auto window = glue.get_window(e.key.windowID)) {
+				// utki::logcat("SDL_KEYDOWN/UP event, windowID = ", e.key.windowID, '\n');
+#if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
+				// In Emscripten all key events are always sent to window with ID 0 (invalid id).
+				// Since we have only one window in Emscripten, we can ignore the window ID.
+				if (auto window = glue.get_window())
+#else
+				if (auto window = glue.get_window(e.key.windowID))
+#endif
+				{
 					auto& win = *window;
 
 					auto key = sdl_scancode_to_ruis_key(e.key.keysym.scancode);
@@ -229,7 +237,23 @@ void main_loop_iteration(void* user_data)
 				}
 				break;
 			case SDL_TEXTINPUT:
-				if (auto window = glue.get_window(e.text.windowID)) {
+				// utki::logcat("SDL_TEXTINPUT event, windowID = ", e.key.windowID, '\n');
+#if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
+				// In Emscripten all key events are always sent to window with ID 0 (invalid id).
+				// Since we have only one window in Emscripten, we can ignore the window ID.
+				if (auto window = glue.get_window())
+#else
+				if (auto window = glue.get_window(e.text.windowID))
+#endif
+				{
+					// this assert is needed to prevent gcc compiler complaining about unused application_glue::get_window() function in non-Emscripten builds
+					utki::assert(
+						[&]() {
+							return glue.get_window() != nullptr;
+						},
+						SL
+					);
+
 					auto& win = *window;
 
 					struct sdl_input_string_provider : public ruis::gui::input_string_provider {

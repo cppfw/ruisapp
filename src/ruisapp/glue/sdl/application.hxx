@@ -96,6 +96,9 @@ public:
 
 	app_window* get_window(native_window::window_id_type id);
 
+	// get first window if any exists
+	app_window* get_window();
+
 	size_t get_num_windows() const noexcept
 	{
 		return this->windows.size();

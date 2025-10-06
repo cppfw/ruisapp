@@ -88,6 +88,15 @@ app_window* application_glue::get_window(native_window::window_id_type id)
 	return &i->second.get();
 }
 
+app_window* application_glue::get_window()
+{
+	if (this->windows.empty()) {
+		return nullptr;
+	}
+
+	return &this->windows.begin()->second.get();
+}
+
 void application_glue::render()
 {
 	for (auto& w : this->windows) {
