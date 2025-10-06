@@ -169,7 +169,7 @@ void native_window::set_fullscreen_internal(bool enable)
 	}
 }
 
-void naitve_window::set_virtual_keyboard_visible(bool visible) noexcept
+void native_window::set_virtual_keyboard_visible(bool visible) noexcept
 {
 	auto& glob = get_glob();
 
