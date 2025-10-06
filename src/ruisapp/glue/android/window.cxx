@@ -168,3 +168,22 @@ void native_window::set_fullscreen_internal(bool enable)
 		);
 	}
 }
+
+void naitve_window::set_virtual_keyboard_visible(bool visible) noexcept
+{
+	auto& glob = get_glob();
+
+	if (visible) {
+		// NOTE:
+		// ANativeActivity_showSoftInput(native_activity,
+		// ANATIVEACTIVITY_SHOW_SOFT_INPUT_FORCED); did not work for some reason.
+
+		glob.java_functions.show_virtual_keyboard();
+	} else {
+		// NOTE:
+		// ANativeActivity_hideSoftInput(native_activity,
+		// ANATIVEACTIVITY_HIDE_SOFT_INPUT_NOT_ALWAYS); did not work for some reason
+
+		glob.java_functions.hide_virtual_keyboard();
+	}
+}

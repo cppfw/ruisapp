@@ -364,14 +364,6 @@ void application::swap_frame_buffers(){
 	// do nothing, ios swaps frame buffers automatically
 }
 
-void application::show_virtual_keyboard()noexcept{
-	//TODO:
-}
-
-void application::hide_virtual_keyboard()noexcept{
-	//TODO:
-}
-
 std::unique_ptr<papki::file> application::get_res_file(std::string_view path)const{
 	std::string dir([[[NSBundle mainBundle] resourcePath] fileSystemRepresentation]);
 

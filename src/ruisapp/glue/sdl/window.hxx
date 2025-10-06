@@ -178,5 +178,7 @@ public:
 			));
 		}
 	}
+
+	void set_virtual_keyboard_visible(bool visible) noexcept override;
 };
 } // namespace

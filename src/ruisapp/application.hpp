@@ -158,22 +158,6 @@ public:
 
 	~application() override;
 
-	/**
-	 * @brief Bring up the virtual keyboard.
-	 * On mobile platforms this function will summon the on-screen keyboard.
-	 * On desktop platforms this function does nothing.
-	 */
-	// TODO: move to window?
-	void show_virtual_keyboard() noexcept;
-
-	/**
-	 * @brief Hide virtual keyboard.
-	 * On mobile platforms this function hides the on-screen keyboard.
-	 * On desktop platforms this function does nothing.
-	 */
-	// TODO: move to window?
-	void hide_virtual_keyboard() noexcept;
-
 public:
 	/**
 	 * @brief Requests application to exit.

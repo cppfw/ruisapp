@@ -276,15 +276,3 @@ void ruisapp::application::destroy_window(ruisapp::window& w)
 	glue.destroy_window(app_win.ruis_native_window.get().get_id());
 #endif
 }
-
-#if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
-void ruisapp::application::show_virtual_keyboard() noexcept
-{
-	SDL_StartTextInput();
-}
-
-void ruisapp::application::hide_virtual_keyboard() noexcept
-{
-	SDL_StopTextInput();
-}
-#endif

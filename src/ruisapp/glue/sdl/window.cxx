@@ -317,3 +317,12 @@ void native_window::set_mouse_cursor(ruis::mouse_cursor c)
 {
 	this->display.get().set_cursor(c);
 }
+
+void native_window::set_virtual_keyboard_visible(bool visible) noexcept
+{
+	if (visible) {
+		SDL_StartTextInput();
+	} else {
+		SDL_StopTextInput();
+	}
+}

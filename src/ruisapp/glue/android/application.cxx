@@ -182,25 +182,3 @@ void ruisapp::application::quit() noexcept
 	utki::assert(globals_wrapper::native_activity, SL);
 	ANativeActivity_finish(globals_wrapper::native_activity);
 }
-
-void ruisapp::application::show_virtual_keyboard() noexcept
-{
-	// NOTE:
-	// ANativeActivity_showSoftInput(native_activity,
-	// ANATIVEACTIVITY_SHOW_SOFT_INPUT_FORCED); did not work for some reason.
-
-	auto& glob = get_glob();
-
-	glob.java_functions.show_virtual_keyboard();
-}
-
-void ruisapp::application::hide_virtual_keyboard() noexcept
-{
-	// NOTE:
-	// ANativeActivity_hideSoftInput(native_activity,
-	// ANATIVEACTIVITY_HIDE_SOFT_INPUT_NOT_ALWAYS); did not work for some reason
-
-	auto& glob = get_glob();
-
-	glob.java_functions.hide_virtual_keyboard();
-}

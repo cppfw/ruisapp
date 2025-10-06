@@ -53,5 +53,7 @@ public:
 	r4::vector2<unsigned> get_dims();
 
 	void set_fullscreen_internal(bool enable) override;
+
+	void set_virtual_keyboard_visible(bool visible) noexcept override;
 };
 } // namespace
