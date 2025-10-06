@@ -118,5 +118,3 @@ display_wrapper::display_wrapper() :
 		return t;
 	}())
 {}
-
-display_wrapper::~display_wrapper() {}

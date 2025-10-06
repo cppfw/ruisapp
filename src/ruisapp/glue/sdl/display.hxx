@@ -89,6 +89,6 @@ public:
 	display_wrapper(display_wrapper&&) = delete;
 	display_wrapper& operator=(display_wrapper&&) = delete;
 
-	~display_wrapper();
+	~display_wrapper() = default;
 };
 } // namespace
