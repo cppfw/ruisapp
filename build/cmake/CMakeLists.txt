@@ -16,7 +16,9 @@ myci_add_source_files(srcs
 
 enable_language(OBJCXX)
 
-list(APPEND srcs ../../src/${name}/glue/macos/glue.mm)
+if(APPLE)
+    list(APPEND srcs ../../src/${name}/glue/macos/glue.mm)
+endif()
 
 myci_declare_library(${name}-opengl
     SOURCES
@@ -93,6 +95,7 @@ myci_declare_application(${name}-opengl-test
         ruisapp::ruisapp-opengl
 )
 
+# link to Cocoa framework on macos
 if(APPLE)
     target_link_libraries(${name}-opengl-test
         PRIVATE
@@ -102,6 +105,7 @@ if(APPLE)
         )
 endif()
 
+# no opengles build on MACOS for now
 if(NOT APPLE)
     myci_declare_application(${name}-opengles-test
         GUI
