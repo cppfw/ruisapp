@@ -212,31 +212,10 @@ class native_window : public ruis::render::native_window
 
 public:
 	native_window(
-		const utki::version_duplet& gl_version,
+		const utki::version_duplet& gl_version, //
 		const ruisapp::window_parameters& window_params,
 		native_window* shared_gl_context_native_window
-	) :
-		cocoa_window(
-			window_params, //
-			shared_gl_context_native_window != nullptr
-		),
-		opengl_context(
-			window_params, //
-			shared_gl_context_native_window ? shared_gl_context_native_window->opengl_context.context
-											: nullptr // no shared context
-		),
-		cur_win_dims(window_params.dims.to<ruis::real>())
-	{
-		[this->opengl_context.context setView:[this->cocoa_window.window contentView]];
-
-		// if there are no any GL contexts current, then set this one
-		if ([NSOpenGLContext currentContext] == nil) {
-			[this->opengl_context.context makeCurrentContext];
-		}
-		if (glewInit() != GLEW_OK) {
-			throw std::runtime_error("GLEW initialization failed");
-		}
-	}
+	);
 
 	void set_app_window(app_window* w)
 	{

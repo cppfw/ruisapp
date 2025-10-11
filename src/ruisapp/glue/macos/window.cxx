@@ -21,6 +21,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "window.hxx"
 
+#include <GL/glew.h>
+
 #include "key_code.map.hxx"
 
 namespace {
@@ -576,6 +578,33 @@ void handle_character_input(
 }
 
 @end
+
+native_window::native_window(
+	const utki::version_duplet& gl_version, //
+	const ruisapp::window_parameters& window_params,
+	native_window* shared_gl_context_native_window
+) :
+	cocoa_window(
+		window_params, //
+		shared_gl_context_native_window != nullptr
+	),
+	opengl_context(
+		window_params, //
+		shared_gl_context_native_window ? shared_gl_context_native_window->opengl_context.context
+										: nullptr // no shared context
+	),
+	cur_win_dims(window_params.dims.to<ruis::real>())
+{
+	[this->opengl_context.context setView:[this->cocoa_window.window contentView]];
+
+	// if there are no any GL contexts current, then set this one
+	if ([NSOpenGLContext currentContext] == nil) {
+		[this->opengl_context.context makeCurrentContext];
+	}
+	if (glewInit() != GLEW_OK) {
+		throw std::runtime_error("GLEW initialization failed");
+	}
+}
 
 void native_window::set_mouse_cursor_visible(bool visible)
 {

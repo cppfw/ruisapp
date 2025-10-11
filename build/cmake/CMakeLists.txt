@@ -14,6 +14,10 @@ myci_add_source_files(srcs
     RECURSIVE
 )
 
+enable_language(OBJCXX)
+
+list(APPEND srcs ../../src/${name}/glue/macos/glue.mm)
+
 myci_declare_library(${name}-opengl
     SOURCES
         ${srcs}
@@ -33,34 +37,44 @@ myci_declare_library(${name}-opengl
     NO_EXPORT
 )
 
-myci_declare_library(${name}-opengles
-    SOURCES
-        ${srcs}
-    PUBLIC_INCLUDE_DIRECTORIES
-        ../../src
-    # header files are installed by ${name}-opengl target
-    # INSTALL_INCLUDE_DIRECTORIES
-    #     ../../src/${name}
-    PREPROCESSOR_DEFINITIONS
-        "RUISAPP_RENDER_OPENGLES"
-    DEPENDENCIES
-        nitki
-        ruis
-        ruis-render-opengles
-    LINUX_ONLY_DEPENDENCIES
-        PkgConfig::gdk-3.0
-        PkgConfig::x11
-        PkgConfig::egl
-    WINDOWS_ONLY_DEPENDENCIES
-        unofficial-angle/unofficial::angle::libEGL
-    NO_EXPORT
-)
+# no opengles build on MACOS for now
+if(NOT APPLE)
+    myci_declare_library(${name}-opengles
+        SOURCES
+            ${srcs}
+        PUBLIC_INCLUDE_DIRECTORIES
+            ../../src
+        # header files are installed by ${name}-opengl target
+        # INSTALL_INCLUDE_DIRECTORIES
+        #     ../../src/${name}
+        PREPROCESSOR_DEFINITIONS
+            "RUISAPP_RENDER_OPENGLES"
+        DEPENDENCIES
+            nitki
+            ruis
+            ruis-render-opengles
+        LINUX_ONLY_DEPENDENCIES
+            PkgConfig::gdk-3.0
+            PkgConfig::x11
+            PkgConfig::egl
+        WINDOWS_ONLY_DEPENDENCIES
+            unofficial-angle/unofficial::angle::libEGL
+        NO_EXPORT
+    )
+endif()
 
-myci_export(
-    TARGETS
-        ${name}-opengl
-        ${name}-opengles
-)
+if(APPLE)
+    myci_export(
+        TARGETS
+            ${name}-opengl
+    )
+else()
+    myci_export(
+        TARGETS
+            ${name}-opengl
+            ${name}-opengles
+    )
+endif()
 
 set(app_srcs)
 myci_add_source_files(app_srcs
@@ -79,12 +93,23 @@ myci_declare_application(${name}-opengl-test
         ruisapp::ruisapp-opengl
 )
 
-myci_declare_application(${name}-opengles-test
-    GUI
-    SOURCES
-        ${app_srcs}
-    RESOURCE_DIRECTORY
-        ../../tests/app/res
-    DEPENDENCIES
-        ruisapp::ruisapp-opengles
-)
+if(APPLE)
+    target_link_libraries(${name}-opengl-test
+        PRIVATE
+            # Link the Cocoa framework directly using the -framework flag string.
+            # The quotes are important so CMake passes it as a single linker argument.
+            "-framework Cocoa"
+        )
+endif()
+
+if(NOT APPLE)
+    myci_declare_application(${name}-opengles-test
+        GUI
+        SOURCES
+            ${app_srcs}
+        RESOURCE_DIRECTORY
+            ../../tests/app/res
+        DEPENDENCIES
+            ruisapp::ruisapp-opengles
+    )
+endif()
