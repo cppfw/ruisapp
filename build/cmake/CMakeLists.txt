@@ -14,9 +14,8 @@ myci_add_source_files(srcs
     RECURSIVE
 )
 
-enable_language(OBJCXX)
-
 if(APPLE)
+    enable_language(OBJCXX)
     list(APPEND srcs ../../src/${name}/glue/macos/glue.mm)
 endif()
 
