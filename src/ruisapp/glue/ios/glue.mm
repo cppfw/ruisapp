@@ -33,7 +33,7 @@ using namespace ruisapp;
 
 	// TODO: check if app == nullptr
 
-	return YES;
+	return YES; // TODO: what does this YES mean?
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application
@@ -61,7 +61,7 @@ using namespace ruisapp;
 - (void)applicationWillTerminate:(UIApplication *)application
 {
 	// Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
-	ASSERT(self->app)
+	utki::assert(self->app, SL);
 	delete self->app;
 }
 
@@ -69,9 +69,19 @@ using namespace ruisapp;
 
 int main(int argc, char * argv[]){
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	int retVal = UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class]));
-	[pool release];
-	return retVal;
+
+	utki::scope_exit pool_scope_exit([&](){
+		[pool release];
+	});
+
+	int ret = UIApplicationMain(
+		argc,//
+	 	argv,
+		nil,
+		NSStringFromClass([AppDelegate class])
+	);
+	
+	return ret;
 }
 
 @interface ViewController : GLKViewController{
@@ -117,8 +127,8 @@ namespace{
 	};
 
 	WindowWrapper& get_impl(const std::unique_ptr<utki::destructable>& pimpl){
-		ASSERT(pimpl)
-		ASSERT(dynamic_cast<WindowWrapper*>(pimpl.get()))
+		utki::assert(pimpl, SL);
+		utki::assert(dynamic_cast<WindowWrapper*>(pimpl.get()), SL);
 		return static_cast<WindowWrapper&>(*pimpl);
 	}
 }
