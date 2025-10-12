@@ -36,7 +36,10 @@ public:
 	struct window_class_wrapper {
 		const char* const window_class_name;
 
-		window_class_wrapper(const char* window_class_name, WNDPROC window_procedure);
+		window_class_wrapper(
+			const char* window_class_name, //
+			WNDPROC window_procedure
+		);
 
 		window_class_wrapper(const window_class_wrapper&) = delete;
 		window_class_wrapper& operator=(const window_class_wrapper) = delete;

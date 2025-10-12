@@ -34,7 +34,7 @@ native_window::window_wrapper::window_wrapper(
 	bool visible
 ) :
 	handle([&]() {
-		auto hwnd = CreateWindowEx(
+		auto hwnd = CreateWindowExA(
 			WS_EX_APPWINDOW | WS_EX_WINDOWEDGE, // extended style
 			window_class.window_class_name,
 			window_params.title.c_str(),

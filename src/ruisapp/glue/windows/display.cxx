@@ -382,23 +382,26 @@ LRESULT CALLBACK window_procedure(
 }
 } // namespace
 
-display_wrapper::window_class_wrapper::window_class_wrapper(const char* window_class_name, WNDPROC window_procedure) :
+display_wrapper::window_class_wrapper::window_class_wrapper(
+	const char* window_class_name, //
+	WNDPROC window_procedure
+) :
 	window_class_name(window_class_name)
 {
-	WNDCLASS wc;
+	WNDCLASSA wc;
 
 	wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC; // redraw on resize, own DC for window
-	wc.lpfnWndProc = window_procedure;
+	wc.lpfnWndProc = &window_procedure;
 	wc.cbClsExtra = 0; // no extra window data
 	wc.cbWndExtra = 0; // no extra window data
 	wc.hInstance = GetModuleHandle(nullptr); // instance handle
 	wc.hIcon = LoadIcon(nullptr, IDI_WINLOGO);
 	wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
-	wc.hbrBackground = nullptr; // no background required for OpenGL
+	wc.hbrBackground = nullptr; // no background needed for OpenGL
 	wc.lpszMenuName = nullptr; // we don't want a menu
 	wc.lpszClassName = this->window_class_name; // set the window class name
 
-	auto res = RegisterClass(&wc);
+	auto res = RegisterClassA(&wc);
 
 	if (res == 0) {
 		// TODO: add error information to the exception message using GetLastError() and FormatMessage()
@@ -408,7 +411,7 @@ display_wrapper::window_class_wrapper::window_class_wrapper(const char* window_c
 
 display_wrapper::window_class_wrapper::~window_class_wrapper()
 {
-	auto res = UnregisterClass(
+	auto res = UnregisterClassA(
 		this->window_class_name, //
 		GetModuleHandle(nullptr)
 	);
