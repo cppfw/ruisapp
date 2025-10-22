@@ -34,9 +34,12 @@ class app_window : public ruisapp::window
 	ruis::rect cur_win_rect{0, 0, 0, 0};
 
 public:
-	utki::shared_ref<native_window> ruis_native_window;
+	const utki::shared_ref<native_window> ruis_native_window;
 
-	app_window(utki::shared_ref<ruis::context> ruis_context, utki::shared_ref<native_window> ruis_native_window) :
+	app_window(
+		utki::shared_ref<ruis::context> ruis_context,//
+		utki::shared_ref<native_window> ruis_native_window
+	) :
 		ruisapp::window(std::move(ruis_context)),
 		ruis_native_window(std::move(ruis_native_window))
 	{}
@@ -68,7 +71,7 @@ class application_glue : public utki::destructable
 	std::optional<app_window> window;
 
 public:
-	utki::shared_ref<ruis::updater> updater = utki::make_shared<ruis::updater>();
+	const utki::shared_ref<ruis::updater> updater = utki::make_shared<ruis::updater>();
 
 	application_glue(utki::version_duplet gl_version);
 

@@ -14,33 +14,47 @@ myci_add_source_files(srcs
     RECURSIVE
 )
 
-if(APPLE)
+if(IOS)
+    enable_language(OBJCXX)
+    list(APPEND srcs ../../src/${name}/glue/ios/glue.mm)
+
+    set(ruisapp_build_opengl_variant False)
+    set(ruisapp_build_opengles_variant True)
+elseif(APPLE)
     enable_language(OBJCXX)
     list(APPEND srcs ../../src/${name}/glue/macos/glue.mm)
+
+    set(ruisapp_build_opengl_variant True)
+    set(ruisapp_build_opengles_variant False)
+else()
+    set(ruisapp_build_opengl_variant True)
+    set(ruisapp_build_opengles_variant True)
 endif()
 
-myci_declare_library(${name}-opengl
-    SOURCES
-        ${srcs}
-    PUBLIC_INCLUDE_DIRECTORIES
-        ../../src
-    INSTALL_INCLUDE_DIRECTORIES
-        ../../src/${name}
-    PREPROCESSOR_DEFINITIONS
-        "RUISAPP_RENDER_OPENGL"
-    DEPENDENCIES
-        nitki
-        ruis
-        ruis-render-opengl
-    LINUX_ONLY_DEPENDENCIES
-        PkgConfig::gdk-3.0
-        PkgConfig::x11
-    NO_EXPORT
-)
+if(ruisapp_build_opengl_variant)
+    myci_declare_library(${name}-opengl
+        SOURCES
+            ${srcs}
+        PUBLIC_INCLUDE_DIRECTORIES
+            ../../src
+        INSTALL_INCLUDE_DIRECTORIES
+            ../../src/${name}
+        PREPROCESSOR_DEFINITIONS
+            "RUISAPP_RENDER_OPENGL"
+        DEPENDENCIES
+            nitki
+            ruis
+            ruis-render-opengl
+        LINUX_ONLY_DEPENDENCIES
+            PkgConfig::gdk-3.0
+            PkgConfig::x11
+        NO_EXPORT
+    )
+endif()
 
-# no opengles build on MACOS for now
-if(NOT APPLE)
+if(ruisapp_build_opengles_variant)
     myci_declare_library(${name}-opengles
+        GUI
         SOURCES
             ${srcs}
         PUBLIC_INCLUDE_DIRECTORIES
@@ -64,15 +78,20 @@ if(NOT APPLE)
     )
 endif()
 
-if(APPLE)
+if(ruisapp_build_opengl_variant AND ruisapp_build_opengles_variant)
+    myci_export(
+        TARGETS
+            ${name}-opengl
+            ${name}-opengles
+    )
+elseif(ruisapp_build_opengl_variant)
     myci_export(
         TARGETS
             ${name}-opengl
     )
-else()
+elseif(ruisapp_build_opengles_variant)
     myci_export(
         TARGETS
-            ${name}-opengl
             ${name}-opengles
     )
 endif()
@@ -84,28 +103,33 @@ myci_add_source_files(app_srcs
     RECURSIVE
 )
 
-myci_declare_application(${name}-opengl-test
-    GUI
-    SOURCES
-        ${app_srcs}
-    RESOURCE_DIRECTORY
-        ../../tests/app/res
-    DEPENDENCIES
-        ruisapp::ruisapp-opengl
-)
+if(ruisapp_build_opengl_variant)
+    myci_declare_application(${name}-opengl-test
+        GUI
+        SOURCES
+            ${app_srcs}
+        RESOURCE_DIRECTORY
+            ../../tests/app/res
+        DEPENDENCIES
+            ruisapp::ruisapp-opengl
+    )
 
-# link to Cocoa framework on macos
-if(APPLE)
-    target_link_libraries(${name}-opengl-test
-        PRIVATE
-            # Link the Cocoa framework directly using the -framework flag string.
-            # The quotes are important so CMake passes it as a single linker argument.
-            "-framework Cocoa"
+    if(APPLE)
+        # link to Cocoa framework
+        target_link_libraries(${name}-opengl-test
+            PRIVATE
+                # Link the Cocoa framework directly using the -framework flag string.
+                # The quotes are important so CMake passes it as a single linker argument.
+                "-framework Cocoa"
         )
+
+        set_target_properties(${name}-opengl-test PROPERTIES
+            XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "io.github.cppfw.ruisapp-opengl-test"
+        )
+    endif()
 endif()
 
-# no opengles build on MACOS for now
-if(NOT APPLE)
+if(ruisapp_build_opengles_variant)
     myci_declare_application(${name}-opengles-test
         GUI
         SOURCES
@@ -115,4 +139,30 @@ if(NOT APPLE)
         DEPENDENCIES
             ruisapp::ruisapp-opengles
     )
+
+    if(APPLE)
+        target_link_libraries(${name}-opengles-test
+            PRIVATE
+                # Link the iOS frameworks directly using the -framework flag string.
+                # The quotes are important so CMake passes it as a single linker argument.
+                "-framework Foundation"
+                "-framework UIKit"
+                "-framework OpenGLES"
+                "-framework GLKit" # for GLKViewController
+        )
+
+        # TODO: is this needed?
+        target_link_options(
+            ${name}-opengles-test
+            PRIVATE
+                "-ObjC" # Use -ObjC (case sensitive) to pass the linker flag
+        )
+
+        set_target_properties(${name}-opengles-test PROPERTIES
+            MACOSX_BUNDLE_GUI_IDENTIFIER "io.github.cppfw.${name}-opengles-test"    
+            XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "io.github.cppfw.${name}-opengles-test"
+            XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "948FQ58W9M"
+            XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic"
+        )
+    endif()
 endif()

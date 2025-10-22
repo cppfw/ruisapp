@@ -54,7 +54,7 @@ app_window& application_glue::make_window(ruisapp::window_parameters window_para
 
 	auto ruis_native_window = utki::make_shared<native_window>(
 		this->gl_version, //
-		window_params
+		std::move(window_params)
 	);
 
 	auto rendering_context = utki::make_shared<ruis::render::opengles::context>(ruis_native_window);
