@@ -1,7 +1,8 @@
 #include "application.hxx"
 
-namespace{
-ruis::real get_dots_per_inch(){
+namespace {
+ruis::real get_dots_per_inch()
+{
 	float scale = [[UIScreen mainScreen] scale];
 
 	ruis::real value;
@@ -13,18 +14,21 @@ ruis::real get_dots_per_inch(){
 	} else {
 		value = 160 * scale;
 	}
-	utki::log_debug([&](auto&o){o << "dpi = " << value << std::endl;});
+	utki::log_debug([&](auto& o) {
+		o << "dpi = " << value << std::endl;
+	});
 	return value;
 }
-}
+} // namespace
 
-namespace{
-ruis::real get_dots_per_pp(){
+namespace {
+ruis::real get_dots_per_pp()
+{
 	float scale = [[UIScreen mainScreen] scale];
 
 	return ruis::real(scale);
 }
-}
+} // namespace
 
 application_glue::application_glue(utki::version_duplet gl_version) :
 	gl_version(std::move(gl_version))
@@ -40,9 +44,7 @@ void application_glue::render()
 app_window& application_glue::make_window(ruisapp::window_parameters window_params)
 {
 	if (this->window.has_value()) {
-		throw std::logic_error(
-			"application::make_window(): one window already exists, only one window allowed on ios"
-		);
+		throw std::logic_error("application::make_window(): one window already exists, only one window allowed on ios");
 	}
 
 	utki::assert(!this->window.has_value(), SL);
@@ -69,10 +71,10 @@ app_window& application_glue::make_window(ruisapp::window_parameters window_para
 			[this](std::function<void()> procedure) {
 				auto p = reinterpret_cast<NSInteger>(new std::function<void()>(std::move(procedure)));
 
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    std::unique_ptr<std::function<void()>> m(reinterpret_cast<std::function<void()>*>(p));
-                    (*m)();
-                });
+				dispatch_async(dispatch_get_main_queue(), ^{
+				  std::unique_ptr<std::function<void()>> m(reinterpret_cast<std::function<void()>*>(p));
+				  (*m)();
+				});
 			},
 		.updater = this->updater,
 		.renderer = utki::make_shared<ruis::render::renderer>(
@@ -82,7 +84,7 @@ app_window& application_glue::make_window(ruisapp::window_parameters window_para
 		),
 		.style_provider = std::move(ruis_style_provider),
 		.units = ruis::units(
-			get_dots_per_inch(),
+			get_dots_per_inch(), //
 			get_dots_per_pp()
 		)
 	});
@@ -106,15 +108,16 @@ ruisapp::application::application(parameters params) :
 	)
 {}
 
-std::unique_ptr<papki::file> ruisapp::application::get_res_file(std::string_view path)const{
+std::unique_ptr<papki::file> ruisapp::application::get_res_file(std::string_view path) const
+{
 	std::string dir([[[NSBundle mainBundle] resourcePath] fileSystemRepresentation]);
 
-//	TRACE(<< "res path = " << dir << std::endl)
+	//	TRACE(<< "res path = " << dir << std::endl)
 
 	auto rdf = std::make_unique<papki::root_dir>(
-        std::make_unique<papki::fs_file>(), // 
-        dir + "/" // TODO: use utki::cat()?
-    );
+		std::make_unique<papki::fs_file>(), //
+		dir + "/" // TODO: use utki::cat()?
+	);
 	rdf->set_path(path);
 
 	return rdf;

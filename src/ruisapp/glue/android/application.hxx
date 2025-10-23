@@ -37,7 +37,7 @@ public:
 	const utki::shared_ref<native_window> ruis_native_window;
 
 	app_window(
-		utki::shared_ref<ruis::context> ruis_context,//
+		utki::shared_ref<ruis::context> ruis_context, //
 		utki::shared_ref<native_window> ruis_native_window
 	) :
 		ruisapp::window(std::move(ruis_context)),

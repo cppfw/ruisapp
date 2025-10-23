@@ -6,40 +6,42 @@
 
 #include "window.hxx"
 
-namespace{
-class app_window : public ruisapp::window{
+namespace {
+class app_window : public ruisapp::window
+{
 public:
-    const utki::shared_ref<native_window> ruis_native_window;
+	const utki::shared_ref<native_window> ruis_native_window;
 
-    app_window(
-        utki::shared_ref<ruis::context> ruis_context, //
-        utki::shared_ref<native_window> ruis_native_window
-    ) :
+	app_window(
+		utki::shared_ref<ruis::context> ruis_context, //
+		utki::shared_ref<native_window> ruis_native_window
+	) :
 		ruisapp::window(std::move(ruis_context)),
 		ruis_native_window(std::move(ruis_native_window))
 	{
-        this->ruis_native_window.get().set_app_window(this);
-    }
+		this->ruis_native_window.get().set_app_window(this);
+	}
 };
-}
+} // namespace
 
-namespace{
-class application_glue : public utki::destructable{
-    const utki::version_duplet gl_version;
+namespace {
+class application_glue : public utki::destructable
+{
+	const utki::version_duplet gl_version;
 
-    // Only one window on ios.
+	// Only one window on ios.
 	std::optional<app_window> window;
 
 public:
-    const utki::shared_ref<ruis::updater> updater = utki::make_shared<ruis::updater>();
+	const utki::shared_ref<ruis::updater> updater = utki::make_shared<ruis::updater>();
 
-    application_glue(utki::version_duplet gl_version);
+	application_glue(utki::version_duplet gl_version);
 
-    app_window& make_window(ruisapp::window_parameters window_params);
+	app_window& make_window(ruisapp::window_parameters window_params);
 
-    void render();
+	void render();
 
-    app_window* get_window()
+	app_window* get_window()
 	{
 		if (this->window.has_value()) {
 			return &this->window.value();
@@ -47,7 +49,7 @@ public:
 		return nullptr;
 	}
 };
-}
+} // namespace
 
 namespace {
 inline application_glue& get_glue(ruisapp::application& app)
