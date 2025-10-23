@@ -105,8 +105,8 @@ public:
 
 	void bind_rendering_context() override;
 
-    void set_fullscreen_internal(bool enable) override;
+	void set_fullscreen_internal(bool enable) override;
 
-    ruis::rect get_content_rect() const;
+	ruis::rect get_content_rect() const;
 };
 } // namespace

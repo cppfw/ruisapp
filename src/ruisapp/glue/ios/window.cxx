@@ -145,22 +145,22 @@ void handle_mouse_move(
 
 	utki::assert(self->window, SL);
 
-    auto& natwin = self->window->ruis_native_window.get();
+	auto& natwin = self->window->ruis_native_window.get();
 
-    // TODO: get correct content rect
-    auto content_rect = natwin.get_content_rect();
-    // ruis::rect content_rect{
-    //     {ruis::real(rect.origin.x), ruis::real(rect.origin.y)},
-    //     {ruis::real(rect.size.width), ruis::real(rect.size.height)} //
-    // };
+	// TODO: get correct content rect
+	auto content_rect = natwin.get_content_rect();
+	// ruis::rect content_rect{
+	//     {ruis::real(rect.origin.x), ruis::real(rect.origin.y)},
+	//     {ruis::real(rect.size.width), ruis::real(rect.size.height)} //
+	// };
 
-    // utki::log_debug([&](auto&o){
-    //     o << "content_rect = " << content_rect << std::endl;
-    // });
+	// utki::log_debug([&](auto&o){
+	//     o << "content_rect = " << content_rect << std::endl;
+	// });
 
-    // TODO: for optimization, check if rect has changed
-    // set the GL viewport
-    self->window->gui.set_viewport(content_rect);
+	// TODO: for optimization, check if rect has changed
+	// set the GL viewport
+	self->window->gui.set_viewport(content_rect);
 
 	auto& glue = get_glue();
 	glue.render();
@@ -340,13 +340,13 @@ void native_window::set_fullscreen_internal(bool enable)
 
 	using std::round;
 
-	if(enable){
-		if( [[[UIDevice currentDevice] systemVersion] floatValue] >= 7.0f ) {
+	if (enable) {
+		if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7.0f) {
 			CGRect rect = this->ios_window.window.frame;
 			this->ios_window.window.rootViewController.view.frame = rect;
 		}
-        
-        // TODO: this was setting the viewport, is something still needed here?
+
+		// TODO: this was setting the viewport, is something still needed here?
 		// update_window_rect(
 		// 		ruis::rect(
 		// 				ruis::vector2(0),
@@ -356,19 +356,19 @@ void native_window::set_fullscreen_internal(bool enable)
 		// 					)
 		// 			)
 		// 	);
-        
+
 		this->ios_window.window.windowLevel = UIWindowLevelStatusBar;
-	}else{
+	} else {
 		CGSize statusBarSize = [[UIApplication sharedApplication] statusBarFrame].size;
 
-		if( [[[UIDevice currentDevice] systemVersion] floatValue] >= 7.0f ) {
+		if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7.0f) {
 			CGRect rect = this->ios_window.window.frame;
 			rect.origin.y += statusBarSize.height;
 			rect.size.height -= statusBarSize.height;
 			this->ios_window.window.rootViewController.view.frame = rect;
 		}
 
-        // TODO: this was setting the viewport, is something still needed here?
+		// TODO: this was setting the viewport, is something still needed here?
 		// update_window_rect(
 		// 		ruis::rect(
 		// 				ruis::vector2(0),
@@ -378,7 +378,7 @@ void native_window::set_fullscreen_internal(bool enable)
 		// 					)
 		// 			)
 		// 	);
-        
+
 		this->ios_window.window.windowLevel = UIWindowLevelNormal;
 	}
 }
