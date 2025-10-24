@@ -1,3 +1,9 @@
+libruisapp (0.2.128) unstable; urgency=medium
+
+  * poc ios implementation
+
+ -- Ivan Gagis <igagis@gmail.com>  Fri, 24 Oct 2025 16:29:32 +0300
+
 libruisapp (0.2.127) unstable; urgency=medium
 
   * multiwindow
