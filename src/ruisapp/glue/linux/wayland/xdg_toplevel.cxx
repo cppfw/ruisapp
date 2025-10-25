@@ -36,6 +36,7 @@ xdg_toplevel_wrapper::xdg_toplevel_wrapper(
 	}
 
 	utki::log_debug([&](auto& o) {
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast, "using C API")
 		auto id = wl_proxy_get_id(reinterpret_cast<wl_proxy*>(this->toplevel));
 		o << "xgd_toplevel " << std::dec << id << ": CREATED" << std::endl;
 	});
@@ -67,6 +68,7 @@ void xdg_toplevel_wrapper::xdg_toplevel_configure(
 )
 {
 	utki::log_debug([&](auto& o) {
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast, "using C API")
 		auto id = wl_proxy_get_id(reinterpret_cast<wl_proxy*>(toplevel));
 		o << "xgd_toplevel " << std::dec << id << ": CONFIGURE" << std::endl;
 	});
