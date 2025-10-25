@@ -28,15 +28,19 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 namespace {
 struct xdg_surface_wrapper {
-	xdg_surface* surface;
+	xdg_surface* const surface;
 
 	constexpr static const xdg_surface_listener listener = {
 		.configure =
 			[](void* data, //
-			   xdg_surface* xdg_surface,
+			   xdg_surface* surface,
 			   uint32_t serial) {
+				utki::log_debug([&](auto& o) {
+					auto id = wl_proxy_get_id(reinterpret_cast<wl_proxy*>(surface));
+					o << "xgd_surface: CONFIGURE for surface id = " << id << std::endl;
+				});
 				xdg_surface_ack_configure(
-					xdg_surface, //
+					surface, //
 					serial
 				);
 			}, //
@@ -54,6 +58,11 @@ struct xdg_surface_wrapper {
 		if (!this->surface) {
 			throw std::runtime_error("could not create wayland xdg surface");
 		}
+
+		utki::log_debug([&](auto& o) {
+			auto id = wl_proxy_get_id(reinterpret_cast<wl_proxy*>(this->surface));
+			o << "xgd_surface: CREATED, id = " << id << std::endl;
+		});
 
 		xdg_surface_add_listener(
 			this->surface, //

@@ -62,7 +62,7 @@ void xdg_toplevel_wrapper::xdg_toplevel_configure(
 )
 {
 	utki::log_debug([](auto& o) {
-		o << "window CONFIGURE" << std::endl;
+		o << "toplevel CONFIGURE" << std::endl;
 	});
 
 	utki::log_debug([&](auto& o) {
