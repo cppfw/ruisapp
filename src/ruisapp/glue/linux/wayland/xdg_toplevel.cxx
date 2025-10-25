@@ -159,6 +159,8 @@ void xdg_toplevel_wrapper::xdg_toplevel_configure(
 		if (states_span.empty()) {
 			utki::logcat_debug("  initial configure call", '\n');
 
+			// Just in case Wayland protocol requires it, do the initial surface commit without a buffer attached
+			// (i.e., before calling eglSwapBuffers() for the first time) to signal to the compositor that it's ready for the configuration.
 			self.wayland_surface.commit();
 			return;
 		}

@@ -74,5 +74,6 @@ void xdg_surface_wrapper::xdg_surface_configure(
 		natwin.swap_frame_buffers();
 	});
 
+	// TODO: is this needed? On Raspberry PI?
 	// self.wayland_surface.commit();
 }
