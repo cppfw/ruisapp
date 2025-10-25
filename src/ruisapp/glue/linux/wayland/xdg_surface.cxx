@@ -65,5 +65,5 @@ void xdg_surface_wrapper::xdg_surface_configure(
 		natwin.swap_frame_buffers();
 	});
 
-	// self.wayland_surface.commit();
+	self.wayland_surface.commit();
 }
