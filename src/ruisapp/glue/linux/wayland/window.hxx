@@ -193,7 +193,7 @@ public:
 			});
 			xdg_toplevel_set_fullscreen(
 				this->xdg_toplevel.toplevel, //
-				nullptr
+				nullptr // output
 			);
 		} else {
 			xdg_toplevel_unset_fullscreen(this->xdg_toplevel.toplevel);

@@ -54,6 +54,13 @@ xdg_toplevel_wrapper::xdg_toplevel_wrapper(
 		window_params.title.c_str()
 	);
 
+	if (window_params.fullscreen) {
+		xdg_toplevel_set_fullscreen(
+			this->toplevel, //
+			nullptr // TODO: set output
+		);
+	}
+
 	wayland_surface.commit();
 
 	// utki::logcat_debug("xdg_toplevel_wrapper::xdg_toplevel_wrapper(): wayland surface committed", '\n');

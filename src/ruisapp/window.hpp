@@ -97,7 +97,7 @@ struct window_parameters {
 	/**
 	 * @brief Indicates that the window should be created initially fullscreen.
 	 */
-	// TODO: implement support for all backends
+	// TODO: implement support for all backends (done: wayland)
 	bool fullscreen = false;
 
 	/**
