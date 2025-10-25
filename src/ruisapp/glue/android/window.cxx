@@ -62,7 +62,7 @@ void native_window::bind_rendering_context()
 			if (!this->egl_dummy_surface.has_value()) {
 				this->egl_dummy_surface.emplace(
 					this->egl_display, //
-					egl_config
+					this->egl_config
 				);
 			}
 			eglMakeCurrent(

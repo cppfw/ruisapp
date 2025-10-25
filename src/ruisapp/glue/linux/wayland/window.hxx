@@ -43,8 +43,10 @@ class native_window : public ruis::render::native_window
 	wayland_egl_window_wrapper wayland_egl_window;
 
 	egl_config_wrapper egl_config;
-	egl_surface_wrapper egl_surface;
 	egl_context_wrapper egl_context;
+
+	std::optional<egl_pbuffer_surface_wrapper> egl_dummy_surface;
+	std::optional<egl_surface_wrapper> egl_surface;
 
 	wayland_surface_wrapper::scale_and_dpi scale_and_dpi;
 
@@ -91,11 +93,6 @@ public:
 			gl_version,
 			window_params
 		),
-		egl_surface(
-			this->display.get().egl_display, //
-			this->egl_config,
-			this->wayland_egl_window.window
-		),
 		egl_context(
 			this->display.get().egl_display, //
 			gl_version,
@@ -125,21 +122,59 @@ public:
 		return this->wayland_surface.surface;
 	}
 
+	void create_egl_surface()
+	{
+		this->egl_surface.emplace(
+			this->display.get().egl_display, //
+			this->egl_config,
+			this->wayland_egl_window.window
+		);
+	}
+
 	void swap_frame_buffers() override
 	{
-		this->egl_surface.swap_frame_buffers();
+		if (this->egl_surface.has_value()) {
+			this->egl_surface.value().swap_frame_buffers();
+		}
 	}
 
 	void bind_rendering_context() override
 	{
-		if (eglMakeCurrent(
-				this->display.get().egl_display.display,
-				this->egl_surface.surface,
-				this->egl_surface.surface,
-				this->egl_context.context
-			) == EGL_FALSE)
-		{
-			throw std::runtime_error("eglMakeCurrent() failed");
+		auto& egl_display = this->display.get().egl_display;
+
+		if (this->egl_surface.has_value()) {
+			if (eglMakeCurrent(
+					egl_display.display,
+					this->egl_surface.value().surface,
+					this->egl_surface.value().surface,
+					this->egl_context.context
+				) == EGL_FALSE)
+			{
+				throw std::runtime_error("eglMakeCurrent() failed");
+			}
+		} else {
+			if (egl_display.extensions.get(egl::extension::khr_surfaceless_context)) {
+				eglMakeCurrent(
+					egl_display.display, //
+					EGL_NO_SURFACE,
+					EGL_NO_SURFACE,
+					this->egl_context.context
+				);
+			} else {
+				// KHR_surfaceless_context EGL extension is not available, create a dummy pbuffer surface to make the context current
+				if (!this->egl_dummy_surface.has_value()) {
+					this->egl_dummy_surface.emplace(
+						egl_display, //
+						this->egl_config
+					);
+				}
+				eglMakeCurrent(
+					egl_display.display, //
+					this->egl_dummy_surface.value().surface,
+					this->egl_dummy_surface.value().surface,
+					this->egl_context.context
+				);
+			}
 		}
 	}
 

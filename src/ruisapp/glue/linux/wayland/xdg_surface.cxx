@@ -42,11 +42,18 @@ void xdg_surface_wrapper::xdg_surface_configure(
 		o << "xgd_surface: CONFIGURE for surface id = " << id << std::endl;
 	});
 
-    // Wayland protocol requires to acknowledge the configure event
+	// Wayland protocol requires to acknowledge the configure event
 	xdg_surface_ack_configure(
 		surface, //
 		serial
 	);
+
+	// The configure callback is invoked by Wayland after initial toplevel configure has been invoked.
+	// Right after creating a Wayland surface, according to the Wayland protocol, it
+	// should do the initial configure call, after which one is supposed to do the
+	// initial surface commit. In case of EGL we have to call eglSwapBuffers(), which will do the
+	// surface commit for us. This makes the surface to be mapped to the screen and become visible.
+	// If this sequence is not honored the surface will not appear on the screen.
 
 	auto& glue = get_glue();
 
@@ -58,12 +65,14 @@ void xdg_surface_wrapper::xdg_surface_configure(
 	}
 
 	auto& win = *window;
-    auto& natwin = win.ruis_native_window.get();
+	auto& natwin = win.ruis_native_window.get();
+
+	natwin.create_egl_surface();
 
 	// swap EGL frame buffers with the window's EGL context made current
 	win.gui.context.get().ren().ctx().apply([&]() {
 		natwin.swap_frame_buffers();
 	});
 
-	self.wayland_surface.commit();
+	// self.wayland_surface.commit();
 }
