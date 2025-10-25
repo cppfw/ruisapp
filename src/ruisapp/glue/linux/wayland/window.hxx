@@ -63,7 +63,7 @@ public:
 
 	// save window dimentions before makeing it fullscreen to restore the dimentsions
 	// when window is made non-fullscreen again
-	r4::vector2<uint32_t> pre_fullscreen_win_dims;
+	r4::vector2<uint32_t> pre_fullscreen_win_dims = this->cur_window_dims;
 
 	using window_id_type = const wl_surface*;
 
@@ -98,7 +98,8 @@ public:
 			gl_version,
 			this->egl_config,
 			shared_gl_context_native_window ? shared_gl_context_native_window->egl_context.context : EGL_NO_CONTEXT
-		)
+		),
+		cur_window_dims(window_params.dims)
 	{
 		utki::log_debug([](auto& o) {
 			o << "native_window constructed" << std::endl;
