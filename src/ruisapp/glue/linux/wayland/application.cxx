@@ -57,7 +57,9 @@ void app_window::resize(const r4::vector2<uint32_t>& dims)
 
 void app_window::refresh_dimensions()
 {
-	this->resize(this->ruis_native_window.get().cur_window_dims);
+	const auto& dims = this->ruis_native_window.get().cur_window_dims;
+	utki::logcat_debug("app_window::refresh_dimensions(): resize to ", dims, '\n');
+	this->resize(dims);
 }
 
 void app_window::notify_outputs_changed()

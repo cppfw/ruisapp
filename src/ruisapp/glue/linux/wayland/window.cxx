@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 void native_window::resize(const r4::vector2<uint32_t>& dims)
 {
+	utki::logcat_debug("native_window::resize(): dims = ", dims, '\n');
 	this->cur_window_dims = dims;
 
 	this->scale_and_dpi = this->wayland_surface.find_scale_and_dpi(this->display.get().wayland_registry.outputs);
@@ -50,7 +51,7 @@ void native_window::resize(const r4::vector2<uint32_t>& dims)
 	this->wayland_surface.commit();
 
 	utki::log_debug([&](auto& o) {
-		o << "final window scale = " << this->scale_and_dpi.scale << '\n';
-		o << "final window dpi = " << this->scale_and_dpi.dpi << std::endl;
+		o << "  final window scale = " << this->scale_and_dpi.scale << '\n';
+		o << "  final window dpi = " << this->scale_and_dpi.dpi << std::endl;
 	});
 }
