@@ -35,6 +35,11 @@ xdg_toplevel_wrapper::xdg_toplevel_wrapper(
 		throw std::runtime_error("could not get wayland xdg toplevel");
 	}
 
+	utki::log_debug([&](auto& o) {
+		auto id = wl_proxy_get_id(reinterpret_cast<wl_proxy*>(this->toplevel));
+		o << "xgd_toplevel " << std::dec << id << ": CREATED" << std::endl;
+	});
+
 	// utki::logcat_debug("xdg_toplevel_wrapper::xdg_toplevel_wrapper(): add listener", '\n');
 	xdg_toplevel_add_listener(
 		this->toplevel, //
@@ -55,14 +60,15 @@ xdg_toplevel_wrapper::xdg_toplevel_wrapper(
 
 void xdg_toplevel_wrapper::xdg_toplevel_configure(
 	void* data, //
-	xdg_toplevel* xdg_toplevel,
+	xdg_toplevel* toplevel,
 	int32_t width,
 	int32_t height,
 	wl_array* states
 )
 {
-	utki::log_debug([](auto& o) {
-		o << "toplevel CONFIGURE" << std::endl;
+	utki::log_debug([&](auto& o) {
+		auto id = wl_proxy_get_id(reinterpret_cast<wl_proxy*>(toplevel));
+		o << "xgd_toplevel " << std::dec << id << ": CONFIGURE" << std::endl;
 	});
 
 	utki::log_debug([&](auto& o) {
@@ -195,7 +201,7 @@ void xdg_toplevel_wrapper::xdg_toplevel_configure(
 
 void xdg_toplevel_wrapper::xdg_toplevel_close(
 	void* data, //
-	xdg_toplevel* xdg_toplevel
+	xdg_toplevel* toplevel
 )
 {
 	// user requested to close the window

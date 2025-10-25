@@ -18,7 +18,7 @@ xdg_surface_wrapper::xdg_surface_wrapper(
 
 	utki::log_debug([&](auto& o) {
 		auto id = wl_proxy_get_id(reinterpret_cast<wl_proxy*>(this->surface));
-		o << "xgd_surface: CREATED, id = " << id << std::endl;
+		o << "xgd_surface " << std::dec << id << ": CREATED" << std::endl;
 	});
 
 	xdg_surface_add_listener(
@@ -39,7 +39,7 @@ void xdg_surface_wrapper::xdg_surface_configure(
 
 	utki::log_debug([&](auto& o) {
 		auto id = wl_proxy_get_id(reinterpret_cast<wl_proxy*>(surface));
-		o << "xgd_surface: CONFIGURE for surface id = " << id << std::endl;
+		o << "xgd_surface " << id << ": CONFIGURE" << std::endl;
 	});
 
 	// Wayland protocol requires to acknowledge the configure event
