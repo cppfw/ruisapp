@@ -159,6 +159,7 @@ void xdg_toplevel_wrapper::xdg_toplevel_configure(
 		if (states_span.empty()) {
 			utki::logcat_debug("  initial configure call", '\n');
 
+			self.wayland_surface.commit();
 			return;
 		}
 
