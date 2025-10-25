@@ -48,7 +48,7 @@ struct xdg_toplevel_wrapper {
 	);
 
 	constexpr static const xdg_toplevel_listener listener = {
-		.configure = xdg_toplevel_configure,
+		.configure = &xdg_toplevel_configure,
 		.close = &xdg_toplevel_close,
 	};
 

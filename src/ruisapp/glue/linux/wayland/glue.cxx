@@ -56,6 +56,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "wayland_surface.cxx" // NOLINT(bugprone-suspicious-include, "not suspicious")
 #include "wayland_touch.cxx" // NOLINT(bugprone-suspicious-include, "not suspicious")
 #include "window.cxx" // NOLINT(bugprone-suspicious-include, "not suspicious")
+#include "xdg_surface.cxx" // NOLINT(bugprone-suspicious-include, "not suspicious")
 #include "xdg_toplevel.cxx" // NOLINT(bugprone-suspicious-include, "not suspicious")
 
 using namespace std::string_view_literals;

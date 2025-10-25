@@ -162,15 +162,17 @@ void xdg_toplevel_wrapper::xdg_toplevel_configure(
 			// Right after creating a Wayland surface, according to the Wayland protocol, it
 			// should do the initial configure call, after which one is supposed to do the
 			// initial surface commit. In case of EGL we have to call eglSwapBuffers(), which will do the
-			// surface commit for us. This makes the sirface to be mapped to the screen and become visible.
+			// surface commit for us. This makes the surface to be mapped to the screen and become visible.
 			// If this sequence is not honored the surface will not appear on the screen.
 
 			utki::logcat_debug("  initial configure call", '\n');
 
 			// swap EGL frame buffers with the window's EGL context made current
-			win.gui.context.get().ren().ctx().apply([&]() {
-				natwin.swap_frame_buffers();
-			});
+			// win.gui.context.get().ren().ctx().apply([&]() {
+			// 	natwin.swap_frame_buffers();
+			// });
+
+			// self.wayland_surface.commit();
 			return;
 		}
 
