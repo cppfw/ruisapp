@@ -14,4 +14,4 @@ find_package(ruisapp CONFIG REQUIRED)
 
 add_executable(test ${win32} main.cpp)
 
-target_link_libraries(test PRIVATE ruisapp::ruisapp-opengl)
+target_link_libraries(test PRIVATE ruisapp::ruisapp-opengles)
