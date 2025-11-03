@@ -21,7 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "../../application.hpp"
 
-#include <papki/fs_file.hpp>
+#include <fsif/native_file.hpp>
 
 #include <utki/destructable.hpp>
 

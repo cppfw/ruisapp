@@ -46,7 +46,7 @@ ruisapp::application::directories get_application_directories(std::string_view a
 		'/'
 	);
 
-	home_dir = papki::as_dir(home_dir);
+	home_dir = fsif::as_dir(home_dir);
 
 	home_dir.append(1, '.').append(app_name).append(1, '/');
 

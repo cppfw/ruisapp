@@ -10,7 +10,7 @@ Build-Depends:
 		clang-tidy,
 		clang-format,
 		libutki-dev (>= 1.1.124),
-		libpapki-dev (>= 1.0.93),
+		libfsif-dev (>= 1.0.93),
 		libruis-dev (>= 0.5.210),
 		libr4-dev (>= 0.1.53),
 		libglew-dev,
@@ -112,7 +112,7 @@ Depends:
 		${misc:Depends},
 		libutki-dev,
 		libruis-dev,
-		libpapki-dev
+		libfsif-dev
 Suggests: libruisapp-doc
 Description: cross-platform C++ GUI library.
  GUI library development files.

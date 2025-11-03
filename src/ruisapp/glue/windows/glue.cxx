@@ -21,7 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include <ratio>
 
-#include <papki/fs_file.hpp>
+#include <fsif/native_file.hpp>
 #include <ruis/context.hpp>
 #include <ruis/util/util.hpp>
 #include <utki/destructable.hpp>

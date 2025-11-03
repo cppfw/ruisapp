@@ -39,7 +39,7 @@ inline std::string get_xdg_dir_home(
 	if (auto xdg_dir = getenv(xdg_env_var)) {
 		// the directory is explicitly set via XDG_*_HOME environment variable, return the value
 		return utki::cat(
-			papki::as_dir(xdg_dir), //
+			fsif::as_dir(xdg_dir), //
 			app_name,
 			'/'
 		);
@@ -51,9 +51,9 @@ inline std::string get_xdg_dir_home(
 		throw std::runtime_error("failed to get user home directory. Is HOME environment variable set?");
 	}
 
-	utki::assert(papki::is_dir(default_subdir), SL);
+	utki::assert(fsif::is_dir(default_subdir), SL);
 	return utki::cat(
-		papki::as_dir(home_dir), //
+		fsif::as_dir(home_dir), //
 		default_subdir,
 		app_name,
 		'/'

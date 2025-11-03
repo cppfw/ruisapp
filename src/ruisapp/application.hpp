@@ -23,7 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include <memory>
 
-#include <papki/file.hpp>
+#include <fsif/file.hpp>
 #include <r4/vector.hpp>
 #include <ruis/config.hpp>
 #include <ruis/gui.hpp>
@@ -74,7 +74,7 @@ public:
 	 * @param path - file path to initialize the file interface with.
 	 * @return Instance of the file interface into the resources storage.
 	 */
-	std::unique_ptr<papki::file> get_res_file(std::string_view path = {}) const;
+	std::unique_ptr<fsif::file> get_res_file(std::string_view path = {}) const;
 
 	/**
 	 * @brief Aggregation of application directory locations.

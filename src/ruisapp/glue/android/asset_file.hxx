@@ -22,10 +22,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <android/asset_manager.h>
-#include <papki/file.hpp>
+#include <fsif/file.hpp>
 
 namespace {
-class asset_file : public papki::file
+class asset_file : public fsif::file
 {
 	AAssetManager* manager;
 
@@ -37,21 +37,21 @@ public:
 		std::string_view path_name = std::string_view()
 	) :
 		manager(manager),
-		papki::file(path_name)
+		fsif::file(path_name)
 	{
 		utki::assert(this->manager, SL);
 	}
 
-	virtual void open_internal(papki::mode mode) override
+	virtual void open_internal(fsif::mode mode) override
 	{
 		switch (mode) {
-			case papki::mode::write:
-			case papki::mode::create:
+			case fsif::mode::write:
+			case fsif::mode::create:
 				throw std::invalid_argument(
 					"'write' and 'create' open modes are not "
 					"supported by Android assets"
 				);
-			case papki::mode::read:
+			case fsif::mode::read:
 				break;
 			default:
 				throw std::invalid_argument("unknown mode");
@@ -164,7 +164,7 @@ public:
 		return glob.java_functions.list_dir_contents(p);
 	}
 
-	std::unique_ptr<papki::file> spawn() override
+	std::unique_ptr<fsif::file> spawn() override
 	{
 		return std::make_unique<asset_file>(this->manager);
 	}

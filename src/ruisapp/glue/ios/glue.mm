@@ -25,8 +25,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <utki/util.hpp>
 #include <utki/debug.hpp>
 
-#include <papki/fs_file.hpp>
-#include <papki/root_dir.hpp>
+#include <fsif/native_file.hpp>
+#include <fsif/root_dir.hpp>
 
 #include <sstream>
 #include <stdexcept>

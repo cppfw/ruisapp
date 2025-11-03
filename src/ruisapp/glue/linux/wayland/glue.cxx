@@ -24,7 +24,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include <nitki/queue.hpp>
 #include <opros/wait_set.hpp>
-#include <papki/fs_file.hpp>
+#include <fsif/native_file.hpp>
 #include <wayland-client-core.h>
 #include <wayland-client-protocol.h>
 #include <wayland-egl.h> // Wayland EGL MUST be included before EGL headers

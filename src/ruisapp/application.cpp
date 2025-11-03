@@ -21,8 +21,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "application.hpp"
 
-#include <papki/fs_file.hpp>
-#include <papki/root_dir.hpp>
+#include <fsif/native_file.hpp>
+#include <fsif/root_dir.hpp>
 #include <utki/config.hpp>
 #include <utki/debug.hpp>
 
@@ -92,9 +92,9 @@ application::~application()
 }
 
 #if CFG_OS_NAME != CFG_OS_NAME_ANDROID && CFG_OS_NAME != CFG_OS_NAME_IOS
-std::unique_ptr<papki::file> application::get_res_file(std::string_view path) const
+std::unique_ptr<fsif::file> application::get_res_file(std::string_view path) const
 {
-	return std::make_unique<papki::fs_file>(path);
+	return std::make_unique<fsif::native_file>(path);
 }
 #endif
 

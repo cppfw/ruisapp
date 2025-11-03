@@ -129,7 +129,7 @@ ruisapp::application::directories get_application_directories(std::string_view a
 {
 	auto& glob = get_glob();
 
-	auto storage_dir = papki::as_dir(glob.java_functions.get_storage_dir());
+	auto storage_dir = fsif::as_dir(glob.java_functions.get_storage_dir());
 
 	ruisapp::application::directories dirs;
 
@@ -149,7 +149,7 @@ ruisapp::application::application(parameters params) :
 	)
 {}
 
-std::unique_ptr<papki::file> ruisapp::application::get_res_file(std::string_view path) const
+std::unique_ptr<fsif::file> ruisapp::application::get_res_file(std::string_view path) const
 {
 	utki::assert(globals_wrapper::native_activity, SL);
 	utki::assert(globals_wrapper::native_activity->assetManager, SL);

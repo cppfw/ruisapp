@@ -4,7 +4,7 @@
 
 #include <r4/quaternion.hpp>
 #include <utki/debug.hpp>
-#include <papki/fs_file.hpp>
+#include <fsif/native_file.hpp>
 
 #include <ruisapp/application.hpp>
 
@@ -88,7 +88,7 @@ public:
 			return false;
 		};
 
-//		ruis::ZipFile zf(papki::FSFile::New("res.zip"), "test.gui.stob");
+//		ruis::ZipFile zf(fsif::FSFile::New("res.zip"), "test.gui.stob");
 //		std::shared_ptr<ruis::widget> c = ruis::gui::inst().inflater().Inflate(zf);
 
 		utki::assert(c.get().try_get_widget_as<ruis::push_button>("show_VK_button"), SL);
