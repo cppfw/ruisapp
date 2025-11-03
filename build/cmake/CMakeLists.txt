@@ -20,15 +20,24 @@ if(IOS)
 
     set(ruisapp_build_opengl_variant False)
     set(ruisapp_build_opengles_variant True)
+
+    set(ruisapp_opengl_install_include_directory)
+    set(ruisapp_opengles_install_include_directory ../../src/${name})
 elseif(APPLE)
     enable_language(OBJCXX)
     list(APPEND srcs ../../src/${name}/glue/macos/glue.mm)
 
     set(ruisapp_build_opengl_variant True)
     set(ruisapp_build_opengles_variant False)
+
+    set(ruisapp_opengl_install_include_directory ../../src/${name})
+    set(ruisapp_opengles_install_include_directory)
 else()
     set(ruisapp_build_opengl_variant True)
     set(ruisapp_build_opengles_variant True)
+
+    set(ruisapp_opengl_install_include_directory ../../src/${name})
+    set(ruisapp_opengles_install_include_directory)
 endif()
 
 if(ruisapp_build_opengl_variant)
@@ -38,7 +47,7 @@ if(ruisapp_build_opengl_variant)
         PUBLIC_INCLUDE_DIRECTORIES
             ../../src
         INSTALL_INCLUDE_DIRECTORIES
-            ../../src/${name}
+            ${ruisapp_opengl_install_include_directory}
         PREPROCESSOR_DEFINITIONS
             "RUISAPP_RENDER_OPENGL"
         DEPENDENCIES
@@ -59,9 +68,8 @@ if(ruisapp_build_opengles_variant)
             ${srcs}
         PUBLIC_INCLUDE_DIRECTORIES
             ../../src
-        # header files are installed by ${name}-opengl target
-        # INSTALL_INCLUDE_DIRECTORIES
-        #     ../../src/${name}
+        INSTALL_INCLUDE_DIRECTORIES
+            ${ruisapp_opengles_install_include_directory}
         PREPROCESSOR_DEFINITIONS
             "RUISAPP_RENDER_OPENGLES"
         DEPENDENCIES
