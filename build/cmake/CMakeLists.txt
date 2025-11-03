@@ -147,16 +147,16 @@ if(ruisapp_build_opengles_variant)
                 # The quotes are important so CMake passes it as a single linker argument.
                 "-framework Foundation"
                 "-framework UIKit"
-                "-framework OpenGLES" # TODO: is needed? ruis-render-opengles already links against it
+                # "-framework OpenGLES" # TODO: is needed? ruis-render-opengles already links against it. Remove.
                 "-framework GLKit" # for GLKViewController
         )
 
-        # TODO: is this needed?
-        target_link_options(
-            ${name}-opengles-test
-            PRIVATE
-                "-ObjC" # Use -ObjC (case sensitive) to pass the linker flag
-        )
+        # TODO: is this needed? Remove.
+        # target_link_options(
+        #     ${name}-opengles-test
+        #     PRIVATE
+        #         "-ObjC" # Use -ObjC (case sensitive) to pass the linker flag
+        # )
 
         set_target_properties(${name}-opengles-test PROPERTIES
             MACOSX_BUNDLE_GUI_IDENTIFIER "io.github.cppfw.${name}-opengles-test"    
