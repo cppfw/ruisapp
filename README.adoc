@@ -8,6 +8,6 @@
 
 **ruisapp** is a cross-platform library for creating a native window and initializing OpenGL. It provides **ruis** library already bound to all platform specific stuff.
 
-For installation instructions see link:wiki/Installation.adoc[WiKi]
+For installation instructions see link:wiki/installation.adoc[WiKi]
 
 For basic usage example see `examples/basic` directory.
