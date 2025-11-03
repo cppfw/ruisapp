@@ -20,7 +20,10 @@
       "utki",
       "nitki",
       "ruis",
-      "ruis-render-opengl",
+      {
+        "name": "ruis-render-opengl",
+        "platform" : "!ios"
+      },
       "ruis-render-opengles"
     ]
   }
