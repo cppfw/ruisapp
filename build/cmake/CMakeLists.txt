@@ -102,7 +102,6 @@ if(ruisapp_build_opengles_variant)
                 # The quotes are important so CMake passes it as a single linker argument.
                 "-framework Foundation"
                 "-framework UIKit"
-                # "-framework OpenGLES" # TODO: is needed? ruis-render-opengles already links against it. Remove.
                 "-framework GLKit" # for GLKViewController
         )
     endif()
@@ -148,15 +147,6 @@ if(ruisapp_build_opengl_variant)
     )
 
     if(APPLE)
-        # TODO: remove
-        # link to Cocoa framework
-        # target_link_libraries(${name}-opengl-test
-        #     PRIVATE
-        #         # Link the Cocoa framework directly using the -framework flag string.
-        #         # The quotes are important so CMake passes it as a single linker argument.
-        #         "-framework Cocoa"
-        # )
-
         set_target_properties(${name}-opengl-test PROPERTIES
             XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "io.github.cppfw.ruisapp-opengl-test"
         )
@@ -175,24 +165,6 @@ if(ruisapp_build_opengles_variant)
     )
 
     if(APPLE)
-        # TODO: remove
-        # target_link_libraries(${name}-opengles-test
-        #     PRIVATE
-        #         # Link the iOS frameworks directly using the -framework flag string.
-        #         # The quotes are important so CMake passes it as a single linker argument.
-        #         "-framework Foundation"
-        #         "-framework UIKit"
-        #         # "-framework OpenGLES" # TODO: is needed? ruis-render-opengles already links against it. Remove.
-        #         "-framework GLKit" # for GLKViewController
-        # )
-
-        # TODO: is this needed? Remove.
-        # target_link_options(
-        #     ${name}-opengles-test
-        #     PRIVATE
-        #         "-ObjC" # Use -ObjC (case sensitive) to pass the linker flag
-        # )
-
         set_target_properties(${name}-opengles-test PROPERTIES
             MACOSX_BUNDLE_GUI_IDENTIFIER "io.github.cppfw.${name}-opengles-test"    
             XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "io.github.cppfw.${name}-opengles-test"
