@@ -59,6 +59,16 @@ if(ruisapp_build_opengl_variant)
             PkgConfig::x11
         NO_EXPORT
     )
+
+    if(APPLE)
+        # link to Cocoa framework
+        target_link_libraries(${name}-opengl
+            PRIVATE
+                # Link the Cocoa framework directly using the -framework flag string.
+                # The quotes are important so CMake passes it as a single linker argument.
+                "-framework Cocoa"
+        )
+    endif()
 endif()
 
 if(ruisapp_build_opengles_variant)
@@ -84,6 +94,18 @@ if(ruisapp_build_opengles_variant)
             unofficial-angle/unofficial::angle::libEGL
         NO_EXPORT
     )
+
+    if(IOS)
+        target_link_libraries(${name}-opengles
+            PRIVATE
+                # Link the iOS frameworks directly using the -framework flag string.
+                # The quotes are important so CMake passes it as a single linker argument.
+                "-framework Foundation"
+                "-framework UIKit"
+                # "-framework OpenGLES" # TODO: is needed? ruis-render-opengles already links against it. Remove.
+                "-framework GLKit" # for GLKViewController
+        )
+    endif()
 endif()
 
 if(ruisapp_build_opengl_variant AND ruisapp_build_opengles_variant)
@@ -104,6 +126,9 @@ elseif(ruisapp_build_opengles_variant)
     )
 endif()
 
+# =================
+# === test apps ===
+
 set(app_srcs)
 myci_add_source_files(app_srcs
     DIRECTORY
@@ -123,13 +148,14 @@ if(ruisapp_build_opengl_variant)
     )
 
     if(APPLE)
+        # TODO: remove
         # link to Cocoa framework
-        target_link_libraries(${name}-opengl-test
-            PRIVATE
-                # Link the Cocoa framework directly using the -framework flag string.
-                # The quotes are important so CMake passes it as a single linker argument.
-                "-framework Cocoa"
-        )
+        # target_link_libraries(${name}-opengl-test
+        #     PRIVATE
+        #         # Link the Cocoa framework directly using the -framework flag string.
+        #         # The quotes are important so CMake passes it as a single linker argument.
+        #         "-framework Cocoa"
+        # )
 
         set_target_properties(${name}-opengl-test PROPERTIES
             XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "io.github.cppfw.ruisapp-opengl-test"
@@ -149,15 +175,16 @@ if(ruisapp_build_opengles_variant)
     )
 
     if(APPLE)
-        target_link_libraries(${name}-opengles-test
-            PRIVATE
-                # Link the iOS frameworks directly using the -framework flag string.
-                # The quotes are important so CMake passes it as a single linker argument.
-                "-framework Foundation"
-                "-framework UIKit"
-                # "-framework OpenGLES" # TODO: is needed? ruis-render-opengles already links against it. Remove.
-                "-framework GLKit" # for GLKViewController
-        )
+        # TODO: remove
+        # target_link_libraries(${name}-opengles-test
+        #     PRIVATE
+        #         # Link the iOS frameworks directly using the -framework flag string.
+        #         # The quotes are important so CMake passes it as a single linker argument.
+        #         "-framework Foundation"
+        #         "-framework UIKit"
+        #         # "-framework OpenGLES" # TODO: is needed? ruis-render-opengles already links against it. Remove.
+        #         "-framework GLKit" # for GLKViewController
+        # )
 
         # TODO: is this needed? Remove.
         # target_link_options(
