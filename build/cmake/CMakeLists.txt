@@ -147,7 +147,7 @@ if(ruisapp_build_opengles_variant)
                 # The quotes are important so CMake passes it as a single linker argument.
                 "-framework Foundation"
                 "-framework UIKit"
-                "-framework OpenGLES"
+                "-framework OpenGLES" # TODO: is needed? ruis-render-opengles already links against it
                 "-framework GLKit" # for GLKViewController
         )
 
