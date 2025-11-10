@@ -3,6 +3,7 @@
 #include <ruis/widget/label/TextLabel.hpp>
 #include <ruis/widget/button/Button.hpp>
 
+// TODO: rewrite
 
 class Application : public ruisapp::application{
 public:

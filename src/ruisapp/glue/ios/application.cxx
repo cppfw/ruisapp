@@ -129,14 +129,14 @@ ruisapp::application::application(parameters params) :
 	)
 {}
 
-std::unique_ptr<fsif::file> ruisapp::application::get_res_file(std::string_view path) const
+utki::unique_ref<fsif::file> ruisapp::application::get_res_file(std::string_view path) const
 {
 	std::string dir([[[NSBundle mainBundle] resourcePath] fileSystemRepresentation]);
 
 	//	TRACE(<< "res path = " << dir << std::endl)
 
-	auto rdf = std::make_unique<fsif::root_dir>(
-		std::make_unique<fsif::native_file>(), //
+	auto rdf = utki::make_unique<fsif::root_dir>(
+		utki::make_unique<fsif::native_file>(), //
 		dir + "/" // TODO: use utki::cat()?
 	);
 	rdf->set_path(path);

@@ -149,12 +149,12 @@ ruisapp::application::application(parameters params) :
 	)
 {}
 
-std::unique_ptr<fsif::file> ruisapp::application::get_res_file(std::string_view path) const
+utki::unique_ref<fsif::file> ruisapp::application::get_res_file(std::string_view path) const
 {
 	utki::assert(globals_wrapper::native_activity, SL);
 	utki::assert(globals_wrapper::native_activity->assetManager, SL);
 
-	return std::make_unique<asset_file>(
+	return utki::make_unique<asset_file>(
 		globals_wrapper::native_activity->assetManager, //
 		path
 	);

@@ -74,7 +74,7 @@ public:
 	 * @param path - file path to initialize the file interface with.
 	 * @return Instance of the file interface into the resources storage.
 	 */
-	std::unique_ptr<fsif::file> get_res_file(std::string_view path = {}) const;
+	utki::unique_ref<fsif::file> get_res_file(std::string_view path = {}) const;
 
 	/**
 	 * @brief Aggregation of application directory locations.

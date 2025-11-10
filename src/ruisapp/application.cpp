@@ -92,9 +92,9 @@ application::~application()
 }
 
 #if CFG_OS_NAME != CFG_OS_NAME_ANDROID && CFG_OS_NAME != CFG_OS_NAME_IOS
-std::unique_ptr<fsif::file> application::get_res_file(std::string_view path) const
+utki::unique_ref<fsif::file> application::get_res_file(std::string_view path) const
 {
-	return std::make_unique<fsif::native_file>(path);
+	return utki::make_unique<fsif::native_file>(path);
 }
 #endif
 
