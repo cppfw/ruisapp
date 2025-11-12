@@ -139,7 +139,7 @@ utki::unique_ref<fsif::file> ruisapp::application::get_res_file(std::string_view
 		utki::make_unique<fsif::native_file>(), //
 		dir + "/" // TODO: use utki::cat()?
 	);
-	rdf->set_path(path);
+	rdf.get().set_path(path);
 
 	return rdf;
 }
