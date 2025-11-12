@@ -164,9 +164,9 @@ public:
 		return glob.java_functions.list_dir_contents(p);
 	}
 
-	std::unique_ptr<fsif::file> spawn() override
+	utki::unique_ref<fsif::file> spawn() override
 	{
-		return std::make_unique<asset_file>(this->manager);
+		return utki::make_unique<asset_file>(this->manager);
 	}
 
 	~asset_file() noexcept {}
