@@ -63,8 +63,8 @@ define ruisapp_rules
 
     else ifeq ($(os), linux)
         # use -isystem instead of -I to prevent clang-tidy follow the includes from these locations
-        this_cxxflags += $$(patsubst -I%,-isystem%,$$(shell pkg-config --cflags gdk-3.0))
-        this_ldlibs += $$(shell pkg-config --libs gdk-3.0)
+        this_cxxflags += $$(patsubst -I%,-isystem%,$$(shell pkg-config --cflags gtk4))
+        this_ldlibs += $$(shell pkg-config --libs gtk4)
 
         this_ldlibs += -l GLEW
 

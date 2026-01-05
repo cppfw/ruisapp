@@ -21,7 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include <gdk/gdk.h>
+#include <gtk/gtk.h>
 
 #ifdef RUISAPP_RENDER_OPENGL
 #	include <GL/glx.h>
@@ -78,24 +78,22 @@ public:
 	display_wrapper() :
 		xorg_input_method(this->xorg_display),
 		scale_factor([]() {
-			// get scale factor
-			gdk_init(nullptr, nullptr);
+			gtk_init();
 
-			// GDK-4 version commented out because GDK-4 is not available in Debian 11
+			auto disp = gdk_display_open(
+				// We have to use NULL here because on Wayland it cannot connect to :0 X display even if XWayland is enabled,
+				// because the display name in that case is 'wayland-0'.
+				// Using NULL here makes it detect the correct display automatically.
+				NULL
+			);
+			utki::assert(disp, SL);
+			std::cout << "gdk display name = " << gdk_display_get_name(disp) << std::endl;
+			auto surf = gdk_surface_new_toplevel(disp);
+			utki::assert(surf, SL);
+			auto mon = gdk_display_get_monitor_at_surface(disp, surf);
+			utki::assert(mon, SL);
+			int sf = gdk_monitor_get_scale_factor(mon);
 
-			// auto display_name = DisplayString(ww.display.display);
-			// std::cout << "display name = " << display_name << std::endl;
-			// auto disp = gdk_display_open(display_name);
-			// utki::assert(disp, SL);
-			// std::cout << "gdk display name = " << gdk_display_get_name(disp) << std::endl;
-			// auto surf = gdk_surface_new_toplevel (disp);
-			// utki::assert(surf, SL);
-			// auto mon = gdk_display_get_monitor_at_surface (disp, surf);
-			// utki::assert(mon, SL);
-			// int sf = gdk_monitor_get_scale_factor(mon);
-
-			// GDK-3 version
-			int sf = gdk_window_get_scale_factor(gdk_get_default_root_window());
 			auto scale_factor = ruis::real(sf);
 
 			std::cout << "display scale factor = " << scale_factor << std::endl;
