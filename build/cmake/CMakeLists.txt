@@ -55,7 +55,7 @@ if(ruisapp_build_opengl_variant)
             ruis
             ruis-render-opengl
         LINUX_ONLY_DEPENDENCIES
-            PkgConfig::gdk-3.0
+            PkgConfig::gtk4
             PkgConfig::x11
         NO_EXPORT
     )
@@ -87,7 +87,7 @@ if(ruisapp_build_opengles_variant)
             ruis
             ruis-render-opengles
         LINUX_ONLY_DEPENDENCIES
-            PkgConfig::gdk-3.0
+            PkgConfig::gtk4
             PkgConfig::x11
             PkgConfig::egl
         WINDOWS_ONLY_DEPENDENCIES
