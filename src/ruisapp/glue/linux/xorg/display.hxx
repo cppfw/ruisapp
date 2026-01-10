@@ -81,10 +81,10 @@ public:
 			gtk_init();
 
 			auto disp = gdk_display_open(
-				// We have to use NULL here because on Wayland it cannot connect to :0 X display even if XWayland is enabled,
+				// We have to use nullptr here because on Wayland it cannot connect to :0 X display even if XWayland is enabled,
 				// because the display name in that case is 'wayland-0'.
-				// Using NULL here makes it detect the correct display automatically.
-				NULL
+				// Using nullptr here makes it detect the correct display automatically.
+				nullptr
 			);
 			utki::assert(disp, SL);
 			std::cout << "gdk display name = " << gdk_display_get_name(disp) << std::endl;
