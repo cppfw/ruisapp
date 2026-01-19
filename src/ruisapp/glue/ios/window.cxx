@@ -24,7 +24,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "application.hxx"
 
 namespace {
-void handle_mouse_button(bool is_down, const ruis::vec2& pos, ruis::mouse_button button, unsigned pointer_id)
+void handle_mouse_button(
+	bool is_down, //
+	const ruis::vec2& pos,
+	ruis::mouse_button button,
+	unsigned pointer_id
+)
 {
 	auto& glue = get_glue();
 
@@ -252,7 +257,7 @@ native_window::ios_egl_context_wrapper::~ios_egl_context_wrapper()
 }
 
 native_window::ios_view_controller_wrapper::ios_view_controller_wrapper(
-	ios_egl_context_wrapper& ios_egl_context,
+	ios_egl_context_wrapper& ios_egl_context, //
 	const decltype(ruisapp::window_parameters::buffers)& buffers
 ) :
 	view_controller([&]() {
@@ -392,7 +397,10 @@ ruis::rect native_window::get_content_rect() const
 	if (this->is_fullscreen()) {
 		return ruis::rect(
 			ruis::vec2(0),
-			ruis::vec2(round(w.frame.size.width * scale), round(w.frame.size.height * scale))
+			ruis::vec2(
+				round(w.frame.size.width * scale), //
+				round(w.frame.size.height * scale)
+			)
 		);
 	} else {
 		CGSize statusBarSize = [[UIApplication sharedApplication] statusBarFrame].size;
@@ -400,7 +408,7 @@ ruis::rect native_window::get_content_rect() const
 		return ruis::rect(
 			ruis::vec2(0),
 			ruis::vec2(
-				round(w.frame.size.width * scale),
+				round(w.frame.size.width * scale), //
 				round((w.frame.size.height - statusBarSize.height) * scale)
 			)
 		);
