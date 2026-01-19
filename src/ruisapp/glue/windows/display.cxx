@@ -137,7 +137,7 @@ LRESULT CALLBACK window_procedure(
 					);
 				}
 				win.gui.send_mouse_move(
-					ruis::vector2(
+					ruis::vec2(
 						float(GET_X_LPARAM(l_param)), //
 						float(GET_Y_LPARAM(l_param))
 					),
@@ -166,7 +166,7 @@ LRESULT CALLBACK window_procedure(
 						constexpr auto outside_of_window_coordinate = 100000000;
 						win.gui.send_mouse_button(
 							false,
-							ruis::vector2(
+							ruis::vec2(
 								outside_of_window_coordinate, //
 								outside_of_window_coordinate
 							),
@@ -182,7 +182,7 @@ LRESULT CALLBACK window_procedure(
 				win.mouse_button_state.set(ruis::mouse_button::left);
 				win.gui.send_mouse_button(
 					true,
-					ruis::vector2(
+					ruis::vec2(
 						float(GET_X_LPARAM(l_param)), //
 						float(GET_Y_LPARAM(l_param))
 					),
@@ -196,7 +196,7 @@ LRESULT CALLBACK window_procedure(
 				win.mouse_button_state.clear(ruis::mouse_button::left);
 				win.gui.send_mouse_button(
 					false,
-					ruis::vector2(
+					ruis::vec2(
 						float(GET_X_LPARAM(l_param)), //
 						float(GET_Y_LPARAM(l_param))
 					),
@@ -210,7 +210,7 @@ LRESULT CALLBACK window_procedure(
 				win.mouse_button_state.set(ruis::mouse_button::middle);
 				win.gui.send_mouse_button(
 					true,
-					ruis::vector2(
+					ruis::vec2(
 						float(GET_X_LPARAM(l_param)), //
 						float(GET_Y_LPARAM(l_param))
 					),
@@ -224,7 +224,7 @@ LRESULT CALLBACK window_procedure(
 				win.mouse_button_state.clear(ruis::mouse_button::middle);
 				win.gui.send_mouse_button(
 					false,
-					ruis::vector2(
+					ruis::vec2(
 						float(GET_X_LPARAM(l_param)), //
 						float(GET_Y_LPARAM(l_param))
 					),
@@ -238,7 +238,7 @@ LRESULT CALLBACK window_procedure(
 				win.mouse_button_state.set(ruis::mouse_button::right);
 				win.gui.send_mouse_button(
 					true,
-					ruis::vector2(
+					ruis::vec2(
 						float(GET_X_LPARAM(l_param)), //
 						float(GET_Y_LPARAM(l_param))
 					),
@@ -252,7 +252,7 @@ LRESULT CALLBACK window_procedure(
 				win.mouse_button_state.clear(ruis::mouse_button::right);
 				win.gui.send_mouse_button(
 					false,
-					ruis::vector2(
+					ruis::vec2(
 						float(GET_X_LPARAM(l_param)), //
 						float(GET_Y_LPARAM(l_param))
 					),
@@ -289,7 +289,7 @@ LRESULT CALLBACK window_procedure(
 				for (unsigned i = 0; i != times; ++i) {
 					win.gui.send_mouse_button(
 						true, //
-						ruis::vector2(
+						ruis::vec2(
 							float(pos.x), //
 							float(pos.y)
 						),
@@ -298,7 +298,7 @@ LRESULT CALLBACK window_procedure(
 					);
 					win.gui.send_mouse_button(
 						false, //
-						ruis::vector2(
+						ruis::vec2(
 							float(pos.x), //
 							float(pos.y)
 						),

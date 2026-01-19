@@ -224,7 +224,7 @@ void handle_input_events()
 								o << "Action down, ptr id = " << pointer_id << std::endl;
 							});
 
-							ruis::vector2 p(
+							ruis::vec2 p(
 								AMotionEvent_getX(event, pointer_index),
 								AMotionEvent_getY(event, pointer_index)
 							);
@@ -261,7 +261,7 @@ void handle_input_events()
 								o << "Action up, ptr id = " << pointer_id << std::endl;
 							});
 
-							ruis::vector2 p(
+							ruis::vec2 p(
 								AMotionEvent_getX(event, pointer_index),
 								AMotionEvent_getY(event, pointer_index)
 							);
@@ -292,7 +292,7 @@ void handle_input_events()
 								}
 
 								// notify root container only if there was actual movement
-								ruis::vector2 p(
+								ruis::vec2 p(
 									AMotionEvent_getX(event, pointer_num),
 									AMotionEvent_getY(event, pointer_num)
 								);

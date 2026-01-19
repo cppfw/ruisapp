@@ -24,7 +24,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "application.hxx"
 
 namespace {
-void handle_mouse_button(bool is_down, const ruis::vector2& pos, ruis::mouse_button button, unsigned pointer_id)
+void handle_mouse_button(bool is_down, const ruis::vec2& pos, ruis::mouse_button button, unsigned pointer_id)
 {
 	auto& glue = get_glue();
 
@@ -44,7 +44,7 @@ void handle_mouse_button(bool is_down, const ruis::vector2& pos, ruis::mouse_but
 
 namespace {
 void handle_mouse_move(
-	const ruis::vector2& pos, //
+	const ruis::vec2& pos, //
 	unsigned pointer_id
 )
 {
@@ -176,7 +176,7 @@ void handle_mouse_move(
 		using std::round;
 		handle_mouse_button(
 			true, // is_down
-			round(ruis::vector2(p.x * scale, p.y * scale)), // pos
+			round(ruis::vec2(p.x * scale, p.y * scale)), // pos
 			ruis::mouse_button::left,
 			0 // TODO: pointer id
 		);
@@ -192,7 +192,7 @@ void handle_mouse_move(
 
 		using std::round;
 		handle_mouse_move(
-			round(ruis::vector2(p.x * scale, p.y * scale)), // pos
+			round(ruis::vec2(p.x * scale, p.y * scale)), // pos
 			0 // TODO: pointer id
 		);
 	}
@@ -208,7 +208,7 @@ void handle_mouse_move(
 		using std::round;
 		handle_mouse_button(
 			false, // is_down
-			round(ruis::vector2(p.x * scale, p.y * scale)), // pos
+			round(ruis::vec2(p.x * scale, p.y * scale)), // pos
 			ruis::mouse_button::left,
 			0 // TODO: pointer id
 		);
@@ -349,8 +349,8 @@ void native_window::set_fullscreen_internal(bool enable)
 		// TODO: this was setting the viewport, is something still needed here?
 		// update_window_rect(
 		// 		ruis::rect(
-		// 				ruis::vector2(0),
-		// 				ruis::vector2(
+		// 				ruis::vec2(0),
+		// 				ruis::vec2(
 		// 						round(this->ios_window.window.frame.size.width * scale),
 		// 						round(this->ios_window.window.frame.size.height * scale)
 		// 					)
@@ -371,8 +371,8 @@ void native_window::set_fullscreen_internal(bool enable)
 		// TODO: this was setting the viewport, is something still needed here?
 		// update_window_rect(
 		// 		ruis::rect(
-		// 				ruis::vector2(0),
-		// 				ruis::vector2(
+		// 				ruis::vec2(0),
+		// 				ruis::vec2(
 		// 						round(this->ios_window.window.frame.size.width * scale),
 		// 						round((this->ios_window.window.frame.size.height - statusBarSize.height) * scale)
 		// 					)
@@ -391,15 +391,15 @@ ruis::rect native_window::get_content_rect() const
 
 	if (this->is_fullscreen()) {
 		return ruis::rect(
-			ruis::vector2(0),
-			ruis::vector2(round(w.frame.size.width * scale), round(w.frame.size.height * scale))
+			ruis::vec2(0),
+			ruis::vec2(round(w.frame.size.width * scale), round(w.frame.size.height * scale))
 		);
 	} else {
 		CGSize statusBarSize = [[UIApplication sharedApplication] statusBarFrame].size;
 
 		return ruis::rect(
-			ruis::vector2(0),
-			ruis::vector2(
+			ruis::vec2(0),
+			ruis::vec2(
 				round(w.frame.size.width * scale),
 				round((w.frame.size.height - statusBarSize.height) * scale)
 			)

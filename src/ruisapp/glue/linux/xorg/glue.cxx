@@ -73,7 +73,7 @@ public:
 		);
 	}
 
-	ruis::vector2 new_win_dims{-1, -1};
+	ruis::vec2 new_win_dims{-1, -1};
 };
 } // namespace
 
@@ -495,7 +495,7 @@ int main(int argc, const char** argv)
 				case ButtonPress:
 					w.gui.send_mouse_button(
 						true, //
-						ruis::vector2(event.xbutton.x, event.xbutton.y),
+						ruis::vec2(event.xbutton.x, event.xbutton.y),
 						button_number_to_enum(event.xbutton.button),
 						0
 					);
@@ -503,14 +503,14 @@ int main(int argc, const char** argv)
 				case ButtonRelease:
 					w.gui.send_mouse_button(
 						false, //
-						ruis::vector2(event.xbutton.x, event.xbutton.y),
+						ruis::vec2(event.xbutton.x, event.xbutton.y),
 						button_number_to_enum(event.xbutton.button),
 						0
 					);
 					break;
 				case MotionNotify:
 					w.gui.send_mouse_move(
-						ruis::vector2(
+						ruis::vec2(
 							event.xmotion.x, //
 							event.xmotion.y
 						), //

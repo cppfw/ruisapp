@@ -54,7 +54,7 @@ void wayland_touch_wrapper::wl_touch_down(
 
 	utki::assert(!utki::contains(self.touch_points, id), SL);
 
-	ruis::vector2 pos( //
+	ruis::vec2 pos( //
 		ruis::real(wl_fixed_to_double(x)),
 		ruis::real(wl_fixed_to_double(y))
 	);
@@ -140,7 +140,7 @@ void wayland_touch_wrapper::wl_touch_motion(
 
 	auto& glue = get_glue();
 	if (auto window = glue.get_window(tp.surface)) {
-		ruis::vector2 pos( //
+		ruis::vec2 pos( //
 			ruis::real(wl_fixed_to_double(x)),
 			ruis::real(wl_fixed_to_double(y))
 		);

@@ -53,7 +53,7 @@ public:
 		);
 	}
 
-	ruis::vector2 new_win_dims{-1, -1};
+	ruis::vec2 new_win_dims{-1, -1};
 };
 } // namespace
 

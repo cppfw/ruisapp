@@ -34,7 +34,7 @@ struct wayland_pointer_wrapper {
 	wayland_surface_wrapper cursor_wayland_surface;
 
 	// Current pointer position within current surface.
-	ruis::vector2 cur_pointer_pos{0, 0};
+	ruis::vec2 cur_pointer_pos{0, 0};
 
 	void connect(wl_seat* seat);
 	void disconnect() noexcept;

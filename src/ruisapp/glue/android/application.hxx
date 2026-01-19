@@ -51,11 +51,11 @@ public:
 		return this->cur_win_rect;
 	}
 
-	ruis::vector2 android_win_coords_to_ruisapp_win_rect_coords(const ruis::vector2& p)
+	ruis::vec2 android_win_coords_to_ruisapp_win_rect_coords(const ruis::vec2& p)
 	{
 		// utki::logcat_debug("p = ", p, '\n');
 		// utki::logcat_debug("this->get_win_rect() = ", this->get_win_rect(), '\n');
-		ruis::vector2 ret = p - this->get_win_rect().p;
+		ruis::vec2 ret = p - this->get_win_rect().p;
 		using std::round;
 		return round(ret);
 	}

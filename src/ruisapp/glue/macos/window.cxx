@@ -35,7 +35,7 @@ void handle_mouse_button(
 {
 	NSPoint win_pos = [e locationInWindow];
 	using std::round;
-	auto pos = round(ruis::vector2(win_pos.x, win_pos.y));
+	auto pos = round(ruis::vec2(win_pos.x, win_pos.y));
 
 	auto& natwin = w.ruis_native_window.get();
 
@@ -61,7 +61,7 @@ void handle_mouse_move(
 	NSPoint win_pos = [e locationInWindow];
 
 	using std::round;
-	auto pos = round(ruis::vector2(win_pos.x, win_pos.y));
+	auto pos = round(ruis::vec2(win_pos.x, win_pos.y));
 
 	auto& natwin = w.ruis_native_window.get();
 

@@ -156,7 +156,7 @@ void main_loop_iteration(void* user_data)
 					int y = 0;
 					SDL_GetMouseState(&x, &y);
 
-					ruis::vector2 pos(x, y);
+					ruis::vec2 pos(x, y);
 
 #if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
 					auto& natwin = win.ruis_native_window.get();
@@ -183,7 +183,7 @@ void main_loop_iteration(void* user_data)
 					int y = 0;
 					SDL_GetMouseState(&x, &y);
 
-					ruis::vector2 pos(x, y);
+					ruis::vec2 pos(x, y);
 
 #if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
 					auto& natwin = win.ruis_native_window.get();

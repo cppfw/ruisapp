@@ -133,7 +133,7 @@ void wayland_pointer_wrapper::wl_pointer_enter(
 		true, //
 		0
 	);
-	self.cur_pointer_pos = ruis::vector2(
+	self.cur_pointer_pos = ruis::vec2(
 		wl_fixed_to_int(x), //
 		wl_fixed_to_int(y)
 	);
@@ -292,7 +292,7 @@ void wayland_pointer_wrapper::wl_pointer_motion(
 
 	auto& win = *window;
 
-	ruis::vector2 pos( //
+	ruis::vec2 pos( //
 		ruis::real(wl_fixed_to_double(x)),
 		ruis::real(wl_fixed_to_double(y))
 	);

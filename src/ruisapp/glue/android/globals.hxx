@@ -72,11 +72,11 @@ struct globals_wrapper final {
 
 	AInputQueue* input_queue = nullptr;
 
-	ruis::vector2 cur_window_dims{0, 0};
+	ruis::vec2 cur_window_dims{0, 0};
 
 	// Array of current pointer positions, needed to detect which pointers have
 	// actually moved.
-	std::array<ruis::vector2, 10> pointers;
+	std::array<ruis::vec2, 10> pointers;
 
 	// Application object constructor needs accessing the stuff from globals_wrapper,
 	// so we need to postpone application object construction to be done after the
