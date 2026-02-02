@@ -193,7 +193,7 @@ void main_loop_iteration(void* user_data)
 					// utki::logcat("mouse button event: pos = ", pos, '\n');
 
 					win.gui.send_mouse_button(
-						e.button.type == SDL_MOUSEBUTTONDOWN,
+						e.button.type == SDL_MOUSEBUTTONDOWN ? ruis::button_action::press : ruis::button_action::release, //
 						pos,
 						sdl_button_number_to_ruis_enum(e.button.button),
 						0 // pointer id
@@ -217,7 +217,7 @@ void main_loop_iteration(void* user_data)
 					auto key = sdl_scancode_to_ruis_key(e.key.keysym.scancode);
 					if (e.key.repeat == 0) {
 						win.gui.send_key(
-							e.key.type == SDL_KEYDOWN, //
+							e.key.type == SDL_KEYDOWN ? ruis::button_action::press : ruis::button_action::release, //
 							key
 						);
 					}

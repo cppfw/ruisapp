@@ -165,7 +165,7 @@ LRESULT CALLBACK window_procedure(
 						win.mouse_button_state.clear(btn);
 						constexpr auto outside_of_window_coordinate = 100000000;
 						win.gui.send_mouse_button(
-							false,
+							ruis::button_action::release,
 							ruis::vec2(
 								outside_of_window_coordinate, //
 								outside_of_window_coordinate
@@ -181,7 +181,7 @@ LRESULT CALLBACK window_procedure(
 			{
 				win.mouse_button_state.set(ruis::mouse_button::left);
 				win.gui.send_mouse_button(
-					true,
+					ruis::button_action::press,
 					ruis::vec2(
 						float(GET_X_LPARAM(l_param)), //
 						float(GET_Y_LPARAM(l_param))
@@ -195,7 +195,7 @@ LRESULT CALLBACK window_procedure(
 			{
 				win.mouse_button_state.clear(ruis::mouse_button::left);
 				win.gui.send_mouse_button(
-					false,
+					ruis::button_action::release,
 					ruis::vec2(
 						float(GET_X_LPARAM(l_param)), //
 						float(GET_Y_LPARAM(l_param))
@@ -209,7 +209,7 @@ LRESULT CALLBACK window_procedure(
 			{
 				win.mouse_button_state.set(ruis::mouse_button::middle);
 				win.gui.send_mouse_button(
-					true,
+					ruis::button_action::press,
 					ruis::vec2(
 						float(GET_X_LPARAM(l_param)), //
 						float(GET_Y_LPARAM(l_param))
@@ -223,7 +223,7 @@ LRESULT CALLBACK window_procedure(
 			{
 				win.mouse_button_state.clear(ruis::mouse_button::middle);
 				win.gui.send_mouse_button(
-					false,
+					ruis::button_action::release,
 					ruis::vec2(
 						float(GET_X_LPARAM(l_param)), //
 						float(GET_Y_LPARAM(l_param))
@@ -237,7 +237,7 @@ LRESULT CALLBACK window_procedure(
 			{
 				win.mouse_button_state.set(ruis::mouse_button::right);
 				win.gui.send_mouse_button(
-					true,
+					ruis::button_action::press,
 					ruis::vec2(
 						float(GET_X_LPARAM(l_param)), //
 						float(GET_Y_LPARAM(l_param))
@@ -251,7 +251,7 @@ LRESULT CALLBACK window_procedure(
 			{
 				win.mouse_button_state.clear(ruis::mouse_button::right);
 				win.gui.send_mouse_button(
-					false,
+					ruis::button_action::release,
 					ruis::vec2(
 						float(GET_X_LPARAM(l_param)), //
 						float(GET_Y_LPARAM(l_param))
@@ -288,7 +288,7 @@ LRESULT CALLBACK window_procedure(
 
 				for (unsigned i = 0; i != times; ++i) {
 					win.gui.send_mouse_button(
-						true, //
+						ruis::button_action::press, //
 						ruis::vec2(
 							float(pos.x), //
 							float(pos.y)
@@ -297,7 +297,7 @@ LRESULT CALLBACK window_procedure(
 						0 // pointer id
 					);
 					win.gui.send_mouse_button(
-						false, //
+						ruis::button_action::release, //
 						ruis::vec2(
 							float(pos.x), //
 							float(pos.y)
@@ -318,7 +318,7 @@ LRESULT CALLBACK window_procedure(
 
 				if ((l_param & previous_key_state_mask) == 0) { // ignore auto-repeated keypress event
 					win.gui.send_key(
-						true, //
+						ruis::button_action::press, //
 						key
 					);
 				}
@@ -330,7 +330,7 @@ LRESULT CALLBACK window_procedure(
 			}
 		case WM_KEYUP:
 			win.gui.send_key(
-				false,
+				ruis::button_action::release,
 				// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
 				key_code_map[std::uint8_t(w_param)]
 			);

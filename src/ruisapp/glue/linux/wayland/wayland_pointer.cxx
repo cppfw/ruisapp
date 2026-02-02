@@ -211,10 +211,10 @@ void wayland_pointer_wrapper::wl_pointer_button(
 	}
 
 	window->gui.send_mouse_button(
-		state == WL_POINTER_BUTTON_STATE_PRESSED, //
+		state == WL_POINTER_BUTTON_STATE_PRESSED ? ruis::button_action::press : ruis::button_action::release, //
 		self.cur_pointer_pos,
 		button_number_to_enum(button),
-		0
+		0 // pointer_id
 	);
 }
 
@@ -250,7 +250,7 @@ void wayland_pointer_wrapper::wl_pointer_axis(
 
 	for (unsigned i = 0; i != 2; ++i) {
 		win.gui.send_mouse_button(
-			i == 0, // pressed/released
+			i == 0 ? ruis::button_action::press : ruis::button_action::release, //
 			self.cur_pointer_pos,
 			[axis, val]() {
 				if (axis == WL_POINTER_AXIS_VERTICAL_SCROLL) {

@@ -65,7 +65,7 @@ void wayland_keyboard_wrapper::wl_keyboard_enter(
 		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
 		ruis::key ruis_key = key_code_map[std::uint8_t(key)];
 		win.gui.send_key(
-			true, //
+			ruis::button_action::press, //
 			ruis_key
 		);
 	}
@@ -144,7 +144,7 @@ void wayland_keyboard_wrapper::wl_keyboard_key(
 	ruis::key ruis_key = key_code_map[std::uint8_t(key)];
 
 	win.gui.send_key(
-		is_pressed, //
+		is_pressed ? ruis::button_action::press : ruis::button_action::release, //
 		ruis_key
 	);
 
