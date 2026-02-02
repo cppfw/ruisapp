@@ -269,7 +269,7 @@ void handle_character_input(
 
 	handle_mouse_button(
 		e, //
-		ruis:button_action::press,
+		ruis::button_action::press,
 		ruis::mouse_button::middle,
 		*self->window
 	);
