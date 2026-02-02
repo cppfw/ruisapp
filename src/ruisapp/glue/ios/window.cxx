@@ -25,7 +25,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 namespace {
 void handle_mouse_button(
-	button_action action, //
+	ruis::button_action action, //
 	const ruis::vec2& pos,
 	ruis::mouse_button button,
 	unsigned pointer_id
