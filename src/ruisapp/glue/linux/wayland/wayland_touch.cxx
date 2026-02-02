@@ -75,7 +75,7 @@ void wayland_touch_wrapper::wl_touch_down(
 	const touch_point& tp = insert_result.first->second;
 
 	win.gui.send_mouse_button(
-		true, // is_down
+		ruis::button_action::press, //
 		tp.pos,
 		ruis::mouse_button::left,
 		tp.ruis_id
@@ -106,7 +106,7 @@ void wayland_touch_wrapper::wl_touch_up(
 	auto& glue = get_glue();
 	if (auto window = glue.get_window(tp.surface)) {
 		window->gui.send_mouse_button(
-			false, // is_down
+			ruis::button_action::release, //
 			tp.pos,
 			ruis::mouse_button::left,
 			tp.ruis_id
@@ -183,7 +183,7 @@ void wayland_touch_wrapper::wl_touch_cancel(
 		}
 
 		window->gui.send_mouse_button(
-			false, // is_down
+			ruis::button_action::release, //
 			{-1, -1},
 			ruis::mouse_button::left,
 			tp.ruis_id

@@ -25,7 +25,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 namespace {
 void handle_mouse_button(
-	bool is_down, //
+	button_action action, //
 	const ruis::vec2& pos,
 	ruis::mouse_button button,
 	unsigned pointer_id
@@ -39,7 +39,7 @@ void handle_mouse_button(
 	}
 
 	win->gui.send_mouse_button(
-		is_down, //
+		action, //
 		pos,
 		button,
 		pointer_id
@@ -180,7 +180,7 @@ void handle_mouse_move(
 
 		using std::round;
 		handle_mouse_button(
-			true, // is_down
+			ruis::button_action::press, //
 			round(ruis::vec2(p.x * scale, p.y * scale)), // pos
 			ruis::mouse_button::left,
 			0 // TODO: pointer id
@@ -212,7 +212,7 @@ void handle_mouse_move(
 
 		using std::round;
 		handle_mouse_button(
-			false, // is_down
+			ruis::button_action::release, //
 			round(ruis::vec2(p.x * scale, p.y * scale)), // pos
 			ruis::mouse_button::left,
 			0 // TODO: pointer id

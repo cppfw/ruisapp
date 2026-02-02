@@ -28,7 +28,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 namespace {
 void handle_mouse_button(
 	NSEvent* e, //
-	bool is_down,
+	ruis::button_action action,
 	ruis::mouse_button button,
 	app_window& w
 )
@@ -44,7 +44,7 @@ void handle_mouse_button(
 	utki::logcat_debug("mouse down pos = ", pos, '\n');
 
 	w.gui.send_mouse_button(
-		is_down, //
+		action, //
 		pos,
 		button,
 		0
@@ -101,13 +101,13 @@ void handle_mouse_hover(
 
 namespace {
 void handle_key_event(
-	bool is_down, //
+	ruis::button_action action, //
 	ruis::key key_code,
 	app_window& w
 )
 {
 	w.gui.send_key(
-		is_down, //
+		action, //
 		key_code
 	);
 }

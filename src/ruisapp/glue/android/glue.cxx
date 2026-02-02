@@ -233,7 +233,7 @@ void handle_input_events()
 							utki::assert(win, SL);
 
 							win->gui.send_mouse_button(
-								true, // is_down
+								ruis::button_action::press, //
 								win->android_win_coords_to_ruisapp_win_rect_coords(p), // pos
 								ruis::mouse_button::left,
 								pointer_id
@@ -270,7 +270,7 @@ void handle_input_events()
 							utki::assert(win, SL);
 
 							win->gui.send_mouse_button(
-								false, // is_down
+								ruis::button_action::release, //
 								win->android_win_coords_to_ruisapp_win_rect_coords(p), // pos
 								ruis::mouse_button::left,
 								pointer_id
@@ -347,7 +347,7 @@ void handle_input_events()
 							// detect auto-repeated key events
 							if (AKeyEvent_getRepeatCount(event) == 0) {
 								win->gui.send_key(
-									true, // is_down
+									ruis::button_action::press, //
 									key
 								);
 							}
@@ -360,7 +360,7 @@ void handle_input_events()
 						case AKEY_EVENT_ACTION_UP:
 							// utki::log_debug([&](auto&o){o << "AKEY_EVENT_ACTION_UP" << std::endl;});
 							win->gui.send_key(
-								false, // is_down
+								ruis::button_action::release, //
 								key
 							);
 							break;
