@@ -440,7 +440,7 @@ int main(int argc, const char** argv)
 						ruis::key key = key_code_map[std::uint8_t(event.xkey.keycode)];
 
 						w.gui.send_key(
-							true, //
+							ruis::button_action::press, //
 							key
 						);
 
@@ -489,23 +489,26 @@ int main(int argc, const char** argv)
 							}
 						}
 
-						w.gui.send_key(false, key);
+						w.gui.send_key(
+							ruis::button_action::release, //
+							key
+						);
 					}
 					break;
 				case ButtonPress:
 					w.gui.send_mouse_button(
-						true, //
+						ruis::button_action::press, //
 						ruis::vec2(event.xbutton.x, event.xbutton.y),
 						button_number_to_enum(event.xbutton.button),
-						0
+						0 // pointer_id
 					);
 					break;
 				case ButtonRelease:
 					w.gui.send_mouse_button(
-						false, //
+						ruis::button_action::release, //
 						ruis::vec2(event.xbutton.x, event.xbutton.y),
 						button_number_to_enum(event.xbutton.button),
-						0
+						0 // pointer_id
 					);
 					break;
 				case MotionNotify:
@@ -514,19 +517,19 @@ int main(int argc, const char** argv)
 							event.xmotion.x, //
 							event.xmotion.y
 						), //
-						0
+						0 // pointer_id
 					);
 					break;
 				case EnterNotify:
 					w.gui.send_mouse_hover(
 						true, //
-						0
+						0 // pointer_id
 					);
 					break;
 				case LeaveNotify:
 					w.gui.send_mouse_hover(
 						false, //
-						0
+						0 // pointer_id
 					);
 					break;
 				case ClientMessage:
