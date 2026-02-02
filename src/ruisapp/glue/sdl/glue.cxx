@@ -193,7 +193,8 @@ void main_loop_iteration(void* user_data)
 					// utki::logcat("mouse button event: pos = ", pos, '\n');
 
 					win.gui.send_mouse_button(
-						e.button.type == SDL_MOUSEBUTTONDOWN ? ruis::button_action::press : ruis::button_action::release, //
+						e.button.type == SDL_MOUSEBUTTONDOWN ? ruis::button_action::press
+															 : ruis::button_action::release, //
 						pos,
 						sdl_button_number_to_ruis_enum(e.button.button),
 						0 // pointer id
