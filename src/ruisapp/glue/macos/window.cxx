@@ -197,7 +197,7 @@ void handle_character_input(
 
 	handle_mouse_button(
 		e, //
-		true,
+		ruis::button_action::press,
 		ruis::mouse_button::left,
 		*self->window
 	);
@@ -215,7 +215,7 @@ void handle_character_input(
 
 	handle_mouse_button(
 		e, //
-		false,
+		ruis::button_action::release,
 		ruis::mouse_button::left,
 		*self->window
 	);
@@ -233,7 +233,7 @@ void handle_character_input(
 
 	handle_mouse_button(
 		e, //
-		true,
+		ruis::button_action::press,
 		ruis::mouse_button::right,
 		*self->window
 	);
@@ -251,7 +251,7 @@ void handle_character_input(
 
 	handle_mouse_button(
 		e, //
-		false,
+		ruis::button_action::release,
 		ruis::mouse_button::right,
 		*self->window
 	);
@@ -269,7 +269,7 @@ void handle_character_input(
 
 	handle_mouse_button(
 		e, //
-		true,
+		ruis:button_action::press,
 		ruis::mouse_button::middle,
 		*self->window
 	);
@@ -287,7 +287,7 @@ void handle_character_input(
 
 	handle_mouse_button(
 		e, //
-		false,
+		ruis::button_action::release,
 		ruis::mouse_button::middle,
 		*self->window
 	);
@@ -319,14 +319,14 @@ void handle_character_input(
 
 		handle_mouse_button(
 			e, //
-			true,
+			ruis::button_action::press,
 			button,
 			*self->window
 		);
 
 		handle_mouse_button(
 			e, //
-			false,
+			ruis::button_action::release,
 			button,
 			*self->window
 		);
