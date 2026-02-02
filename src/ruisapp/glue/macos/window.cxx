@@ -434,7 +434,7 @@ void handle_character_input(
 	}
 
 	handle_key_event(
-		true, //
+		ruis::button_action::press, //
 		key,
 		*self->window
 	);
@@ -460,7 +460,7 @@ void handle_character_input(
 	ruis::key key = key_code_map[kc];
 
 	handle_key_event(
-		false, //
+		ruis::button_action::release, //
 		key,
 		*self->window
 	);
