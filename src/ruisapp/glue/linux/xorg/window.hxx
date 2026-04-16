@@ -428,27 +428,24 @@ class native_window : public ruis::render::native_window
 
 				using namespace std::string_view_literals;
 
-				if (std::find(
-						glx_extensions.begin(), //
-						glx_extensions.end(),
+				if (std::ranges::find(
+						glx_extensions, //
 						"GLX_ARB_create_context"sv
 					) != glx_extensions.end())
 				{
 					supported.set(glx_extension::glx_arb_create_context);
 				}
 
-				if (std::find(
-						glx_extensions.begin(), //
-						glx_extensions.end(),
+				if (std::ranges::find(
+						glx_extensions, //
 						"GLX_EXT_swap_control"sv
 					) != glx_extensions.end())
 				{
 					supported.set(glx_extension::glx_ext_swap_control);
 				}
 
-				if (std::find( //
-						glx_extensions.begin(),
-						glx_extensions.end(),
+				if (std::ranges::find( //
+						glx_extensions,
 						"GLX_MESA_swap_control"sv
 					) != glx_extensions.end())
 				{

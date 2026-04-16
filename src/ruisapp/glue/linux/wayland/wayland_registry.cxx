@@ -131,9 +131,8 @@ void wayland_registry_wrapper::wl_registry_global_remove(
 	auto& self = *static_cast<wayland_registry_wrapper*>(data);
 
 	// check if removed object is a wl_output
-	if (auto i = std::find_if(
-			self.outputs.begin(),
-			self.outputs.end(),
+	if (auto i = std::ranges::find_if(
+			self.outputs, //
 			[&](const auto& o) {
 				return o.wayland_global_object_name == name;
 			}

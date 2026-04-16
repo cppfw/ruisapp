@@ -147,8 +147,8 @@ public:
 				throw std::runtime_error("eglInitialize() failed");
 			}
 			return utki::version_duplet{
-				uint16_t(major), //
-				uint16_t(minor)
+				.major = uint16_t(major), //
+				.minor = uint16_t(minor)
 			};
 		}()),
 		extensions(this->get_egl_extensions())
@@ -320,7 +320,7 @@ struct egl_surface_wrapper {
 			EGL_HEIGHT,
 			&height
 		);
-		return r4::vector2<unsigned>(width, height);
+		return {width, height};
 	}
 };
 } // namespace

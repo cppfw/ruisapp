@@ -116,9 +116,12 @@ wayland_surface_wrapper::find_scale_and_dpi( //
 			o << "  check output id = " << id << std::endl;
 		});
 
-		auto i = std::find_if(wayland_outputs.begin(), wayland_outputs.end(), [&id](const auto& o) {
-			return o.id == id;
-		});
+		auto i = std::ranges::find_if(
+			wayland_outputs, //
+			[&id](const auto& o) {
+				return o.id == id;
+			}
+		);
 		if (i == wayland_outputs.end()) {
 			utki::log_debug([&](auto& o) {
 				o << "WARNING: wayland surface entered output with id = " << id

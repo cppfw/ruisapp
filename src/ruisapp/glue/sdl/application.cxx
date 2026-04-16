@@ -240,9 +240,9 @@ ruisapp::application::directories get_application_directories(std::string_view a
 
 ruisapp::application::application(parameters params) :
 	application(
-		{utki::make_unique<application_glue>(params.graphics_api_version), //
-		 get_application_directories(params.name),
-		 std::move(params)}
+		{.pimpl = utki::make_unique<application_glue>(params.graphics_api_version), //
+		 .directories = get_application_directories(params.name),
+		 .params = std::move(params)}
 	)
 {}
 
