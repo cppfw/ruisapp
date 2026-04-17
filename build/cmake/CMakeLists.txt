@@ -104,6 +104,12 @@ if(ruisapp_build_opengles_variant)
                 "-framework UIKit"
                 "-framework GLKit" # for GLKViewController
         )
+
+        # TODO: Define the GLES_SILENCE_DEPRECATION macro to silence OpenGL ES deprecation warnings on Apple platforms. Need to move to Metal eventually.
+        target_compile_definitions(${name} PRIVATE GLES_SILENCE_DEPRECATION)
+
+        # TODO: some stuff (e.g. UI_USER_INTERFACE_IDIOM) is deprecated on iOS, so suppress the warnings for now. Need to use new APIs eventually.
+        target_compile_options(${name}-opengles PRIVATE -Wno-deprecated-declarations)
     endif()
 endif()
 

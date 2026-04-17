@@ -89,7 +89,7 @@ app_window& application_glue::make_window(ruisapp::window_parameters window_para
 
 	auto ruis_context = utki::make_shared<ruis::context>(ruis::context::parameters{
 		.post_to_ui_thread_function =
-			[this](std::function<void()> procedure) {
+			[](std::function<void()> procedure) {
 				auto p = reinterpret_cast<NSInteger>(new std::function<void()>(std::move(procedure)));
 
 				dispatch_async(dispatch_get_main_queue(), ^{
