@@ -341,7 +341,8 @@ void native_window::bind_rendering_context()
 
 void native_window::set_fullscreen_internal(bool enable)
 {
-	float scale = [[UIScreen mainScreen] scale];
+	// TODO: is needed?
+	// float scale = [[UIScreen mainScreen] scale];
 
 	using std::round;
 
