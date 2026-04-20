@@ -68,6 +68,12 @@ if(ruisapp_build_opengl_variant)
                 # The quotes are important so CMake passes it as a single linker argument.
                 "-framework Cocoa"
         )
+
+        # TODO: Define the GL_SILENCE_DEPRECATION macro to silence OpenGL deprecation warnings on Apple platforms. Need to move to Metal eventually.
+        target_compile_definitions(${name}-opengl PRIVATE GL_SILENCE_DEPRECATION)
+
+        # TODO: some stuff (e.g. NSOpenGLContext) is deprecated on MacOS, so suppress the warnings for now. Need to use new APIs eventually.
+        target_compile_options(${name}-opengl PRIVATE -Wno-deprecated-declarations)
     endif()
 endif()
 
