@@ -54,7 +54,7 @@ jobs:
   #       # due to some bug in gcov, we need to use --gcov-ignore-parse-errors=negative_hits.warn
   #       run: pipx run gcovr --gcov-ignore-parse-errors=negative_hits.warn --exclude-throw-branches --filter src/ --cobertura > cobertura.xml
   #     - name: upload coverage report to artifacts
-  #       uses: actions/upload-artifact@v4
+  #       uses: actions/upload-artifact@v7
   #       with:
   #         name: cobertura.xml
   #         path: cobertura.xml
@@ -386,11 +386,11 @@ jobs:
           ./test
       - name: upload vcpkg logs to artifacts
         if: always() # even if previous steps fail, this one needs to be run
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: vcpkg_linux_logs
           path: |
-            vcpkg-installation/buildtrees/${{ env.PACKAGE_NAME }}/
+            vcpkg-installation/buildtrees/**/*.log
             build/vcpkg/**/*.log
       - name: deploy vcpkg port
         run: |
@@ -405,9 +405,9 @@ jobs:
     name: vcpkg - windows
     steps:
     - name: git clone
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     - name: get myci scripts
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         repository: cppfw/myci
         ref: latest
@@ -434,11 +434,11 @@ jobs:
         ./Debug/test.exe
     - name: upload vcpkg logs to artifacts
       if: always() # even if previous steps fail, this one needs to be run
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: vcpkg_windows_logs
         path: |
-          vcpkg-installation/buildtrees/${{ env.PACKAGE_NAME }}/
+          vcpkg-installation/buildtrees/**/*.log
           build/vcpkg/**/*.log
 ##### vcpkg-macos #####
   vcpkg-macos:
@@ -491,11 +491,11 @@ jobs:
         ./test
     - name: upload vcpkg logs to artifacts
       if: always() # even if previous steps fail, this one needs to be run
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: vcpkg_macos_${{ matrix.config }}_logs
         path: |
-          vcpkg-installation/buildtrees/${{ env.PACKAGE_NAME }}/
+          vcpkg-installation/buildtrees/**/*.log
           build/vcpkg/**/*.log
 ##### vcpkg-ios #####
   vcpkg-ios:
@@ -548,11 +548,11 @@ jobs:
 #        ./test
     - name: upload vcpkg logs to artifacts
       if: always() # even if previous steps fail, this one needs to be run
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: vcpkg_ios_${{ matrix.config }}_logs
         path: |
-          vcpkg-installation/buildtrees/${{ env.PACKAGE_NAME }}/
+          vcpkg-installation/buildtrees/**/*.log
           build/vcpkg/**/*.log
 ##### conan - linux #####
   # conan-linux:
