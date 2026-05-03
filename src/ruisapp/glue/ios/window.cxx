@@ -94,14 +94,12 @@ void handle_mouse_move(
 	{
 		view.drawableColorFormat = GLKViewDrawableColorFormatRGBA8888;
 
-		auto& buffers = self->buffers;
-
-		if (buffers.get(ruisapp::buffer::depth)) {
+		if (self->buffers.get(ruisapp::buffer::depth)) {
 			view.drawableDepthFormat = GLKViewDrawableDepthFormat16;
 		} else {
 			view.drawableDepthFormat = GLKViewDrawableDepthFormatNone;
 		}
-		if (buffers.get(ruisapp::buffer::stencil)) {
+		if (self->buffers.get(ruisapp::buffer::stencil)) {
 			view.drawableStencilFormat = GLKViewDrawableStencilFormat8;
 		} else {
 			view.drawableStencilFormat = GLKViewDrawableStencilFormatNone;
