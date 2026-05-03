@@ -16,6 +16,14 @@ namespace m{
 using namespace ruis::make;
 }
 
+// In GCC 12.2 with -O3 and -g3, the GCC compiler complains:
+// std::__cxx11::basic_string<char>::_Alloc_hider::_M_p' may be used uninitialized [-Werror=maybe-uninitialized]
+// So, we suppress the warning.
+#if CFG_COMPILER == CFG_COMPILER_GCC && CFG_COMPILER_VERSION_MAJOR == 12 && CFG_COMPILER_VERSION_MINOR == 2
+#	pragma GCC diagnostic push
+#	pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+
 utki::shared_ref<ruis::window> make_scroll_area_window(
     utki::shared_ref<ruis::context> c, //
     ruis::vec2_length pos
@@ -167,3 +175,7 @@ utki::shared_ref<ruis::window> make_scroll_area_window(
     );
     // clang-format on
 }
+
+#if CFG_COMPILER == CFG_COMPILER_GCC && CFG_COMPILER_VERSION_MAJOR == 12 && CFG_COMPILER_VERSION_MINOR == 2
+#	pragma GCC diagnostic pop
+#endif
