@@ -1,7 +1,5 @@
 #include <ratio>
 
-// #include <GL/gl.h>
-
 #include <r4/quaternion.hpp>
 #include <utki/debug.hpp>
 #include <fsif/native_file.hpp>

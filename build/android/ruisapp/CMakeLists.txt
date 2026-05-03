@@ -13,14 +13,13 @@ include(${ANDROID_GRADLE_NATIVE_BUNDLE_PLUGIN_MK})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
 
-# TODO: comment
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D DEBUG")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D DEBUG")
 
 add_library(
         # Specifies the name of the library.
         ${name}
 
-        # Sets the library as a shared library.
+        # Sets the library as a static library.
         STATIC
 
         # Provides a relative path to your source file(s).

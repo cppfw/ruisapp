@@ -35,6 +35,7 @@ android {
             path "CMakeLists.txt"
         }
     }
+    namespace 'io.github.cppfw.ruisapptests'
 }
 
 repositories {
