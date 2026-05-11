@@ -24,6 +24,7 @@
 #include <ruis/widget/input/text_input_line.hpp>
 #include <ruis/widget/button/selection_box.hpp>
 #include <ruis/layout/linear_layout.hpp>
+#include <ruis/standard_widgets.hpp>
 
 #include "root_widget.hpp"
 #include "cube_widget.hpp"
@@ -69,7 +70,10 @@ public:
 			this->quit();
 		};
 
-		this->window.gui.init_standard_widgets(this->get_res_file("../../res/ruis_res/"));
+		ruis::init_standard_widgets(
+			this->window.gui.context, //
+			this->get_res_file("../../res/ruis_res/")
+		);
 
 		this->window.gui.context.get().loader().mount_res_pack(this->get_res_file("res/"));
 
