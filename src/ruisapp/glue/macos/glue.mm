@@ -30,7 +30,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include <ruis/render/opengl/context.hpp>
 
-#import <Cocoa/Cocoa.h>
+#include "cocoa.hxx"
 
 using namespace ruisapp;
 

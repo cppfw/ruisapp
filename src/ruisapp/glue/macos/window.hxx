@@ -21,9 +21,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#import <Cocoa/Cocoa.h>
 #include <ruis/render/native_window.hpp>
 #include <utki/debug.hpp>
+
+#include "cocoa.hxx"
 
 #ifdef assert
 #	undef assert
