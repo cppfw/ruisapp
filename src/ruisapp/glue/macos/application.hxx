@@ -26,10 +26,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include <utki/destructable.hpp>
 
-#include "cocoa.hxx"
-
 #include "../../application.hpp"
 
+#include "cocoa.hxx"
 #include "window.hxx"
 
 namespace {
