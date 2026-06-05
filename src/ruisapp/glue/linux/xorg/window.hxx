@@ -671,7 +671,7 @@ public:
 		)
 	{
 #ifdef RUISAPP_RENDER_OPENGL
-		// if there are no any GL contexts current, then set this one
+		// if there is no any GL context current, then set this one before calling glewInit()
 		if (glXGetCurrentContext() == nullptr) {
 			this->bind_rendering_context();
 		}
@@ -750,6 +750,7 @@ public:
 			False
 		);
 #elif defined(RUISAPP_RENDER_OPENGLES)
+		utki::logcat_debug("eglSwapInterval(", enable ? "true" : "false", ")");
 		if (eglSwapInterval(
 				this->display.get().egl_display.display, //
 				enable ? 1 : 0 // swap interval in vsync frames
