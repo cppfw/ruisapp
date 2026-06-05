@@ -239,7 +239,7 @@ public:
 		GLint sync = enabled ? 1 : 0;
 		[this->opengl_context.context setValues:&sync forParameter:NSOpenGLCPSwapInterval];
 
-		// TODO: is this another way to do it?
+		// TODO: set swap interval to 1 if vsync has just been enabled? To make sure it is 1?
 		// GLint swapInt = enabled ? 1 : 0;
 		// [this->opengl_context.context setValues:&swapInt forParameter:NSOpenGLContextParameterSwapInterval];
 	}
