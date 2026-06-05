@@ -56,13 +56,7 @@ int main(int argc, const char** argv){
 	utki::log_debug([&](auto&o){o << "main(): application instance created" << std::endl;});
 
 	// in order to get keyboard events we need to be foreground application
-	{
-		ProcessSerialNumber psn = {0, kCurrentProcess};
-		OSStatus status = TransformProcessType(&psn, kProcessTransformToForegroundApplication);
-		if(status != errSecSuccess){
-			utki::assert(false, [&](auto& o) {o << "status = " << unsigned(status);});
-		}
-	}
+	[[NSRunningApplication currentApplication] activateWithOptions:NSApplicationActivateIgnoringOtherApps];
 
 	do{
 		glue.windows_to_destroy.clear();
