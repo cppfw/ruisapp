@@ -219,7 +219,8 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 
 	auto& ret_win = res.first->second.get();
 
-	// EGL surface is not created yet at this point. In Wayland the EGL surface is created asynchronously.
+	// EGL surface for the window is not created yet at this point.
+	// In Wayland the EGL surface is created asynchronously.
 	// Some further calls (e.g. set_vsync_enabled()) rely on the EGL surface to be created,
 	// so we need to block here and wait until the EGL surface is created before proceeding further.
 	// We need to wait until Wayland events are handled and xdg_surface configure callback creates the EGL surface.
