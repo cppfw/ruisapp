@@ -767,7 +767,7 @@ public:
 			this->display.get().xorg_display.display, //
 			this->xorg_window.window
 		);
-		if(this->is_vsync_enabled()) {
+		if (this->is_vsync_enabled()) {
 			// With glFinish() call here it works better when VSYNC is enabled.
 			// This is noticable when an app renders a mouse cursor itself,
 			// the cursor moves with less latency.
