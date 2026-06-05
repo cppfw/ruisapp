@@ -750,7 +750,7 @@ public:
 			False
 		);
 #elif defined(RUISAPP_RENDER_OPENGLES)
-		utki::logcat_debug("eglSwapInterval(", enable ? "true" : "false", ")");
+		utki::logcat_debug("eglSwapInterval(", enable ? "true" : "false", ")\n");
 		if (eglSwapInterval(
 				this->display.get().egl_display.display, //
 				enable ? 1 : 0 // swap interval in vsync frames
