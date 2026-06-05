@@ -60,7 +60,7 @@ int main(int argc, const char** argv){
 		ProcessSerialNumber psn = {0, kCurrentProcess};
 		OSStatus status = TransformProcessType(&psn, kProcessTransformToForegroundApplication);
 		if(status != errSecSuccess){
-			utki::assert(false, SL);
+			utki::assert(false, [&](auto& o) {o << "status = " << unsigned(status);});
 		}
 	}
 
