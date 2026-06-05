@@ -21,7 +21,7 @@ if(IOS)
     set(ruisapp_build_opengl_variant False)
     set(ruisapp_build_opengles_variant True)
 
-    set(ruisapp_opengl_install_include_directory)
+    set(ruisapp_opengl_install_include_directory) # opengl variant will not be built, no headers to install
     set(ruisapp_opengles_install_include_directory ../../src/${name})
 elseif(APPLE)
     enable_language(OBJCXX)
@@ -31,13 +31,13 @@ elseif(APPLE)
     set(ruisapp_build_opengles_variant False)
 
     set(ruisapp_opengl_install_include_directory ../../src/${name})
-    set(ruisapp_opengles_install_include_directory)
+    set(ruisapp_opengles_install_include_directory) # opengles variant will not be built, no headers to install
 else()
     set(ruisapp_build_opengl_variant True)
     set(ruisapp_build_opengles_variant True)
 
     set(ruisapp_opengl_install_include_directory ../../src/${name})
-    set(ruisapp_opengles_install_include_directory)
+    set(ruisapp_opengles_install_include_directory) # opengl variant is also built and will install the headers
 endif()
 
 if(ruisapp_build_opengl_variant)
