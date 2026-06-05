@@ -234,6 +234,16 @@ public:
 		[this->opengl_context.context flushBuffer];
 	}
 
+	void set_vsync_enabled(bool enabled) noexcept override
+	{
+		GLint sync = enabled ? 1 : 0;
+		[this->opengl_context.context setValues:&sync forParameter:NSOpenGLCPSwapInterval];
+
+		// TODO: is this the right way to do it?
+		// GLint swapInt = 1;
+		// [[self openGLContext] setValues:&swapInt forParameter:NSOpenGLContextParameterSwapInterval];
+	}
+
 	void set_mouse_cursor_visible(bool visible) override;
 
 	bool is_mouse_cursor_visible() const noexcept
