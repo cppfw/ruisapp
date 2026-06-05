@@ -466,7 +466,17 @@ struct egl_context_wrapper {
 				enabled ? 1 : 0 // number of vsync frames before framebuffer buffer swap
 			) != EGL_TRUE)
 		{
-			utki::logcat("WARNING: egl_context_wrapper::set_vsync_enabled(", enabled, "): eglSwapInterval() failed");
+			auto error = eglGetError();
+			utki::logcat(
+				"WARNING: egl_context_wrapper::set_vsync_enabled(",
+				enabled,
+				"): eglSwapInterval() failed, error: ",
+				egl_error_to_string(error),
+				" (",
+				int(error),
+				")",
+				"\n"
+			);
 		}
 	}
 };

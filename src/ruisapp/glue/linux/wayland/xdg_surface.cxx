@@ -92,6 +92,10 @@ void xdg_surface_wrapper::xdg_surface_configure(
 
 	natwin.create_egl_surface();
 
+	// After initial configure event we need to do the initial surface commit,
+	// otherwise the surface will not be mapped to the screen.
+	// In case of EGL we have to call eglSwapBuffers(), which will do the surface commit for us.
+	// This makes the surface to be mapped to the screen.
 	// swap EGL frame buffers with the window's EGL context made current
 	win.gui.context.get().ren().ctx().apply([&]() {
 		natwin.swap_frame_buffers();
