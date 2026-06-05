@@ -147,7 +147,7 @@ void ruisapp::application::quit() noexcept
 	glue.quit_flag.store(true);
 }
 
-ruisapp::window& ruisapp::application::make_window(window_parameters window_params)
+ruisapp::window& ruisapp::application::make_window_internal(window_parameters window_params)
 {
 	auto& glue = get_glue(*this);
 	return glue.make_window(std::move(window_params));

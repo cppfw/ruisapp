@@ -168,6 +168,10 @@ public:
 	 */
 	void quit() noexcept;
 
+private:
+	ruisapp::window& make_window_internal(window_parameters window_params);
+
+public:
 	/**
 	 * @brief Create native window.
 	 * @param window_params - window parameters.

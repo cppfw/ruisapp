@@ -252,7 +252,7 @@ void ruisapp::application::quit() noexcept
 	SDL_PushEvent(&event);
 }
 
-ruisapp::window& ruisapp::application::make_window(ruisapp::window_parameters window_params)
+ruisapp::window& ruisapp::application::make_window_internal(ruisapp::window_parameters window_params)
 {
 	auto& glue = get_glue(*this);
 
