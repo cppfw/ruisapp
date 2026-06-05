@@ -2,6 +2,7 @@
 
 #include <ruis/widget/button/tab_group.hpp>
 #include <ruis/widget/button/tab.hpp>
+#include <ruis/widget/button/impl/check_box.hpp>
 #include <ruis/widget/group/collapse_area.hpp>
 #include <ruis/widget/button/impl/image_push_button.hpp>
 #include <ruis/widget/label/gap.hpp>
@@ -46,6 +47,15 @@ utki::shared_ref<ruis::window> make_text_input_window(
     ruis::vec2_length pos
 )
 {
+    auto vsync_check_box = m::check_box(c, {
+        .button_params{
+            .pressed = c.get().ren().ctx().is_vsync_enabled()
+        }
+    });
+    vsync_check_box.get().pressed_change_handler = [](ruis::button& b){
+        b.context.get().ren().ctx().set_vsync_enabled(b.is_pressed());
+    };
+
     // clang-format off
     return m::window(c,
         {
@@ -93,7 +103,9 @@ utki::shared_ref<ruis::window> make_text_input_window(
                         {
                             m::text(c, {}, U"toggle fullscreen"s)
                         }
-                    )
+                    ),
+                    vsync_check_box,
+                    m::text(c, {}, U"VSYNC"s)
                 }
             ),
             m::nine_patch(c,
