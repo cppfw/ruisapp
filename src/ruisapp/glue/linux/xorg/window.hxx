@@ -772,6 +772,9 @@ public:
 			// With glFinish() call here it works better when VSYNC is enabled.
 			// This is noticable when an app renders a mouse cursor itself,
 			// the cursor moves with less latency.
+			// For some reason, the effect is only present if calling the glFinish()
+			// right after swapping buffers, if calling it before swapping buffers,
+			// the effect is not present.
 			glFinish();
 		}
 #elif defined(RUISAPP_RENDER_OPENGLES)
