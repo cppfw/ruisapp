@@ -228,7 +228,7 @@ public:
 		this->update_mouse_cursor();
 	}
 
-	void set_vsync_enabled(bool enabled) noexcept override
+	void set_vsync_enabled_internal(bool enabled) override
 	{
 		utki::assert(
 			[this]() {

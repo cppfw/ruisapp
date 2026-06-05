@@ -689,7 +689,7 @@ public:
 
 	~native_window() override = default;
 
-	void set_vsync_enabled(bool enable) noexcept override
+	void set_vsync_enabled_internal(bool enable) override
 	{
 		utki::assert(
 			[this]() {
@@ -700,7 +700,6 @@ public:
 
 #ifdef RUISAPP_RENDER_OPENGL
 		// disable v-sync via swap control extension
-
 		if (this->glx_context.supported_extensions.get(glx_context_wrapper::glx_extension::glx_ext_swap_control)) {
 			utki::log_debug([](auto& o) {
 				o << "GLX_EXT_swap_control is supported\n";
@@ -768,6 +767,12 @@ public:
 			this->display.get().xorg_display.display, //
 			this->xorg_window.window
 		);
+		if(this->is_vsync_enabled()) {
+			// With glFinish() call here it works better when VSYNC is enabled.
+			// This is noticable when an app renders a mouse cursor itself,
+			// the cursor moves with less latency.
+			glFinish();
+		}
 #elif defined(RUISAPP_RENDER_OPENGLES)
 		this->egl_surface.swap_frame_buffers();
 #else
