@@ -125,11 +125,23 @@ public:
 
 	void create_egl_surface()
 	{
+		utki::assert(
+			!this->is_egl_surface_created(),
+			[](auto& o) {
+				o << "create_egl_surface() must not be called more than once";
+			}
+		);
+
 		this->egl_surface.emplace(
 			this->display.get().egl_display, //
 			this->egl_config,
 			this->wayland_egl_window.window
 		);
+	}
+
+	bool is_egl_surface_created() const noexcept
+	{
+		return this->egl_surface.has_value();
 	}
 
 	void swap_frame_buffers() override

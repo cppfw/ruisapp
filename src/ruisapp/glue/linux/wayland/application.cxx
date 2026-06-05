@@ -217,7 +217,25 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 	);
 	utki::assert(res.second, SL);
 
-	return res.first->second.get();
+	auto& ret_win = res.first->second.get();
+
+	// EGL surface is not created yet at this point. In Wayland the EGL surface is created asynchronously.
+	// Some further calls (e.g. set_vsync_enabled()) rely on the EGL surface to be created,
+	// so we need to block here and wait until the EGL surface is created before proceeding further.
+	// We need to wait until Wayland events are handled and xdg_surface configure callback creates the EGL surface.
+	// For that we run the wl_display_roundtrip() in a loop until the EGL surface is created.
+	while (!ret_win.ruis_native_window.get().is_egl_surface_created()) {
+		if (wl_display_roundtrip(this->display.get().wayland_display.display) < 0) {
+			throw std::runtime_error(utki::cat(
+				"wl_display_roundtrip() failed while waiting for EGL surface creation: ",
+				strerror(errno)
+			));
+		}
+	}
+
+	utki::assert(ret_win.ruis_native_window.get().is_egl_surface_created(), SL);
+
+	return ret_win;
 }
 
 void application_glue::destroy_window(app_window& w)
