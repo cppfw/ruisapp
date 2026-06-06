@@ -125,12 +125,9 @@ public:
 
 	void create_egl_surface()
 	{
-		utki::assert(
-			!this->is_egl_surface_created(),
-			[](auto& o) {
-				o << "create_egl_surface() must not be called more than once";
-			}
-		);
+		utki::assert(!this->is_egl_surface_created(), [](auto& o) {
+			o << "create_egl_surface() must not be called more than once";
+		});
 
 		this->egl_surface.emplace(
 			this->display.get().egl_display, //

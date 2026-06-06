@@ -227,10 +227,9 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 	// For that we run the wl_display_roundtrip() in a loop until the EGL surface is created.
 	while (!ret_win.ruis_native_window.get().is_egl_surface_created()) {
 		if (wl_display_roundtrip(this->display.get().wayland_display.display) < 0) {
-			throw std::runtime_error(utki::cat(
-				"wl_display_roundtrip() failed while waiting for EGL surface creation: ",
-				strerror(errno)
-			));
+			throw std::runtime_error(
+				utki::cat("wl_display_roundtrip() failed while waiting for EGL surface creation: ", strerror(errno))
+			);
 		}
 	}
 
