@@ -90,7 +90,14 @@ void xdg_surface_wrapper::xdg_surface_configure(
 	auto& win = *window;
 	auto& natwin = win.ruis_native_window.get();
 
-	natwin.create_egl_surface();
+	// The configure event can come several times for the same xdg_surface
+	// because we do several surface commits during the initial configuration,
+	// and each commit can trigger a configure event.
+	// So, check if the EGL surface is already created, and if not, then create it and do the initial surface commit.
+	// Otherwise, if the EGL surface is already created, then just do the surface commit.
+	if (!natwin.is_egl_surface_created()) {
+		natwin.create_egl_surface();
+	}
 
 	// After initial configure event we need to do the initial surface commit,
 	// otherwise the surface will not be mapped to the screen.

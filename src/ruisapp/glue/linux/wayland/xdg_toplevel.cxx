@@ -61,7 +61,10 @@ xdg_toplevel_wrapper::xdg_toplevel_wrapper(
 		);
 	}
 
-	wayland_surface.commit();
+	// This initial surface commit will trigger the initial configure event.
+	// The handler of that configure event will create the EGL surface and
+	// do the initial surface commit with the buffer attached.
+	this->wayland_surface.commit();
 
 	// utki::logcat_debug("xdg_toplevel_wrapper::xdg_toplevel_wrapper(): wayland surface committed", '\n');
 }
@@ -175,7 +178,7 @@ void xdg_toplevel_wrapper::xdg_toplevel_configure(
 			utki::logcat_debug("  initial configure call", '\n');
 
 			// Just in case Wayland protocol requires it, do the initial surface commit without a buffer attached
-			// (i.e., before calling eglSwapBuffers() for the first time) to signal to the compositor that it's ready for the configuration.
+			// (i.e. before calling eglSwapBuffers() for the first time) to signal to the compositor that it's ready for the configuration.
 			self.wayland_surface.commit();
 			return;
 		}
