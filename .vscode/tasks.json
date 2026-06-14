@@ -73,7 +73,7 @@
             "group": "build"
         },
         {
-            "label": "run-app-dev-ogles-wayland",
+            "label": "run-app-dev-ogles-wayland-dev",
             "type": "shell",
             "command": "WAYLAND_DISPLAY=$(ls /run/user/$UID/ | grep wayland-[0-9]$) make run-app config=dev ogles=true wayland=true",
             "problemMatcher": [],

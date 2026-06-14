@@ -111,10 +111,10 @@ class wayland_output_wrapper
 		.done = &wl_output_done,
 		.scale = &wl_output_scale,
 
-		// TODO: wayland version included in debian bullseye does not support these fields,
-		//       uncomment them when debian bullseye support can be dropped
-		// .name = &wl_output_name,
-		// .description = &wl_output_description
+		// Wayland version included in debian bullseye does not support these fields,
+		// but we don't support debian bullseye anymore, so it is ok to use them.
+		.name = &wl_output_name,
+		.description = &wl_output_description
 	};
 
 public:
