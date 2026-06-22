@@ -79,6 +79,7 @@ class app_window;
 - (BOOL)acceptsFirstResponder;
 
 - (void)windowDidResize:(NSNotification*)n;
+- (void)windowDidChangeScreen:(NSNotification*)n;
 - (BOOL)windowShouldClose:(id)sender;
 - (NSSize)windowWillResize:(NSWindow*)sender toSize:(NSSize)frameSize;
 
@@ -255,6 +256,10 @@ public:
 	{
 		return this->cur_win_dims;
 	}
+
+	ruis::real get_scale() const noexcept;
+
+	ruis::real get_dpi() const noexcept;
 
 	void resize(const ruis::vec2& dims)
 	{

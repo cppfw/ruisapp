@@ -504,10 +504,20 @@ void handle_character_input(
 	[self setDelegate:self];
 	[self makeKeyWindow];
 	[self makeMainWindow];
+	
+	// Register for screen change notifications
+	[[NSNotificationCenter defaultCenter] addObserver:self
+											selector:@selector(windowDidChangeScreen:)
+												name:NSWindowDidChangeScreenNotification
+											  object:self];
 }
 
 - (void)dealloc
 {
+	// Unregister from notifications
+	[[NSNotificationCenter defaultCenter] removeObserver:self
+												name:NSWindowDidChangeScreenNotification
+											  object:self];
 	[self->view release];
 	[super dealloc];
 }
@@ -524,6 +534,28 @@ void handle_character_input(
 		return;
 	}
 
+	NSWindow* nsw = [n object];
+	NSRect frame = [nsw frame];
+	NSRect rect = [nsw contentRectForFrameRect:frame];
+
+	ruis::vec2 new_win_dims(rect.size.width, rect.size.height);
+
+	w->resize(new_win_dims);
+}
+
+- (void)windowDidChangeScreen:(NSNotification*)n
+{
+	utki::log_debug([&](auto& o) {
+		o << "window changed screen!!!!" << std::endl;
+	});
+
+	auto* w = self->view->window;
+
+	if (!w) {
+		return;
+	}
+
+	// Recalculate viewport with new scale factor
 	NSWindow* nsw = [n object];
 	NSRect frame = [nsw frame];
 	NSRect rect = [nsw contentRectForFrameRect:frame];
@@ -652,4 +684,26 @@ void native_window::set_fullscreen_internal(bool enable)
 	}
 
 	[this->cocoa_window.window init_stuff];
+}
+
+ruis::real native_window::get_scale() const noexcept
+{
+	NSScreen* screen = [this->cocoa_window.window screen];
+	return ruis::real([screen backingScaleFactor]);
+}
+
+ruis::real native_window::get_dpi() const noexcept
+{
+	NSScreen* screen = [NSScreen mainScreen];
+	NSDictionary* description = [screen deviceDescription];
+	NSSize display_pixel_size = [[description objectForKey:NSDeviceSize] sizeValue];
+	CGSize display_physical_size = CGDisplayScreenSize([[description objectForKey:@"NSScreenNumber"] unsignedIntValue]);
+
+	ruis::real value = ruis::real(
+		((display_pixel_size.width * 10.0f / display_physical_size.width) +
+		 (display_pixel_size.height * 10.0f / display_physical_size.height)) /
+		2.0f
+	);
+	value *= 2.54f;
+	return value;
 }

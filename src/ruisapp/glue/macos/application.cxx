@@ -21,6 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "application.hxx"
 
+#include <ruis/widget/widget.hpp>
 #include <ruis/render/opengl/context.hpp>
 
 namespace {
@@ -72,19 +73,22 @@ void app_window::resize(const ruis::vec2& dims)
 
 	natwin.resize(dims);
 
-	// TODO: take scale into account?
-	// auto& units = this->gui.context.get().units;
-	// units.set_dots_per_pp(natwin.get_scale());
-	// units.set_dots_per_inch(natwin.get_dpi());
+	// take scale into account
+	auto& units = this->gui.context.get().units;
+	units.set_dots_per_pp(natwin.get_scale());
+	units.set_dots_per_inch(natwin.get_dpi());
+
+	// std::cout << "app_window::resize(): new window dims = " << dims << ", scale = " << natwin.get_scale() << ", dpi = " << natwin.get_dpi() << std::endl;
 
 	this->gui.set_viewport( //
 		ruis::rect(
 			0, //
-			dims
-			// TODO: take scale into account?
-			// (dims * natwin.get_scale()).to<ruis::real>()
+			(dims * units.dots_per_pp()).template to<ruis::real>()
 		)
 	);
+
+	// reload widgets hierarchy due to possible update of ruis::context::units values
+	this->gui.get_root().reload();
 }
 
 application_glue::application_glue(const utki::version_duplet& gl_version) :
@@ -128,6 +132,8 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 		&this->shared_gl_context_native_window.get()
 	);
 
+	auto& natwin = ruis_native_window.get();
+
 	auto ruis_context = utki::make_shared<ruis::context>(ruis::context::parameters{
 		.post_to_ui_thread_function =
 			[this](std::function<void()> a) {
@@ -164,12 +170,15 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 		std::move(ruis_native_window)
 	);
 
+	// set units
+	auto& units = ruisapp_window.get().gui.context.get().units;
+	units.set_dots_per_pp(natwin.get_scale());
+	units.set_dots_per_inch(natwin.get_dpi());
+
 	ruisapp_window.get().gui.set_viewport( //
 		ruis::rect(
 			0, //
-			0,
-			ruis::real(window_params.dims.x()),
-			ruis::real(window_params.dims.y())
+			window_params.dims.to<ruis::real>() * units.dots_per_pp()
 		)
 	);
 
