@@ -33,13 +33,14 @@ void handle_mouse_button(
 	app_window& w
 )
 {
-	NSPoint win_pos = [e locationInWindow];
-	using std::round;
-	auto pos = round(ruis::vec2(win_pos.x, win_pos.y));
-
 	auto& natwin = w.ruis_native_window.get();
 
+	NSPoint win_pos = [e locationInWindow];
+	using std::round;
+	auto pos = ruis::vec2(win_pos.x, win_pos.y);
 	pos.y() = natwin.dims().y() - pos.y();
+	pos *= natwin.get_scale();
+	pos = round(pos);
 
 	utki::logcat_debug("mouse down pos = ", pos, '\n');
 
@@ -58,14 +59,15 @@ void handle_mouse_move(
 	app_window& w
 )
 {
+	auto& natwin = w.ruis_native_window.get();
+
 	NSPoint win_pos = [e locationInWindow];
 
 	using std::round;
 	auto pos = round(ruis::vec2(win_pos.x, win_pos.y));
-
-	auto& natwin = w.ruis_native_window.get();
-
 	pos.y() = natwin.dims().y() - pos.y();
+	pos *= natwin.get_scale();
+	pos = round(pos);
 
 	// utki::logcat_debug("mouse move pos = ", pos, '\n');
 
