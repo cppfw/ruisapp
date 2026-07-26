@@ -506,20 +506,18 @@ void handle_character_input(
 	[self setDelegate:self];
 	[self makeKeyWindow];
 	[self makeMainWindow];
-	
+
 	// Register for screen change notifications
 	[[NSNotificationCenter defaultCenter] addObserver:self
-											selector:@selector(windowDidChangeScreen:)
-												name:NSWindowDidChangeScreenNotification
-											  object:self];
+											 selector:@selector(windowDidChangeScreen:)
+												 name:NSWindowDidChangeScreenNotification
+											   object:self];
 }
 
 - (void)dealloc
 {
 	// Unregister from notifications
-	[[NSNotificationCenter defaultCenter] removeObserver:self
-												name:NSWindowDidChangeScreenNotification
-											  object:self];
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidChangeScreenNotification object:self];
 	[self->view release];
 	[super dealloc];
 }

@@ -21,8 +21,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "application.hxx"
 
-#include <ruis/widget/widget.hpp>
 #include <ruis/render/opengl/context.hpp>
+#include <ruis/widget/widget.hpp>
 
 namespace {
 ruis::real get_dots_per_inch()
