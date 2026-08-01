@@ -34,20 +34,35 @@ native_window::window_wrapper::window_wrapper(
 	bool visible
 ) :
 	handle([&]() {
+		DWORD style   = WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+		DWORD exStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
+
+		RECT rc{
+			0,
+			0,
+			int(window_params.dims.x()),
+			int(window_params.dims.y())
+		};
+
+		AdjustWindowRectEx(
+			&rc, //
+			style,
+			FALSE,
+			exStyle
+		);
+
 		auto hwnd = CreateWindowExA(
 			WS_EX_APPWINDOW | WS_EX_WINDOWEDGE, // extended style
 			window_class.window_class_name,
 			window_params.title.c_str(),
 			WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
-			0, // x
-			0, // y
-			// width
-			int(window_params.dims.x()) + 2 * GetSystemMetrics(SM_CXSIZEFRAME),
-			// height
-			int(window_params.dims.y()) + GetSystemMetrics(SM_CYCAPTION) + 2 * GetSystemMetrics(SM_CYSIZEFRAME),
-			NULL, // no parent window
-			NULL, // no menu
-			GetModuleHandle(NULL),
+			CW_USEDEFAULT, // x
+			CW_USEDEFAULT, // y
+			rc.right - rc.left, // width
+			rc.bottom - rc.top, // height
+			nullptr, // no parent window
+			nullptr, // no menu
+			GetModuleHandle(nullptr),
 			nullptr // do not pass anything to WM_CREATE
 		);
 
