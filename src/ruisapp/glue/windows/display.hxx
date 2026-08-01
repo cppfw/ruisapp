@@ -34,10 +34,10 @@ class display_wrapper
 {
 public:
 	struct window_class_wrapper {
-		const char* const window_class_name;
+		const wchar_t* const window_class_name;
 
 		window_class_wrapper(
-			const char* window_class_name, //
+			const wchar_t* window_class_name, //
 			WNDPROC window_procedure
 		);
 

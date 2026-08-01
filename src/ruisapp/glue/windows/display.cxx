@@ -373,7 +373,7 @@ LRESULT CALLBACK window_procedure(
 			break;
 	}
 
-	return DefWindowProc(
+	return DefWindowProcW(
 		hwnd, //
 		msg,
 		w_param,
@@ -383,12 +383,12 @@ LRESULT CALLBACK window_procedure(
 } // namespace
 
 display_wrapper::window_class_wrapper::window_class_wrapper(
-	const char* window_class_name, //
+	const wchar_t* window_class_name, //
 	WNDPROC window_procedure
 ) :
 	window_class_name(window_class_name)
 {
-	WNDCLASSA wc;
+	WNDCLASSW wc;
 
 	wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC; // redraw on resize, own DC for window
 	wc.lpfnWndProc = window_procedure;
@@ -401,7 +401,7 @@ display_wrapper::window_class_wrapper::window_class_wrapper(
 	wc.lpszMenuName = nullptr; // we don't want a menu
 	wc.lpszClassName = this->window_class_name; // set the window class name
 
-	auto res = RegisterClassA(&wc);
+	auto res = RegisterClassW(&wc);
 
 	if (res == 0) {
 		// TODO: add error information to the exception message using GetLastError() and FormatMessage()
@@ -411,30 +411,30 @@ display_wrapper::window_class_wrapper::window_class_wrapper(
 
 display_wrapper::window_class_wrapper::~window_class_wrapper()
 {
-	auto res = UnregisterClassA(
+	auto res = UnregisterClassW(
 		this->window_class_name, //
 		GetModuleHandle(nullptr)
 	);
 	utki::assert(
 		res,
 		[&](auto& o) {
-			o << "Failed to unregister window class: " << this->window_class_name;
+			o << "Failed to unregister window class";
 		},
 		SL
 	);
 }
 
 namespace {
-const char* dummy_window_class_name = "ruisapp_dummy_window_class_name";
+const wchar_t* dummy_window_class_name = L"ruisapp_dummy_window_class_name";
 } // namespace
 
 #ifdef RUISAPP_RENDER_OPENGL
 display_wrapper::wgl_procedures_wrapper::wgl_procedures_wrapper()
 {
-	HWND dummy_window = CreateWindowExA(
+	HWND dummy_window = CreateWindowExW(
 		0,
 		dummy_window_class_name,
-		"",
+		L"",
 		0,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
@@ -517,10 +517,10 @@ display_wrapper::wgl_procedures_wrapper::wgl_procedures_wrapper()
 display_wrapper::display_wrapper() :
 	dummy_window_class(
 		dummy_window_class_name, //
-		DefWindowProcA
+		DefWindowProcW
 	),
 	regular_window_class(
-		"ruisapp_window_class_name", //
+		L"ruisapp_window_class_name", //
 		window_procedure
 	)
 {}

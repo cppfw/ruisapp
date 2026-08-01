@@ -28,6 +28,19 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "application.hxx"
 
+namespace{
+std::wstring utf8_to_utf16(std::string_view s)
+{
+    if (s.empty()) return {};
+    int size = MultiByteToWideChar(CP_UTF8,//
+		 0, s.data(), (int)s.size(), nullptr, 0);
+    std::wstring ws(size, 0);
+    MultiByteToWideChar(CP_UTF8,//
+		 0, s.data(), (int)s.size(), ws.data(), size);
+    return ws;
+}
+}
+
 native_window::window_wrapper::window_wrapper(
 	const display_wrapper::window_class_wrapper& window_class,
 	const ruisapp::window_parameters& window_params,
@@ -51,10 +64,10 @@ native_window::window_wrapper::window_wrapper(
 			exStyle
 		);
 
-		auto hwnd = CreateWindowExA(
+		auto hwnd = CreateWindowExW(
 			WS_EX_APPWINDOW | WS_EX_WINDOWEDGE, // extended style
 			window_class.window_class_name,
-			window_params.title.c_str(),
+			utf8_to_utf16(window_params.title).c_str(),
 			WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
 			CW_USEDEFAULT, // x
 			CW_USEDEFAULT, // y
