@@ -517,7 +517,7 @@ display_wrapper::wgl_procedures_wrapper::wgl_procedures_wrapper()
 display_wrapper::display_wrapper() :
 	dummy_window_class(
 		dummy_window_class_name, //
-		DefWindowProc
+		DefWindowProcA
 	),
 	regular_window_class(
 		"ruisapp_window_class_name", //
