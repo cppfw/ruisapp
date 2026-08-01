@@ -28,18 +28,31 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "application.hxx"
 
-namespace{
+namespace {
 std::wstring utf8_to_utf16(std::string_view s)
 {
-    if (s.empty()) return {};
-    int size = MultiByteToWideChar(CP_UTF8,//
-		 0, s.data(), (int)s.size(), nullptr, 0);
-    std::wstring ws(size, 0);
-    MultiByteToWideChar(CP_UTF8,//
-		 0, s.data(), (int)s.size(), ws.data(), size);
-    return ws;
+	if (s.empty())
+		return {};
+	int size = MultiByteToWideChar(
+		CP_UTF8, //
+		0,
+		s.data(),
+		(int)s.size(),
+		nullptr,
+		0
+	);
+	std::wstring ws(size, 0);
+	MultiByteToWideChar(
+		CP_UTF8, //
+		0,
+		s.data(),
+		(int)s.size(),
+		ws.data(),
+		size
+	);
+	return ws;
 }
-}
+} // namespace
 
 native_window::window_wrapper::window_wrapper(
 	const display_wrapper::window_class_wrapper& window_class,
@@ -47,11 +60,11 @@ native_window::window_wrapper::window_wrapper(
 	bool visible
 ) :
 	handle([&]() {
-		DWORD style   = WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+		DWORD style = WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
 		DWORD exStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
 
 		RECT rc{
-			0,
+			0, //
 			0,
 			int(window_params.dims.x()),
 			int(window_params.dims.y())
