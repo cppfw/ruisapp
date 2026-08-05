@@ -109,10 +109,17 @@ LRESULT CALLBACK window_procedure(
 		case WM_MOUSEMOVE:
 			{
 				if (!win.is_hovered) {
-					TRACKMOUSEEVENT tme = {sizeof(tme)};
-					tme.dwFlags = TME_LEAVE;
-					tme.hwndTrack = hwnd;
-					TrackMouseEvent(&tme);
+					// By default windows does not send the WM_MOUSELEAVE message when mouse cursor leaves the window.
+					// Here we request windows to track the mouse leave event and send us the WM_MOUSELEAVE message.
+					// The tracking is one-shot, i.e. after the mouse cursor leaves the window the tracking is cancelled,
+					// so we need to request it every tyme the mopuse cursor enters the window, i.e. when we receive the
+					// WM_MOUSEMOVE message the first time since the cursor has left the window.
+					{
+						TRACKMOUSEEVENT tme = {sizeof(tme)};
+						tme.dwFlags = TME_LEAVE;
+						tme.hwndTrack = hwnd;
+						TrackMouseEvent(&tme);
+					}
 
 					win.is_hovered = true;
 

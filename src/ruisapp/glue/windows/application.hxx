@@ -35,7 +35,9 @@ class app_window : public ruisapp::window
 public:
 	const utki::shared_ref<native_window> ruis_native_window;
 
-	// for tracking when mouse enters or leaves window
+	// For tracking of the mouse cursor entering or leaving the window.
+	// By default we think the window is not hovered, until we receive
+	// the first WM_MOUSEMOVE message.
 	bool is_hovered = false;
 
 	utki::flags<ruis::mouse_button> mouse_button_state = false;
