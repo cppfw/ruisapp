@@ -50,28 +50,12 @@ public:
 		ruis_native_window(std::move(ruis_native_window))
 	{}
 
-	void send_mouse_button_event(ruis::button_action action,//
-		 ruis::vec2 pos, ruis::mouse_button button, uint32_t pointer_id)
-	{
-		// WORKAROUND: Windows does not send mouse events when the mouse curosr is outside of the window.
-		// So, when the mouse cursor leaves the window, then we send release events for all the pressed
-		// buttons as a workaround.
-		// So, if the mouse curosr is back to window and then the physical mouse button is released then
-		// it would result in double mouse button release event.
-		// Thus, we need to check if the button is already up and ignore the release event if it is already up.
-		if(!this->mouse_button_state.get(button) && action == ruis::button_action::release){
-			// The button was not up, so ignore the button release event.
-			return;
-		}
-		
-		this->mouse_button_state.set(button);
-		this->gui.send_mouse_button(
-			action, //
-			pos,
-			button,
-			pointer_id
-		);
-	}
+	void send_mouse_button_event(
+		ruis::button_action action,//
+		ruis::vec2 pos,
+		ruis::mouse_button button,
+		uint32_t pointer_id
+	);
 };
 } // namespace
 

@@ -24,6 +24,35 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <Shlobj.h> // needed for SHGetFolderPathA()
 
 namespace {
+void app_window::send_mouse_button_event(
+	ruis::button_action action, //
+	ruis::vec2 pos,
+	ruis::mouse_button button,
+	uint32_t pointer_id
+)
+{
+    // WORKAROUND: Windows does not send mouse events when the mouse curosr is outside of the window.
+    // So, when the mouse cursor leaves the window, then we send release events for all the pressed
+    // buttons as a workaround.
+    // So, if the mouse curosr is back to window and then the physical mouse button is released then
+    // it would result in double mouse button release event.
+    // Thus, we need to check if the button is already up and ignore the release event if it is already up.
+    if(!this->mouse_button_state.get(button) && action == ruis::button_action::release){
+        // The button was not up, so ignore the button release event.
+        return;
+    }
+
+    this->mouse_button_state.set(button);
+    this->gui.send_mouse_button(
+        action, //
+        pos,
+        button,
+        pointer_id
+    );
+}
+} // namespace
+
+namespace {
 ruisapp::application::directories get_application_directories(std::string_view app_name)
 {
 	// the variable is initialized via output argument, so no need
