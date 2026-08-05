@@ -108,6 +108,7 @@ LRESULT CALLBACK window_procedure(
 
 		case WM_MOUSEMOVE:
 			{
+				std::cout << "WM_MOUSEMOVE: win.is_hovered = " << win.is_hovered << std::endl;
 				if (!win.is_hovered) {
 					// By default windows does not send the WM_MOUSELEAVE message when mouse cursor leaves the window.
 					// Here we request windows to track the mouse leave event and send us the WM_MOUSELEAVE message.
@@ -154,6 +155,7 @@ LRESULT CALLBACK window_procedure(
 			}
 		case WM_MOUSELEAVE:
 			{
+				std::cout << "WM_MOUSELEAVE: win.is_hovered = " << win.is_hovered << std::endl;
 				// Windows hides the mouse cursor even in non-client areas of the window,
 				// like caption bar and borders, so show cursor if it is hidden
 				if (!natwin.is_mouse_cursor_visible()) {
@@ -185,89 +187,71 @@ LRESULT CALLBACK window_procedure(
 				return 0;
 			}
 		case WM_LBUTTONDOWN:
-			{
-				win.mouse_button_state.set(ruis::mouse_button::left);
-				win.gui.send_mouse_button(
-					ruis::button_action::press,
-					ruis::vec2(
-						float(GET_X_LPARAM(l_param)), //
-						float(GET_Y_LPARAM(l_param))
-					),
-					ruis::mouse_button::left,
-					0 // pointer id
-				);
-				return 0;
-			}
+			win.send_mouse_button_event(
+				ruis::button_action::press,
+				ruis::vec2(
+					float(GET_X_LPARAM(l_param)), //
+					float(GET_Y_LPARAM(l_param))
+				),
+				ruis::mouse_button::left,
+				0 // pointer id
+			);
+			return 0;
 		case WM_LBUTTONUP:
-			{
-				win.mouse_button_state.clear(ruis::mouse_button::left);
-				win.gui.send_mouse_button(
-					ruis::button_action::release,
-					ruis::vec2(
-						float(GET_X_LPARAM(l_param)), //
-						float(GET_Y_LPARAM(l_param))
-					),
-					ruis::mouse_button::left,
-					0 // pointer id
-				);
-				return 0;
-			}
+			win.send_mouse_button_event(
+				ruis::button_action::release,
+				ruis::vec2(
+					float(GET_X_LPARAM(l_param)), //
+					float(GET_Y_LPARAM(l_param))
+				),
+				ruis::mouse_button::left,
+				0 // pointer id
+			);
+			return 0;
 		case WM_MBUTTONDOWN:
-			{
-				win.mouse_button_state.set(ruis::mouse_button::middle);
-				win.gui.send_mouse_button(
-					ruis::button_action::press,
-					ruis::vec2(
-						float(GET_X_LPARAM(l_param)), //
-						float(GET_Y_LPARAM(l_param))
-					),
-					ruis::mouse_button::middle,
-					0 // pointer id
-				);
-				return 0;
-			}
+			win.send_mouse_button_event(
+				ruis::button_action::press,
+				ruis::vec2(
+					float(GET_X_LPARAM(l_param)), //
+					float(GET_Y_LPARAM(l_param))
+				),
+				ruis::mouse_button::middle,
+				0 // pointer id
+			);
+			return 0;
 		case WM_MBUTTONUP:
-			{
-				win.mouse_button_state.clear(ruis::mouse_button::middle);
-				win.gui.send_mouse_button(
-					ruis::button_action::release,
-					ruis::vec2(
-						float(GET_X_LPARAM(l_param)), //
-						float(GET_Y_LPARAM(l_param))
-					),
-					ruis::mouse_button::middle,
-					0 // pointer id
-				);
-				return 0;
-			}
+			win.send_mouse_button_event(
+				ruis::button_action::release,
+				ruis::vec2(
+					float(GET_X_LPARAM(l_param)), //
+					float(GET_Y_LPARAM(l_param))
+				),
+				ruis::mouse_button::middle,
+				0 // pointer id
+			);
+			return 0;
 		case WM_RBUTTONDOWN:
-			{
-				win.mouse_button_state.set(ruis::mouse_button::right);
-				win.gui.send_mouse_button(
-					ruis::button_action::press,
-					ruis::vec2(
-						float(GET_X_LPARAM(l_param)), //
-						float(GET_Y_LPARAM(l_param))
-					),
-					ruis::mouse_button::right,
-					0 // pointer id
-				);
-				return 0;
-			}
+			win.send_mouse_button_event(
+				ruis::button_action::press,
+				ruis::vec2(
+					float(GET_X_LPARAM(l_param)), //
+					float(GET_Y_LPARAM(l_param))
+				),
+				ruis::mouse_button::right,
+				0 // pointer id
+			);
+			return 0;
 		case WM_RBUTTONUP:
-			{
-				win.mouse_button_state.clear(ruis::mouse_button::right);
-				win.gui.send_mouse_button(
-					ruis::button_action::release,
-					ruis::vec2(
-						float(GET_X_LPARAM(l_param)), //
-						float(GET_Y_LPARAM(l_param))
-					),
-					ruis::mouse_button::right,
-					0 // pointer id
-				);
-				return 0;
-			}
+			win.send_mouse_button_event(
+				ruis::button_action::release,
+				ruis::vec2(
+					float(GET_X_LPARAM(l_param)), //
+					float(GET_Y_LPARAM(l_param))
+				),
+				ruis::mouse_button::right,
+				0 // pointer id
+			);
+			return 0;
 		case WM_MOUSEWHEEL:
 			[[fallthrough]];
 		case WM_MOUSEHWHEEL:
