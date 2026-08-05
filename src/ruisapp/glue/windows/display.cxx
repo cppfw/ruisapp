@@ -108,7 +108,8 @@ LRESULT CALLBACK window_procedure(
 
 		case WM_MOUSEMOVE:
 			{
-				std::cout << "WM_MOUSEMOVE: win.is_hovered = " << win.is_hovered << std::endl;
+				// std::cout << "WM_MOUSEMOVE: win.is_hovered = " << win.is_hovered << std::endl;
+
 				if (!win.is_hovered) {
 					// By default windows does not send the WM_MOUSELEAVE message when mouse cursor leaves the window.
 					// Here we request windows to track the mouse leave event and send us the WM_MOUSELEAVE message.
@@ -155,7 +156,8 @@ LRESULT CALLBACK window_procedure(
 			}
 		case WM_MOUSELEAVE:
 			{
-				std::cout << "WM_MOUSELEAVE: win.is_hovered = " << win.is_hovered << std::endl;
+				// std::cout << "WM_MOUSELEAVE: win.is_hovered = " << win.is_hovered << std::endl;
+
 				// Windows hides the mouse cursor even in non-client areas of the window,
 				// like caption bar and borders, so show cursor if it is hidden
 				if (!natwin.is_mouse_cursor_visible()) {
