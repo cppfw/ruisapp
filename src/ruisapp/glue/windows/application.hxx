@@ -51,7 +51,7 @@ public:
 	{}
 
 	void send_mouse_button_event(
-		ruis::button_action action,//
+		ruis::button_action action, //
 		ruis::vec2 pos,
 		ruis::mouse_button button,
 		uint32_t pointer_id
