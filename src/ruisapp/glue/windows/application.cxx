@@ -66,7 +66,7 @@ ruisapp::application::directories get_application_directories(std::string_view a
 	path.back() = '\0'; // null-terminate the string just in case
 
 	std::string home_dir(path.data(), strlen(path.data()));
-	ASSERT(!home_dir.empty())
+	utki::assert(!home_dir.empty(), SL);
 
 	std::replace(
 		home_dir.begin(), //
@@ -82,6 +82,7 @@ ruisapp::application::directories get_application_directories(std::string_view a
 	ruisapp::application::directories dirs;
 
 	dirs.cache = utki::cat(home_dir, "cache/");
+	dirs.data = utki::cat(home_dir, "data/");
 	dirs.config = utki::cat(home_dir, "config/");
 	dirs.state = utki::cat(home_dir, "state/");
 

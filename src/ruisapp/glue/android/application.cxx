@@ -134,6 +134,7 @@ ruisapp::application::directories get_application_directories(std::string_view a
 	ruisapp::application::directories dirs;
 
 	dirs.cache = utki::cat(storage_dir, "cache/");
+	dirs.data = utki::cat(storage_dir, "data/");
 	dirs.config = utki::cat(storage_dir, "config/");
 	dirs.state = utki::cat(storage_dir, "state/");
 

@@ -227,10 +227,12 @@ ruisapp::application::directories get_application_directories(std::string_view a
 	ruisapp::application::directories dirs;
 
 	dirs.cache = utki::cat(base_dir, "cache/"sv);
+	dirs.data = utki::cat(base_dir, "data/"sv);
 	dirs.config = utki::cat(base_dir, "config/"sv);
 	dirs.state = utki::cat(base_dir, "state/"sv);
 
 	// std::cout << "cache dir = " << dirs.cache << std::endl;
+	// std::cout << "data dir = " << dirs.data << std::endl;
 	// std::cout << "config dir = " << dirs.config << std::endl;
 	// std::cout << "state dir = " << dirs.state << std::endl;
 

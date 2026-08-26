@@ -78,11 +78,34 @@ public:
 
 	/**
 	 * @brief Aggregation of application directory locations.
-	 * See https://www.freedesktop.org/software/systemd/man/file-hierarchy.html#Home%20Directory
+	 * See https://specifications.freedesktop.org/basedir/latest/#variables
 	 */
 	struct directories {
+		/**
+		 * @brief User-specific non-essential data files.
+		 */
 		std::string cache;
+
+		/**
+		 * @brief User-specific data files.
+		 * Contains user-specific data files, like game saves, local library, database with user data.
+		 */
+		std::string data;
+
+		/**
+		 * @brief User-specific configuration files.
+		 * Contains user-specific configuration files, like settings, UI preferences, server address etc.
+		 */
 		std::string config;
+
+		/**
+		 * @brief State data that should persist between the application restarts.
+		 * Contains state data that should persist between (application) restarts,
+		 * but that is not important or portable enough to the user that it should be stored in data directory.
+		 * It may contain:
+		 *  - actions history (logs, history, recently used files, etc.)
+		 *  - current state of the application that can be reused on a restart (view, layout, open files, undo history, etc.)
+		 */
 		std::string state;
 	};
 

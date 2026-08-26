@@ -67,10 +67,12 @@ inline ruisapp::application::directories get_application_directories(std::string
 	using namespace std::string_view_literals;
 
 	dirs.cache = get_xdg_dir_home("XDG_CACHE_HOME", ".cache/"sv, app_name);
+	dirs.data = get_xdg_dir_home("XDG_CACHE_DATA", ".local/share/"sv, app_name);
 	dirs.config = get_xdg_dir_home("XDG_CONFIG_HOME", ".config/"sv, app_name);
 	dirs.state = get_xdg_dir_home("XDG_STATE_HOME", ".local/state/"sv, app_name);
 
 	// std::cout << "cache dir = " << dirs.cache << std::endl;
+	// std::cout << "data dir = " << dirs.data << std::endl;
 	// std::cout << "config dir = " << dirs.config << std::endl;
 	// std::cout << "state dir = " << dirs.state << std::endl;
 
