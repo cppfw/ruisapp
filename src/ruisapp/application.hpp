@@ -78,6 +78,7 @@ public:
 
 	/**
 	 * @brief Aggregation of application directory locations.
+	 * All the directory paths are guaranteed to have the trailing '/'.
 	 * See https://specifications.freedesktop.org/basedir/latest/#variables
 	 */
 	struct directories {
