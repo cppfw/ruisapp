@@ -13,7 +13,6 @@
 #include <ruis/widget/button/push_button.hpp>
 #include <ruis/widget/label/text.hpp>
 #include <ruis/res/texture_2d.hpp>
-#include <ruis/widget/input/character_input_widget.hpp>
 #include <ruis/widget/group/scroll_area.hpp>
 #include <ruis/widget/proxy/mouse_proxy.hpp>
 #include <ruis/widget/slider/scroll_bar.hpp>
@@ -309,7 +308,7 @@ public:
 
 		// text_input
 		{
-			auto& l = c.get().get_widget("text_input").get_widget<ruis::text_input_line>();
+			auto& l = c.get().get_widget("text_input").get_widget<ruis::raw_text_input_line>();
 			utki::assert(!l.get_text().empty(), SL);
 		}
 
