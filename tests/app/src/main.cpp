@@ -112,7 +112,7 @@ public:
 			auto& bg = c.get().get_widget_as<ruis::rectangle>("cube_bg_color");
 			cp.pressed_change_handler = [r{utki::make_shared_from(bg)}](ruis::click_proxy& w){
 				// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
-				r.get().set_color(w.is_pressed() ? 0xff808080 : 0x80808080);
+				r.get().set_fill_color(w.is_pressed() ? 0xff808080 : 0x80808080);
 				return ruis::event_status::consumed;
 			};
 			cp.pressed_change_handler(cp); // set initial color
