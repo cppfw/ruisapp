@@ -6,7 +6,7 @@
 #include <ruis/widget/group/collapse_area.hpp>
 #include <ruis/widget/button/impl/image_push_button.hpp>
 #include <ruis/widget/label/gap.hpp>
-#include <ruis/widget/input/text_input_field.hpp>
+#include <ruis/widget/input/text_input.hpp>
 
 using namespace std::string_literals;
 using namespace std::string_view_literals;
@@ -121,7 +121,7 @@ utki::shared_ref<ruis::window> make_text_input_window(
                     }
                 },
                 {
-                    m::text_input_field(c,
+                    m::text_input(c,
                         {
                             .layout_params{
                                 .dims{ruis::dim::fill, ruis::dim::max}
