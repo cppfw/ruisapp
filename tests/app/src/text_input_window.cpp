@@ -110,14 +110,16 @@ utki::shared_ref<ruis::window> make_text_input_window(
             ),
             m::nine_patch(c,
                 {
-                    .layout_params{
+                    .layout{
                         .dims{ruis::dim::max, ruis::dim::min}
                     },
-                    .widget_params{
+                    .widget{
                         .id = "text_input"s
                     },
-                    .nine_patch_params{
-                        .nine_patch = c.get().loader().load<ruis::res::nine_patch>("ruis_npt_textfield_background"sv)
+                    .params{
+                        .specific{
+                            .nine_patch = c.get().loader().load<ruis::res::nine_patch>("ruis_npt_textfield_background"sv)
+                        }
                     }
                 },
                 {
