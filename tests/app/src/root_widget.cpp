@@ -52,7 +52,7 @@ utki::shared_ref<ruis::widget> make_root_widget(const utki::shared_ref<ruis::con
                                     .layout_params{
                                         .dims = {ruis::dim::fill, ruis::dim::fill}
                                     },
-                                    .image_params{
+                                    .params{
                                         .img = c.get().loader().load<ruis::res::image>("img_sample")
                                     }
                                 }
