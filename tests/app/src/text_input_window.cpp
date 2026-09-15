@@ -26,7 +26,7 @@ utki::shared_ref<ruis::push_button> make_push_button(
     // clang-format off
     return m::push_button(c,
         {
-            .layout_params{
+            .layout{
                 .dims{ruis::dim::min, ruis::dim::fill},
                 .weight = 1
             }
@@ -86,7 +86,7 @@ utki::shared_ref<ruis::window> make_text_input_window(
                 {
                     m::push_button(c,
                         {
-                            .widget_params{
+                            .widget{
                                 .id = "showhide_mousecursor_button"s
                             }
                         },
@@ -96,7 +96,7 @@ utki::shared_ref<ruis::window> make_text_input_window(
                     ),
                     m::push_button(c,
                         {
-                            .widget_params{
+                            .widget{
                                 .id = "fullscreen_button"s
                             }
                         },

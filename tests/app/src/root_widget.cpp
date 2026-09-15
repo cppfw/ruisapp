@@ -59,7 +59,7 @@ utki::shared_ref<ruis::widget> make_root_widget(const utki::shared_ref<ruis::con
                             ),
                             m::container(c,
                                 {
-                                    .layout_params{
+                                    .layout{
                                         .dims{ruis::dim::fill, ruis::dim::fill}
                                     },
                                     .container_params{

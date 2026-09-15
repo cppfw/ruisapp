@@ -102,7 +102,7 @@ utki::shared_ref<ruis::window> make_scroll_area_window(
                             ),
                             m::push_button(c,
                                 {
-                                    .widget_params{
+                                    .widget{
                                         .id = "push_button_in_scroll_container"s,
                                         .rectangle{
                                             {
