@@ -129,7 +129,7 @@ utki::shared_ref<ruis::window> make_text_input_window(
 				{
 					m::text_input(c,
 						{
-							.layout_params{
+							.layout{
 								.dims{ruis::dim::fill, ruis::dim::max}
 							}
 						},
