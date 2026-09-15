@@ -54,7 +54,7 @@ utki::shared_ref<ruis::widget> make_root_widget(const utki::shared_ref<ruis::con
                                     },
                                     .params{
                                         .specific{
-                                            .img = c.get().loader().load<ruis::res::image>("img_sample")
+                                            .source = c.get().loader().load<ruis::res::image>("img_sample")
                                         }
                                     }
                                 }
