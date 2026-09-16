@@ -26,7 +26,7 @@ utki::shared_ref<ruis::push_button> make_push_button(
 	// clang-format off
 	return m::push_button(c,
 		{
-			.layout{
+			.layout_params{
 				.dims{ruis::dim::min, ruis::dim::fill},
 				.weight = 1
 			}
@@ -83,7 +83,7 @@ utki::shared_ref<ruis::window> make_text_input_window(
 		{
 			m::row(c,
 				{
-					.layout{
+					.layout_params{
 						.align{ruis::align::front, ruis::align::front}
 					}
 				},
@@ -114,7 +114,7 @@ utki::shared_ref<ruis::window> make_text_input_window(
 			),
 			m::nine_patch(c,
 				{
-					.layout{
+					.layout_params{
 						.dims{ruis::dim::max, ruis::dim::min}
 					},
 					.widget{
@@ -129,7 +129,7 @@ utki::shared_ref<ruis::window> make_text_input_window(
 				{
 					m::text_input(c,
 						{
-							.layout{
+							.layout_params{
 								.dims{ruis::dim::fill, ruis::dim::max}
 							}
 						},
