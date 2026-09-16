@@ -63,7 +63,7 @@ utki::shared_ref<ruis::window> make_text_input_window(
 	// clang-format off
 	return m::window(c,
 		{
-			.widget_params{
+			.widget{
 				.rectangle{
 					{
 						pos.x().get(c.get()),
@@ -83,7 +83,7 @@ utki::shared_ref<ruis::window> make_text_input_window(
 		{
 			m::row(c,
 				{
-					.layout_params{
+					.layout{
 						.align{ruis::align::front, ruis::align::front}
 					}
 				},

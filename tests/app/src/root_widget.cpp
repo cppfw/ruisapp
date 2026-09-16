@@ -29,7 +29,7 @@ utki::shared_ref<ruis::widget> make_root_widget(const utki::shared_ref<ruis::con
         {
             m::image_mouse_cursor(c,
                 {
-                    .layout_params{
+                    .layout{
                         .dims{ruis::dim::fill, ruis::dim::fill}
                     },
                     .mouse_cursor_params{
@@ -39,10 +39,10 @@ utki::shared_ref<ruis::widget> make_root_widget(const utki::shared_ref<ruis::con
                 {
                     m::overlay(c,
                         {
-                            .layout_params{
+                            .layout{
                                 .dims{ruis::dim::fill, ruis::dim::fill}
                             },
-                            .widget_params{
+                            .widget{
                                 .id = "overlay"s
                             },
                         },
