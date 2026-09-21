@@ -1,3 +1,9 @@
+libruisapp (0.2.139) unstable; urgency=medium
+
+  * update
+
+ -- Ivan Gagis <igagis@gmail.com>  Mon, 21 Sep 2026 18:48:16 +0300
+
 libruisapp (0.2.138) unstable; urgency=medium
 
   * add data directory to the app directories
