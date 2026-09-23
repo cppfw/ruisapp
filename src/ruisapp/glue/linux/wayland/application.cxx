@@ -243,6 +243,7 @@ void application_glue::destroy_window(app_window& w)
 	auto i = this->windows.find(w.ruis_native_window.get().get_id());
 	utki::assert(i != this->windows.end(), SL);
 
+	// TODO: add comment explaining why deferring is needed, do it in all glue implementations
 	// Defer actual window object destruction until next main loop cycle,
 	// for that put the window to the list of windows to destroy.
 	this->windows_to_destroy.push_back(std::move(i->second));
