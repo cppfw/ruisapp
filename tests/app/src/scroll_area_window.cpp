@@ -1,20 +1,20 @@
 #include "scroll_area_window.hpp"
 
-#include <ruis/widget/group/scroll_area.hpp>
-#include <ruis/widget/group/collapse_area.hpp>
-#include <ruis/widget/label/image.hpp>
 #include <ruis/widget/button/push_button.hpp>
-#include <ruis/widget/slider/scroll_bar.hpp>
+#include <ruis/widget/group/collapse_area.hpp>
+#include <ruis/widget/group/scroll_area.hpp>
+#include <ruis/widget/label/image.hpp>
 #include <ruis/widget/proxy/min_proxy.hpp>
+#include <ruis/widget/slider/scroll_bar.hpp>
 
 using namespace std::string_literals;
 using namespace std::string_view_literals;
 
 using namespace ruis::length_literals;
 
-namespace m{
+namespace m {
 using namespace ruis::make;
-}
+} // namespace m
 
 // In GCC 12.2 with -O3 and -g3, the GCC compiler complains:
 // std::__cxx11::basic_string<char>::_Alloc_hider::_M_p' may be used uninitialized [-Werror=maybe-uninitialized]
@@ -25,11 +25,11 @@ using namespace ruis::make;
 #endif
 
 utki::shared_ref<ruis::window> make_scroll_area_window(
-    const utki::shared_ref<ruis::context>& c, //
-    ruis::vec2_length pos
+	const utki::shared_ref<ruis::context>& c, //
+	ruis::vec2_length pos
 )
 {
-    // clang-format off
+	// clang-format off
     return m::window(c,
         {
             .widget{
@@ -175,7 +175,7 @@ utki::shared_ref<ruis::window> make_scroll_area_window(
             )
         }
     );
-    // clang-format on
+	// clang-format on
 }
 
 #if CFG_COMPILER == CFG_COMPILER_GCC && CFG_COMPILER_VERSION_MAJOR == 12 && CFG_COMPILER_VERSION_MINOR == 2

@@ -1,23 +1,23 @@
 #include "text_input_window.hpp"
 
-#include <ruis/widget/button/tab_group.hpp>
-#include <ruis/widget/button/tab.hpp>
 #include <ruis/widget/button/impl/check_box.hpp>
-#include <ruis/widget/group/collapse_area.hpp>
 #include <ruis/widget/button/impl/image_push_button.hpp>
-#include <ruis/widget/label/gap.hpp>
+#include <ruis/widget/button/tab.hpp>
+#include <ruis/widget/button/tab_group.hpp>
+#include <ruis/widget/group/collapse_area.hpp>
 #include <ruis/widget/input/text_input.hpp>
+#include <ruis/widget/label/gap.hpp>
 
 using namespace std::string_literals;
 using namespace std::string_view_literals;
 
 using namespace ruis::length_literals;
 
-namespace m{
+namespace m {
 using namespace ruis::make;
-}
+} // namespace m
 
-namespace{
+namespace {
 utki::shared_ref<ruis::push_button> make_push_button(
 	const utki::shared_ref<ruis::context>& c, //
 	std::u32string text
@@ -40,12 +40,9 @@ utki::shared_ref<ruis::push_button> make_push_button(
 	);
 	// clang-format on
 }
-}
+} // namespace
 
-utki::shared_ref<ruis::window> make_text_input_window(
-	const utki::shared_ref<ruis::context>& c,
-	ruis::vec2_length pos
-)
+utki::shared_ref<ruis::window> make_text_input_window(const utki::shared_ref<ruis::context>& c, ruis::vec2_length pos)
 {
 	// clang-format off
 	auto vsync_check_box = m::check_box(c,
@@ -56,7 +53,7 @@ utki::shared_ref<ruis::window> make_text_input_window(
 		}
 	);
 	// clang-format on
-	vsync_check_box.get().pressed_change_handler = [](ruis::button& b){
+	vsync_check_box.get().pressed_change_handler = [](ruis::button& b) {
 		b.context.get().ren().ctx().set_vsync_enabled(b.is_pressed());
 	};
 
