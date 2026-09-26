@@ -3,7 +3,6 @@
 #include <ruis/widget/group/overlay.hpp>
 #include <ruis/widget/label/image.hpp>
 #include <ruis/widget/label/image_mouse_cursor.hpp>
-#include <ruis/widget/proxy/key_proxy.hpp>
 
 #include "gradient_window.hpp"
 #include "scroll_area_window.hpp"
@@ -25,10 +24,7 @@ using namespace ruis::make;
 utki::shared_ref<ruis::widget> make_root_widget(const utki::shared_ref<ruis::context>& c)
 {
 	// clang-format off
-    return m::key_proxy(c,
-        {},
-        {
-            m::image_mouse_cursor(c,
+    return m::image_mouse_cursor(c,
                 {
                     .layout_params{
                         .dims{ruis::dim::fill, ruis::dim::fill}
@@ -82,8 +78,6 @@ utki::shared_ref<ruis::widget> make_root_widget(const utki::shared_ref<ruis::con
                         }
                     )
                 }
-            )
-        }
     );
 	// clang-format on
 }
