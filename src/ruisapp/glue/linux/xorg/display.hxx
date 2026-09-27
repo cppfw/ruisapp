@@ -77,6 +77,18 @@ public:
 
 	display_wrapper() :
 		xorg_input_method(this->xorg_display),
+#if defined(RUISAPP_RENDER_OPENGLES)
+		// The window and its visual are created on the X11 display, so the EGL
+		// display has to be created on the X11 platform as well. eglGetDisplay()
+		// alone auto-selects the platform from the environment (e.g. it picks the
+		// Wayland platform when WAYLAND_DISPLAY is set, whose
+		// EGL_NATIVE_VISUAL_ID is not a valid X11 visual id, causing
+		// XGetVisualInfo() to fail, or it may crash inside the Wayland EGL
+		// driver). Requesting the X11 platform explicitly is independent of the
+		// environment, which is why the same binary could work in one environment
+		// and fail in another.
+		egl_display(this->xorg_display.display, EGL_PLATFORM_X11_EXT),
+#endif
 		scale_factor([]() {
 			gtk_init();
 

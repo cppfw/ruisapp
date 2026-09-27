@@ -25,6 +25,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <string_view>
 
 #include <EGL/egl.h>
+#include <EGL/eglext.h>
 #include <utki/string.hpp>
 #include <utki/version.hpp>
 
@@ -121,8 +122,36 @@ private:
 	}
 
 public:
-	egl_display_wrapper(EGLNativeDisplayType display_id = EGL_DEFAULT_DISPLAY) :
+	egl_display_wrapper(
+		EGLNativeDisplayType display_id = EGL_DEFAULT_DISPLAY, //
+		EGLenum platform = 0 // 0 means use the default platform selection
+	) :
 		display([&]() {
+			// If an explicit platform is requested, create the EGL display on that
+			// specific platform. This is required because eglGetDisplay()
+			// auto-selects the platform from the environment (e.g. it picks the
+			// Wayland platform when WAYLAND_DISPLAY is set), which does not match
+			// the backend: for this X11-based backend it either yields an
+			// EGL_NATIVE_VISUAL_ID that is not a valid X11 visual
+			// (XGetVisualInfo() fails) or crashes inside the Wayland EGL driver.
+			if (platform != 0) {
+				auto egl_get_platform_display =
+					(PFNEGLGETPLATFORMDISPLAYEXTPROC)eglGetProcAddress("eglGetPlatformDisplayEXT");
+
+				if (egl_get_platform_display) {
+					auto d = egl_get_platform_display(platform, display_id, nullptr);
+					if (d != EGL_NO_DISPLAY) {
+						return d;
+					}
+
+					utki::logcat(
+						"WARNING: eglGetPlatformDisplayEXT() failed, error: ", //
+						egl_error_to_string(eglGetError()),
+						". Falling back to eglGetDisplay().\n"
+					);
+				}
+			}
+
 			auto d = eglGetDisplay(display_id);
 			if (d == EGL_NO_DISPLAY) {
 				throw std::runtime_error(utki::cat(
