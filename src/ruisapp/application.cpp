@@ -147,7 +147,8 @@ ruisapp::window& application::make_window(window_parameters window_params)
 	auto& win = this->make_window_internal(std::move(window_params));
 
 	// By choice, the VSYNC is enabled by default.
-	// This call will synchornize the is_vsync_enabled_v field of the native window with the actual VSYNC state of the window.
+	// This call will synchornize the is_vsync_enabled_v field of the native window
+	// with the actual VSYNC state of the newly created window.
 	win.gui.context.get().ren().ctx().set_vsync_enabled(true);
 
 	return win;
