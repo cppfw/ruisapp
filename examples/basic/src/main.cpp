@@ -10,7 +10,7 @@ public:
 	Application() :
 			ruisapp::App(ruisapp::window_parameters(r4::vector2<unsigned>(800, 600)))
 	{
-		ruis::Morda::inst().init_standard_widgets(*this->get_res_file());
+		ruis::Morda::inst().mount_ruis_res_pack(*this->get_res_file());
 
 		//Inflate widgets hierarchy from GUI description script
 		auto c = ruis::Morda::inst().inflater.inflate(

@@ -152,6 +152,13 @@ public:
 			.minor = 0
 		};
 		// clang-format on
+
+		/**
+		 * @brief Mount ruis resource packs.
+		 * If true, the application will call ruis::mount_standard_res_pack()
+		 * for the resource loader provided by ruisapp.
+		 */
+		bool mount_ruis_res_pack = true;
 	};
 
 private:
