@@ -100,6 +100,11 @@ private:
 		windows;
 
 public:
+	const auto& get_windows()
+	{
+		return this->windows;
+	}
+
 	std::vector<utki::shared_ref<app_window>> windows_to_destroy;
 
 	application_glue(const utki::version_duplet& gl_version) :
@@ -344,6 +349,21 @@ void application::destroy_window(ruisapp::window& w)
 		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast, "assert(dynamic_cast) done")
 		static_cast<app_window&>(w)
 	);
+}
+
+std::vector<std::reference_wrapper<ruisapp::window>> application::get_windows()
+{
+	auto& glue = get_glue(*this);
+	const auto& windows = glue.get_windows();
+
+	std::vector<std::reference_wrapper<ruisapp::window>> ret;
+	ret.reserve(windows.size());
+
+	for (auto& w : windows) {
+		ret.emplace_back(w.second.get());
+	}
+
+	return ret;
 }
 
 int main(int argc, const char** argv)

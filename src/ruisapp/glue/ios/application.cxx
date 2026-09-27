@@ -165,3 +165,15 @@ void ruisapp::application::destroy_window(ruisapp::window& w)
 		SL
 	);
 }
+
+std::vector<std::reference_wrapper<ruisapp::window>> ruisapp::application::get_windows()
+{
+	auto& glue = get_glue(*this);
+
+	std::vector<std::reference_wrapper<ruisapp::window>> ret;
+	if (auto* w = glue.get_window()) {
+		ret.emplace_back(*w);
+	}
+
+	return ret;
+}

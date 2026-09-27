@@ -164,6 +164,21 @@ void ruisapp::application::destroy_window(ruisapp::window& w)
 	);
 }
 
+std::vector<std::reference_wrapper<ruisapp::window>> ruisapp::application::get_windows()
+{
+	auto& glue = get_glue(*this);
+	const auto& windows = glue.get_windows();
+
+	std::vector<std::reference_wrapper<ruisapp::window>> ret;
+	ret.reserve(windows.size());
+
+	for (auto& w : windows) {
+		ret.emplace_back(w.second.get());
+	}
+
+	return ret;
+}
+
 ruisapp::window& application_glue::make_window(ruisapp::window_parameters window_params)
 {
 	utki::logcat_debug("application_glue::make_window(): enter", '\n');

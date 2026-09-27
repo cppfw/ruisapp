@@ -238,3 +238,18 @@ void ruisapp::application::destroy_window(ruisapp::window& w)
 	utki::assert(dynamic_cast<app_window*>(&w), SL);
 	glue.destroy_window(static_cast<app_window&>(w));
 }
+
+std::vector<std::reference_wrapper<ruisapp::window>> ruisapp::application::get_windows()
+{
+	auto& glue = get_glue(*this);
+	const auto& windows = glue.get_windows();
+
+	std::vector<std::reference_wrapper<ruisapp::window>> ret;
+	ret.reserve(windows.size());
+
+	for (auto& w : windows) {
+		ret.emplace_back(w.get());
+	}
+
+	return ret;
+}

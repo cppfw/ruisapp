@@ -79,6 +79,11 @@ public:
 
 	std::vector<utki::shared_ref<app_window>> windows_to_destroy;
 
+	const auto& get_windows() const noexcept
+	{
+		return this->windows;
+	}
+
 	struct macos_application_wrapper {
 		const NSApplication* application;
 

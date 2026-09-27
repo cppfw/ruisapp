@@ -251,3 +251,18 @@ void ruisapp::application::destroy_window(ruisapp::window& w)
 	auto& app_win = static_cast<app_window&>(w);
 	glue.destroy_window(app_win.ruis_native_window.get().get_id());
 }
+
+std::vector<std::reference_wrapper<ruisapp::window>> ruisapp::application::get_windows()
+{
+	auto& glue = get_glue(*this);
+	const auto& windows = glue.get_windows();
+
+	std::vector<std::reference_wrapper<ruisapp::window>> ret;
+	ret.reserve(windows.size());
+
+	for (auto& w : windows) {
+		ret.emplace_back(w.second.get());
+	}
+
+	return ret;
+}

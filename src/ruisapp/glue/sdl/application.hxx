@@ -85,6 +85,11 @@ private:
 public:
 	std::vector<utki::shared_ref<app_window>> windows_to_destroy;
 
+	const auto& get_windows() const noexcept
+	{
+		return this->windows;
+	}
+
 	utki::shared_ref<ruis::updater> updater = utki::make_shared<ruis::updater>();
 
 	std::atomic_bool quit_flag = false;

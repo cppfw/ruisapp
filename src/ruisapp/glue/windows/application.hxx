@@ -82,6 +82,11 @@ public:
 
 	std::vector<utki::shared_ref<app_window>> windows_to_destroy;
 
+	const auto& get_windows() const noexcept
+	{
+		return this->windows;
+	}
+
 	application_glue(const utki::version_duplet& gl_version);
 
 	ruisapp::window& make_window(ruisapp::window_parameters window_params);

@@ -208,7 +208,8 @@ public:
 	 * @param window_params - window parameters.
 	 * @return shared_ref to the created window object.
 	 */
-	// TODO: allow injecting own style provider (along with loader)
+	// TODO: allow injecting own style provider (along with loader). TODO: why?
+	// UPDATE: user might want to have different styles in different windows.
 	ruisapp::window& make_window(window_parameters window_params);
 
 	/**
@@ -216,6 +217,12 @@ public:
 	 * @param w - native window to destroy.
 	 */
 	void destroy_window(ruisapp::window& w);
+
+	/**
+	 * @brief Get all application windows.
+	 * @return all application windows.
+	 */
+	std::vector<std::reference_wrapper<ruisapp::window>> get_windows();
 
 	/**
 	 * @brief Get dots per density pixel (dp) for given display parameters.
@@ -226,6 +233,7 @@ public:
 	 * @param screen_size_mm - size of the display in millimeters.
 	 * @return Size of one display density pixel in pixels.
 	 */
+	// TODO: remove? Use scale factor provided by platform?
 	static ruis::real get_pixels_per_pp(
 		r4::vector2<unsigned> screen_size_pixels, //
 		r4::vector2<unsigned> screen_size_mm
