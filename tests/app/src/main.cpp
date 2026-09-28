@@ -5,7 +5,6 @@
 #include <ruis/config.hpp>
 #include <ruis/layout/linear_layout.hpp>
 #include <ruis/res/texture_2d.hpp>
-#include <ruis/standard_resources.hpp>
 #include <ruis/widget/button/push_button.hpp>
 #include <ruis/widget/button/selection_box.hpp>
 #include <ruis/widget/container.hpp>
@@ -62,7 +61,7 @@ public:
 			this->quit();
 		};
 
-		this->window.gui.mount_ruis_res_pack(this->get_res_file("../../res/ruis_res/"));
+		this->window.gui.ctx().loader().mount_ruis_res_pack(this->get_res_file("../../res/ruis_res/"));
 
 		this->window.gui.context.get().loader().mount_res_pack(this->get_res_file("res/"));
 

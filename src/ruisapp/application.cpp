@@ -23,7 +23,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include <fsif/native_file.hpp>
 #include <fsif/root_dir.hpp>
-#include <ruis/standard_resources.hpp>
 #include <ruis/widget/widget.hpp>
 #include <utki/config.hpp>
 #include <utki/debug.hpp>
@@ -90,10 +89,7 @@ application::application(private_parameters params) :
 		// Platform supports shared style_provider.
 
 		if (this->mount_ruis_res_pack) {
-			ruis::mount_ruis_res_pack(
-				sp->res_loader, //
-				this->get_res_file()
-			);
+			sp->res_loader.get().mount_ruis_res_pack(this->get_res_file());
 		}
 	}
 
@@ -190,7 +186,7 @@ ruisapp::window& application::make_window(window_parameters window_params)
 		if (this->mount_ruis_res_pack) {
 			// The platform doesn't have shared style provider, so we need to
 			// mount ruis res pack and set the theme to the newly created window.
-			win.gui.mount_ruis_res_pack(this->get_res_file());
+			win.gui.ctx().loader().mount_ruis_res_pack(this->get_res_file());
 		}
 
 		if (this->default_theme.has_value()) {
