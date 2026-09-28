@@ -139,6 +139,9 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 		common_render_objects
 	);
 
+	// custom style provider is not supported on emscripten
+	utki::assert(window_params.style_provider == nullptr, SL);
+
 	auto ruis_style_provider = utki::make_shared<ruis::style_provider>(std::move(ruis_resource_loader));
 #endif
 
@@ -179,7 +182,18 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 #if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
 			std::move(ruis_style_provider),
 #else
-			this->ruis_style_provider,
+			[&]() {
+				if (!window_params.style_provider) {
+					return this->ruis_style_provider;
+				}
+
+				// resource loader must be the same
+				utki::assert(
+					&this->ruis_style_provider.get().res_loader.get() == &window_params.style_provider->res_loader.get()
+				);
+
+				return utki::shared_ref(window_params.style_provider);
+			}(),
 #endif
 		.units = ruis::units(
 			ruis_native_window.get().get_dpi(), //

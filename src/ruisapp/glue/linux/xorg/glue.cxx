@@ -185,7 +185,20 @@ public:
 				this->common_shaders,
 				this->common_render_objects
 			),
-			.style_provider = this->ruis_style_provider,
+			.style_provider =
+				[&]() {
+					if (!window_params.style_provider) {
+						return this->ruis_style_provider;
+					}
+
+					// resource loader must be the same
+					utki::assert(
+						&this->ruis_style_provider.get().res_loader.get() ==
+						&window_params.style_provider->res_loader.get()
+					);
+
+					return utki::shared_ref(window_params.style_provider);
+				}(),
 			.units =
 				[this]() {
 					return ruis::units(

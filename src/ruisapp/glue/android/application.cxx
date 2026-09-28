@@ -67,6 +67,9 @@ app_window& application_glue::make_window(ruisapp::window_parameters window_para
 		common_render_objects
 	);
 
+	// custom style provider is not supported on android
+	utki::assert(window_params.style_provider == nullptr, SL);
+
 	auto ruis_style_provider = utki::make_shared<ruis::style_provider>(std::move(ruis_resource_loader));
 
 	auto ruis_context = utki::make_shared<ruis::context>(ruis::context::parameters{
