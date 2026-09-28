@@ -136,7 +136,7 @@ public:
 			// (XGetVisualInfo() fails) or crashes inside the Wayland EGL driver.
 			if (platform != 0) {
 				auto egl_get_platform_display =
-					(PFNEGLGETPLATFORMDISPLAYEXTPROC)eglGetProcAddress("eglGetPlatformDisplayEXT");
+					reinterpret_cast<PFNEGLGETPLATFORMDISPLAYEXTPROC>(eglGetProcAddress("eglGetPlatformDisplayEXT"));
 
 				if (egl_get_platform_display) {
 					auto d = egl_get_platform_display(platform, display_id, nullptr);
