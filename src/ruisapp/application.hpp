@@ -27,6 +27,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <r4/vector.hpp>
 #include <ruis/config.hpp>
 #include <ruis/gui.hpp>
+#include <ruis/style/style_provider.hpp>
 #include <ruis/util/key.hpp>
 #include <utki/config.hpp>
 #include <utki/destructable.hpp>
@@ -202,14 +203,33 @@ public:
 private:
 	ruisapp::window& make_window_internal(window_parameters window_params);
 
+	/**
+	 * @brief Get the shared style provider.
+	 * Gets the style provider pre-created by ruisapp at application construction.
+	 * This style provider is shared by all application windows.
+	 * @return The shared style provider. A reference to a null pointer is returned
+	 * on platforms where no shared style provider is pre-created (e.g. android, ios, sdl).
+	 */
+	const std::shared_ptr<ruis::style_provider>& get_shared_style_provider();
+
+	/**
+	 * @brief Get the default style provider.
+	 * Gets the default style provider for the application.
+	 * @return The shared style provider if one is pre-created, otherwise, in case
+	 * there are any windows, the style provider of the first window in the list.
+	 * A reference to a null pointer is returned in case there is no pre-created
+	 * shared style provider and no windows have been created.
+	 */
+	const std::shared_ptr<ruis::style_provider>& get_default_style_provider();
+
 public:
 	/**
 	 * @brief Create native window.
 	 * @param window_params - window parameters.
 	 * @return shared_ref to the created window object.
+	 * @throw std::invalid_argument in case the supplied window_params.style_provider has inconsistent resource_loader instance.
+	 *        See description of window_parameters::style_provider for more details.
 	 */
-	// TODO: allow injecting own style provider (along with loader). TODO: why?
-	// UPDATE: user might want to have different styles in different windows.
 	ruisapp::window& make_window(window_parameters window_params);
 
 	/**

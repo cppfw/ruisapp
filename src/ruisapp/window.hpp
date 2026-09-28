@@ -110,6 +110,15 @@ struct window_parameters {
 	 * Color buffer is always there implicitly.
 	 */
 	utki::flags<ruisapp::buffer> buffers = false;
+
+	/**
+	 * @brief Style provider to use for the window.
+	 * If nullptr the ruisapp will use default style provider for the new window.
+	 * The style provider should use the same resource_loader as all the other windows,
+	 * otherwise it is an error. If no other windows exist yet, then this parameter must
+	 * be nullptr.
+	 */
+	std::shared_ptr<ruis::style_provider> style_provider;
 };
 
 class window

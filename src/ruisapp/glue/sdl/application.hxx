@@ -63,7 +63,6 @@ class application_glue : public utki::destructable
 public:
 	const utki::shared_ref<display_wrapper> display = utki::make_shared<display_wrapper>();
 
-private:
 	const utki::version_duplet gl_version;
 
 // only one window allowed on emscripten, so we don't create hidden window for shared GL context
@@ -82,7 +81,6 @@ private:
 		>
 		windows;
 
-public:
 	std::vector<utki::shared_ref<app_window>> windows_to_destroy;
 
 	const auto& get_windows() const noexcept

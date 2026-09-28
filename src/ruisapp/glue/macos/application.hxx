@@ -68,8 +68,11 @@ class application_glue : public utki::destructable
 	const utki::shared_ref<const ruis::render::context::shaders> common_shaders;
 	const utki::shared_ref<const ruis::render::renderer::objects> common_render_objects;
 	const utki::shared_ref<ruis::resource_loader> ruis_resource_loader;
+
+public:
 	const utki::shared_ref<ruis::style_provider> ruis_style_provider;
 
+private:
 	std::set<utki::shared_ref<app_window>> windows;
 
 public:

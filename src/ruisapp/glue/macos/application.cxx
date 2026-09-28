@@ -253,3 +253,9 @@ std::vector<std::reference_wrapper<ruisapp::window>> ruisapp::application::get_w
 
 	return ret;
 }
+
+const std::shared_ptr<ruis::style_provider>& ruisapp::application::get_shared_style_provider()
+{
+	auto& glue = get_glue(*this);
+	return glue.ruis_style_provider.to_shared_ptr();
+}

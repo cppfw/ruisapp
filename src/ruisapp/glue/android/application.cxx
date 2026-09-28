@@ -190,6 +190,14 @@ std::vector<std::reference_wrapper<ruisapp::window>> ruisapp::application::get_w
 	return ret;
 }
 
+const std::shared_ptr<ruis::style_provider>& ruisapp::application::get_shared_style_provider()
+{
+	// Android supports creating only one window and there is no shared gl context.
+	// So there is no style provider shared between windows.
+	static const std::shared_ptr<ruis::style_provider> null_sp;
+	return null_sp;
+}
+
 void ruisapp::application::quit() noexcept
 {
 	utki::assert(globals_wrapper::native_activity, SL);

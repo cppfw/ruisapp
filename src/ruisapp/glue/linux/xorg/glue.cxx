@@ -91,8 +91,11 @@ private:
 	utki::shared_ref<const ruis::render::context::shaders> common_shaders;
 	utki::shared_ref<const ruis::render::renderer::objects> common_render_objects;
 	utki::shared_ref<ruis::resource_loader> ruis_resource_loader;
+
+public:
 	utki::shared_ref<ruis::style_provider> ruis_style_provider;
 
+private:
 	std::map<
 		native_window::window_id_type, //
 		utki::shared_ref<app_window> //
@@ -364,6 +367,12 @@ std::vector<std::reference_wrapper<ruisapp::window>> application::get_windows()
 	}
 
 	return ret;
+}
+
+const std::shared_ptr<ruis::style_provider>& application::get_shared_style_provider()
+{
+	auto& glue = get_glue(*this);
+	return glue.ruis_style_provider.to_shared_ptr();
 }
 
 int main(int argc, const char** argv)

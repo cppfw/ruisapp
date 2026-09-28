@@ -144,6 +144,20 @@ ruis::real application::get_pixels_per_pp(
 
 ruisapp::window& application::make_window(window_parameters window_params)
 {
+	if (window_params.style_provider) {
+		const auto& default_sp = this->get_default_style_provider();
+
+		if (!default_sp) {
+			throw std::invalid_argument(
+				"supplied a custom style_provider on a platform which does not support it (i.e. platform allowing creating only one application window)"
+			);
+		}
+
+		if (&window_params.style_provider->res_loader.get() != &default_sp->res_loader.get()) {
+			throw std::invalid_argument("supplied custom_provider has inconsistent resource_loader instance");
+		}
+	}
+
 	auto& win = this->make_window_internal(std::move(window_params));
 
 	// By choice, the VSYNC is enabled by default.
@@ -152,4 +166,20 @@ ruisapp::window& application::make_window(window_parameters window_params)
 	win.gui.context.get().ren().ctx().set_vsync_enabled(true);
 
 	return win;
+}
+
+const std::shared_ptr<ruis::style_provider>& application::get_default_style_provider()
+{
+	const auto& shared = this->get_shared_style_provider();
+	if (shared) {
+		return shared;
+	}
+
+	auto windows = this->get_windows();
+	if (!windows.empty()) {
+		return windows.front().get().gui.context.get().style_provider.to_shared_ptr();
+	}
+
+	// return nullptr because shared style provider is nullptr
+	return shared;
 }
