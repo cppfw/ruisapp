@@ -51,7 +51,8 @@ class application : public ruisapp::application
 public:
 	application() :
 		ruisapp::application(ruisapp::application::parameters{
-			.name = "ruis-tests"s
+			.name = "ruis-tests"s,
+			.mount_ruis_res_pack = false
     }),
 		window(this->make_window(
 			{.dims = {1024, 800}, .orientation = ruisapp::orientation::landscape, .buffers = {ruisapp::buffer::depth}}
@@ -61,10 +62,7 @@ public:
 			this->quit();
 		};
 
-		ruis::mount_ruis_res_pack(
-			this->window.gui.context, //
-			this->get_res_file("../../res/ruis_res/")
-		);
+		this->window.gui.mount_ruis_res_pack(this->get_res_file("../../res/ruis_res/"));
 
 		this->window.gui.context.get().loader().mount_res_pack(this->get_res_file("res/"));
 

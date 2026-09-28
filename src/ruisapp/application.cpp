@@ -23,6 +23,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include <fsif/native_file.hpp>
 #include <fsif/root_dir.hpp>
+#include <ruis/standard_resources.hpp>
+#include <ruis/widget/widget.hpp>
 #include <utki/config.hpp>
 #include <utki/debug.hpp>
 
@@ -81,8 +83,20 @@ application_factory::application_factory(factory_type factory)
 application::application(private_parameters params) :
 	pimpl(std::move(params.pimpl)),
 	name(std::move(params.params.name)),
-	directory(std::move(params.directories))
+	directory(std::move(params.directories)),
+	mount_ruis_res_pack(params.params.mount_ruis_res_pack)
 {
+	if (auto& sp = this->get_shared_style_provider(); sp) {
+		// Platform supports shared style_provider.
+
+		if (this->mount_ruis_res_pack) {
+			ruis::mount_ruis_res_pack(
+				sp->res_loader, //
+				this->get_res_file()
+			);
+		}
+	}
+
 	is_constructed_v = true;
 }
 
@@ -165,6 +179,25 @@ ruisapp::window& application::make_window(window_parameters window_params)
 	// with the actual VSYNC state of the newly created window.
 	win.gui.context.get().ren().ctx().set_vsync_enabled(true);
 
+	if (!this->get_shared_style_provider()) {
+		// The platform does not support shared style_provider.
+
+		// The platform should support only one window which has just been created.
+		utki::assert(this->get_windows().size() == size_t(1));
+
+		auto& sp = win.gui.context.get().style();
+
+		if (this->mount_ruis_res_pack) {
+			// The platform doesn't have shared style provider, so we need to
+			// mount ruis res pack and set the theme to the newly created window.
+			win.gui.mount_ruis_res_pack(this->get_res_file());
+		}
+
+		if (this->default_theme.has_value()) {
+			sp.set(this->default_theme.value());
+		}
+	}
+
 	return win;
 }
 
@@ -182,4 +215,23 @@ const std::shared_ptr<ruis::style_provider>& application::get_default_style_prov
 
 	// return nullptr because shared style provider is nullptr
 	return shared;
+}
+
+void application::set_theme(ruis::theme th)
+{
+	this->default_theme = th;
+
+	auto& sp = this->get_default_style_provider();
+
+	if (!sp) {
+		return;
+	}
+
+	// Set theme to the style_provider.
+	sp->set(th);
+
+	// Reload window GUIs.
+	for (auto& w : this->get_windows()) {
+		w.get().gui.get_root().reload();
+	}
 }

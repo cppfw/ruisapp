@@ -22,6 +22,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <memory>
+#include <optional>
 
 #include <fsif/file.hpp>
 #include <r4/vector.hpp>
@@ -222,6 +223,10 @@ private:
 	 */
 	const std::shared_ptr<ruis::style_provider>& get_default_style_provider();
 
+	// Store the mount_ruis_res_pack flag for the platforms which do not support shared style_provider.
+	// Using this flag we will know if the res pack needs to be mounted when creating the application window.
+	bool mount_ruis_res_pack;
+
 public:
 	/**
 	 * @brief Create native window.
@@ -243,6 +248,17 @@ public:
 	 * @return all application windows.
 	 */
 	std::vector<std::reference_wrapper<ruisapp::window>> get_windows();
+
+private:
+	std::optional<ruis::theme> default_theme;
+
+public:
+	/**
+	 * @brief Set application ruis theme.
+	 * Sets given standard ruis theme as default.
+	 * The theme will be applied to existing and new windows which use the default ruisapp style_provider.
+	 */
+	void set_theme(ruis::theme th);
 
 	/**
 	 * @brief Get dots per density pixel (dp) for given display parameters.
