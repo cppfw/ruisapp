@@ -51,7 +51,8 @@ dependencies {
     implementation 'io.github.cppfw:nitki:+'
     implementation 'io.github.cppfw:ruis:+'
     implementation 'io.github.cppfw:ruis-render-opengles:+'
-    implementation project(path: ':ruisapp', configuration: 'default')
+    implementation project(':ruisapp')
+    //implementation project(path: ':ruisapp', configuration: 'default')
 }
 
 
