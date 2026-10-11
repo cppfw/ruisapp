@@ -25,6 +25,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include <r4/vector.hpp>
 #include <ruis/gui.hpp>
+#include <ruis/style/styled.hpp>
+#include <ruis/util/length.hpp>
+#include <ruis/util/sides.hpp>
 #include <utki/flags.hpp>
 
 namespace ruisapp {
@@ -137,6 +140,27 @@ public:
 	virtual ~window() = default;
 
 	void render();
+
+	/**
+	 * @brief Get the content insets of the window.
+	 *
+	 * Per side (left / top / right / bottom), how far the system decorations
+	 * (e.g. the status bar and the navigation bar on Android) extend into the
+	 * window. The application should apply these as padding to its content so
+	 * that important UI is not obscured by the decorations.
+	 *
+	 * On Android, when the window draws edge-to-edge behind the translucent
+	 * system bars, these are the bar sizes; when the window does not extend
+	 * behind the bars, and on desktop platforms, they are zero.
+	 *
+	 * The returned values are live where supported: on Android they reference
+	 * values owned by ruisapp that are refreshed as the window is resized, so a
+	 * widget that uses them (e.g. a padding) picks up changes on the next
+	 * layout pass without re-querying.
+	 *
+	 * @return the current content insets, in pixels.
+	 */
+	virtual ruis::sides<ruis::styled<ruis::length>> get_insets();
 };
 
 } // namespace ruisapp

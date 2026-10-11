@@ -708,6 +708,17 @@ void on_content_rect_changed(
 		)
 	);
 
+	// refresh the live content insets (system bars) so that the application's
+	// padding reflects the current window layout (initial layout, rotation,
+	// nav bar toggle, ...).
+	auto insets = glob.java_functions.get_system_bar_insets();
+	win->set_insets(
+		ruis::real(insets[0]), // left
+		ruis::real(insets[1]), // top
+		ruis::real(insets[2]), // right
+		ruis::real(insets[3]) // bottom
+	);
+
 	// TODO: request redraw instead of redrawing right here?
 
 	// redraw, since WindowRedrawNeeded not always comes

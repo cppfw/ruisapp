@@ -38,6 +38,31 @@ void app_window::set_win_rect(const ruis::rect& r)
 	this->gui.set_viewport(viewport_rect);
 }
 
+ruis::sides<ruis::styled<ruis::length>> app_window::get_insets()
+{
+	// Each styled value references the shared style_value owned by this window, so
+	// updates via set_insets() are observed without re-querying.
+	return ruis::sides<ruis::styled<ruis::length>>(
+		ruis::styled<ruis::length>(this->inset_left), //
+		ruis::styled<ruis::length>(this->inset_top), //
+		ruis::styled<ruis::length>(this->inset_right), //
+		ruis::styled<ruis::length>(this->inset_bottom)
+	);
+}
+
+void app_window::set_insets(
+	ruis::real left, //
+	ruis::real top,
+	ruis::real right,
+	ruis::real bottom
+)
+{
+	this->inset_left.get().get_value() = ruis::length::make_px(left);
+	this->inset_top.get().get_value() = ruis::length::make_px(top);
+	this->inset_right.get().get_value() = ruis::length::make_px(right);
+	this->inset_bottom.get().get_value() = ruis::length::make_px(bottom);
+}
+
 application_glue::application_glue(utki::version_duplet gl_version) :
 	gl_version(std::move(gl_version))
 {}

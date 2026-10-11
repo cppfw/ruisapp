@@ -33,6 +33,19 @@ class app_window : public ruisapp::window
 {
 	ruis::rect cur_win_rect{0, 0, 0, 0};
 
+	using inset_value_type = ruis::internal::style_value<ruis::length>;
+
+	// Live content insets (system bars), in pixels. Each side is a shared_ref to a
+	// style_value so that the styled values returned by get_insets() reference them;
+	// updating the value in place via set_insets() is observed by the application on
+	// the next layout pass without re-querying. The default is undefined, matching
+	// platforms with no insets (e.g. desktop); it is set on the first content-rect
+	// change (on_content_rect_changed -> set_insets).
+	utki::shared_ref<inset_value_type> inset_left = utki::make_shared<inset_value_type>(ruis::length{});
+	utki::shared_ref<inset_value_type> inset_top = utki::make_shared<inset_value_type>(ruis::length{});
+	utki::shared_ref<inset_value_type> inset_right = utki::make_shared<inset_value_type>(ruis::length{});
+	utki::shared_ref<inset_value_type> inset_bottom = utki::make_shared<inset_value_type>(ruis::length{});
+
 public:
 	const utki::shared_ref<native_window> ruis_native_window;
 
@@ -50,6 +63,19 @@ public:
 	{
 		return this->cur_win_rect;
 	}
+
+	// Override of the base window::get_insets(); returns live references to the
+	// inset values owned by this window.
+	ruis::sides<ruis::styled<ruis::length>> get_insets() override;
+
+	// Update the live insets (in pixels). Called by the glue when the window
+	// content rect changes (initial layout, rotation, nav bar toggle, ...).
+	void set_insets(
+		ruis::real left, //
+		ruis::real top,
+		ruis::real right,
+		ruis::real bottom
+	);
 
 	ruis::vec2 android_win_coords_to_ruisapp_win_rect_coords(const ruis::vec2& p)
 	{

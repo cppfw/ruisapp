@@ -32,6 +32,7 @@ class java_functions_wrapper
 
 	jmethodID get_dots_per_inch_method;
 	jmethodID get_screen_resolution_method;
+	jmethodID get_system_bar_insets_method;
 
 	jmethodID show_virtual_keyboard_method;
 	jmethodID hide_virtual_keyboard_method;
@@ -51,6 +52,8 @@ public:
 
 	float get_dots_per_inch();
 	r4::vector2<unsigned> get_screen_resolution();
+	// system bar insets in pixels, in ruis::sides order {left, top, right, bottom}
+	r4::vector4<int> get_system_bar_insets();
 
 	void hide_virtual_keyboard();
 	void show_virtual_keyboard();

@@ -42,3 +42,9 @@ void window::render()
 		// std::cout << "swapped" << std::endl;
 	});
 }
+
+ruis::sides<ruis::styled<ruis::length>> window::get_insets()
+{
+	// No system decorations overlap the window on this platform.
+	return {};
+}

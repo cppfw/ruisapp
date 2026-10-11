@@ -51,6 +51,12 @@ java_functions_wrapper::java_functions_wrapper()
 		"getScreenResolution",
 		"()[I" // function signature: no arguments, returns array of ints
 	);
+	this->get_system_bar_insets_method = this->env->GetMethodID(
+		this->clazz, //
+		"getSystemBarInsets",
+		"()[I" // function signature: no arguments, returns array of ints
+	);
+	utki::assert(this->get_system_bar_insets_method, SL);
 
 	this->list_dir_contents_method = this->env->GetMethodID(
 		this->clazz, //
@@ -113,6 +119,43 @@ r4::vector2<unsigned> java_functions_wrapper::get_screen_resolution()
 	});
 
 	r4::vector2<unsigned> ret{0, 0};
+
+	if (res == nullptr) {
+		return ret;
+	}
+
+	jintArray arr = static_cast<jintArray>(res);
+
+	jsize arr_count = env->GetArrayLength(arr);
+
+	size_t count = std::max(0, arr_count); // clamp bottom
+
+	jboolean is_copy;
+	jint* elements = this->env->GetIntArrayElements(arr, &is_copy);
+
+	utki::scope_exit elemnts_scope_exit([&]() {
+		this->env->ReleaseIntArrayElements(arr, elements, 0);
+	});
+
+	for (jsize i = 0; i != std::min(count, ret.size()); ++i) {
+		ret[i] = elements[i];
+	}
+
+	return ret;
+}
+
+r4::vector4<int> java_functions_wrapper::get_system_bar_insets()
+{
+	jobject res = this->env->CallObjectMethod(
+		this->obj, //
+		this->get_system_bar_insets_method
+	);
+
+	utki::scope_exit scopeExit([this, res]() {
+		this->env->DeleteLocalRef(res);
+	});
+
+	r4::vector4<int> ret{0, 0, 0, 0};
 
 	if (res == nullptr) {
 		return ret;

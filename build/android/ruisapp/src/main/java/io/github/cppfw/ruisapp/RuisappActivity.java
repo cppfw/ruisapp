@@ -60,6 +60,30 @@ public class RuisappActivity extends NativeActivity {
 		return new int[] {width, height};
 	}
 
+	/**
+	 * Returns the system bar insets in pixels, in ruis::sides order
+	 * {left, top, right, bottom}.
+	 * In the edge-to-edge case (targetSdk 35+ on Android 15+) these are the
+	 * system bar sizes; otherwise they are 0 (the window already excludes the
+	 * bars). The deprecated getSystemWindowInset*() API is used because it is
+	 * valid across the whole minSdk 24.. range, unlike the
+	 * WindowInsets.Type-based replacement which requires API 30+.
+	 */
+	public int[] getSystemBarInsets(){
+		android.view.WindowInsets in = this.getWindow().getDecorView().getRootWindowInsets();
+		if(in == null){
+			return new int[] {0, 0, 0, 0};
+		}
+		int[] ret = new int[] {
+			in.getSystemWindowInsetLeft(),
+			in.getSystemWindowInsetTop(),
+			in.getSystemWindowInsetRight(),
+			in.getSystemWindowInsetBottom()
+		};
+		Log.d(LOGTAG, "getSystemBarInsets(): " + ret[0] + ", " + ret[1] + ", " + ret[2] + ", " + ret[3]);
+		return ret;
+	}
+
 	private static native void handleCharacterStringInput(String str);
 
 	@Override
