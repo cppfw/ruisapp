@@ -52,10 +52,16 @@ app_window& application_glue::make_window(ruisapp::window_parameters window_para
 
 	utki::assert(!this->window.has_value(), SL);
 
+	bool fullscreen = window_params.fullscreen;
+
 	auto ruis_native_window = utki::make_shared<native_window>(
 		this->gl_version, //
 		std::move(window_params)
 	);
+
+	// apply the initial fullscreen state requested by the application.
+	// on android this hides/shows the system status bar via window flags.
+	ruis_native_window.get().set_fullscreen(fullscreen);
 
 	auto rendering_context = utki::make_shared<ruis::render::opengles::context>(ruis_native_window);
 
