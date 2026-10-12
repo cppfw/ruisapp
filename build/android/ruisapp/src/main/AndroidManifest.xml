@@ -10,6 +10,7 @@
     <application tools:node="merge">
         <activity
             android:name=".RuisappActivity"
+            android:exported="true"
             android:configChanges="orientation|keyboardHidden"
             android:theme="@android:style/Theme.NoTitleBar"
             android:hasCode="true"

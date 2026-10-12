@@ -69,7 +69,7 @@ utki::shared_ref<ruis::widget> make_root_widget(const utki::shared_ref<ruis::con
                                     make_window1(c, {300_pp, 10_pp}),
                                     make_sliders_window(c, {0_pp, 250_pp}),
                                     make_spinning_cube_window(c, {10_pp, 500_pp}),
-                                    make_text_input_window(c, {310_pp, 500_pp}),
+                                    make_text_input_window(c, {0_pp, 30_pp}),
                                     make_scroll_area_window(c, {620_pp, 500_pp}),
                                     make_gradient_window(c, {620_pp, 250_pp}),
                                     make_vertical_list_window(c, {620_pp, 0_pp})
