@@ -162,7 +162,7 @@ void native_window::set_fullscreen_internal(bool enable)
 	get_glob().java_functions.set_fullscreen(enable);
 }
 
-void native_window::set_virtual_keyboard_visible(bool visible) noexcept
+void native_window::set_virtual_keyboard_visible(bool visible, ruis::keyboard_kind /* kind */) noexcept
 {
 	auto& glob = get_glob();
 

@@ -179,6 +179,6 @@ public:
 		}
 	}
 
-	void set_virtual_keyboard_visible(bool visible) noexcept override;
+	void set_virtual_keyboard_visible(bool visible, ruis::keyboard_kind kind) noexcept override;
 };
 } // namespace
