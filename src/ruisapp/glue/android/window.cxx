@@ -153,20 +153,13 @@ r4::vector2<unsigned> native_window::get_dims()
 
 void native_window::set_fullscreen_internal(bool enable)
 {
-	utki::assert(globals_wrapper::native_activity, SL);
-	if (enable) {
-		ANativeActivity_setWindowFlags(
-			globals_wrapper::native_activity,
-			AWINDOW_FLAG_FULLSCREEN, // flags to add
-			0 // flags to remove
-		);
-	} else {
-		ANativeActivity_setWindowFlags(
-			globals_wrapper::native_activity,
-			0, // flags to add
-			AWINDOW_FLAG_FULLSCREEN // flags to remove
-		);
-	}
+	// Entering/exiting "immersive mode": in addition to the status bar,
+	// also hides/shows the navigation bar. The java side picks the proper
+	// API for the running android version (WindowInsetsController on API 30+,
+	// the legacy setSystemUiVisibility() immersive flags on earlier ones).
+	// The window size change that results from the bars being hidden/shown
+	// is reported to us via onNativeWindowResized()/onContentRectChanged().
+	get_glob().java_functions.set_fullscreen(enable);
 }
 
 void native_window::set_virtual_keyboard_visible(bool visible) noexcept

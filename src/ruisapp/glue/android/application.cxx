@@ -85,7 +85,8 @@ app_window& application_glue::make_window(ruisapp::window_parameters window_para
 	);
 
 	// apply the initial fullscreen state requested by the application.
-	// on android this hides/shows the system status bar via window flags.
+	// on android this enters/exits immersive mode: hides/shows the system
+	// status bar and the navigation bar.
 	ruis_native_window.get().set_fullscreen(fullscreen);
 
 	auto rendering_context = utki::make_shared<ruis::render::opengles::context>(ruis_native_window);

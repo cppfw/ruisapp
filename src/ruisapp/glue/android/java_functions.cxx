@@ -84,6 +84,13 @@ java_functions_wrapper::java_functions_wrapper()
 	);
 	utki::assert(this->hide_virtual_keyboard_method, SL);
 
+	this->set_fullscreen_method = this->env->GetMethodID(
+		this->clazz, //
+		"setFullscreen",
+		"(Z)V" // function signature: one boolean argument, returns void
+	);
+	utki::assert(this->set_fullscreen_method, SL);
+
 	this->get_storage_dir_method = this->env->GetMethodID(
 		this->clazz,
 		"getStorageDir",
@@ -207,6 +214,15 @@ void java_functions_wrapper::show_virtual_keyboard()
 	this->env->CallVoidMethod(
 		this->obj, //
 		this->show_virtual_keyboard_method
+	);
+}
+
+void java_functions_wrapper::set_fullscreen(bool fullscreen)
+{
+	this->env->CallVoidMethod(
+		this->obj, //
+		this->set_fullscreen_method, //
+		jboolean(fullscreen ? JNI_TRUE : JNI_FALSE)
 	);
 }
 

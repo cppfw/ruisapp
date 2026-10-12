@@ -4,13 +4,17 @@ import android.app.NativeActivity;
 import android.app.Service;
 import android.content.Context;
 import android.graphics.Rect;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
+import android.view.View;
 import android.view.Window;
+import android.view.WindowInsets;
+import android.view.WindowInsetsController;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 
@@ -90,6 +94,45 @@ public class RuisappActivity extends NativeActivity {
 		};
 		Log.d(LOGTAG, "getSystemBarInsets(): " + ret[0] + ", " + ret[1] + ", " + ret[2] + ", " + ret[3]);
 		return ret;
+	}
+
+	/**
+	 * Enters or exits immersive fullscreen mode.
+	 * When entering, both the status bar and the navigation bar are hidden,
+	 * when exiting, they are shown back.
+	 * In immersive mode, a swipe from the screen edge transiently shows the
+	 * bars, they hide themselves again shortly after.
+	 * On API 30+ the modern WindowInsetsController API is used, on earlier
+	 * versions the deprecated but still functional setSystemUiVisibility()
+	 * immersive flags (available since API 19, minSdk is 21).
+	 */
+	public void setFullscreen(boolean fullscreen){
+		if(fullscreen){
+			if(Build.VERSION.SDK_INT >= 30){
+				WindowInsetsController c = this.getWindow().getInsetsController();
+				if(c != null){
+					c.hide(WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars());
+					c.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+					return;
+				}
+			}
+			int flags = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+				| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+				| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+				| View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+				| View.SYSTEM_UI_FLAG_FULLSCREEN
+				| View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+			this.getWindow().getDecorView().setSystemUiVisibility(flags);
+		}else{
+			if(Build.VERSION.SDK_INT >= 30){
+				WindowInsetsController c = this.getWindow().getInsetsController();
+				if(c != null){
+					c.show(WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars());
+					return;
+				}
+			}
+			this.getWindow().getDecorView().setSystemUiVisibility(0);
+		}
 	}
 
 	private static native void handleCharacterStringInput(String str);

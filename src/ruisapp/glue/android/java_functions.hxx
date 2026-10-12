@@ -38,6 +38,8 @@ class java_functions_wrapper
 	jmethodID show_virtual_keyboard_method;
 	jmethodID hide_virtual_keyboard_method;
 
+	jmethodID set_fullscreen_method;
+
 	jmethodID list_dir_contents_method;
 
 	jmethodID get_storage_dir_method;
@@ -59,6 +61,8 @@ public:
 
 	void hide_virtual_keyboard();
 	void show_virtual_keyboard();
+
+	void set_fullscreen(bool fullscreen);
 
 	std::vector<std::string> list_dir_contents(const std::string& path);
 	std::string get_storage_dir();
