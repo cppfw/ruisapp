@@ -34,7 +34,10 @@ const std::array<ruis::key, size_t(std::numeric_limits<uint8_t>::max()) + 1> key
 	ruis::key::arrow_left, // AKEYCODE_SOFT_LEFT
 	ruis::key::arrow_right, // AKEYCODE_SOFT_RIGHT
 	ruis::key::home, // AKEYCODE_HOME
+
+	// navigation back button
 	ruis::key::escape, // AKEYCODE_BACK
+
 	ruis::key::f11, // AKEYCODE_CALL
 	ruis::key::f12, // AKEYCODE_ENDCALL
 	ruis::key::zero, // AKEYCODE_0
@@ -97,7 +100,10 @@ const std::array<ruis::key, size_t(std::numeric_limits<uint8_t>::max()) + 1> key
 	ruis::key::f8, // AKEYCODE_EXPLORER
 	ruis::key::f7, // AKEYCODE_ENVELOPE
 	ruis::key::enter, // AKEYCODE_ENTER
-	ruis::key::deletion, // AKEYCODE_DEL
+
+	// note: on android this is the backspace key, not the forward-delete key
+	ruis::key::backspace, // AKEYCODE_DEL
+
 	ruis::key::f6, // AKEYCODE_GRAVE
 	ruis::key::minus, // AKEYCODE_MINUS
 	ruis::key::equals, // AKEYCODE_EQUALS
@@ -141,8 +147,8 @@ const std::array<ruis::key, size_t(std::numeric_limits<uint8_t>::max()) + 1> key
 	ruis::key::unknown, // AKEYCODE_BUTTON_START
 	ruis::key::unknown, // AKEYCODE_BUTTON_SELECT
 	ruis::key::unknown, // AKEYCODE_BUTTON_MODE
-	ruis::key::unknown, //
-	ruis::key::unknown, //
+	ruis::key::escape, // AKEYCODE_ESCAPE
+	ruis::key::deletion, // AKEYCODE_FORWARD_DEL
 	ruis::key::unknown, //
 	ruis::key::unknown, //
 	ruis::key::unknown, //
