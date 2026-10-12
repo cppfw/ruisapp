@@ -51,6 +51,14 @@ public class RuisappActivity extends NativeActivity {
 		return (m.xdpi + m.ydpi) / 2.0f;
 	}
 
+	public float getPixelsPerDp(){
+		Display d = ((WindowManager)getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+		DisplayMetrics m = new DisplayMetrics();
+		d.getMetrics(m);
+		Log.d(LOGTAG, "getPixelsPerDp(): density = " + m.density);
+		return m.density;
+	}
+
 	public int[] getScreenResolution(){
 		DisplayMetrics metrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getRealMetrics(metrics);

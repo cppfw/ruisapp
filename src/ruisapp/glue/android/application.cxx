@@ -123,16 +123,11 @@ app_window& application_glue::make_window(ruisapp::window_parameters window_para
 				utki::logcat_debug("dpi = ", dpi, '\n');
 				return dpi;
 			}(),
-			[ruis_native_window]() -> float {
+			[]() -> float {
 				auto& glob = get_glob();
-
-				auto dims_px = glob.java_functions.get_screen_resolution();
-				auto dims_mm =
-					(dims_px.to<float>() / glob.java_functions.get_dots_per_inch()) * float(utki::mm_per_inch);
-				return ruisapp::application::get_pixels_per_pp(
-					dims_px, // dimensions in pixels
-					dims_mm.to<unsigned>() // dimensions in millimeters
-				);
+				float pixels_per_dp = glob.java_functions.get_pixels_per_dp();
+				utki::logcat_debug("pixels_per_dp = ", pixels_per_dp, '\n');
+				return pixels_per_dp;
 			}()
 		)
 	});

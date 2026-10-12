@@ -46,6 +46,11 @@ java_functions_wrapper::java_functions_wrapper()
 		"getDotsPerInch",
 		"()F" // function signature: no arguments, returns float
 	);
+	this->get_pixels_per_dp_method = this->env->GetMethodID(
+		this->clazz, //
+		"getPixelsPerDp",
+		"()F" // function signature: no arguments, returns float
+	);
 	this->get_screen_resolution_method = this->env->GetMethodID(
 		this->clazz,
 		"getScreenResolution",
@@ -104,6 +109,14 @@ float java_functions_wrapper::get_dots_per_inch()
 	return float(this->env->CallFloatMethod(
 		this->obj, //
 		this->get_dots_per_inch_method
+	));
+}
+
+float java_functions_wrapper::get_pixels_per_dp()
+{
+	return float(this->env->CallFloatMethod(
+		this->obj, //
+		this->get_pixels_per_dp_method
 	));
 }
 

@@ -31,6 +31,7 @@ class java_functions_wrapper
 	jmethodID resolve_key_unicode_method;
 
 	jmethodID get_dots_per_inch_method;
+	jmethodID get_pixels_per_dp_method;
 	jmethodID get_screen_resolution_method;
 	jmethodID get_system_bar_insets_method;
 
@@ -51,6 +52,7 @@ public:
 	);
 
 	float get_dots_per_inch();
+	float get_pixels_per_dp();
 	r4::vector2<unsigned> get_screen_resolution();
 	// system bar insets in pixels, in ruis::sides order {left, top, right, bottom}
 	r4::vector4<int> get_system_bar_insets();
