@@ -46,14 +46,7 @@ namespace {
 ruis::real get_dots_per_pp()
 {
 	NSScreen* screen = [NSScreen mainScreen];
-	NSDictionary* description = [screen deviceDescription];
-	NSSize display_pixel_size = [[description objectForKey:NSDeviceSize] sizeValue];
-	CGSize display_physical_size = CGDisplayScreenSize([[description objectForKey:@"NSScreenNumber"] unsignedIntValue]);
-
-	r4::vector2<unsigned> resolution(display_pixel_size.width, display_pixel_size.height);
-	r4::vector2<unsigned> screen_size_mm(display_physical_size.width, display_physical_size.height);
-
-	return application::get_pixels_per_pp(resolution, screen_size_mm);
+	return ruis::real([screen backingScaleFactor]);
 }
 } // namespace
 
