@@ -53,6 +53,10 @@ void winmain(
 	const char** argv
 )
 {
+	// Make the process per-monitor DPI aware (v2) as early as possible, before any windows
+	// are created, so that the effective screen scale factor can be queried per monitor.
+	SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+
 	auto app = ruisapp::application_factory::make_application(argc, argv);
 	if (!app) {
 		// Not an error. The application just did not show any GUI to the user and exited normally.

@@ -166,11 +166,11 @@ public:
 
 	ruis::real get_dots_per_pp()
 	{
-		// TODO: use scale factor only for desktop monitors
 		if (auto scale_factor = this->scale_factor; scale_factor != ruis::real(1)) {
 			return scale_factor;
 		}
 
+		// TODO: get rid if this, just return this->scale_factor
 		int src_num = 0;
 		r4::vector2<unsigned> resolution(
 			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)

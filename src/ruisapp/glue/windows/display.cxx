@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include <stdexcept>
 
+#include <ruis/widget/widget.hpp>
 #include <utki/debug.hpp>
 #include <utki/enum_iterable.hpp>
 #include <utki/windows.hpp>
@@ -50,6 +51,47 @@ public:
 		return {&this->c, 1};
 	}
 };
+} // namespace
+
+namespace {
+// The reference DPI corresponding to 100% scaling.
+constexpr unsigned int reference_dpi = 96;
+
+// Returns the effective DPI (dots per inch) of the monitor that the given window is
+// currently on. Uses the per-monitor DPI aware API, with a fallback to querying the
+// device context of the window.
+unsigned int get_monitor_dpi(HWND hwnd)
+{
+	// Preferred: GetDpiForWindow() (Windows 10 1607+). It returns the effective DPI of
+	// the monitor the window is on, i.e. it respects the per-monitor DPI awareness mode
+	// of the process.
+	auto dpi = GetDpiForWindow(hwnd);
+	if (dpi != 0) {
+		return dpi;
+	}
+
+	// Fallback: GetDeviceCaps() with LOGPIXELSX on the window's device context.
+	// With DPI awareness enabled this returns the effective DPI of the current monitor.
+	auto hdc = GetDC(hwnd);
+	if (hdc == nullptr) {
+		return reference_dpi;
+	}
+	dpi = GetDeviceCaps(hdc, LOGPIXELSX);
+	ReleaseDC(hwnd, hdc);
+	if (dpi != 0) {
+		return dpi;
+	}
+
+	// Last resort: the reference DPI corresponding to 100% scaling.
+	return reference_dpi;
+}
+
+// Returns the screen scale factor of the monitor that the given window is currently on,
+// e.g. 1.5 for 150% scaling.
+ruis::real get_scale_factor(HWND hwnd)
+{
+	return ruis::real(get_monitor_dpi(hwnd)) / ruis::real(reference_dpi);
+}
 } // namespace
 
 namespace {
@@ -349,6 +391,43 @@ LRESULT CALLBACK window_procedure(
 				hwnd, //
 				NULL
 			);
+			return 0;
+
+		case WM_DPICHANGED:
+			// The window was moved to a monitor with a different DPI, or the user changed
+			// the display scaling. lParam points to a RECT with the new recommended window
+			// size that keeps the window's logical (unscaled) size the same on the new monitor.
+			{
+				auto* suggested_window_rect = reinterpret_cast<RECT*>(l_param);
+				if (suggested_window_rect != nullptr) {
+					SetWindowPos(
+						hwnd, //
+						nullptr, // no z-order change
+						suggested_window_rect->left, //
+						suggested_window_rect->top, //
+						suggested_window_rect->right - suggested_window_rect->left, // width
+						suggested_window_rect->bottom - suggested_window_rect->top, // height
+						SWP_NOZORDER | SWP_NOACTIVATE
+					);
+				}
+
+				// Update the units (screen scale factor) to match the new monitor DPI.
+				win.update_units_from_system();
+
+				// Update the viewport to the new client area size and re-layout the GUI.
+				RECT client_rect;
+				if (GetClientRect(hwnd, &client_rect) != 0) {
+					win.gui.set_viewport( //
+						ruis::rect(
+							0, //
+							0,
+							ruis::real(client_rect.right), // width
+							ruis::real(client_rect.bottom) // height
+						)
+					);
+				}
+				win.gui.get_root().reload();
+			}
 			return 0;
 
 		case WM_SIZE:

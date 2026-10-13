@@ -433,16 +433,10 @@ ruis::real native_window::get_dots_per_inch()
 
 ruis::real native_window::get_dots_per_pp()
 {
-	r4::vector2<unsigned> resolution(
-		GetDeviceCaps(this->device_context.context, HORZRES),
-		GetDeviceCaps(this->device_context.context, VERTRES)
-	);
-	r4::vector2<unsigned> screen_size_mm(
-		GetDeviceCaps(this->device_context.context, HORZSIZE),
-		GetDeviceCaps(this->device_context.context, VERTSIZE)
-	);
-
-	return ruisapp::application::get_pixels_per_pp(resolution, screen_size_mm);
+	// Return the screen scale factor reported by the system for the monitor the window is
+	// currently on, e.g. 1.5 for 150% scaling. The process is made (per-monitor) DPI aware,
+	// so this reflects the actual scale of the monitor the window is placed on.
+	return get_scale_factor(this->window.handle);
 }
 
 void native_window::set_fullscreen_internal(bool enable)

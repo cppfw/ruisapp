@@ -56,6 +56,13 @@ public:
 		ruis::mouse_button button,
 		uint32_t pointer_id
 	);
+
+	/**
+	 * @brief Update the ruis units (screen scale factor) from the system.
+	 * Re-queries the screen scale factor reported by the system for the monitor the window
+	 * is currently on and updates the units of the window's ruis context accordingly.
+	 */
+	void update_units_from_system();
 };
 } // namespace
 

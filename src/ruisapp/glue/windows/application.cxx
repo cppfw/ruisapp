@@ -50,6 +50,14 @@ void app_window::send_mouse_button_event(
 		pointer_id
 	);
 }
+
+void app_window::update_units_from_system()
+{
+	auto& units = this->gui.context.get().units;
+	auto& natwin = this->ruis_native_window.get();
+	units.set_dots_per_pp(natwin.get_dots_per_pp());
+	units.set_dots_per_inch(natwin.get_dots_per_inch());
+}
 } // namespace
 
 namespace {
