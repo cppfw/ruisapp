@@ -108,50 +108,6 @@ utki::unique_ref<fsif::file> application::get_res_file(std::string_view path) co
 }
 #endif
 
-ruis::real application::get_pixels_per_pp(
-	r4::vector2<unsigned> resolution, //
-	r4::vector2<unsigned> screen_size_mm
-)
-{
-	utki::log_debug([&](auto& o) {
-		o << "screen resolution = " << resolution << std::endl;
-	});
-	utki::log_debug([&](auto& o) {
-		o << "physical screen size, mm = " << screen_size_mm << std::endl;
-	});
-
-	// NOTE: for ordinary desktop displays the DP size should be equal to 1 pixel.
-	// For high density displays it should be more than one pixel, depending on
-	// display dpi. For hand held devices the size of DP should be determined from
-	// physical screen size and pixel resolution.
-
-#if CFG_OS_NAME == CFG_OS_NAME_IOS
-	return ruis::real(1); // TODO:
-#else
-	unsigned x_index = [&resolution]() {
-		if (resolution.x() > resolution.y()) {
-			return 0;
-		} else {
-			return 1;
-		}
-	}();
-
-	// using std::max;
-	// unsigned max_dim_px = max(resolution.x(), resolution.y());
-	// unsigned max_dim_mm = max(screen_size_mm.x(), screen_size_mm.y());
-
-	// ruis::real dpmm = ruis::real(max_dim_px) / ruis::real(max_dim_mm);
-
-	if (screen_size_mm[x_index] < 300) { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-		return ruis::real(resolution[x_index]) / ruis::real(700); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-	} else if (screen_size_mm[x_index] < 150) { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-		return ruis::real(resolution[x_index]) / ruis::real(200); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-	}
-
-	return ruis::real(1);
-#endif
-}
-
 ruisapp::window& application::make_window(window_parameters window_params)
 {
 	if (window_params.style_provider) {

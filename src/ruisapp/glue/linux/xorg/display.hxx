@@ -166,26 +166,7 @@ public:
 
 	ruis::real get_dots_per_pp()
 	{
-		if (auto scale_factor = this->scale_factor; scale_factor != ruis::real(1)) {
-			return scale_factor;
-		}
-
-		// TODO: get rid if this, just return this->scale_factor
-		int src_num = 0;
-		r4::vector2<unsigned> resolution(
-			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			DisplayWidth(this->xorg_display.display, src_num),
-			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			DisplayHeight(this->xorg_display.display, src_num)
-		);
-		r4::vector2<unsigned> screen_size_mm(
-			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			DisplayWidthMM(this->xorg_display.display, src_num),
-			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			DisplayHeightMM(this->xorg_display.display, src_num)
-		);
-
-		return ruisapp::application::get_pixels_per_pp(resolution, screen_size_mm);
+		return this->scale_factor;
 	}
 
 	cursor_wrapper& get_cursor(ruis::mouse_cursor c)

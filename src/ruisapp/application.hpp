@@ -260,20 +260,6 @@ public:
 	 */
 	void set_theme(ruis::theme th);
 
-	/**
-	 * @brief Get dots per density pixel (dp) for given display parameters.
-	 * The size of the dp for desktop displays should normally be equal to one
-	 * pixel. For hand held devices size of the dp depends on physical screen size
-	 * and pixel resolution.
-	 * @param screen_size_pixels - resolution of the display in pixels.
-	 * @param screen_size_mm - size of the display in millimeters.
-	 * @return Size of one display density pixel in pixels.
-	 */
-	// TODO: remove? Use scale factor provided by platform?
-	static ruis::real get_pixels_per_pp(
-		r4::vector2<unsigned> screen_size_pixels, //
-		r4::vector2<unsigned> screen_size_mm
-	);
 };
 
 inline application& inst()
