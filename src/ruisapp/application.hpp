@@ -259,7 +259,6 @@ public:
 	 * The theme will be applied to existing and new windows which use the default ruisapp style_provider.
 	 */
 	void set_theme(ruis::theme th);
-
 };
 
 inline application& inst()
