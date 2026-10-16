@@ -1,3 +1,9 @@
+libruisapp (0.2.143) unstable; urgency=medium
+
+  * refactor android window insets api
+
+ -- Ivan Gagis <igagis@gmail.com>  Sat, 17 Oct 2026 01:12:06 +0300
+
 libruisapp (0.2.142) unstable; urgency=medium
 
   * android: use keyboard insets
