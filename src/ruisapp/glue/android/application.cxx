@@ -41,7 +41,7 @@ void app_window::set_win_rect(const ruis::rect& r)
 ruis::sides<ruis::styled<ruis::length>> app_window::get_insets()
 {
 	// Each styled value references the shared style_value owned by this window, so
-	// updates via set_insets() are observed without re-querying.
+	// updates via update_insets() are observed without re-querying.
 	return ruis::sides<ruis::styled<ruis::length>>(
 		ruis::styled<ruis::length>(this->inset_left), //
 		ruis::styled<ruis::length>(this->inset_top), //
@@ -57,10 +57,41 @@ void app_window::set_insets(
 	ruis::real bottom
 )
 {
-	this->inset_left.get().get_value() = ruis::length::make_px(left);
-	this->inset_top.get().get_value() = ruis::length::make_px(top);
-	this->inset_right.get().get_value() = ruis::length::make_px(right);
-	this->inset_bottom.get().get_value() = ruis::length::make_px(bottom);
+	this->system_bar_inset_left = left;
+	this->system_bar_inset_top = top;
+	this->system_bar_inset_right = right;
+	this->system_bar_inset_bottom = bottom;
+	this->update_insets();
+}
+
+void app_window::set_keyboard_insets(
+	ruis::real left, //
+	ruis::real top,
+	ruis::real right,
+	ruis::real bottom
+)
+{
+	this->keyboard_inset_left = left;
+	this->keyboard_inset_top = top;
+	this->keyboard_inset_right = right;
+	this->keyboard_inset_bottom = bottom;
+	this->update_insets();
+}
+
+void app_window::update_insets()
+{
+	// each side of the live insets is the max of the system-bar and the keyboard
+	// components, so that the content rect inside them is the minimal region not
+	// covered by the system bars or the keyboard.
+	using std::max;
+	this->inset_left.get().get_value() =
+		ruis::length::make_px(max(this->system_bar_inset_left, this->keyboard_inset_left));
+	this->inset_top.get().get_value() =
+		ruis::length::make_px(max(this->system_bar_inset_top, this->keyboard_inset_top));
+	this->inset_right.get().get_value() =
+		ruis::length::make_px(max(this->system_bar_inset_right, this->keyboard_inset_right));
+	this->inset_bottom.get().get_value() =
+		ruis::length::make_px(max(this->system_bar_inset_bottom, this->keyboard_inset_bottom));
 }
 
 application_glue::application_glue(utki::version_duplet gl_version) :

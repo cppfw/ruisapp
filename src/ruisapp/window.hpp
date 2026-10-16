@@ -144,19 +144,25 @@ public:
 	/**
 	 * @brief Get the content insets of the window.
 	 *
-	 * Per side (left / top / right / bottom), how far the system decorations
-	 * (e.g. the status bar and the navigation bar on Android) extend into the
-	 * window. The application should apply these as padding to its content so
-	 * that important UI is not obscured by the decorations.
+	 * Per side (left / top / right / bottom), how far the *minimal visible content
+	 * rectangle* is inset from the window edges. The content rectangle is the
+	 * region of the window within which the application's content is not covered by
+	 * the system decorations (e.g. the status bar and the navigation bar on Android)
+	 * or by the input method editor (on-screen keyboard). On each side the returned
+	 * value is the biggest of the system-bar inset and the keyboard inset, so applying
+	 * these as padding keeps the content out of the whole region that is not visible.
 	 *
-	 * On Android, when the window draws edge-to-edge behind the translucent
-	 * system bars, these are the bar sizes; when the window does not extend
-	 * behind the bars, and on desktop platforms, they are zero.
+	 * On Android, when the window draws edge-to-edge behind the translucent system
+	 * bars, the system-bar component is the bar size; when the window does not extend
+	 * behind the bars, and on desktop platforms, it is zero. The keyboard component is
+	 * the on-screen keyboard size when it is shown (zero otherwise); in edge-to-edge
+	 * mode the window is not resized when the keyboard is shown, so it is observed via
+	 * a WindowInsets listener on the Java side rather than from the content rectangle.
 	 *
-	 * The returned values are live where supported: on Android they reference
-	 * values owned by ruisapp that are refreshed as the window is resized, so a
-	 * widget that uses them (e.g. a padding) picks up changes on the next
-	 * layout pass without re-querying.
+	 * The returned values are live where supported: on Android they reference values
+	 * owned by ruisapp that are refreshed as the window is resized or the keyboard is
+	 * shown/hidden, so a widget that uses them (e.g. a padding) picks up changes on
+	 * the next layout pass without re-querying.
 	 *
 	 * @return the current content insets, in pixels.
 	 */

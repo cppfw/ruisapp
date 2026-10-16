@@ -131,6 +131,40 @@ JNIEXPORT void JNICALL Java_io_github_cppfw_ruisapp_RuisappActivity_handleCharac
 	}
 }
 
+// Called from the Java side (RuisappActivity) via the OnApplyWindowInsetsListener
+// whenever the window insets change, in particular when the input method editor
+// (on-screen keyboard) is shown or hidden. In edge-to-edge mode the window is not
+// resized when the IME is shown, so the ANativeActivity content-rect callback does
+// not reflect it; this is the reliable way to observe the IME and update the live
+// content-rectangle insets (the region beyond which the content is not visible).
+JNIEXPORT void JNICALL Java_io_github_cppfw_ruisapp_RuisappActivity_onKeyboardInsetsChanged(
+	JNIEnv* env, //
+	jclass clazz,
+	jint left, //
+	jint top,
+	jint right,
+	jint bottom
+)
+{
+	auto& glue = get_glue();
+
+	if (auto win = glue.get_window()) {
+		// merge the keyboard insets into the live content insets (taking the max
+		// with the system-bar insets on each side) so that the content is kept out
+		// of the region covered by the on-screen keyboard.
+		win->set_keyboard_insets(
+			ruis::real(left), //
+			ruis::real(top),
+			ruis::real(right),
+			ruis::real(bottom)
+		);
+
+		// redraw so that the content re-lays out to match the new insets
+		// (e.g. when the on-screen keyboard is shown/hidden).
+		glue.render();
+	}
+}
+
 } // namespace
 
 // this has to be named exactly JNI_OnLoad()
@@ -151,10 +185,12 @@ jint JNI_OnLoad(
 	static JNINativeMethod methods[] = {
 		{"handleCharacterStringInput",
 		 "(Ljava/lang/String;)V", (void*)&Java_io_github_cppfw_ruisapp_RuisappActivity_handleCharacterStringInput},
+		{   "onKeyboardInsetsChanged",
+		 "(IIII)V",    (void*)&Java_io_github_cppfw_ruisapp_RuisappActivity_onKeyboardInsetsChanged              },
 	};
 	jclass clazz = env->FindClass("io/github/cppfw/ruisapp/RuisappActivity");
 	utki::assert(clazz, SL);
-	if (env->RegisterNatives(clazz, methods, 1) < 0) {
+	if (env->RegisterNatives(clazz, methods, 2) < 0) {
 		utki::assert(false, SL);
 	}
 
@@ -718,6 +754,12 @@ void on_content_rect_changed(
 		ruis::real(insets[2]), // right
 		ruis::real(insets[3]) // bottom
 	);
+
+	// NOTE: the keyboard (input method) insets are not handled here; in
+	// edge-to-edge mode the window is not resized when the keyboard is shown, so
+	// the content rect does not reflect it. They are merged into the live content
+	// insets (app_window::set_keyboard_insets) from the Java side via
+	// onKeyboardInsetsChanged() (see RuisappActivity's OnApplyWindowInsetsListener).
 
 	// TODO: request redraw instead of redrawing right here?
 

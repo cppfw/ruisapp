@@ -3,6 +3,7 @@ package io.github.cppfw.ruisapp;
 import android.app.NativeActivity;
 import android.app.Service;
 import android.content.Context;
+import android.graphics.Insets;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
@@ -137,6 +138,12 @@ public class RuisappActivity extends NativeActivity {
 
 	private static native void handleCharacterStringInput(String str);
 
+	// Native method invoked by reportKeyboardInsets() to pass the on-screen
+	// keyboard (input method) insets (in pixels, in ruis::sides order {left, top,
+	// right, bottom}) to the native side, where they are merged into the content
+	// insets (taking the max with the system-bar insets on each side).
+	private static native void onKeyboardInsetsChanged(int left, int top, int right, int bottom);
+
 	@Override
 	public boolean dispatchKeyEvent(KeyEvent event) {
 		Log.d(LOGTAG, "dispatchKeyEvent(): invoked");
@@ -162,6 +169,46 @@ public class RuisappActivity extends NativeActivity {
 		super.onCreate(savedInstanceState);
 
 		this.imm = (InputMethodManager)this.getSystemService(Service.INPUT_METHOD_SERVICE);
+
+		// Report the on-screen keyboard (input method) insets to the native side. In
+		// edge-to-edge mode (targetSdk 35+) the window is not resized when the IME is
+		// shown, so the ANativeActivity content-rect callback does not reflect it; the
+		// WindowInsets listener is the reliable way to observe IME changes.
+		View decorView = this.getWindow().getDecorView();
+		decorView.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener(){
+			@Override
+			public WindowInsets onApplyWindowInsets(View view, WindowInsets insets){
+				RuisappActivity.this.reportKeyboardInsets(insets);
+				return insets;
+			}
+		});
+	}
+
+	/**
+	 * Computes the on-screen keyboard (input method) insets (in pixels) and reports
+	 * them to the native side, in ruis::sides order {left, top, right, bottom}.
+	 * On API 30+ the IME inset is read from the WindowInsets object; on earlier
+	 * versions the soft keyboard is detected via the visible display frame.
+	 */
+	private void reportKeyboardInsets(WindowInsets insets){
+		int left = 0, top = 0, right = 0, bottom = 0;
+		if(Build.VERSION.SDK_INT >= 30){
+			Insets ime = insets.getInsets(WindowInsets.Type.ime());
+			left = ime.left;
+			top = ime.top;
+			right = ime.right;
+			bottom = ime.bottom;
+		}else{
+			// Pre-API 30: the WindowInsets object does not expose the IME inset, so
+			// detect the soft keyboard via the visible display frame (the region of the
+			// decor view not covered by the system UI / the keyboard).
+			View decorView = this.getWindow().getDecorView();
+			Rect visible = new Rect();
+			decorView.getWindowVisibleDisplayFrame(visible);
+			bottom = Math.max(0, decorView.getHeight() - visible.bottom);
+		}
+		Log.d(LOGTAG, "reportKeyboardInsets(): " + left + ", " + top + ", " + right + ", " + bottom);
+		onKeyboardInsetsChanged(left, top, right, bottom);
 	}
 
 
