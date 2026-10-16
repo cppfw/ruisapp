@@ -3,6 +3,8 @@
 #include <ruis/widget/group/overlay.hpp>
 #include <ruis/widget/label/image.hpp>
 #include <ruis/widget/label/image_mouse_cursor.hpp>
+#include <ruis/widget/label/padding.hpp>
+#include <ruis/widget/label/rectangle.hpp>
 
 #include "gradient_window.hpp"
 #include "scroll_area_window.hpp"
@@ -21,7 +23,10 @@ namespace m {
 using namespace ruis::make;
 } // namespace m
 
-utki::shared_ref<ruis::widget> make_root_widget(const utki::shared_ref<ruis::context>& c)
+utki::shared_ref<ruis::widget> make_root_widget(
+	const utki::shared_ref<ruis::context>& c, //
+	const ruis::sides<ruis::styled<ruis::length>>& insets
+)
 {
 	// clang-format off
     return m::image_mouse_cursor(c,
@@ -54,6 +59,60 @@ utki::shared_ref<ruis::widget> make_root_widget(const utki::shared_ref<ruis::con
                                             .source = c.get().loader().load<ruis::res::image>("img_sample")
                                         }
                                     }
+                                }
+                            ),
+                            // Padding with the live window insets as borders. On Android the
+                            // borders follow the system bars / the on-screen keyboard, so the
+                            // padded area shrinks accordingly. On desktop the insets are zero.
+                            m::padding(c,
+                                {
+                                    .layout_params{
+                                        .dims{ruis::dim::fill, ruis::dim::fill}
+                                    },
+                                    .widget{
+                                        .id = "insets_padding"s
+                                    },
+                                    .params{
+                                        .specific{
+                                            .borders = insets
+                                        }
+                                    }
+                                },
+                                {
+                                    // Nested padding with fixed 10pp borders to verify that
+                                    // paddings compose.
+                                    m::padding(c,
+                                        {
+                                            .layout_params{
+                                                .dims{ruis::dim::fill, ruis::dim::fill}
+                                            },
+                                            .widget{
+                                                .id = "fixed_padding"s
+                                            },
+                                            .params{
+                                                .specific{
+                                                    .borders = ruis::sides<ruis::styled<ruis::length>>(10_pp)
+                                                }
+                                            }
+                                        },
+                                        {
+                                            // Semi-transparent rectangle filling the padded area,
+                                            // its edges show the effective padding.
+                                            m::rectangle(c,
+                                                {
+                                                    .layout_params{
+                                                        .dims{ruis::dim::fill, ruis::dim::fill}
+                                                    },
+                                                    .params{
+                                                        .specific{
+                                                            // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
+                                                            .fill_color = 0x80ff0000
+                                                        }
+                                                    }
+                                                }
+                                            )
+                                        }
+                                    )
                                 }
                             ),
                             m::container(c,

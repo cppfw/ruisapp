@@ -132,35 +132,33 @@ JNIEXPORT void JNICALL Java_io_github_cppfw_ruisapp_RuisappActivity_handleCharac
 }
 
 // Called from the Java side (RuisappActivity) via the OnApplyWindowInsetsListener
-// whenever the window insets change, in particular when the input method editor
-// (on-screen keyboard) is shown or hidden. In edge-to-edge mode the window is not
-// resized when the IME is shown, so the ANativeActivity content-rect callback does
-// not reflect it; this is the reliable way to observe the IME and update the live
-// content-rectangle insets (the region beyond which the content is not visible).
-JNIEXPORT void JNICALL Java_io_github_cppfw_ruisapp_RuisappActivity_onKeyboardInsetsChanged(
+// whenever the window insets change, e.g. when the system bars are hidden/shown
+// (entering/leaving immersive fullscreen) or the input method editor (on-screen
+// keyboard) is shown/hidden. The passed insets are the per-side max of the system bar
+// and the IME insets, combined on the Java side, as both come from a single
+// WindowInsets object. In edge-to-edge mode the window is neither resized nor does its
+// content rect change for those events, so the ANativeActivity content-rect callback
+// reflects none of them and this listener is the reliable source.
+JNIEXPORT void JNICALL Java_io_github_cppfw_ruisapp_RuisappActivity_onInsetsChanged(
 	JNIEnv* env, //
 	jclass clazz,
 	jint left, //
 	jint top,
-	jint right,
+	jint right, //
 	jint bottom
 )
 {
 	auto& glue = get_glue();
 
 	if (auto win = glue.get_window()) {
-		// merge the keyboard insets into the live content insets (taking the max
-		// with the system-bar insets on each side) so that the content is kept out
-		// of the region covered by the on-screen keyboard.
-		win->set_keyboard_insets(
+		win->set_insets(ruis::sides<ruis::real>(
 			ruis::real(left), //
 			ruis::real(top),
-			ruis::real(right),
+			ruis::real(right), //
 			ruis::real(bottom)
-		);
+		));
 
 		// redraw so that the content re-lays out to match the new insets
-		// (e.g. when the on-screen keyboard is shown/hidden).
 		glue.render();
 	}
 }
@@ -184,9 +182,8 @@ jint JNI_OnLoad(
 
 	static JNINativeMethod methods[] = {
 		{"handleCharacterStringInput",
-		 "(Ljava/lang/String;)V", (void*)&Java_io_github_cppfw_ruisapp_RuisappActivity_handleCharacterStringInput},
-		{   "onKeyboardInsetsChanged",
-		 "(IIII)V",    (void*)&Java_io_github_cppfw_ruisapp_RuisappActivity_onKeyboardInsetsChanged              },
+		 "(Ljava/lang/String;)V", (void*)&Java_io_github_cppfw_ruisapp_RuisappActivity_handleCharacterStringInput                },
+		{		   "onInsetsChanged", "(IIII)V",            (void*)&Java_io_github_cppfw_ruisapp_RuisappActivity_onInsetsChanged},
 	};
 	jclass clazz = env->FindClass("io/github/cppfw/ruisapp/RuisappActivity");
 	utki::assert(clazz, SL);
@@ -744,22 +741,21 @@ void on_content_rect_changed(
 		)
 	);
 
-	// refresh the live content insets (system bars) so that the application's
-	// padding reflects the current window layout (initial layout, rotation,
-	// nav bar toggle, ...).
-	auto insets = glob.java_functions.get_system_bar_insets();
-	win->set_insets(
+	// refresh the live content insets so that the application's padding reflects the
+	// current window layout (initial layout, rotation, nav bar toggle, ...).
+	auto insets = glob.java_functions.get_insets();
+	win->set_insets(ruis::sides<ruis::real>(
 		ruis::real(insets[0]), // left
 		ruis::real(insets[1]), // top
 		ruis::real(insets[2]), // right
 		ruis::real(insets[3]) // bottom
-	);
+	));
 
-	// NOTE: the keyboard (input method) insets are not handled here; in
-	// edge-to-edge mode the window is not resized when the keyboard is shown, so
-	// the content rect does not reflect it. They are merged into the live content
-	// insets (app_window::set_keyboard_insets) from the Java side via
-	// onKeyboardInsetsChanged() (see RuisappActivity's OnApplyWindowInsetsListener).
+	// NOTE: the insets reported here are the ones currently known to the Java side;
+	// the insets are re-reported whenever they change via the Java-side WindowInsets
+	// listener (see Java_..._onInsetsChanged), which is the primary source: in
+	// edge-to-edge mode the window is not resized when the keyboard is shown nor when
+	// the system bars are hidden/shown, so the content rect does not reflect those.
 
 	// TODO: request redraw instead of redrawing right here?
 

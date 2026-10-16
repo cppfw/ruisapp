@@ -65,7 +65,10 @@ public:
 
 		this->window.gui.context.get().loader().mount_res_pack(this->get_res_file("res/"));
 
-		auto c = make_root_widget(this->window.gui.context);
+		auto c = make_root_widget(
+			this->window.gui.context, //
+			this->window.get_insets()
+		);
 		this->window.gui.set_root(c);
 
 		this->window.gui.default_key_handler = [this](const ruis::key_event& e) {

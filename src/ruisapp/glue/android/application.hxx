@@ -37,36 +37,18 @@ class app_window : public ruisapp::window
 
 	using inset_value_type = ruis::internal::style_value<ruis::length>;
 
-	// Live content insets, in pixels, returned by get_insets(). On each side this
-	// is the max of the (transparent) system-bar inset and the input-method
-	// (keyboard) inset, so that the content rect inside these insets is the minimal
-	// region not covered by the system bars or the keyboard. Each side is a
-	// shared_ref to a style_value so that the styled values returned by get_insets()
-	// reference them; updating the value in place via update_insets() is observed by
-	// the application on the next layout pass without re-querying.
-	utki::shared_ref<inset_value_type> inset_left = utki::make_shared<inset_value_type>(ruis::length::make_px(0));
-	utki::shared_ref<inset_value_type> inset_top = utki::make_shared<inset_value_type>(ruis::length::make_px(0));
-	utki::shared_ref<inset_value_type> inset_right = utki::make_shared<inset_value_type>(ruis::length::make_px(0));
-	utki::shared_ref<inset_value_type> inset_bottom = utki::make_shared<inset_value_type>(ruis::length::make_px(0));
-
-	// Raw component insets (in pixels) used to compute the live insets above:
-	//   inset_side = max(system_bar_inset_side, keyboard_inset_side)
-	// system_bar_inset_* is set from on_content_rect_changed (the transparent
-	// system bars, e.g. status / navigation bar; zero when the window does not
-	// extend behind them, and on desktop). keyboard_inset_* is set from the
-	// Java-side WindowInsets listener (the on-screen keyboard; zero when it is
-	// hidden). NOTE: in edge-to-edge mode the window is not resized when the
-	// keyboard is shown, so the keyboard insets cannot be derived from the content
-	// rect (the ANativeActivity onContentRectChanged callback); the WindowInsets
-	// listener is the reliable source.
-	ruis::real system_bar_inset_left = 0;
-	ruis::real system_bar_inset_top = 0;
-	ruis::real system_bar_inset_right = 0;
-	ruis::real system_bar_inset_bottom = 0;
-	ruis::real keyboard_inset_left = 0;
-	ruis::real keyboard_inset_top = 0;
-	ruis::real keyboard_inset_right = 0;
-	ruis::real keyboard_inset_bottom = 0;
+	// Live content insets, in pixels, returned by get_insets(): the region beyond
+	// which the content is not visible (the per-side max of the system bar insets and
+	// the input-method insets, combined on the Java side). Each side is a shared_ref to
+	// a style_value so that the styled values returned by get_insets() reference them;
+	// updating the value in place via set_insets() is observed by the application on the
+	// next layout pass without re-querying.
+	ruis::sides<utki::shared_ref<inset_value_type>> insets{
+		utki::make_shared<inset_value_type>(ruis::length::make_px(0)), //
+		utki::make_shared<inset_value_type>(ruis::length::make_px(0)), //
+		utki::make_shared<inset_value_type>(ruis::length::make_px(0)), //
+		utki::make_shared<inset_value_type>(ruis::length::make_px(0)) //
+	};
 
 public:
 	const utki::shared_ref<native_window> ruis_native_window;
@@ -87,33 +69,22 @@ public:
 	}
 
 	// Override of the base window::get_insets(); returns live references to the
-	// inset values (the max of the system-bar and keyboard insets) owned by this
-	// window.
+	// inset values owned by this window.
 	ruis::sides<ruis::styled<ruis::length>> get_insets() override;
 
-	// Set the system-bar insets component (in pixels) and refresh the live
-	// insets. Called by the glue when the window content rect changes (initial
-	// layout, rotation, nav bar toggle, ...).
-	void set_insets(
-		ruis::real left, //
-		ruis::real top,
-		ruis::real right,
-		ruis::real bottom
-	);
-
-	// Set the keyboard (input method) insets component (in pixels) and refresh the
-	// live insets. Called by the glue from the Java side (via
-	// onKeyboardInsetsChanged) when the on-screen keyboard is shown or hidden.
-	void set_keyboard_insets(
-		ruis::real left, //
-		ruis::real top,
-		ruis::real right,
-		ruis::real bottom
-	);
-
-	// Recompute the live insets as the max of the system-bar and keyboard
-	// components.
-	void update_insets();
+	// Set the content insets (in pixels, one per side). If the values changed, the
+	// root widget is reloaded to invalidate the layout of the widget tree, so that the
+	// widgets referencing the insets (e.g. a padding's borders) pick up the new values
+	// on the next render.
+	// Called by the glue from the Java side (via onInsetsChanged) whenever the window
+	// insets change (system bars hidden/shown, e.g. on entering/leaving fullscreen, and
+	// the on-screen keyboard shown/hidden - both combined on the Java side), and when
+	// the window content rect changes (initial layout, rotation, ...).
+	// NOTE: in edge-to-edge mode the window is not resized when the keyboard is shown
+	// nor when the system bars are hidden/shown, so neither can be derived from the
+	// content rect (the ANativeActivity onContentRectChanged callback); the Java-side
+	// WindowInsets listener is the reliable source.
+	void set_insets(ruis::sides<ruis::real> insets);
 
 	ruis::vec2 android_win_coords_to_ruisapp_win_rect_coords(const ruis::vec2& p)
 	{

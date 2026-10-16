@@ -56,12 +56,12 @@ java_functions_wrapper::java_functions_wrapper()
 		"getScreenResolution",
 		"()[I" // function signature: no arguments, returns array of ints
 	);
-	this->get_system_bar_insets_method = this->env->GetMethodID(
+	this->get_insets_method = this->env->GetMethodID(
 		this->clazz, //
-		"getSystemBarInsets",
+		"getInsets",
 		"()[I" // function signature: no arguments, returns array of ints
 	);
-	utki::assert(this->get_system_bar_insets_method, SL);
+	utki::assert(this->get_insets_method, SL);
 
 	this->list_dir_contents_method = this->env->GetMethodID(
 		this->clazz, //
@@ -164,11 +164,11 @@ r4::vector2<unsigned> java_functions_wrapper::get_screen_resolution()
 	return ret;
 }
 
-r4::vector4<int> java_functions_wrapper::get_system_bar_insets()
+r4::vector4<int> java_functions_wrapper::get_insets()
 {
 	jobject res = this->env->CallObjectMethod(
 		this->obj, //
-		this->get_system_bar_insets_method
+		this->get_insets_method
 	);
 
 	utki::scope_exit scopeExit([this, res]() {

@@ -74,26 +74,21 @@ public class RuisappActivity extends NativeActivity {
 	}
 
 	/**
-	 * Returns the system bar insets in pixels, in ruis::sides order
-	 * {left, top, right, bottom}.
-	 * In the edge-to-edge case (targetSdk 35+ on Android 15+) these are the
-	 * system bar sizes; otherwise they are 0 (the window already excludes the
-	 * bars). The deprecated getSystemWindowInset*() API is used because it is
-	 * valid across the whole minSdk 24.. range, unlike the
-	 * WindowInsets.Type-based replacement which requires API 30+.
+	 * Returns the current content insets in pixels, in ruis::sides order
+	 * {left, top, right, bottom} - the per-side max of the system bar insets and the
+	 * on-screen keyboard (IME) insets, i.e. the region beyond which the content is not
+	 * visible. Queried from the root window insets.
+	 * Called by the native side when the window content rect changes (initial layout,
+	 * rotation, ...), as a fallback for the WindowInsets listener (which is the primary
+	 * source of inset updates).
 	 */
-	public int[] getSystemBarInsets(){
+	public int[] getInsets(){
 		android.view.WindowInsets in = this.getWindow().getDecorView().getRootWindowInsets();
 		if(in == null){
 			return new int[] {0, 0, 0, 0};
 		}
-		int[] ret = new int[] {
-			in.getSystemWindowInsetLeft(),
-			in.getSystemWindowInsetTop(),
-			in.getSystemWindowInsetRight(),
-			in.getSystemWindowInsetBottom()
-		};
-		Log.d(LOGTAG, "getSystemBarInsets(): " + ret[0] + ", " + ret[1] + ", " + ret[2] + ", " + ret[3]);
+		int[] ret = this.computeInsets(in);
+		Log.d(LOGTAG, "getInsets(): " + ret[0] + ", " + ret[1] + ", " + ret[2] + ", " + ret[3]);
 		return ret;
 	}
 
@@ -138,11 +133,71 @@ public class RuisappActivity extends NativeActivity {
 
 	private static native void handleCharacterStringInput(String str);
 
-	// Native method invoked by reportKeyboardInsets() to pass the on-screen
-	// keyboard (input method) insets (in pixels, in ruis::sides order {left, top,
-	// right, bottom}) to the native side, where they are merged into the content
-	// insets (taking the max with the system-bar insets on each side).
-	private static native void onKeyboardInsetsChanged(int left, int top, int right, int bottom);
+	// Native method invoked by reportInsets() to pass the content insets (in pixels,
+	// in ruis::sides order {left, top, right, bottom}) to the native side. The insets
+	// are the per-side max of the system bar insets and the on-screen keyboard (IME)
+	// insets, combined on this (Java) side because both come from a single WindowInsets
+	// object, which keeps the native side simple and makes it re-layout the content
+	// once per insets change instead of twice.
+	private static native void onInsetsChanged(int left, int top, int right, int bottom);
+
+	/**
+	 * Computes the content insets (in pixels) from a WindowInsets object, in
+	 * ruis::sides order {left, top, right, bottom}: the per-side max of the system bars
+	 * (status bar and navigation bar) insets and the on-screen keyboard (input method)
+	 * insets, i.e. the region beyond which the content is not visible.
+	 * On API 30+ both inset types are read from the WindowInsets object; on earlier
+	 * versions the deprecated system-window insets are used for the bars (they are the
+	 * bars only, as the IME is not reported there in the non edge-to-edge mode) and the
+	 * keyboard is detected via the visible display frame.
+	 */
+	private int[] computeInsets(WindowInsets insets){
+		int[] bars;
+		int[] ime;
+		if(Build.VERSION.SDK_INT >= 30){
+			Insets b = insets.getInsets(WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars());
+			bars = new int[] {b.left, b.top, b.right, b.bottom};
+			Insets i = insets.getInsets(WindowInsets.Type.ime());
+			ime = new int[] {i.left, i.top, i.right, i.bottom};
+		}else{
+			bars = new int[] {
+				insets.getSystemWindowInsetLeft(),
+				insets.getSystemWindowInsetTop(),
+				insets.getSystemWindowInsetRight(),
+				insets.getSystemWindowInsetBottom()
+			};
+			// Pre-API 30: the WindowInsets object does not expose the IME inset, so
+			// detect the soft keyboard via the visible display frame (the region of the
+			// decor view not covered by the system UI / the keyboard).
+			View decorView = this.getWindow().getDecorView();
+			Rect visible = new Rect();
+			decorView.getWindowVisibleDisplayFrame(visible);
+			int keyboardBottom = Math.max(0, decorView.getHeight() - visible.bottom);
+			ime = new int[] {0, 0, 0, keyboardBottom};
+		}
+		return new int[] {
+			Math.max(bars[0], ime[0]),
+			Math.max(bars[1], ime[1]),
+			Math.max(bars[2], ime[2]),
+			Math.max(bars[3], ime[3])
+		};
+	}
+
+	/**
+	 * Computes the content insets from a WindowInsets object and reports them to the
+	 * native side via a single onInsetsChanged() call.
+	 * Reported from the WindowInsets listener because in edge-to-edge mode hiding or
+	 * showing the bars (e.g. when entering or leaving immersive fullscreen) does not
+	 * change the window content rectangle, and showing the keyboard does not resize
+	 * the window either, so the ANativeActivity content-rect callback reflects neither.
+	 * Moreover, insets are dispatched asynchronously, so querying getRootWindowInsets()
+	 * synchronously right after hiding the bars would report the stale (pre-hide) values.
+	 */
+	private void reportInsets(WindowInsets insets){
+		int[] in = this.computeInsets(insets);
+		Log.d(LOGTAG, "reportInsets(): " + in[0] + ", " + in[1] + ", " + in[2] + ", " + in[3]);
+		onInsetsChanged(in[0], in[1], in[2], in[3]);
+	}
 
 	@Override
 	public boolean dispatchKeyEvent(KeyEvent event) {
@@ -170,47 +225,30 @@ public class RuisappActivity extends NativeActivity {
 
 		this.imm = (InputMethodManager)this.getSystemService(Service.INPUT_METHOD_SERVICE);
 
-		// Report the on-screen keyboard (input method) insets to the native side. In
-		// edge-to-edge mode (targetSdk 35+) the window is not resized when the IME is
-		// shown, so the ANativeActivity content-rect callback does not reflect it; the
-		// WindowInsets listener is the reliable way to observe IME changes.
+		// Report the window insets to the native side. In edge-to-edge mode
+		// (targetSdk 35+) the window is neither resized when the system bars are
+		// hidden/shown (e.g. on entering/leaving immersive fullscreen) nor when the
+		// on-screen keyboard (IME) is shown/hidden, so the ANativeActivity content-rect
+		// callback reflects neither; the WindowInsets listener is the reliable way to
+		// observe both the system bar insets and the IME insets.
 		View decorView = this.getWindow().getDecorView();
 		decorView.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener(){
 			@Override
 			public WindowInsets onApplyWindowInsets(View view, WindowInsets insets){
-				RuisappActivity.this.reportKeyboardInsets(insets);
+				// A single WindowInsets object describes all the window inset types at
+				// once - the system bars, the IME, the display cutout, etc. - so both the
+				// system bar and the IME insets are extracted from it and reported to the
+				// native side in a single call.
+				RuisappActivity.this.reportInsets(insets);
+				// The returned value is what gets applied to the view and dispatched further
+				// down the view hierarchy. We only observe the insets without consuming or
+				// modifying them, so we return the very same object to keep the default
+				// behaviour intact for the rest of the hierarchy (returning null or a
+				// consumed/stripped object would stop the insets from reaching the children).
 				return insets;
 			}
 		});
 	}
-
-	/**
-	 * Computes the on-screen keyboard (input method) insets (in pixels) and reports
-	 * them to the native side, in ruis::sides order {left, top, right, bottom}.
-	 * On API 30+ the IME inset is read from the WindowInsets object; on earlier
-	 * versions the soft keyboard is detected via the visible display frame.
-	 */
-	private void reportKeyboardInsets(WindowInsets insets){
-		int left = 0, top = 0, right = 0, bottom = 0;
-		if(Build.VERSION.SDK_INT >= 30){
-			Insets ime = insets.getInsets(WindowInsets.Type.ime());
-			left = ime.left;
-			top = ime.top;
-			right = ime.right;
-			bottom = ime.bottom;
-		}else{
-			// Pre-API 30: the WindowInsets object does not expose the IME inset, so
-			// detect the soft keyboard via the visible display frame (the region of the
-			// decor view not covered by the system UI / the keyboard).
-			View decorView = this.getWindow().getDecorView();
-			Rect visible = new Rect();
-			decorView.getWindowVisibleDisplayFrame(visible);
-			bottom = Math.max(0, decorView.getHeight() - visible.bottom);
-		}
-		Log.d(LOGTAG, "reportKeyboardInsets(): " + left + ", " + top + ", " + right + ", " + bottom);
-		onKeyboardInsetsChanged(left, top, right, bottom);
-	}
-
 
 	public void showVirtualKeyboard(){
 		this.imm.showSoftInput(this.getWindow().getDecorView(), InputMethodManager.SHOW_FORCED);

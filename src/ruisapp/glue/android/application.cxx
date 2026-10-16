@@ -22,6 +22,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "application.hxx"
 
 #include <ruis/render/opengles/context.hpp>
+#include <ruis/widget/widget.hpp>
+#include <utki/views.hpp>
 
 #include "asset_file.hxx"
 #include "globals.hxx"
@@ -41,57 +43,39 @@ void app_window::set_win_rect(const ruis::rect& r)
 ruis::sides<ruis::styled<ruis::length>> app_window::get_insets()
 {
 	// Each styled value references the shared style_value owned by this window, so
-	// updates via update_insets() are observed without re-querying.
-	return ruis::sides<ruis::styled<ruis::length>>(
-		ruis::styled<ruis::length>(this->inset_left), //
-		ruis::styled<ruis::length>(this->inset_top), //
-		ruis::styled<ruis::length>(this->inset_right), //
-		ruis::styled<ruis::length>(this->inset_bottom)
-	);
+	// updates via set_insets() are observed without re-querying.
+	ruis::sides<ruis::styled<ruis::length>> ret;
+	for (auto [style_value, styled_value] : utki::views::zip(this->insets, ret)) {
+		styled_value = ruis::styled<ruis::length>(style_value);
+	}
+	return ret;
 }
 
-void app_window::set_insets(
-	ruis::real left, //
-	ruis::real top,
-	ruis::real right,
-	ruis::real bottom
-)
+void app_window::set_insets(ruis::sides<ruis::real> insets)
 {
-	this->system_bar_inset_left = left;
-	this->system_bar_inset_top = top;
-	this->system_bar_inset_right = right;
-	this->system_bar_inset_bottom = bottom;
-	this->update_insets();
-}
+	bool changed = false;
 
-void app_window::set_keyboard_insets(
-	ruis::real left, //
-	ruis::real top,
-	ruis::real right,
-	ruis::real bottom
-)
-{
-	this->keyboard_inset_left = left;
-	this->keyboard_inset_top = top;
-	this->keyboard_inset_right = right;
-	this->keyboard_inset_bottom = bottom;
-	this->update_insets();
-}
+	for (auto [inset, inset_value] : utki::views::zip(this->insets, insets)) {
+		auto& cur = inset.get().get_value();
+		auto new_value = ruis::length::make_px(inset_value);
+		if (cur == new_value) {
+			continue;
+		}
+		cur = new_value;
+		changed = true;
+	}
 
-void app_window::update_insets()
-{
-	// each side of the live insets is the max of the system-bar and the keyboard
-	// components, so that the content rect inside them is the minimal region not
-	// covered by the system bars or the keyboard.
-	using std::max;
-	this->inset_left.get().get_value() =
-		ruis::length::make_px(max(this->system_bar_inset_left, this->keyboard_inset_left));
-	this->inset_top.get().get_value() =
-		ruis::length::make_px(max(this->system_bar_inset_top, this->keyboard_inset_top));
-	this->inset_right.get().get_value() =
-		ruis::length::make_px(max(this->system_bar_inset_right, this->keyboard_inset_right));
-	this->inset_bottom.get().get_value() =
-		ruis::length::make_px(max(this->system_bar_inset_bottom, this->keyboard_inset_bottom));
+	if (!changed) {
+		return;
+	}
+
+	// The inset values are referenced by the application's widgets (e.g. as borders of a ruis::padding),
+	// but those widgets have no idea that the values they reference have just changed, so nothing would
+	// re-layout them. Reload the root widget to invalidate the layout of the whole widget tree, so that
+	// the widgets pick up the new inset values on the next render.
+	// NOTE: the root widget is always present (it is a dummy widget until the application sets its own
+	// one), so it is safe to call this at any time.
+	this->gui.get_root().reload();
 }
 
 application_glue::application_glue(utki::version_duplet gl_version) :
