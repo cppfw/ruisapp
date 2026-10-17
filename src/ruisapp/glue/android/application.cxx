@@ -71,11 +71,14 @@ void app_window::set_insets(ruis::sides<ruis::real> insets)
 
 	// The inset values are referenced by the application's widgets (e.g. as borders of a ruis::padding),
 	// but those widgets have no idea that the values they reference have just changed, so nothing would
-	// re-layout them. Reload the root widget to invalidate the layout of the whole widget tree, so that
-	// the widgets pick up the new inset values on the next render.
+	// re-layout them. Invalidate the whole widget subtree, so that on the next render the layout is
+	// re-done from the root and every widget picks up the new inset values.
+	// (Just reloading the root is not enough: invalidate_layout() only marks the root and its ancestors,
+	// and the layout algorithms skip clean children when laying out a parent, so the change would not
+	// reach the widgets nested inside the inset padding.)
 	// NOTE: the root widget is always present (it is a dummy widget until the application sets its own
 	// one), so it is safe to call this at any time.
-	this->gui.get_root().reload();
+	this->gui.get_root().invalidate_subtree_layout();
 }
 
 application_glue::application_glue(utki::version_duplet gl_version) :
