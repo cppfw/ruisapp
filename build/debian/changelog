@@ -1,3 +1,9 @@
+libruisapp (0.2.144) unstable; urgency=medium
+
+  * update
+
+ -- Ivan Gagis <igagis@gmail.com>  Sun, 18 Oct 2026 22:03:18 +0300
+
 libruisapp (0.2.143) unstable; urgency=medium
 
   * refactor android window insets api
