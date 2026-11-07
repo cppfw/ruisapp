@@ -201,6 +201,14 @@ public:
 	 */
 	void quit() noexcept;
 
+	/**
+	 * @brief Called once per main loop iteration.
+	 * This function is called once per main loop iteration, at the beginning of the
+	 * loop cycle, before the updatables are updated and the windows are rendered.
+	 * The default implementation does nothing.
+	 */
+	virtual void on_loop() {}
+
 private:
 	ruisapp::window& make_window_internal(window_parameters window_params);
 

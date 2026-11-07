@@ -69,9 +69,13 @@ void winmain(
 		glue.windows_to_destroy.clear();
 
 		// main loop cycle sequence as required by ruis:
+		// - call application::on_loop()
 		// - update updateables
 		// - render
 		// - wait for events and handle them/next cycle
+
+		app->on_loop();
+
 		uint32_t timeout = glue.updater.get().update();
 
 		glue.render();

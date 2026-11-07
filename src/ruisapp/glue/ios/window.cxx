@@ -130,11 +130,15 @@ void handle_mouse_move(
 	// Dispose of any resources that can be recreated.
 }
 
+// This is called on every frame. Not called when app is in background, i.e. window is not visible.
 - (void)update
 {
 	// TODO: updater is not tied to a window, but on ios we update it from the ViewController which looks incorrect.
-	//       Investigate if it is possible to move it out of window code somehow. Perhaps will have to use soemthing else than GLKViewController.
+	//       Investigate if it is possible to move it out of window code somehow. Perhaps will have to use something else than GLKViewController.
 	auto& glue = get_glue();
+
+	ruisapp::application::inst().on_loop();
+
 	// TODO: adapt to nothing to update, lower frame rate
 	glue.updater.get().update();
 }

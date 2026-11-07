@@ -417,9 +417,12 @@ int main(int argc, const char** argv)
 		glue.windows_to_destroy.clear();
 
 		// main loop cycle sequence as required by ruis:
+		// - call application::on_loop()
 		// - update updateables
 		// - render
 		// - wait for events and handle them
+
+		app->on_loop();
 
 		auto to_wait_ms = glue.updater.get().update();
 		glue.render();

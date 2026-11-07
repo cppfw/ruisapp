@@ -80,9 +80,12 @@ void main_loop_iteration(void* user_data)
 	glue.windows_to_destroy.clear();
 
 	// loop iteration sequence:
+	// - call application::on_loop()
 	// - update updateables
 	// - render
 	// - wait for events and handle them/next cycle
+
+	app->on_loop();
 
 #if CFG_OS_NAME != CFG_OS_NAME_EMSCRIPTEN
 	auto to_wait_ms =

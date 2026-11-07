@@ -81,18 +81,24 @@ int on_queue_has_messages(
 		m();
 	}
 
+	// set the main loop event flag to make sure that a main loop cycle
+	// (on_loop(), update, render) will run after the messages have been processed,
+	// in case a message changed the application state, e.g. started a new updatable
+	// or changed something that needs to be rendered
+	glob.main_loop_event_fd.set();
+
 	return 1; // 1 means do not remove descriptor from looper
 }
 } // namespace
 
 namespace {
-int on_update_timer_expired(
+int on_main_loop_cycle(
 	int fd, //
 	int events,
 	void* data
 )
 {
-	//	utki::log_debug([&](auto&o){o << "on_update_timer_expired(): invoked" <<
+	//	utki::log_debug([&](auto&o){o << "on_main_loop_cycle(): invoked" <<
 	// std::endl;});
 
 	auto& glob = get_glob();
@@ -100,9 +106,12 @@ int on_update_timer_expired(
 	utki::assert(glob.app, SL);
 	auto& glue = get_glue(*glob.app);
 
+	glob.app->on_loop();
+
 	uint32_t dt = glue.updater.get().update();
 	if (dt == 0) {
-		// do not arm the timer and do not clear the flag
+		// The next update should be called after 0ms, i.e. right on next main
+		// loop cycle so do not arm the timer and do not clear the flag.
 	} else {
 		glob.main_loop_event_fd.clear();
 		glob.timer.arm(dt);
@@ -111,7 +120,7 @@ int on_update_timer_expired(
 	// after updating need to re-render everything
 	glue.render();
 
-	//	utki::log_debug([&](auto&o){o << "on_update_timer_expired(): armed timer for " << dt
+	//	utki::log_debug([&](auto&o){o << "on_main_loop_cycle(): armed timer for " << dt
 	//<< std::endl;});
 
 	return 1; // 1 means do not remove descriptor from looper
@@ -126,7 +135,7 @@ globals_wrapper::globals_wrapper()
 			this->main_loop_event_fd.get_fd(),
 			ALOOPER_POLL_CALLBACK,
 			ALOOPER_EVENT_INPUT,
-			&on_update_timer_expired,
+			&on_main_loop_cycle,
 			0
 		) == -1)
 	{
