@@ -249,6 +249,30 @@ public:
 	 */
 	std::vector<std::reference_wrapper<ruisapp::window>> get_windows();
 
+	/**
+	 * @brief Probe the application: query its state and control it.
+	 * This is the application-level counterpart of ruis::gui::probe(). It is not
+	 * part of the widget probe fold: the application owns the windows but is not
+	 * a widget itself, so it handles its own commands.
+	 *
+	 * Commands:
+	 * - 'get_windows': return the number of application windows, as a forest
+	 *   containing a single 'windows_count { N }' node.
+	 * - 'for_window { index { N } <command> }': forward <command> to the probe()
+	 *   of the Nth window's gui object (0-based index, 'index' first then the
+	 *   command); the response is the window gui's probe response as is. An error
+	 *   node is returned if there is no window with the given index, if the
+	 *   command to forward is missing, or if the index is missing or malformed.
+	 * - 'quit': request the application to exit, see quit(); returns an 'ok' node.
+	 *
+	 * An unknown command returns an error node with the 'unknown_command'
+	 * diagnostic. Responses are returned as is (not wrapped into a named section).
+	 *
+	 * @param command - probe command.
+	 * @return probe response - a forest of response nodes.
+	 */
+	tml::forest probe(const tml::tree& command);
+
 private:
 	std::optional<ruis::theme> default_theme;
 

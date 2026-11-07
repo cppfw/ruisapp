@@ -21,9 +21,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "application.hpp"
 
+#include <exception>
+
 #include <fsif/native_file.hpp>
 #include <fsif/root_dir.hpp>
 #include <ruis/widget/widget.hpp>
+#include <tml/crawler.hpp>
 #include <utki/config.hpp>
 #include <utki/debug.hpp>
 
@@ -186,4 +189,51 @@ void application::set_theme(ruis::theme th)
 	for (auto& w : this->get_windows()) {
 		w.get().gui.get_root().reload();
 	}
+}
+
+namespace {
+// success response: ok
+tml::forest make_app_ok()
+{
+	return {tml::tree(tml::leaf("ok"))};
+}
+
+// error response: error { <diagnostic> }
+tml::forest make_app_error(std::string diagnostic)
+{
+	return {tml::tree(tml::leaf("error"), tml::forest{tml::tree(tml::leaf(std::move(diagnostic)))})};
+}
+} // namespace
+
+tml::forest application::probe(const tml::tree& command)
+{
+	// The parameters of the 'for_window' command are read with the tml::crawler,
+	// so a missing or malformed parameter is detected by the exception thrown by the
+	// crawler (or by the tml::leaf numeric conversion), which is caught and turned
+	// into an error response carrying the exception message as the diagnostic.
+	if (command.value == "get_windows") {
+		const auto windows = this->get_windows();
+		return {tml::tree(tml::leaf("windows_count"), tml::forest{tml::tree(tml::leaf(unsigned(windows.size())))})};
+	} else if (command.value == "for_window") {
+		const auto windows = this->get_windows();
+		// the order of the children is strict: first 'index', then the command to forward,
+		// so the command is the child immediately after the 'index' node
+		try {
+			const tml::const_crawler crw(command.children);
+			const unsigned index = unsigned(crw.to("index").in().get().value.to_uint32());
+			// crw is still at the index node, because .in() creates a new crawler instance
+			const tml::tree& sub_command = crw.next().get();
+			if (index >= windows.size()) {
+				return make_app_error("window_not_found");
+			}
+			return windows[index].get().gui.probe(sub_command);
+		} catch (const std::exception& e) {
+			return make_app_error(e.what());
+		}
+	} else if (command.value == "quit") {
+		this->quit();
+		return make_app_ok();
+	}
+
+	return make_app_error("unknown_command");
 }
