@@ -251,3 +251,11 @@ void ruisapp::application::quit() noexcept
 	utki::assert(globals_wrapper::native_activity, SL);
 	ANativeActivity_finish(globals_wrapper::native_activity);
 }
+
+void ruisapp::application::poke() noexcept
+{
+	// static_cast converts the captureless lambda to a function pointer: a
+	// function pointer is guaranteed to fit in the std::function small buffer
+	// (no heap allocation), whereas a lambda object passed by value is not
+	get_glob().ui_queue.push_back(static_cast<void (*)()>([]() {}));
+}

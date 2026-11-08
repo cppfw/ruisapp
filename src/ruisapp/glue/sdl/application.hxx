@@ -22,6 +22,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <atomic>
+#include <functional>
 
 #include <utki/destructable.hpp>
 
@@ -111,6 +112,9 @@ public:
 	void render();
 
 	void apply_new_win_dims();
+
+	// posts a procedure to be executed on the UI thread (main thread)
+	void post_to_ui_thread(std::function<void()> procedure);
 };
 } // namespace
 

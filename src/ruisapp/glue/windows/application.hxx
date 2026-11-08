@@ -22,6 +22,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <atomic>
+#include <functional>
 #include <map>
 
 #include "../../application.hpp"
@@ -105,6 +106,9 @@ public:
 	app_window* get_window(native_window::window_id_type id);
 
 	void render();
+
+	// posts a procedure to be executed on the UI thread's message queue
+	void post_to_ui_thread(std::function<void()> procedure);
 };
 } // namespace
 

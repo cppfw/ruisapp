@@ -19,6 +19,7 @@
 #include <ruis/widget/slider/scroll_bar.hpp>
 #include <ruis/widget/widget.hpp>
 #include <ruisapp/application.hpp>
+#include <ruisapp/probe_server.hpp>
 #include <utki/debug.hpp>
 
 #include "cube_widget.hpp"
@@ -46,6 +47,9 @@ using namespace ruis::make;
 class application : public ruisapp::application
 {
 	ruisapp::window& window;
+	// the probe server, it listens on the given TCP port and executes the
+	// received probe commands via this application's probe() method
+	ruisapp::probe_server probe_srv;
 
 public:
 	application() :
@@ -55,7 +59,8 @@ public:
     }),
 		window(this->make_window(
 			{.dims = {1024, 800}, .orientation = ruisapp::orientation::landscape, .buffers = {ruisapp::buffer::depth}}
-		))
+		)),
+		probe_srv(12345)
 	{
 		this->window.gui.context.get().window().close_handler = [this]() {
 			this->quit();
@@ -326,6 +331,12 @@ public:
 				this->window.gui.context.get().window().set_mouse_cursor_visible(visible);
 			};
 		}
+	}
+
+	void on_loop() override
+	{
+		// execute the probe commands received by the probe server
+		this->probe_srv.exec();
 	}
 };
 

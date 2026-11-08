@@ -144,6 +144,21 @@ void application_glue::render()
 	}
 }
 
+void application_glue::post_to_ui_thread(std::function<void()> procedure)
+{
+	if ( //
+		PostMessage( //
+			NULL, // post message to UI thread's message queue
+			WM_USER,
+			0, // no wParam
+			// NOLINTNEXTLINE(cppcoreguidelines-owning-memory, cppcoreguidelines-pro-type-reinterpret-cast)
+			reinterpret_cast<LPARAM>(new std::function<void()>(std::move(procedure)))
+		) == 0)
+	{
+		throw std::runtime_error("PostMessage(): failed");
+	}
+}
+
 app_window* application_glue::get_window(native_window::window_id_type id)
 {
 	auto i = this->windows.find(id);
@@ -165,17 +180,8 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 
 	auto ruis_context = utki::make_shared<ruis::context>(ruis::context::parameters{
 		.post_to_ui_thread_function =
-			[](std::function<void()> procedure) {
-				if (PostMessage(
-						NULL, // post message to UI thread's message queue
-						WM_USER,
-						0, // no wParam
-						// NOLINTNEXTLINE(cppcoreguidelines-owning-memory, cppcoreguidelines-pro-type-reinterpret-cast)
-						reinterpret_cast<LPARAM>(new std::remove_reference_t<decltype(procedure)>(std::move(procedure)))
-					) == 0)
-				{
-					throw std::runtime_error("PostMessage(): failed");
-				}
+			[this](std::function<void()> a) {
+				this->post_to_ui_thread(std::move(a));
 			},
 		.updater = this->updater,
 		.renderer = utki::make_shared<ruis::render::renderer>(
@@ -255,6 +261,21 @@ void ruisapp::application::quit() noexcept
 	PostQuitMessage( //
 		0 // exit code
 	);
+}
+
+void ruisapp::application::poke() noexcept
+{
+	// post an empty procedure to the UI thread's message queue; its only
+	// purpose is to wake up the main loop
+	// static_cast converts the captureless lambda to a function pointer: a
+	// function pointer is guaranteed to fit in the std::function small buffer
+	// (no heap allocation), whereas a lambda object passed by value is not
+	// this function is nothrow, so catch and ignore any exceptions thrown by
+	// post_to_ui_thread
+	try {
+		get_glue().post_to_ui_thread(static_cast<void (*)()>([]() {}));
+	} catch (...) {
+	}
 }
 
 ruisapp::window& ruisapp::application::make_window_internal(ruisapp::window_parameters window_params)

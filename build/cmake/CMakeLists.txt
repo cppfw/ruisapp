@@ -54,6 +54,9 @@ if(ruisapp_build_opengl_variant)
             nitki
             ruis
             ruis-render-opengl
+            opros
+            setka
+            tml
         LINUX_ONLY_DEPENDENCIES
             PkgConfig::gtk4
             PkgConfig::x11
@@ -92,6 +95,9 @@ if(ruisapp_build_opengles_variant)
             nitki
             ruis
             ruis-render-opengles
+            opros
+            setka
+            tml
         LINUX_ONLY_DEPENDENCIES
             PkgConfig::gtk4
             PkgConfig::x11

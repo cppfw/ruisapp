@@ -130,18 +130,7 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 	auto ruis_context = utki::make_shared<ruis::context>(ruis::context::parameters{
 		.post_to_ui_thread_function =
 			[this](std::function<void()> a) {
-				NSEvent* e =
-					[NSEvent otherEventWithType:NSEventTypeApplicationDefined
-									   location:NSMakePoint(0, 0)
-								  modifierFlags:0
-									  timestamp:0
-								   windowNumber:0
-										context:nil
-										subtype:0
-										  data1:reinterpret_cast<NSInteger>(new std::function<void()>(std::move(a)))
-										  data2:0];
-
-				[this->macos_application.application postEvent:e atStart:NO];
+				this->post_to_ui_thread(std::move(a));
 			},
 		.updater = this->updater,
 		.renderer = utki::make_shared<ruis::render::renderer>(
@@ -216,6 +205,22 @@ void application_glue::render()
 	}
 }
 
+void application_glue::post_to_ui_thread(std::function<void()> procedure) noexcept
+{
+	NSEvent* e =
+		[NSEvent otherEventWithType:NSEventTypeApplicationDefined
+						   location:NSMakePoint(0, 0)
+					  modifierFlags:0
+						  timestamp:0
+					   windowNumber:0
+							context:nil
+							subtype:0
+							  data1:reinterpret_cast<NSInteger>(new std::function<void()>(std::move(procedure)))
+							  data2:0];
+
+	[this->macos_application.application postEvent:e atStart:NO];
+}
+
 ruisapp::application::application(parameters params) :
 	application(
 		{utki::make_unique<application_glue>(params.graphics_api_version), //
@@ -228,6 +233,14 @@ void ruisapp::application::quit() noexcept
 {
 	auto& glue = get_glue();
 	glue.quit_flag.store(true);
+}
+
+void ruisapp::application::poke() noexcept
+{
+	// static_cast converts the captureless lambda to a function pointer: a
+	// function pointer is guaranteed to fit in the std::function small buffer
+	// (no heap allocation), whereas a lambda object passed by value is not
+	get_glue().post_to_ui_thread(static_cast<void (*)()>([]() {}));
 }
 
 ruisapp::window& ruisapp::application::make_window_internal(window_parameters window_params)

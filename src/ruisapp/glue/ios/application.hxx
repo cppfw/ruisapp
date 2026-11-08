@@ -21,6 +21,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
+#include <functional>
+
 #include <utki/destructable.hpp>
 
 #include "../../application.hpp"
@@ -61,6 +63,9 @@ public:
 	app_window& make_window(ruisapp::window_parameters window_params);
 
 	void render();
+
+	// posts a procedure to be executed on the UI (main) thread
+	void post_to_ui_thread(std::function<void()> procedure) noexcept;
 
 	app_window* get_window()
 	{

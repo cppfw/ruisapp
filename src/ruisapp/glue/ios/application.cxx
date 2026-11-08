@@ -62,6 +62,16 @@ void application_glue::render()
 	}
 }
 
+void application_glue::post_to_ui_thread(std::function<void()> procedure) noexcept
+{
+	auto p = reinterpret_cast<NSInteger>(new std::function<void()>(std::move(procedure)));
+
+	dispatch_async(dispatch_get_main_queue(), ^{
+	  std::unique_ptr<std::function<void()>> m(reinterpret_cast<std::function<void()>*>(p));
+	  (*m)();
+	});
+}
+
 app_window& application_glue::make_window(ruisapp::window_parameters window_params)
 {
 	if (this->window.has_value()) {
@@ -92,13 +102,8 @@ app_window& application_glue::make_window(ruisapp::window_parameters window_para
 
 	auto ruis_context = utki::make_shared<ruis::context>(ruis::context::parameters{
 		.post_to_ui_thread_function =
-			[](std::function<void()> procedure) {
-				auto p = reinterpret_cast<NSInteger>(new std::function<void()>(std::move(procedure)));
-
-				dispatch_async(dispatch_get_main_queue(), ^{
-				  std::unique_ptr<std::function<void()>> m(reinterpret_cast<std::function<void()>*>(p));
-				  (*m)();
-				});
+			[this](std::function<void()> a) {
+				this->post_to_ui_thread(std::move(a));
 			},
 		.updater = this->updater,
 		.renderer = utki::make_shared<ruis::render::renderer>(
@@ -150,6 +155,14 @@ utki::unique_ref<fsif::file> ruisapp::application::get_res_file(std::string_view
 void ruisapp::application::quit() noexcept
 {
 	// TODO:
+}
+
+void ruisapp::application::poke() noexcept
+{
+	// static_cast converts the captureless lambda to a function pointer: a
+	// function pointer is guaranteed to fit in the std::function small buffer
+	// (no heap allocation), whereas a lambda object passed by value is not
+	get_glue().post_to_ui_thread(static_cast<void (*)()>([]() {}));
 }
 
 ruisapp::window& ruisapp::application::make_window_internal(ruisapp::window_parameters window_params)

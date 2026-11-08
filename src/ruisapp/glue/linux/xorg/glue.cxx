@@ -350,6 +350,15 @@ void application::quit() noexcept
 	glue.quit_flag.store(true);
 }
 
+void application::poke() noexcept
+{
+	auto& glue = get_glue(*this);
+	// static_cast converts the captureless lambda to a function pointer: a
+	// function pointer is guaranteed to fit in the std::function small buffer
+	// (no heap allocation), whereas a lambda object passed by value is not
+	glue.ui_queue.push_back(static_cast<void (*)()>([]() {}));
+}
+
 ruisapp::window& application::make_window_internal(window_parameters window_params)
 {
 	auto& glue = get_glue(*this);

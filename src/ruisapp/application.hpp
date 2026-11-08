@@ -202,6 +202,15 @@ public:
 	void quit() noexcept;
 
 	/**
+	 * @brief Pokes the application's main loop.
+	 * This function posts an empty message to the application's main loop message
+	 * queue, waking up the main loop if it is waiting. As a result the main loop
+	 * will run another iteration (calling ruisapp::application::on_loop()) shortly.
+	 * This method is thread-safe and can be called from any thread.
+	 */
+	void poke() noexcept;
+
+	/**
 	 * @brief Called once per main loop iteration.
 	 * This function is called once per main loop iteration, at the beginning of the
 	 * loop cycle, before the updatables are updated and the windows are rendered.

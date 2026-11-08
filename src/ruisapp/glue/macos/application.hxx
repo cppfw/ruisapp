@@ -22,6 +22,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <atomic>
+#include <functional>
 #include <set>
 
 #include <utki/destructable.hpp>
@@ -119,6 +120,9 @@ public:
 	void destroy_window(app_window& w);
 
 	void render();
+
+	// posts a procedure to be executed on the UI (main) thread
+	void post_to_ui_thread(std::function<void()> procedure) noexcept;
 };
 } // namespace
 

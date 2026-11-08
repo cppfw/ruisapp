@@ -104,6 +104,21 @@ void application_glue::render()
 	}
 }
 
+void application_glue::post_to_ui_thread(std::function<void()> procedure)
+{
+	SDL_Event e;
+	SDL_memset(&e, 0, sizeof(e));
+	e.type = this->display.get().user_event_type_id;
+	e.user.code = 0;
+	// NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
+	e.user.data1 = new std::function<void()>(std::move(procedure));
+	e.user.data2 = nullptr;
+
+	if (SDL_PushEvent(&e) < 0) {
+		throw std::runtime_error(std::string("SDL_PushEvent(): ") + SDL_GetError());
+	}
+}
+
 void application_glue::apply_new_win_dims()
 {
 	for (auto& win : this->windows) {
@@ -147,15 +162,8 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 
 	auto ruis_context = utki::make_shared<ruis::context>(ruis::context::parameters{
 		.post_to_ui_thread_function =
-			[display = this->display](std::function<void()> procedure) {
-				SDL_Event e;
-				SDL_memset(&e, 0, sizeof(e));
-				e.type = display.get().user_event_type_id;
-				e.user.code = 0;
-				// NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
-				e.user.data1 = new std::function<void()>(std::move(procedure));
-				e.user.data2 = nullptr;
-				SDL_PushEvent(&e);
+			[this](std::function<void()> a) {
+				this->post_to_ui_thread(std::move(a));
 			},
 		.updater = this->updater,
 		.renderer =
@@ -266,6 +274,21 @@ void ruisapp::application::quit() noexcept
 {
 	SDL_Event event = {SDL_QUIT};
 	SDL_PushEvent(&event);
+}
+
+void ruisapp::application::poke() noexcept
+{
+	// post an empty procedure to the UI thread; its only purpose is to wake up
+	// the main loop
+	// static_cast converts the captureless lambda to a function pointer: a
+	// function pointer is guaranteed to fit in the std::function small buffer
+	// (no heap allocation), whereas a lambda object passed by value is not
+	// this function is nothrow, so catch and ignore any exceptions thrown by
+	// post_to_ui_thread
+	try {
+		get_glue(*this).post_to_ui_thread(static_cast<void (*)()>([]() {}));
+	} catch (...) {
+	}
 }
 
 ruisapp::window& ruisapp::application::make_window_internal(ruisapp::window_parameters window_params)
