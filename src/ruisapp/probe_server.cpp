@@ -253,6 +253,10 @@ class probe_server::connection_thread : public nitki::loop_thread
 	}
 
 public:
+	// bring the inherited loop_thread::push(std::function<void()>) into scope
+	// (it is otherwise hidden by the push(tml::forest) method below)
+	using nitki::loop_thread::push;
+
 	connection_thread(uint16_t port, probe_server& owner);
 	~connection_thread();
 
@@ -317,7 +321,7 @@ void probe_server::connection_thread::push(tml::forest responses)
 
 	// post the response to the thread's message queue; the lambda runs on the
 	// thread and sets up the send buffer for the response
-	this->push_back([this, response_tree]() {
+	this->push([this, response_tree]() {
 		// there should be no data in the send buffer while a new response is
 		// being prepared
 		utki::assert(this->send_buffer.empty(), SL);
@@ -380,7 +384,7 @@ void probe_server::connection_thread::handle_accept_socket_event()
 
 	auto sock = this->accept_socket.accept();
 
-	if (sock.is_empty()) {
+	if (sock.empty()) {
 		// no pending connection (spurious wakeup), stay in the LISTENING state
 		return;
 	}
@@ -393,7 +397,7 @@ void probe_server::connection_thread::handle_accept_socket_event()
 	// connection
 
 	// the connection socket must be empty before we assign the new one to it
-	utki::assert(this->connection_socket.is_empty(), SL);
+	utki::assert(this->connection_socket.empty(), SL);
 
 	// reset the receive buffer and other per-connection state
 	this->run_parser.reset();
