@@ -348,6 +348,8 @@ void application::quit() noexcept
 {
 	auto& glue = get_glue(*this);
 	glue.quit_flag.store(true);
+	// need to make sure the thread wakes up and checks the flag
+	this->poke();
 }
 
 void application::poke() noexcept

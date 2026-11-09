@@ -145,6 +145,8 @@ void ruisapp::application::quit() noexcept
 {
 	auto& glue = get_glue(*this);
 	glue.quit_flag.store(true);
+	// need to make sure the thread wakes up and checks the flag
+	this->poke();
 }
 
 void ruisapp::application::poke() noexcept
