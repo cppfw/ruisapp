@@ -113,6 +113,7 @@ $(.RECIPEPREFIX)$(a)$(this_cc) -ObjC++ -c -o "$$$$@" $$(this_cxxflags) $$(OBJCXX
     this_ldlibs += -l fsif$$(this_dbg)
     this_ldlibs += -l tml$$(this_dbg)
     this_ldlibs += -l utki$$(this_dbg)
+    this_ldlibs += -l nitki$$(this_dbg)
     this_ldlibs += -l setka$$(this_dbg)
 
     this_cxxflags += -D RUISAPP_RENDER_$(shell echo $1 | tr '[:lower:]' '[:upper:]')
