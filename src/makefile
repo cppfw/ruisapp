@@ -68,9 +68,6 @@ define ruisapp_rules
 
         this_ldlibs += -l GLEW
 
-        this_ldlibs += -l nitki$$(this_dbg)
-        this_ldlibs += -l opros$$(this_dbg)
-
         ifeq ($2,wayland)
             $$(d)ruisapp/glue/glue.cpp: $$(d)$(wayland_shell_protocol_header)
 
@@ -114,6 +111,7 @@ $(.RECIPEPREFIX)$(a)$(this_cc) -ObjC++ -c -o "$$$$@" $$(this_cxxflags) $$(OBJCXX
     this_ldlibs += -l tml$$(this_dbg)
     this_ldlibs += -l utki$$(this_dbg)
     this_ldlibs += -l nitki$$(this_dbg)
+    this_ldlibs += -l opros$$(this_dbg)
     this_ldlibs += -l setka$$(this_dbg)
 
     this_cxxflags += -D RUISAPP_RENDER_$(shell echo $1 | tr '[:lower:]' '[:upper:]')
