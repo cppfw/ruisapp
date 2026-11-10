@@ -32,6 +32,7 @@ license=('MIT')
 groups=()
 
 depends=(
+	"${pkgPrefix}setka"
 	"${pkgPrefix}ruis"
 	"${pkgPrefix}ruis-render-opengl"
 )

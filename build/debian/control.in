@@ -15,6 +15,7 @@ Build-Depends:
 		libr4-dev (>= 0.1.53),
 		libglew-dev,
 		libnitki-dev (>= 1.0.41),
+		libsetka-dev (>= 1.0.43),
 		libruis-render-opengl-dev (>= 0.1.63),
 		libruis-render-opengles-dev (>= 0.1.50),
 		libegl1-mesa-dev,
