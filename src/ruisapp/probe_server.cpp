@@ -258,7 +258,7 @@ public:
 	using nitki::loop_thread::push;
 
 	connection_thread(uint16_t port, probe_server& owner);
-	~connection_thread();
+	~connection_thread() override;
 
 	connection_thread(const connection_thread&) = delete;
 	connection_thread& operator=(const connection_thread&) = delete;
