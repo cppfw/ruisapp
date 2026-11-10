@@ -431,7 +431,6 @@ void probe_server::connection_thread::handle_connection_socket_event(const opros
 	// only when the current batch of commands is executed and the response is
 	// about to be sent
 	if (ev.flags.get(opros::ready::read) && this->cur_state == state::receiving) {
-
 		// the maximum number of bytes to receive in a single receive() call
 		constexpr size_t receive_buffer_size = 0x1000; // 4kb
 
