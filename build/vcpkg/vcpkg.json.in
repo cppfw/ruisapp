@@ -20,6 +20,7 @@
     "utki",
     "nitki",
     "ruis",
+    "setka",
     {
       "name": "ruis-render-opengl",
       "platform": "!ios"

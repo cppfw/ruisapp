@@ -21,6 +21,8 @@ class RuisappConan(ConanFile):
 		self.requires("utki/[>=1.1.202]@cppfw/main", transitive_headers=True, transitive_libs=True)
 		self.requires("fsif/[>=0.0.0]@cppfw/main", transitive_headers=True, transitive_libs=True)
 		self.requires("ruis/[>=0.5.278]@cppfw/main", transitive_headers=True, transitive_libs=True)
+		self.requires("nitki/[>=1.0.104]@cppfw/main", transitive_headers=True, transitive_libs=True)
+		self.requires("setka/[>=1.0.43]@cppfw/main", transitive_headers=True, transitive_libs=True)
 
 		if self.settings.os == "Emscripten":
 			self.requires("ruis-render-opengles/[>=0.1.76]@cppfw/main", transitive_headers=False, transitive_libs=True)
