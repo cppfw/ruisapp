@@ -30,6 +30,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 namespace ruisapp {
 
+// The default TCP port the probe server listens on when constructed without an
+// explicit port.
+constexpr uint16_t default_probe_port = 12555;
+
 /**
  * @brief A TCP probe server.
  *
@@ -98,9 +102,10 @@ public:
 	 * @brief Constructs the probe server.
 	 * Creates the TCP server socket listening on the given port and starts the
 	 * server thread which listens for incoming connections.
-	 * @param port - the TCP port number to listen on.
+	 * @param port - the TCP port number to listen on; defaults to
+	 * `default_probe_port` (12555).
 	 */
-	explicit probe_server(uint16_t port);
+	explicit probe_server(uint16_t port = default_probe_port);
 	~probe_server();
 
 	probe_server(const probe_server&) = delete;

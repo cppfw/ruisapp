@@ -125,7 +125,8 @@ waiting for a new connection.
 A `probe_server` must be:
 
 1. **Constructed with the TCP port** to listen on — this binds the socket and
-   starts the worker thread.
+   starts the worker thread. The port argument is **optional**: omit it to
+   listen on the default port **`12555`** (`ruisapp::default_probe_port`).
 2. **Driven from the application's main loop** — `exec()` must be called once
    per main-loop iteration. The natural place is the `on_loop()` override of
    your `ruisapp::application` subclass.
@@ -168,6 +169,19 @@ response {
 	}
 }
 ```
+
+### Default port
+
+The port is the *only* constructor argument and it is **optional**. When you
+construct the server without giving it a port it listens on the default port
+**`12555`** (the constant `ruisapp::default_probe_port`):
+
+```cpp
+ruisapp::probe_server probe_server; // listens on 12555
+```
+
+So in the example above you could just write `probe_server()` instead of
+`probe_server(9527)` and connect to `localhost 12555`.
 
 ## Debug builds only
 
