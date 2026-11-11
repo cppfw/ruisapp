@@ -21,6 +21,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "application.hxx"
 
+#include <utki/debug.hpp>
+
 #ifdef RUISAPP_RENDER_OPENGL
 // #	include <GL/glew.h>
 #	include <ruis/render/opengl/context.hpp>
@@ -288,6 +290,9 @@ void ruisapp::application::poke() noexcept
 	try {
 		get_glue(*this).post_to_ui_thread(static_cast<void (*)()>([]() {}));
 	} catch (...) {
+		utki::log_debug([](auto& o) {
+			o << "application::poke(): exception thrown by post_to_ui_thread()" << std::endl;
+		});
 	}
 }
 

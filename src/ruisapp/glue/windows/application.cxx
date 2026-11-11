@@ -22,6 +22,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "application.hxx"
 
 #include <Shlobj.h> // needed for SHGetFolderPathA()
+#include <utki/debug.hpp>
 
 namespace {
 void app_window::send_mouse_button_event(
@@ -275,6 +276,9 @@ void ruisapp::application::poke() noexcept
 	try {
 		get_glue().post_to_ui_thread(static_cast<void (*)()>([]() {}));
 	} catch (...) {
+		utki::log_debug([](auto& o) {
+			o << "application::poke(): exception thrown by post_to_ui_thread()" << std::endl;
+		});
 	}
 }
 
