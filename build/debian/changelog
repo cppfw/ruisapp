@@ -1,3 +1,9 @@
+libruisapp (0.2.146) unstable; urgency=medium
+
+  * probe_server default port
+
+ -- Ivan Gagis <igagis@gmail.com>  Wed, 11 Nov 2026 22:08:55 +0200
+
 libruisapp (0.2.145) unstable; urgency=medium
 
   * add probe_server
