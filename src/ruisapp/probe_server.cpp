@@ -21,30 +21,32 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "probe_server.hpp"
 
-#include <array>
-#include <cstddef>
-#include <cstdint>
-#include <deque>
-#include <functional>
-#include <memory>
-#include <stdexcept>
-#include <string>
-#include <vector>
+#if CFG_OS_NAME != CFG_OS_NAME_EMSCRIPTEN
 
-#include <nitki/loop_thread.hpp>
-#include <opros/wait_set.hpp>
-#include <setka/init_guard.hpp>
-#include <setka/tcp_server_socket.hpp>
-#include <setka/tcp_socket.hpp>
-#include <tml/parser.hpp>
-#include <tml/tree.hpp>
-#include <utki/debug.hpp>
-#include <utki/flags.hpp>
-#include <utki/span.hpp>
-#include <utki/string.hpp>
-#include <utki/unique_ref.hpp>
+#	include <array>
+#	include <cstddef>
+#	include <cstdint>
+#	include <deque>
+#	include <functional>
+#	include <memory>
+#	include <stdexcept>
+#	include <string>
+#	include <vector>
 
-#include "application.hpp"
+#	include <nitki/loop_thread.hpp>
+#	include <opros/wait_set.hpp>
+#	include <setka/init_guard.hpp>
+#	include <setka/tcp_server_socket.hpp>
+#	include <setka/tcp_socket.hpp>
+#	include <tml/parser.hpp>
+#	include <tml/tree.hpp>
+#	include <utki/debug.hpp>
+#	include <utki/flags.hpp>
+#	include <utki/span.hpp>
+#	include <utki/string.hpp>
+#	include <utki/unique_ref.hpp>
+
+#	include "application.hpp"
 
 using namespace ruisapp;
 
@@ -637,3 +639,20 @@ void probe_server::exec()
 	this->exec_list.clear();
 	this->exec_position = 0;
 }
+
+#else
+
+// the network sockets (and thus the probe server) are not available when
+// targeting emscripten, because web browsers cannot open listening sockets;
+// so the probe server is a no-op: the constructor does not start the network
+// thread and exec() does nothing
+
+ruisapp::probe_server::probe_server(uint16_t) {}
+
+ruisapp::probe_server::~probe_server() = default;
+
+void ruisapp::probe_server::push_commands(tml::forest) {}
+
+void ruisapp::probe_server::exec() {}
+
+#endif

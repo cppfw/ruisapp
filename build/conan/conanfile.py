@@ -21,13 +21,18 @@ class RuisappConan(ConanFile):
 		self.requires("utki/[>=1.1.202]@cppfw/main", transitive_headers=True, transitive_libs=True)
 		self.requires("fsif/[>=0.0.0]@cppfw/main", transitive_headers=True, transitive_libs=True)
 		self.requires("ruis/[>=0.5.278]@cppfw/main", transitive_headers=True, transitive_libs=True)
-		self.requires("nitki/[>=1.0.104]@cppfw/main", transitive_headers=True, transitive_libs=True)
-		self.requires("setka/[>=1.0.43]@cppfw/main", transitive_headers=True, transitive_libs=True)
 
 		if self.settings.os == "Emscripten":
+			# the probe server and the xorg/wayland glue are not built for
+			# emscripten, so nitki, opros and setka are not required
 			self.requires("ruis-render-opengles/[>=0.1.76]@cppfw/main", transitive_headers=False, transitive_libs=True)
 		else:
 			self.requires("ruis-render-opengl/[>=0.1.90]@cppfw/main", transitive_headers=False, transitive_libs=True)
+			# nitki, opros and setka are used by the probe server (see
+			# src/ruisapp/probe_server.cpp) and by the xorg/wayland glue
+			self.requires("nitki/[>=1.0.104]@cppfw/main", transitive_headers=True, transitive_libs=True)
+			self.requires("opros/[>=1.0.110]@cppfw/main", transitive_headers=True, transitive_libs=True)
+			self.requires("setka/[>=1.0.43]@cppfw/main", transitive_headers=True, transitive_libs=True)
 
 	def build_requirements(self):
 		self.tool_requires("prorab/[>=2.0.27]@cppfw/main")

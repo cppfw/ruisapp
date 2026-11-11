@@ -110,9 +110,13 @@ $(.RECIPEPREFIX)$(a)$(this_cc) -ObjC++ -c -o "$$$$@" $$(this_cxxflags) $$(OBJCXX
     this_ldlibs += -l fsif$$(this_dbg)
     this_ldlibs += -l tml$$(this_dbg)
     this_ldlibs += -l utki$$(this_dbg)
+# nitki, opros and setka are used by the probe server and the xorg/wayland
+# glue; they are neither used nor available when building for emscripten
+ifneq ($(config), emsc)
     this_ldlibs += -l nitki$$(this_dbg)
     this_ldlibs += -l opros$$(this_dbg)
     this_ldlibs += -l setka$$(this_dbg)
+endif
 
     this_cxxflags += -D RUISAPP_RENDER_$(shell echo $1 | tr '[:lower:]' '[:upper:]')
     this_ldlibs += -l ruis-render-$1$$(this_dbg)

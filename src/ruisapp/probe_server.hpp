@@ -25,6 +25,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <mutex>
 
 #include <tml/tree.hpp>
+#include <utki/config.hpp>
 #include <utki/unique_ref.hpp>
 
 namespace ruisapp {
@@ -61,6 +62,10 @@ namespace ruisapp {
 class probe_server
 {
 private:
+	// the network state and the worker thread are not present when targeting
+	// emscripten (web browsers cannot open listening sockets), in which case
+	// the probe server is a no-op (see probe_server.cpp)
+#if CFG_OS_NAME != CFG_OS_NAME_EMSCRIPTEN
 	// the worker thread which does all the server work, the class is defined
 	// in probe_server.cpp
 	class connection_thread;
@@ -80,6 +85,7 @@ private:
 	// the worker thread; it is declared last so that it is constructed (and
 	// started) only after all the state members above have been initialized
 	utki::unique_ref<connection_thread> conn_thread;
+#endif
 
 	// called by the server thread when a new batch of commands has been
 	// received; it stores the commands and pokes the application's main loop;
