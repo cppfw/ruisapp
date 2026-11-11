@@ -1,3 +1,9 @@
+libruisapp (0.2.145) unstable; urgency=medium
+
+  * add probe_server
+
+ -- Ivan Gagis <igagis@gmail.com>  Wed, 11 Nov 2026 20:13:19 +0200
+
 libruisapp (0.2.144) unstable; urgency=medium
 
   * update
