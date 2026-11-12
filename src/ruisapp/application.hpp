@@ -275,7 +275,7 @@ public:
 	 * Commands:
 	 * - 'get_windows': return the number of application windows, as a forest
 	 *   containing a single 'windows_count { N }' node.
-	 * - 'for_window { index { N } <command> }': forward <command> to the probe()
+	 * - 'for_window { index { N } <command> }': forward '<command>' to the probe()
 	 *   of the Nth window's gui object (0-based index, 'index' first then the
 	 *   command); the response is the window gui's probe response as is. An error
 	 *   node is returned if there is no window with the given index, if the

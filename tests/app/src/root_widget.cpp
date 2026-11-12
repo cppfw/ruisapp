@@ -1,5 +1,6 @@
 #include "root_widget.hpp"
 
+#include <ruis/widget/group/drag_area.hpp>
 #include <ruis/widget/group/overlay.hpp>
 #include <ruis/widget/label/image.hpp>
 #include <ruis/widget/label/image_mouse_cursor.hpp>
@@ -115,13 +116,18 @@ utki::shared_ref<ruis::widget> make_root_widget(
                                     )
                                 }
                             ),
-                            m::container(c,
+                            // The inner windows are sized and positioned with logical (pp) lengths
+                            // which are pre-converted to physical pixels at construction time. In
+                            // Wayland the scale factor is not known at that point (it is reported
+                            // asynchronously) and it can change later (e.g. when the window is
+                            // moved to a monitor with a different scale factor). The
+                            // ruis::drag_area container re-scales its children (position and size)
+                            // whenever the dots per pp value changes, so the windows follow the
+                            // current scale factor.
+                            m::drag_area(c,
                                 {
                                     .layout_params{
                                         .dims{ruis::dim::fill, ruis::dim::fill}
-                                    },
-                                    .params{
-                                        .layout = ruis::layout::trivial
                                     }
                                 },
                                 {

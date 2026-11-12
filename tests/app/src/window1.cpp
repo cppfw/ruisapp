@@ -21,6 +21,7 @@ utki::shared_ref<ruis::window> make_window1(
     return m::window(c,
         {
             .widget{
+                .id = "win1_id"s,
                 .rectangle{
                     {
                         pos.x().get(c.get()),

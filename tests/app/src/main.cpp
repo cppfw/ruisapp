@@ -60,7 +60,7 @@ public:
 		window(this->make_window(
 			{.dims = {1024, 800}, .orientation = ruisapp::orientation::landscape, .buffers = {ruisapp::buffer::depth}}
 		)),
-		probe_srv(12345)
+		probe_srv()
 	{
 		this->window.gui.context.get().window().close_handler = [this]() {
 			this->quit();
