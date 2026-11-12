@@ -21,6 +21,7 @@
     "nitki",
     "ruis",
     "setka",
+    "sdl2",
     {
       "name": "ruis-render-opengl",
       "platform": "!ios"
