@@ -7,14 +7,12 @@
 #include <ruis/widget/proxy/min_proxy.hpp>
 #include <ruis/widget/slider/scroll_bar.hpp>
 
+#include "style.hpp"
+
 using namespace std::string_literals;
 using namespace std::string_view_literals;
 
 using namespace ruis::length_literals;
-
-namespace m {
-using namespace ruis::make;
-} // namespace m
 
 // In GCC 12.2 with -O3 and -g3, the GCC compiler complains:
 // std::__cxx11::basic_string<char>::_Alloc_hider::_M_p' may be used uninitialized [-Werror=maybe-uninitialized]
