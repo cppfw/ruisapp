@@ -2,5 +2,14 @@ ruisapp provides CMake targets:
 
 find_package(ruisapp CONFIG REQUIRED)
 
+on linux the library is built as per-variant targets (renderer: opengl, opengles; backend: xorg, wayland, sdl):
+target_link_libraries(app-opengl-xorg PRIVATE ruisapp::ruisapp-opengl-xorg)
+target_link_libraries(app-opengles-xorg PRIVATE ruisapp::ruisapp-opengles-xorg)
+target_link_libraries(app-opengl-wayland PRIVATE ruisapp::ruisapp-opengl-wayland)
+target_link_libraries(app-opengles-wayland PRIVATE ruisapp::ruisapp-opengles-wayland)
+target_link_libraries(app-opengl-sdl PRIVATE ruisapp::ruisapp-opengl-sdl)
+target_link_libraries(app-opengles-sdl PRIVATE ruisapp::ruisapp-opengles-sdl)
+
+on other platforms:
 target_link_libraries(app-opengl PRIVATE ruisapp::ruisapp-opengl)
 target_link_libraries(app-opengles PRIVATE ruisapp::ruisapp-opengles)

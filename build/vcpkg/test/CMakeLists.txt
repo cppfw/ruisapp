@@ -16,6 +16,10 @@ add_executable(test ${win32} main.cpp)
 
 if(IOS)
     target_link_libraries(test PRIVATE ruisapp::ruisapp-opengles)
+elseif(LINUX)
+    # on linux the port exports per-variant targets (ruisapp-<renderer>-<backend>),
+    # the compatibility aliases ruisapp-opengl / ruisapp-opengles are build-tree only
+    target_link_libraries(test PRIVATE ruisapp::ruisapp-opengl-xorg)
 else()
     target_link_libraries(test PRIVATE ruisapp::ruisapp-opengl)
 endif()
