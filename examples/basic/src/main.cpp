@@ -21,7 +21,7 @@ public:
 		ruis::Morda::inst().setRootWidget(c);
 
 		auto textLabel = c->findChildByNameAs<ruis::TextLabel>("info_text");
-		ASSERT(textLabel)
+		utki::assert(textLabel, SL);
 
 		auto button = c->findChildByNameAs<ruis::PushButton>("hw_button");
 

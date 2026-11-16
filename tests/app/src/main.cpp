@@ -232,7 +232,7 @@ public:
 			auto hl = utki::make_weak(pan_list);
 
 			auto horizontal_slider = c.get().try_get_widget_as<ruis::scroll_bar>("horizontal_list_slider");
-			ASSERT(horizontal_slider)
+			utki::assert(horizontal_slider, SL);
 			auto hs = utki::make_weak(horizontal_slider);
 
 			pan_list->scroll_change_handler = [hs](ruis::list& l) {

@@ -919,7 +919,7 @@ public:
 				return utki::to_utf32(buf.data());
 			default:
 			case XBufferOverflow:
-				ASSERT(false)
+				utki::assert(false, SL);
 			case XLookupKeySym:
 			case XLookupNone:
 				break;
