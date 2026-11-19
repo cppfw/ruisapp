@@ -30,6 +30,16 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../../../window.hpp"
 #include "../../unix_common.hxx"
 
+#ifdef RUISAPP_RENDER_OPENGL
+#	include <ruis/render/opengl/context.hpp>
+#	include <ruis/render/opengl/factory.hpp>
+#elif defined(RUISAPP_RENDER_OPENGLES)
+#	include <ruis/render/opengles/context.hpp>
+#	include <ruis/render/opengles/factory.hpp>
+#else
+#	error "Unknown graphics API"
+#endif
+
 #include "window.hxx"
 
 namespace {
@@ -127,8 +137,8 @@ public:
 
 	// TODO: make windowless shared egl context
 	const utki::shared_ref<native_window> shared_gl_context_native_window;
-	const utki::shared_ref<ruis::render::context> resource_loader_ruis_rendering_context;
-	const utki::shared_ref<const ruis::render::context::shaders> common_shaders;
+	const utki::shared_ref<const ruis::render::factory> render_factory;
+	const utki::shared_ref<const ruis::render::factory::shaders> common_shaders;
 	const utki::shared_ref<const ruis::render::renderer::objects> common_render_objects;
 	const utki::shared_ref<ruis::resource_loader> ruis_resource_loader;
 	const utki::shared_ref<ruis::style_provider> ruis_style_provider;
@@ -168,27 +178,27 @@ public:
 				nullptr // no shared gl context
 			)
 		),
-		resource_loader_ruis_rendering_context(
+		render_factory(
 #ifdef RUISAPP_RENDER_OPENGL
-			utki::make_shared<ruis::render::opengl::context>(this->shared_gl_context_native_window)
+			utki::make_shared<ruis::render::opengl::factory>(this->shared_gl_context_native_window)
 #elif defined(RUISAPP_RENDER_OPENGLES)
-			utki::make_shared<ruis::render::opengles::context>(this->shared_gl_context_native_window)
+			utki::make_shared<ruis::render::opengles::factory>(this->shared_gl_context_native_window)
 #else
 #	error "Unknown graphics API"
 #endif
 		),
 		common_shaders( //
 			[&]() {
-				utki::assert(this->resource_loader_ruis_rendering_context.to_shared_ptr(), SL);
-				return this->resource_loader_ruis_rendering_context.get().make_shaders();
+				utki::assert(this->render_factory.to_shared_ptr(), SL);
+				return this->render_factory.get().make_shaders();
 			}()
 		),
 		common_render_objects( //
-			utki::make_shared<ruis::render::renderer::objects>(this->resource_loader_ruis_rendering_context)
+			utki::make_shared<ruis::render::renderer::objects>(this->render_factory.get())
 		),
 		ruis_resource_loader( //
 			utki::make_shared<ruis::resource_loader>(
-				this->resource_loader_ruis_rendering_context, //
+				this->render_factory, //
 				this->common_render_objects
 			)
 		),

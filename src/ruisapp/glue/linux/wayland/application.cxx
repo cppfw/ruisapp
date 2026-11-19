@@ -25,9 +25,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #ifdef RUISAPP_RENDER_OPENGL
 #	include <ruis/render/opengl/context.hpp>
+#	include <ruis/render/opengl/factory.hpp>
 
 #elif defined(RUISAPP_RENDER_OPENGLES)
 #	include <ruis/render/opengles/context.hpp>
+#	include <ruis/render/opengles/factory.hpp>
 
 #else
 #	error "Unknown graphics API"
@@ -215,9 +217,9 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 		.updater = this->updater,
 		.renderer = utki::make_shared<ruis::render::renderer>(
 #ifdef RUISAPP_RENDER_OPENGL
-			utki::make_shared<ruis::render::opengl::context>(ruis_native_window),
+			utki::make_shared<ruis::render::opengl::context>(ruis_native_window, this->render_factory),
 #elif defined(RUISAPP_RENDER_OPENGLES)
-			utki::make_shared<ruis::render::opengles::context>(ruis_native_window),
+			utki::make_shared<ruis::render::opengles::context>(ruis_native_window, this->render_factory),
 #else
 #	error "Unknown graphics API"
 #endif

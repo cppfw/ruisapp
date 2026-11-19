@@ -75,8 +75,8 @@ class application_glue : public utki::destructable
 	utki::shared_ref<display_wrapper> display = utki::make_shared<display_wrapper>();
 
 	const utki::shared_ref<native_window> shared_gl_context_native_window;
-	const utki::shared_ref<ruis::render::context> resource_loader_ruis_rendering_context;
-	const utki::shared_ref<const ruis::render::context::shaders> common_shaders;
+	const utki::shared_ref<const ruis::render::factory> render_factory;
+	const utki::shared_ref<const ruis::render::factory::shaders> common_shaders;
 	const utki::shared_ref<const ruis::render::renderer::objects> common_render_objects;
 	const utki::shared_ref<ruis::resource_loader> ruis_resource_loader;
 

@@ -85,13 +85,14 @@ app_window& application_glue::make_window(ruisapp::window_parameters window_para
 		std::move(window_params)
 	);
 
-	auto rendering_context = utki::make_shared<ruis::render::opengles::context>(ruis_native_window);
+	auto rendering_factory = utki::make_shared<ruis::render::opengles::factory>(ruis_native_window);
+	auto rendering_context = utki::make_shared<ruis::render::opengles::context>(ruis_native_window, rendering_factory);
 
-	auto common_render_objects = utki::make_shared<ruis::render::renderer::objects>(rendering_context);
-	auto common_shaders = rendering_context.get().make_shaders();
+	auto common_render_objects = utki::make_shared<ruis::render::renderer::objects>(rendering_factory.get());
+	auto common_shaders = rendering_factory.get().make_shaders();
 
 	auto ruis_resource_loader = utki::make_shared<ruis::resource_loader>(
-		rendering_context, //
+		rendering_factory, //
 		common_render_objects
 	);
 

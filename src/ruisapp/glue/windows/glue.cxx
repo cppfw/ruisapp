@@ -29,9 +29,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #ifdef RUISAPP_RENDER_OPENGL
 #	include <ruis/render/opengl/context.hpp>
+#	include <ruis/render/opengl/factory.hpp>
 #elif defined(RUISAPP_RENDER_OPENGLES)
 #	include <EGL/egl.h>
 #	include <ruis/render/opengles/context.hpp>
+#	include <ruis/render/opengles/factory.hpp>
 #else
 #	error "Unknown graphics API"
 #endif
