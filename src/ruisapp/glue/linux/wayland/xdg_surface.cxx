@@ -90,6 +90,7 @@ void xdg_surface_wrapper::xdg_surface_configure(
 	auto& win = *window;
 	auto& natwin = win.ruis_native_window.get();
 
+#ifndef RUISAPP_RENDER_VULKAN
 	// The configure event can come several times for the same xdg_surface
 	// because we do several surface commits during the initial configuration,
 	// and each commit can trigger a configure event.
@@ -107,6 +108,14 @@ void xdg_surface_wrapper::xdg_surface_configure(
 	win.gui.context.get().ren().ctx().apply([&]() {
 		natwin.swap_frame_buffers();
 	});
+#else
+	// For Vulkan, the initial surface commit (with a buffer) is done by presenting a frame.
+	// Without this the frame callback would never fire (the compositor only fires it after
+	// compositing a surface that has a buffer), so the window would never become visible.
+	win.gui.context.get().ren().ctx().apply([&]() {
+		natwin.swap_frame_buffers();
+	});
+#endif
 
 	// on some Wayland implementations just swapping EGL buffers is not enough and surface commit is needed
 	self.wayland_surface.commit();

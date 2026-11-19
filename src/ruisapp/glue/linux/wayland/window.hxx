@@ -22,9 +22,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <ruis/render/native_window.hpp>
-#include <wayland-egl.h> // Wayland EGL MUST be included before EGL headers
 
-#include "../../egl_utils.hxx"
+#ifdef RUISAPP_RENDER_VULKAN
+#	include <vulkan/vulkan.h>
+#	include <vulkan/vulkan_wayland.h>
+#else
+#	include <wayland-egl.h> // Wayland EGL MUST be included before EGL headers
+
+#	include "../../egl_utils.hxx"
+#endif
 
 #include "display.hxx"
 #include "wayland_egl_window.hxx"
@@ -42,11 +48,13 @@ class native_window : public ruis::render::native_window
 	xdg_toplevel_wrapper xdg_toplevel;
 	wayland_egl_window_wrapper wayland_egl_window;
 
+#ifndef RUISAPP_RENDER_VULKAN
 	egl_config_wrapper egl_config;
 	egl_context_wrapper egl_context;
 
 	std::optional<egl_pbuffer_surface_wrapper> egl_dummy_surface;
 	std::optional<egl_surface_wrapper> egl_surface;
+#endif
 
 	wayland_surface_wrapper::scale_and_dpi scale_and_dpi;
 
@@ -88,6 +96,7 @@ public:
 			this->wayland_surface, //
 			window_params.dims
 		),
+#ifndef RUISAPP_RENDER_VULKAN
 		egl_config(
 			this->display.get().egl_display, //
 			gl_version,
@@ -99,6 +108,7 @@ public:
 			this->egl_config,
 			shared_gl_context_native_window ? shared_gl_context_native_window->egl_context.context : EGL_NO_CONTEXT
 		),
+#endif
 		cur_window_dims(window_params.dims)
 	{
 		utki::log_debug([](auto& o) {
@@ -123,6 +133,19 @@ public:
 		return this->wayland_surface.surface;
 	}
 
+	// get the raw wl_surface pointer for Vulkan surface creation
+	wl_surface* get_wl_surface() const noexcept
+	{
+		return this->wayland_surface.surface;
+	}
+
+	// get the raw wl_display pointer for Vulkan surface creation
+	wl_display* get_wl_display() const noexcept
+	{
+		return this->display.get().wayland_display.display;
+	}
+
+#ifndef RUISAPP_RENDER_VULKAN
 	void create_egl_surface()
 	{
 		utki::assert(!this->is_egl_surface_created(), [](auto& o) {
@@ -140,16 +163,34 @@ public:
 	{
 		return this->egl_surface.has_value();
 	}
+#endif
 
 	void swap_frame_buffers() override
 	{
+#ifdef RUISAPP_RENDER_VULKAN
+		// For Vulkan, the present is handled by the Vulkan context
+		// through the present_func callback.
+		if (this->present_func) {
+			this->present_func();
+		}
+#else
 		if (this->egl_surface.has_value()) {
 			this->egl_surface.value().swap_frame_buffers();
 		}
+#endif
+	}
+
+	r4::vector2<unsigned> get_dims() const noexcept override
+	{
+		return this->cur_window_dims * this->scale_and_dpi.scale;
 	}
 
 	void bind_rendering_context() override
 	{
+#ifdef RUISAPP_RENDER_VULKAN
+		// For Vulkan, there's no concept of binding a rendering context.
+		// The Vulkan context is thread-safe and doesn't need to be made current.
+#else
 		auto& egl_display = this->display.get().egl_display;
 
 		if (this->egl_surface.has_value()) {
@@ -186,11 +227,17 @@ public:
 				);
 			}
 		}
+#endif
 	}
 
 	bool is_rendering_context_bound() const noexcept override
 	{
+#ifdef RUISAPP_RENDER_VULKAN
+		// For Vulkan, the context is always "bound" (thread-safe)
+		return true;
+#else
 		return eglGetCurrentContext() == this->egl_context.context;
+#endif
 	}
 
 	void set_fullscreen_internal(bool enable) override
@@ -214,6 +261,11 @@ private:
 	bool mouse_cursor_visible = true;
 
 public:
+#ifdef RUISAPP_RENDER_VULKAN
+	// callback for presenting the Vulkan frame
+	std::function<void()> present_func;
+#endif
+
 	void update_mouse_cursor()
 	{
 		auto& wayland_pointer = this->display.get().wayland_seat.wayland_pointer;
@@ -239,6 +291,10 @@ public:
 
 	void set_vsync_enabled_internal(bool enabled) override
 	{
+#ifdef RUISAPP_RENDER_VULKAN
+		(void)enabled;
+		// VSync is handled by the Vulkan present mode
+#else
 		utki::assert(
 			[this]() {
 				return this->is_rendering_context_bound();
@@ -247,6 +303,7 @@ public:
 		);
 
 		this->egl_context.set_vsync_enabled(enabled);
+#endif
 	}
 
 	wl_callback* make_frame_callback()

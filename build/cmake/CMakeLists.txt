@@ -170,12 +170,30 @@ if(LINUX)
         endif()
     endfunction()
 
+    # The Vulkan variants require the ruis-render-vulkan package. In a monorepo
+    # build it is a regular target (already added before this project), in a
+    # package-manager build (vcpkg, ...) it is only found when it is already
+    # published. Build the Vulkan variants only when the package is available,
+    # so the rest of the package keeps working until ruis-render-vulkan is released.
+    set(ruisapp_build_vulkan_variant True)
+    if(NOT TARGET ruis-render-vulkan::ruis-render-vulkan)
+        find_package(ruis-render-vulkan CONFIG QUIET)
+        if(NOT ruis-render-vulkan_FOUND)
+            set(ruisapp_build_vulkan_variant False)
+        endif()
+    endif()
+
     ruisapp_declare_variant(opengl xorg INSTALL_HEADERS)
     ruisapp_declare_variant(opengles xorg)
     ruisapp_declare_variant(opengl wayland)
     ruisapp_declare_variant(opengles wayland)
     ruisapp_declare_variant(opengl sdl)
     ruisapp_declare_variant(opengles sdl)
+
+    if(ruisapp_build_vulkan_variant)
+        ruisapp_declare_variant(vulkan xorg)
+        ruisapp_declare_variant(vulkan wayland)
+    endif()
 
     # Compatibility aliases: for now ruisapp-opengl / ruisapp-opengles refer to the xorg variants.
     # Note: the namespaced alias refers to the plain (non-namespaced) target, the same
@@ -275,14 +293,23 @@ endif()
 # === export ===
 
 if(LINUX)
+    set(ruisapp_export_targets
+        ${name}-opengl-xorg
+        ${name}-opengles-xorg
+        ${name}-opengl-wayland
+        ${name}-opengles-wayland
+        ${name}-opengl-sdl
+        ${name}-opengles-sdl
+    )
+    if(ruisapp_build_vulkan_variant)
+        list(APPEND ruisapp_export_targets
+            ${name}-vulkan-xorg
+            ${name}-vulkan-wayland
+        )
+    endif()
     myci_export(
         TARGETS
-            ${name}-opengl-xorg
-            ${name}-opengles-xorg
-            ${name}-opengl-wayland
-            ${name}-opengles-wayland
-            ${name}-opengl-sdl
-            ${name}-opengles-sdl
+            ${ruisapp_export_targets}
     )
 elseif(ruisapp_build_opengl_variant AND ruisapp_build_opengles_variant)
     myci_export(
@@ -333,6 +360,10 @@ if(LINUX)
             ruisapp_declare_test_app(${renderer} ${backend})
         endforeach()
     endforeach()
+    if(ruisapp_build_vulkan_variant)
+        ruisapp_declare_test_app(vulkan xorg)
+        ruisapp_declare_test_app(vulkan wayland)
+    endif()
 else()
     if(ruisapp_build_opengl_variant)
         myci_declare_application(${name}-opengl-test

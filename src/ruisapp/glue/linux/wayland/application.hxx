@@ -30,16 +30,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../../../window.hpp"
 #include "../../unix_common.hxx"
 
-#ifdef RUISAPP_RENDER_OPENGL
-#	include <ruis/render/opengl/context.hpp>
-#	include <ruis/render/opengl/factory.hpp>
-#elif defined(RUISAPP_RENDER_OPENGLES)
-#	include <ruis/render/opengles/context.hpp>
-#	include <ruis/render/opengles/factory.hpp>
-#else
-#	error "Unknown graphics API"
-#endif
-
 #include "window.hxx"
 
 namespace {
@@ -137,6 +127,10 @@ public:
 
 	// TODO: make windowless shared egl context
 	const utki::shared_ref<native_window> shared_gl_context_native_window;
+#ifdef RUISAPP_RENDER_VULKAN
+	std::unique_ptr<ruis::render::vulkan::vulkan_device> vulkan_device;
+	const utki::shared_ref<const ruis::render::vulkan::surface_provider> vulkan_surface_provider;
+#endif
 	const utki::shared_ref<const ruis::render::factory> render_factory;
 	const utki::shared_ref<const ruis::render::factory::shaders> common_shaders;
 	const utki::shared_ref<const ruis::render::renderer::objects> common_render_objects;
@@ -178,8 +172,22 @@ public:
 				nullptr // no shared gl context
 			)
 		),
+#ifdef RUISAPP_RENDER_VULKAN
+		vulkan_device(ruis::render::vulkan::vulkan_device::make(
+			{std::string(VK_KHR_SURFACE_EXTENSION_NAME), std::string(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME)
+			}, // instance extensions
+			{std::string(VK_KHR_SWAPCHAIN_EXTENSION_NAME)} // device extensions
+		)),
+		// Vulkan has no "current context" — no surface needed for resource loading
+		vulkan_surface_provider(utki::make_shared<const ruis::render::vulkan::surface_provider>(
+			*this->vulkan_device, //
+			VK_NULL_HANDLE
+		)),
+#endif
 		render_factory(
-#ifdef RUISAPP_RENDER_OPENGL
+#ifdef RUISAPP_RENDER_VULKAN
+			utki::make_shared<ruis::render::vulkan::factory>(this->vulkan_surface_provider)
+#elif defined(RUISAPP_RENDER_OPENGL)
 			utki::make_shared<ruis::render::opengl::factory>(this->shared_gl_context_native_window)
 #elif defined(RUISAPP_RENDER_OPENGLES)
 			utki::make_shared<ruis::render::opengles::factory>(this->shared_gl_context_native_window)
