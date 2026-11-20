@@ -25,12 +25,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #ifdef RUISAPP_RENDER_OPENGL
 #	include <ruis/render/opengl/context.hpp>
-#	include <ruis/render/opengl/factory.hpp>
 
 #elif defined(RUISAPP_RENDER_OPENGLES)
 #	include <ruis/render/opengles/context.hpp>
-#	include <ruis/render/opengles/factory.hpp>
 
+#elif defined(RUISAPP_RENDER_VULKAN)
+#	include <ruis/render/vulkan/context.hpp>
 #else
 #	error "Unknown graphics API"
 #endif
@@ -220,6 +220,22 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 			utki::make_shared<ruis::render::opengl::context>(ruis_native_window, this->render_factory),
 #elif defined(RUISAPP_RENDER_OPENGLES)
 			utki::make_shared<ruis::render::opengles::context>(ruis_native_window, this->render_factory),
+#elif defined(RUISAPP_RENDER_VULKAN)
+			[&](auto&& win_ref) -> utki::shared_ref<ruis::render::context> {
+				auto wl_surf = win_ref.get().get_wl_surface();
+				auto wl_disp = win_ref.get().get_wl_display();
+				auto& vdev = *this->vulkan_device;
+				VkWaylandSurfaceCreateInfoKHR sci{};
+				sci.sType = VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR;
+				sci.display = wl_disp;
+				sci.surface = wl_surf;
+				VkSurfaceKHR vk_surf = VK_NULL_HANDLE;
+				vkCreateWaylandSurfaceKHR(vdev.get_instance(), &sci, nullptr, &vk_surf);
+				auto sp = utki::make_shared<const ruis::render::vulkan::surface_provider>(vdev, vk_surf);
+				auto vulkan_factory_ref =
+					utki::dynamic_reference_cast<const ruis::render::vulkan::factory>(this->render_factory);
+				return utki::make_shared<ruis::render::vulkan::context>(win_ref, sp, vulkan_factory_ref);
+			}(ruis_native_window),
 #else
 #	error "Unknown graphics API"
 #endif
@@ -246,6 +262,19 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 		std::move(ruis_native_window)
 	);
 
+#ifdef RUISAPP_RENDER_VULKAN
+	{
+		// use a raw pointer to avoid a circular shared_ref that would
+		// prevent the app_window from being destroyed
+		auto* win_ptr = &ruisapp_window.get();
+		ruisapp_window.get().ruis_native_window.get().present_func = [win_ptr]() {
+			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast, "the renderer is the Vulkan renderer in this build variant")
+			auto& ctx = static_cast<ruis::render::vulkan::context&>(win_ptr->gui.context.get().ren().ctx());
+			ctx.present();
+		};
+	}
+#endif
+
 	ruisapp_window.get().gui.set_viewport( //
 		ruis::rect(
 			0, //
@@ -265,6 +294,7 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 
 	auto& ret_win = res.first->second.get();
 
+#ifndef RUISAPP_RENDER_VULKAN
 	// EGL surface for the window is not created yet at this point.
 	// In Wayland the EGL surface is created asynchronously.
 	// Some further calls (e.g. set_vsync_enabled()) rely on the EGL surface to be created,
@@ -280,6 +310,10 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 	}
 
 	utki::assert(ret_win.ruis_native_window.get().is_egl_surface_created(), SL);
+#else
+	// For Vulkan, do a roundtrip to make sure the window is mapped before proceeding.
+	wl_display_roundtrip(this->display.get().wayland_display.display);
+#endif
 
 	return ret_win;
 }

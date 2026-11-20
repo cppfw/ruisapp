@@ -382,6 +382,7 @@ class native_window : public ruis::render::native_window
 				this->display.xorg_display.display, //
 				this->window
 			);
+			XFlush(this->display.xorg_display.display);
 		}
 	} xorg_window;
 
@@ -689,6 +690,25 @@ public:
 
 	~native_window() override = default;
 
+	void destroy_x11_window()
+	{
+		if (!this->x11_window_destroyed) {
+#ifdef RUISAPP_RENDER_OPENGL
+			// unbind the GLX context from the current thread;
+			// do NOT destroy it — all windows share the same GLX context
+			glXMakeCurrent(this->display.get().xorg_display.display, GLX_NONE, nullptr);
+#elif defined(RUISAPP_RENDER_OPENGLES)
+			eglMakeCurrent(this->display.get().egl_display.display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+#endif
+			XDestroyWindow(
+				this->display.get().xorg_display.display, //
+				this->xorg_window.window
+			);
+			XFlush(this->display.get().xorg_display.display);
+			this->x11_window_destroyed = true;
+		}
+	}
+
 	void set_vsync_enabled_internal(bool enable) override
 	{
 		utki::assert(
@@ -932,6 +952,7 @@ private:
 	// NOLINTNEXTLINE(clang-analyzer-webkit.NoUncountedMemberChecker, "false-positive")
 	cursor_wrapper* cur_cursor = nullptr;
 	bool cursor_visible = true;
+	bool x11_window_destroyed = false;
 
 	void apply_cursor(cursor_wrapper& c)
 	{
