@@ -30,7 +30,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../../../window.hpp"
 #include "../../unix_common.hxx"
 
-#include "window.hxx"
+#ifdef RUISAPP_RENDER_VULKAN
+#	include "vulkan_window.hxx"
+#else
+#	include "opengles_window.hxx"
+#endif
 
 namespace {
 class app_window : public ruisapp::window
@@ -177,6 +181,9 @@ public:
 		waitable(this->display.get().wayland_display),
 		gl_version(gl_version),
 		shared_gl_context_native_window( //
+#ifdef RUISAPP_RENDER_VULKAN
+			nullptr // Vulkan doesn't need a shared GL context window
+#else
 			utki::make_shared<native_window>(
 				this->display, //
 				this->gl_version,
@@ -184,9 +191,10 @@ public:
 					.dims = {1, 1},
 					.title = {},
 					.fullscreen = false
-    },
+},
 				nullptr // no shared gl context
 			)
+#endif
 		),
 #ifdef RUISAPP_RENDER_VULKAN
 		device(make_device()),

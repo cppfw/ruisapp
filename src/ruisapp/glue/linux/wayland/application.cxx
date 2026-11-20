@@ -202,12 +202,19 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 {
 	utki::logcat_debug("application_glue::make_window(): enter", '\n');
 
+#ifdef RUISAPP_RENDER_VULKAN
+	auto ruis_native_window = utki::make_shared<native_window>(
+		this->display, //
+		window_params
+	);
+#else
 	auto ruis_native_window = utki::make_shared<native_window>(
 		this->display, //
 		this->gl_version,
 		window_params,
 		&this->shared_gl_context_native_window.get()
 	);
+#endif
 
 	auto ruis_context = utki::make_shared<ruis::context>(ruis::context::parameters{
 		.post_to_ui_thread_function =

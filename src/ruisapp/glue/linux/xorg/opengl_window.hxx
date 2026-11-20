@@ -1,55 +1,29 @@
-/*
-ruisapp - ruis GUI adaptation layer
-
-Copyright (C) 2016-2025  Ivan Gagis <igagis@gmail.com>
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
-
-/* ================ LICENSE END ================ */
-
-// The OpenGL/OpenGL ES native window. Inherits from xorg_window (the
-// graphics-agnostic base) and adds the GL-specific parts: FBConfig/visual
-// selection, GL context creation, swap_frame_buffers, bind_rendering_context,
-// etc.
+// this file is part of ruisapp application framework
 //
-// The gl_visual_info base class holds the computed FBConfig + X11 visual. It is
+// this file is licensed under the terms of the MIT license, which can be found in the LICENSE file
+//
+// SPDX-License-Identifier: MIT
+
+// OpenGL-specific native window implementation.
+// The gl_visual_info base class holds the computed GLXFBConfig + X11 visual. It is
 // inherited before xorg_window so that the base class can use the visual when
 // creating the X11 window (base classes are initialized before members, so the
 // visual cannot be a member of the derived class).
 
+#include <GL/glx.h>
 #include <X11/Xatom.h>
 #include <X11/Xutil.h>
-
-#if defined(RUISAPP_RENDER_OPENGL)
-#	include <GL/glx.h>
-#elif defined(RUISAPP_RENDER_OPENGLES)
-#	include <EGL/egl.h>
-#	include "../../egl_utils.hxx"
-#endif
 
 #include "xorg_window.hxx"
 
 namespace {
 
-// Holds the computed FBConfig + X11 visual. This is a base class of native_window
+// Holds the computed GLXFBConfig + X11 visual. This is a base class of native_window
 // (inherited before xorg_window) so that the visual is available when the
 // xorg_window base creates the X11 window.
 class gl_visual_info
 {
 public:
-#if defined(RUISAPP_RENDER_OPENGL)
 	GLXFBConfig fb_config;
 	XVisualInfo* const visual_info;
 	xorg_visual xvisual;
@@ -186,71 +160,8 @@ public:
 	{
 		XFree(this->visual_info);
 	}
-
-#elif defined(RUISAPP_RENDER_OPENGLES)
-	const egl_config_wrapper egl_config;
-	XVisualInfo* const visual_info;
-	xorg_visual xvisual;
-
-	gl_visual_info(
-		display_wrapper& display, //
-		const utki::version_duplet& gl_version,
-		const ruisapp::window_parameters& window_params
-	) :
-		egl_config(
-			display.egl_display, //
-			gl_version,
-			window_params
-		),
-		visual_info([&]() {
-			EGLint vid = 0;
-
-			if (!eglGetConfigAttrib(
-					display.egl_display.display, //
-					this->egl_config.config,
-					EGL_NATIVE_VISUAL_ID,
-					&vid
-				))
-			{
-				throw std::runtime_error("eglGetConfigAttrib() failed");
-			}
-
-			int num_visuals = 0;
-			XVisualInfo vis_template;
-			vis_template.visualid = vid;
-			auto visual_info = XGetVisualInfo(
-				display.xorg_display.display, //
-				VisualIDMask,
-				&vis_template,
-				&num_visuals
-			);
-			if (!visual_info) {
-				throw std::runtime_error("XGetVisualInfo() failed");
-			}
-			return visual_info;
-		}()),
-		xvisual([this]() {
-			return xorg_visual{
-				.visual = this->visual_info->visual, //
-				.depth = unsigned(this->visual_info->depth)
-			};
-		}())
-	{}
-
-	gl_visual_info(const gl_visual_info&) = delete;
-	gl_visual_info& operator=(const gl_visual_info&) = delete;
-
-	gl_visual_info(gl_visual_info&&) = delete;
-	gl_visual_info& operator=(gl_visual_info&&) = delete;
-
-	~gl_visual_info()
-	{
-		XFree(this->visual_info);
-	}
-#endif
 };
 
-#if defined(RUISAPP_RENDER_OPENGL)
 // Creates the GLX context
 struct glx_context_wrapper {
 	display_wrapper& display;
@@ -338,11 +249,6 @@ struct glx_context_wrapper {
 				));
 
 				if (!glx_create_context_attribs_arb) {
-					// this should not happen since we checked extension presence, and
-					// anyway, glXGetProcAddressARB() never returns nullptr according to
-					// https://dri.freedesktop.org/wiki/glXGetProcAddressNeverReturnsNULL/
-					// so, this check for null is just in case future version of GLX may
-					// return null
 					throw std::runtime_error("glXCreateContextAttribsARB() not found");
 				}
 
@@ -425,7 +331,6 @@ struct glx_context_wrapper {
 		);
 	}
 };
-#endif
 
 class native_window : public gl_visual_info, public xorg_window
 {
@@ -447,7 +352,6 @@ public:
 			shared_gl_context_native_window,
 			this->xvisual
 		),
-#if defined(RUISAPP_RENDER_OPENGL)
 		glx_context(
 			this->display.get(), //
 			this->visual_info,
@@ -455,21 +359,7 @@ public:
 			this->fb_config,
 			shared_gl_context_native_window ? shared_gl_context_native_window->glx_context.context : nullptr
 		)
-#elif defined(RUISAPP_RENDER_OPENGLES)
-		egl_surface(
-			this->display.get().egl_display, //
-			this->egl_config,
-			this->window.window
-		),
-		egl_context(
-			this->display.get().egl_display, //
-			gl_version,
-			this->egl_config,
-			shared_gl_context_native_window ? shared_gl_context_native_window->egl_context.context : EGL_NO_CONTEXT
-		)
-#endif
 	{
-#if defined(RUISAPP_RENDER_OPENGL)
 		// if there is no any GL context current, then set this one before calling glewInit()
 		if (glXGetCurrentContext() == nullptr) {
 			this->bind_rendering_context();
@@ -477,7 +367,6 @@ public:
 		if (glewInit() != GLEW_OK) {
 			throw std::runtime_error("GLEW initialization failed");
 		}
-#endif
 	}
 
 	native_window(const native_window&) = delete;
@@ -490,37 +379,20 @@ public:
 
 	void bind_rendering_context() override
 	{
-#ifdef RUISAPP_RENDER_OPENGL
 		glXMakeCurrent(
 			this->display.get().xorg_display.display, //
 			this->window.window,
 			this->glx_context.context
 		);
-#elif defined(RUISAPP_RENDER_OPENGLES)
-		if (eglMakeCurrent(
-				this->display.get().egl_display.display,
-				this->egl_surface.surface,
-				this->egl_surface.surface,
-				this->egl_context.context
-			) == EGL_FALSE)
-		{
-			throw std::runtime_error("eglMakeCurrent() failed");
-		}
-#endif
 	}
 
 	bool is_rendering_context_bound() const noexcept override
 	{
-#ifdef RUISAPP_RENDER_OPENGL
 		return glXGetCurrentContext() == this->glx_context.context;
-#elif defined(RUISAPP_RENDER_OPENGLES)
-		return eglGetCurrentContext() == this->egl_context.context;
-#endif
 	}
 
 	void swap_frame_buffers() override
 	{
-#ifdef RUISAPP_RENDER_OPENGL
 		glXSwapBuffers(
 			this->display.get().xorg_display.display, //
 			this->window.window
@@ -534,11 +406,6 @@ public:
 			// the effect is not present.
 			glFinish();
 		}
-#elif defined(RUISAPP_RENDER_OPENGLES)
-		this->egl_surface.swap_frame_buffers();
-#else
-#	error "Unknown graphics API"
-#endif
 	}
 
 	void set_vsync_enabled_internal(bool enable) override
@@ -550,7 +417,6 @@ public:
 			SL
 		);
 
-#ifdef RUISAPP_RENDER_OPENGL
 		// disable v-sync via swap control extension
 		if (this->glx_context.supported_extensions.get(glx_context_wrapper::glx_extension::glx_ext_swap_control)) {
 			utki::log_debug([](auto& o) {
@@ -601,25 +467,10 @@ public:
 			this->display.get().xorg_display.display, //
 			False
 		);
-#elif defined(RUISAPP_RENDER_OPENGLES)
-		utki::logcat_debug("eglSwapInterval(", enable ? "true" : "false", ")\n");
-		if (eglSwapInterval(
-				this->display.get().egl_display.display, //
-				enable ? 1 : 0 // swap interval in vsync frames
-			) != EGL_TRUE)
-		{
-			utki::logcat("WARNING: eglSwapInterval(", enable, ") failed");
-		}
-#endif
 	}
 
 private:
-#if defined(RUISAPP_RENDER_OPENGL)
 	const glx_context_wrapper glx_context;
-#elif defined(RUISAPP_RENDER_OPENGLES)
-	egl_surface_wrapper egl_surface;
-	egl_context_wrapper egl_context;
-#endif
 };
 
 } // namespace

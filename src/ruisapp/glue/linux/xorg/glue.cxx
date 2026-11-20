@@ -55,8 +55,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "key_code_map.hxx"
 #ifdef RUISAPP_RENDER_VULKAN
 #	include "vulkan_window.hxx"
-#else
+#elif defined(RUISAPP_RENDER_OPENGL)
 #	include "opengl_window.hxx"
+#elif defined(RUISAPP_RENDER_OPENGLES)
+#	include "opengles_window.hxx"
 #endif
 
 using namespace std::string_literals;
@@ -219,8 +221,11 @@ public:
 			ci.dpy = this->display.get().xorg_display.display;
 			ci.window = ruis_native_window.get().get_id();
 			VkSurfaceKHR surface = VK_NULL_HANDLE;
-			
-			::ruis::render::vulkan::check_vk_result(vkCreateXlibSurfaceKHR(this->device.get().get_instance(), &ci, nullptr, &surface), "vkCreateXlibSurfaceKHR");
+
+			::ruis::render::vulkan::check_vk_result(
+				vkCreateXlibSurfaceKHR(this->device.get().get_instance(), &ci, nullptr, &surface),
+				"vkCreateXlibSurfaceKHR"
+			);
 			return surface;
 		}());
 		auto vulkan_factory_ref =
