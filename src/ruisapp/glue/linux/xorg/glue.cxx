@@ -219,8 +219,8 @@ public:
 			ci.dpy = this->display.get().xorg_display.display;
 			ci.window = ruis_native_window.get().get_id();
 			VkSurfaceKHR surface = VK_NULL_HANDLE;
-			// VU_CHECK: Vulkan error checking macro from ruis/render/vulkan/vulkan.hpp
-			VU_CHECK(vkCreateXlibSurfaceKHR(this->device.get().get_instance(), &ci, nullptr, &surface));
+			
+			::ruis::render::vulkan::check_vk_result(vkCreateXlibSurfaceKHR(this->device.get().get_instance(), &ci, nullptr, &surface), "vkCreateXlibSurfaceKHR");
 			return surface;
 		}());
 		auto vulkan_factory_ref =
