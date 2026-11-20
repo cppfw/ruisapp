@@ -100,6 +100,21 @@ private:
 } // namespace
 
 namespace {
+#ifdef RUISAPP_RENDER_VULKAN
+const utki::shared_ref<ruis::render::vulkan::vulkan_device> make_vulkan_device()
+{
+	std::vector<std::string> instance_extensions = {
+		VK_KHR_SURFACE_EXTENSION_NAME,
+		VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME
+	};
+	std::vector<std::string> device_extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+	return utki::make_shared<ruis::render::vulkan::vulkan_device>(
+		instance_extensions, //
+		device_extensions //
+	);
+}
+#endif
+
 class application_glue : public utki::destructable
 {
 public:
@@ -174,17 +189,13 @@ public:
 			)
 		),
 #ifdef RUISAPP_RENDER_VULKAN
-		vulkan_device(std::shared_ptr<ruis::render::vulkan::vulkan_device>(ruis::render::vulkan::vulkan_device::make(
-			{std::string(VK_KHR_SURFACE_EXTENSION_NAME), std::string(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME)
-			}, // instance extensions
-			{std::string(VK_KHR_SWAPCHAIN_EXTENSION_NAME)} // device extensions
-		))),
+		vulkan_device(make_vulkan_device()),
 #endif
 		render_factory(
 #ifdef RUISAPP_RENDER_VULKAN
 			// Vulkan has no "current context" — a null surface is sufficient for the factory (resource creation)
 			utki::make_shared<ruis::render::vulkan::factory>(
-				utki::make_shared<ruis::render::vulkan::surface_provider>(this->vulkan_device.get(), VK_NULL_HANDLE)
+				utki::make_shared<ruis::render::vulkan::surface>(this->vulkan_device.get(), VK_NULL_HANDLE)
 			)
 #elif defined(RUISAPP_RENDER_OPENGL)
 			utki::make_shared<ruis::render::opengl::factory>(this->shared_gl_context_native_window)

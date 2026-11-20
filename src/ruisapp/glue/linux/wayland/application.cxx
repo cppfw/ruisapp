@@ -231,7 +231,7 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 				sci.surface = wl_surf;
 				VkSurfaceKHR vk_surf = VK_NULL_HANDLE;
 				vkCreateWaylandSurfaceKHR(vdev.get_instance(), &sci, nullptr, &vk_surf);
-				auto sp = utki::make_shared<const ruis::render::vulkan::surface_provider>(vdev, vk_surf);
+				auto sp = utki::make_shared<const ruis::render::vulkan::surface>(vdev, vk_surf);
 				auto vulkan_factory_ref =
 					utki::dynamic_reference_cast<const ruis::render::vulkan::factory>(this->render_factory);
 				return utki::make_shared<ruis::render::vulkan::context>(win_ref, sp, vulkan_factory_ref);

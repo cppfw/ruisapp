@@ -41,7 +41,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #	include <vulkan/vulkan.h>
 #	include <vulkan/vulkan_xlib.h>
 #	include <ruis/render/vulkan/vulkan_device.hpp>
-#	include <ruis/render/vulkan/surface_provider.hpp>
+#	include <ruis/render/vulkan/surface.hpp>
 
 #else
 #	error "Unknown graphics API"
@@ -63,6 +63,20 @@ using namespace std::string_literals;
 using namespace std::string_view_literals;
 
 using namespace ruisapp;
+
+#ifdef RUISAPP_RENDER_VULKAN
+namespace {
+const utki::shared_ref<ruis::render::vulkan::vulkan_device> make_vulkan_device()
+{
+	std::vector<std::string> instance_extensions = {VK_KHR_SURFACE_EXTENSION_NAME, VK_KHR_XLIB_SURFACE_EXTENSION_NAME};
+	std::vector<std::string> device_extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+	return utki::make_shared<ruis::render::vulkan::vulkan_device>(
+		instance_extensions, //
+		device_extensions //
+	);
+}
+} // namespace
+#endif
 
 namespace {
 class app_window : public ruisapp::window
@@ -131,20 +145,19 @@ public:
 
 	application_glue(const utki::version_duplet& gl_version) :
 #ifdef RUISAPP_RENDER_VULKAN
-		vulkan_device(std::shared_ptr<ruis::render::vulkan::vulkan_device>(ruis::render::vulkan::vulkan_device::make(
-			{
-				std::string(VK_KHR_SURFACE_EXTENSION_NAME),
-				std::string(VK_KHR_XLIB_SURFACE_EXTENSION_NAME)
-    }, //
-			{std::string(VK_KHR_SWAPCHAIN_EXTENSION_NAME)} //
-		))),
+		vulkan_device(make_vulkan_device()),
 #endif
 		gl_version(gl_version),
 		shared_gl_context_native_window( //
 			utki::make_shared<native_window>(
 				this->display, //
 				this->gl_version,
-				ruisapp::window_parameters{.dims = {1, 1}, .title = {}, .fullscreen = false, .taskbar = false},
+				ruisapp::window_parameters{
+					.dims = {1, 1},
+					.title = {},
+					.fullscreen = false,
+					.taskbar = false
+    },
 				nullptr
 			)
 		),
@@ -154,7 +167,7 @@ public:
 			// Vulkan has no "current context" — all GPU resources live on the VkDevice and
 			// are inherently shareable. No surface is needed for the shared factory.
 			utki::make_shared<ruis::render::vulkan::factory>(
-				utki::make_shared<ruis::render::vulkan::surface_provider>(this->vulkan_device.get(), VK_NULL_HANDLE)
+				utki::make_shared<ruis::render::vulkan::surface>(this->vulkan_device.get(), VK_NULL_HANDLE)
 			)
 #elif defined(RUISAPP_RENDER_OPENGL)
 			utki::make_shared<ruis::render::opengl::factory>(this->shared_gl_context_native_window)
@@ -200,17 +213,16 @@ public:
 		);
 
 #ifdef RUISAPP_RENDER_VULKAN
-		auto win_surface_provider =
-			utki::make_shared<ruis::render::vulkan::surface_provider>(this->vulkan_device.get(), [&]() {
-				VkXlibSurfaceCreateInfoKHR ci{};
-				ci.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
-				ci.dpy = this->display.get().xorg_display.display;
-				ci.window = ruis_native_window.get().get_id();
-				VkSurfaceKHR surface = VK_NULL_HANDLE;
-				// VU_CHECK: Vulkan error checking macro from ruis/render/vulkan/vulkan.hpp
-				VU_CHECK(vkCreateXlibSurfaceKHR(this->vulkan_device.get().get_instance(), &ci, nullptr, &surface));
-				return surface;
-			}());
+		auto win_surface = utki::make_shared<ruis::render::vulkan::surface>(this->vulkan_device.get(), [&]() {
+			VkXlibSurfaceCreateInfoKHR ci{};
+			ci.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
+			ci.dpy = this->display.get().xorg_display.display;
+			ci.window = ruis_native_window.get().get_id();
+			VkSurfaceKHR surface = VK_NULL_HANDLE;
+			// VU_CHECK: Vulkan error checking macro from ruis/render/vulkan/vulkan.hpp
+			VU_CHECK(vkCreateXlibSurfaceKHR(this->vulkan_device.get().get_instance(), &ci, nullptr, &surface));
+			return surface;
+		}());
 		auto vulkan_factory_ref =
 			utki::dynamic_reference_cast<const ruis::render::vulkan::factory>(this->render_factory);
 #endif
@@ -231,7 +243,7 @@ public:
 				// because it accesses Vulkan-specific members (e.g. all_textures, pipeline caches).
 				utki::make_shared<ruis::render::vulkan::context>(
 					ruis_native_window, //
-					win_surface_provider, //
+					win_surface, //
 					vulkan_factory_ref
 				),
 #endif
