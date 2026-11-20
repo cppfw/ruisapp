@@ -157,6 +157,13 @@ public:
 			this->egl_config,
 			this->wayland_egl_window.window
 		);
+
+		// The rendering context was made current with EGL_NO_SURFACE in its constructor,
+		// before the surface existed. Now that the surface exists, re-bind the context to
+		// it, so that rendering (and the initial eglSwapBuffers) actually reaches the
+		// window's buffer. Without this, context::apply() would skip the bind (the context
+		// is already "current" on the context stack) and the swap would fail.
+		this->bind_rendering_context();
 	}
 
 	bool is_egl_surface_created() const noexcept
