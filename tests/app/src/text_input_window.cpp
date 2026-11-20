@@ -85,9 +85,8 @@ utki::shared_ref<ruis::window> make_text_input_window(const utki::shared_ref<rui
 		// when the window manager requests closing the window (e.g. via the
 		// title bar close button) we destroy it
 		{
-			auto* nw_ptr = &nw;
-			nw.gui.context.get().window().close_handler = [nw_ptr]() {
-				ruisapp::inst().destroy_window(*nw_ptr);
+			nw.gui.context.get().window().close_handler = [&nw]() {
+				ruisapp::inst().destroy_window(nw);
 			};
 		}
 	};

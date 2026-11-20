@@ -277,21 +277,16 @@ endif()
 # === export ===
 
 if(LINUX)
-    set(ruisapp_export_targets
-        ${name}-opengl-xorg
-        ${name}-opengles-xorg
-        ${name}-opengl-wayland
-        ${name}-opengles-wayland
-        ${name}-opengl-sdl
-        ${name}-opengles-sdl
-    )
-    list(APPEND ruisapp_export_targets
-        ${name}-vulkan-xorg
-        ${name}-vulkan-wayland
-    )
     myci_export(
         TARGETS
-            ${ruisapp_export_targets}
+            ${name}-opengl-xorg
+            ${name}-opengles-xorg
+            ${name}-opengl-wayland
+            ${name}-opengles-wayland
+            ${name}-opengl-sdl
+            ${name}-opengles-sdl
+            ${name}-vulkan-xorg
+            ${name}-vulkan-wayland
     )
 elseif(ruisapp_build_opengl_variant AND ruisapp_build_opengles_variant)
     myci_export(
