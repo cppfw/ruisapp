@@ -40,7 +40,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #	include <ruis/render/vulkan/context.hpp>
 #	include <vulkan/vulkan.h>
 #	include <vulkan/vulkan_xlib.h>
-#	include <ruis/render/vulkan/vulkan_device.hpp>
+#	include <ruis/render/vulkan/device.hpp>
 #	include <ruis/render/vulkan/surface.hpp>
 
 #else
@@ -66,11 +66,11 @@ using namespace ruisapp;
 
 #ifdef RUISAPP_RENDER_VULKAN
 namespace {
-const utki::shared_ref<ruis::render::vulkan::vulkan_device> make_vulkan_device()
+const utki::shared_ref<ruis::render::vulkan::device> make_device()
 {
 	std::vector<std::string> instance_extensions = {VK_KHR_SURFACE_EXTENSION_NAME, VK_KHR_XLIB_SURFACE_EXTENSION_NAME};
 	std::vector<std::string> device_extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-	return utki::make_shared<ruis::render::vulkan::vulkan_device>(
+	return utki::make_shared<ruis::render::vulkan::device>(
 		instance_extensions, //
 		device_extensions //
 	);
@@ -115,7 +115,7 @@ private:
 #ifdef RUISAPP_RENDER_VULKAN
 	// The Vulkan device is shared between the factory (resource creation) and the windows (surface creation).
 	// Surface extensions are needed for creating Vulkan surfaces (one per window) for presenting frames.
-	const utki::shared_ref<ruis::render::vulkan::vulkan_device> vulkan_device;
+	const utki::shared_ref<ruis::render::vulkan::device> device;
 #endif
 	utki::version_duplet gl_version;
 
@@ -145,7 +145,7 @@ public:
 
 	application_glue(const utki::version_duplet& gl_version) :
 #ifdef RUISAPP_RENDER_VULKAN
-		vulkan_device(make_vulkan_device()),
+		device(make_device()),
 #endif
 		gl_version(gl_version),
 		shared_gl_context_native_window( //
@@ -167,7 +167,7 @@ public:
 			// Vulkan has no "current context" — all GPU resources live on the VkDevice and
 			// are inherently shareable. No surface is needed for the shared factory.
 			utki::make_shared<ruis::render::vulkan::factory>(
-				utki::make_shared<ruis::render::vulkan::surface>(this->vulkan_device.get(), VK_NULL_HANDLE)
+				utki::make_shared<ruis::render::vulkan::surface>(this->device.get(), VK_NULL_HANDLE)
 			)
 #elif defined(RUISAPP_RENDER_OPENGL)
 			utki::make_shared<ruis::render::opengl::factory>(this->shared_gl_context_native_window)
@@ -213,14 +213,14 @@ public:
 		);
 
 #ifdef RUISAPP_RENDER_VULKAN
-		auto win_surface = utki::make_shared<ruis::render::vulkan::surface>(this->vulkan_device.get(), [&]() {
+		auto win_surface = utki::make_shared<ruis::render::vulkan::surface>(this->device.get(), [&]() {
 			VkXlibSurfaceCreateInfoKHR ci{};
 			ci.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
 			ci.dpy = this->display.get().xorg_display.display;
 			ci.window = ruis_native_window.get().get_id();
 			VkSurfaceKHR surface = VK_NULL_HANDLE;
 			// VU_CHECK: Vulkan error checking macro from ruis/render/vulkan/vulkan.hpp
-			VU_CHECK(vkCreateXlibSurfaceKHR(this->vulkan_device.get().get_instance(), &ci, nullptr, &surface));
+			VU_CHECK(vkCreateXlibSurfaceKHR(this->device.get().get_instance(), &ci, nullptr, &surface));
 			return surface;
 		}());
 		auto vulkan_factory_ref =

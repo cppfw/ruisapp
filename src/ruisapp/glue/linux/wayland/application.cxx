@@ -224,7 +224,7 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 			[&](auto&& win_ref) -> utki::shared_ref<ruis::render::context> {
 				auto wl_surf = win_ref.get().get_wl_surface();
 				auto wl_disp = win_ref.get().get_wl_display();
-				auto& vdev = this->vulkan_device.get();
+				auto& vdev = this->device.get();
 				VkWaylandSurfaceCreateInfoKHR sci{};
 				sci.sType = VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR;
 				sci.display = wl_disp;

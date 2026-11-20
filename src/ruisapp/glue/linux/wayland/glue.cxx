@@ -38,7 +38,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #	include <vulkan/vulkan.h>
 #	include <vulkan/vulkan_wayland.h>
 #	include <ruis/render/vulkan/context.hpp>
-#	include <ruis/render/vulkan/vulkan_device.hpp>
+#	include <ruis/render/vulkan/device.hpp>
 
 #elif defined(RUISAPP_RENDER_OPENGLES)
 #	include <EGL/egl.h>
