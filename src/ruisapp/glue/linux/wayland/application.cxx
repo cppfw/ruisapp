@@ -224,7 +224,7 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 			[&](auto&& win_ref) -> utki::shared_ref<ruis::render::context> {
 				auto wl_surf = win_ref.get().get_wl_surface();
 				auto wl_disp = win_ref.get().get_wl_display();
-				auto& vdev = *this->vulkan_device;
+				auto& vdev = this->vulkan_device.get();
 				VkWaylandSurfaceCreateInfoKHR sci{};
 				sci.sType = VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR;
 				sci.display = wl_disp;
@@ -264,8 +264,9 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 
 #ifdef RUISAPP_RENDER_VULKAN
 	{
-		// use a raw pointer to avoid a circular shared_ref that would
-		// prevent the app_window from being destroyed
+		// The Vulkan window presents frames via a callback (present_func) set here,
+		// because the native window is graphics-agnostic and does not know about the renderer.
+		// Use a raw pointer to avoid a circular shared_ref that would prevent destruction.
 		auto* win_ptr = &ruisapp_window.get();
 		ruisapp_window.get().ruis_native_window.get().present_func = [win_ptr]() {
 			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast, "the renderer is the Vulkan renderer in this build variant")
@@ -294,7 +295,7 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 
 	auto& ret_win = res.first->second.get();
 
-#ifndef RUISAPP_RENDER_VULKAN
+#if defined(RUISAPP_RENDER_OPENGL) || defined(RUISAPP_RENDER_OPENGLES)
 	// EGL surface for the window is not created yet at this point.
 	// In Wayland the EGL surface is created asynchronously.
 	// Some further calls (e.g. set_vsync_enabled()) rely on the EGL surface to be created,
@@ -310,8 +311,9 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 	}
 
 	utki::assert(ret_win.ruis_native_window.get().is_egl_surface_created(), SL);
-#else
-	// For Vulkan, do a roundtrip to make sure the window is mapped before proceeding.
+#elif defined(RUISAPP_RENDER_VULKAN)
+	// A roundtrip ensures the compositor has processed the toplevel and the
+	// surface is mapped, so the Vulkan surface created from it is valid.
 	wl_display_roundtrip(this->display.get().wayland_display.display);
 #endif
 

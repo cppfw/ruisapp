@@ -23,8 +23,7 @@ cube_widget::cube_widget(
 		 ruis::vec3(-1, -1, 1), ruis::vec3(-1, -1, 1),  ruis::vec3(1, -1, -1),  ruis::vec3(1, -1, 1)}
 	};
 
-	auto pos_vbo =
-		this->context.get().renderer.get().rendering_context.get().fac().make_vertex_buffer(utki::make_span(cube_pos));
+	auto pos_vbo = this->ctx().ren().ctx().fac().make_vertex_buffer(utki::make_span(cube_pos));
 
 	// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
 	std::array<ruis::vec2, 36> cube_tex = {

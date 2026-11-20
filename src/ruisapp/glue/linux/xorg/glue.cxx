@@ -56,7 +56,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #ifdef RUISAPP_RENDER_VULKAN
 #	include "vulkan_window.hxx"
 #else
-#	include "window.hxx"
+#	include "opengl_window.hxx"
 #endif
 
 using namespace std::string_literals;
@@ -99,7 +99,9 @@ public:
 
 private:
 #ifdef RUISAPP_RENDER_VULKAN
-	std::unique_ptr<ruis::render::vulkan::vulkan_device> vulkan_device;
+	// The Vulkan device is shared between the factory (resource creation) and the windows (surface creation).
+	// Surface extensions are needed for creating Vulkan surfaces (one per window) for presenting frames.
+	const utki::shared_ref<ruis::render::vulkan::vulkan_device> vulkan_device;
 #endif
 	utki::version_duplet gl_version;
 
@@ -129,13 +131,13 @@ public:
 
 	application_glue(const utki::version_duplet& gl_version) :
 #ifdef RUISAPP_RENDER_VULKAN
-		vulkan_device(ruis::render::vulkan::vulkan_device::make(
+		vulkan_device(std::shared_ptr<ruis::render::vulkan::vulkan_device>(ruis::render::vulkan::vulkan_device::make(
 			{
 				std::string(VK_KHR_SURFACE_EXTENSION_NAME),
 				std::string(VK_KHR_XLIB_SURFACE_EXTENSION_NAME)
     }, //
 			{std::string(VK_KHR_SWAPCHAIN_EXTENSION_NAME)} //
-		)),
+		))),
 #endif
 		gl_version(gl_version),
 		shared_gl_context_native_window( //
@@ -152,7 +154,7 @@ public:
 			// Vulkan has no "current context" — all GPU resources live on the VkDevice and
 			// are inherently shareable. No surface is needed for the shared factory.
 			utki::make_shared<ruis::render::vulkan::factory>(
-				utki::make_shared<ruis::render::vulkan::surface_provider>(*this->vulkan_device, VK_NULL_HANDLE)
+				utki::make_shared<ruis::render::vulkan::surface_provider>(this->vulkan_device.get(), VK_NULL_HANDLE)
 			)
 #elif defined(RUISAPP_RENDER_OPENGL)
 			utki::make_shared<ruis::render::opengl::factory>(this->shared_gl_context_native_window)
@@ -199,13 +201,14 @@ public:
 
 #ifdef RUISAPP_RENDER_VULKAN
 		auto win_surface_provider =
-			utki::make_shared<ruis::render::vulkan::surface_provider>(*this->vulkan_device, [&]() {
+			utki::make_shared<ruis::render::vulkan::surface_provider>(this->vulkan_device.get(), [&]() {
 				VkXlibSurfaceCreateInfoKHR ci{};
 				ci.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
 				ci.dpy = this->display.get().xorg_display.display;
 				ci.window = ruis_native_window.get().get_id();
 				VkSurfaceKHR surface = VK_NULL_HANDLE;
-				VU_CHECK(vkCreateXlibSurfaceKHR(this->vulkan_device->get_instance(), &ci, nullptr, &surface));
+				// VU_CHECK: Vulkan error checking macro from ruis/render/vulkan/vulkan.hpp
+				VU_CHECK(vkCreateXlibSurfaceKHR(this->vulkan_device.get().get_instance(), &ci, nullptr, &surface));
 				return surface;
 			}());
 		auto vulkan_factory_ref =
@@ -224,6 +227,8 @@ public:
 #elif defined(RUISAPP_RENDER_OPENGLES)
 				utki::make_shared<ruis::render::opengles::context>(ruis_native_window, this->render_factory),
 #elif defined(RUISAPP_RENDER_VULKAN)
+				// The Vulkan context needs the concrete factory (not the abstract one)
+				// because it accesses Vulkan-specific members (e.g. all_textures, pipeline caches).
 				utki::make_shared<ruis::render::vulkan::context>(
 					ruis_native_window, //
 					win_surface_provider, //
@@ -552,12 +557,11 @@ int main(int argc, const char** argv)
 					w.render();
 					break;
 				case ConfigureNotify:
-					{
-						// squash all window resize events into one, for that store the new
-						// window dimensions and update the viewport later only once
-						w.new_win_dims.x() = ruis::real(event.xconfigure.width);
-						w.new_win_dims.y() = ruis::real(event.xconfigure.height);
-					}
+					// squash all window resize events into one, for that store the new
+					// window dimensions and update the viewport later only once
+					w.new_win_dims.x() = ruis::real(event.xconfigure.width);
+					w.new_win_dims.y() = ruis::real(event.xconfigure.height);
+					break;
 					break;
 				case KeyPress:
 					{
@@ -621,11 +625,6 @@ int main(int argc, const char** argv)
 					}
 					break;
 				case ButtonPress:
-					// send mouse move first so the GUI knows the pointer position
-					w.gui.send_mouse_move(
-						ruis::vec2(event.xbutton.x, event.xbutton.y),
-						0 // pointer_id
-					);
 					w.gui.send_mouse_button(
 						ruis::button_action::press, //
 						ruis::vec2(event.xbutton.x, event.xbutton.y),
@@ -634,11 +633,6 @@ int main(int argc, const char** argv)
 					);
 					break;
 				case ButtonRelease:
-					// send mouse move first so the GUI knows the pointer position
-					w.gui.send_mouse_move(
-						ruis::vec2(event.xbutton.x, event.xbutton.y),
-						0 // pointer_id
-					);
 					w.gui.send_mouse_button(
 						ruis::button_action::release, //
 						ruis::vec2(event.xbutton.x, event.xbutton.y),

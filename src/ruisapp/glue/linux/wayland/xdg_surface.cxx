@@ -90,7 +90,7 @@ void xdg_surface_wrapper::xdg_surface_configure(
 	auto& win = *window;
 	auto& natwin = win.ruis_native_window.get();
 
-#ifndef RUISAPP_RENDER_VULKAN
+#if defined(RUISAPP_RENDER_OPENGL) || defined(RUISAPP_RENDER_OPENGLES)
 	// The configure event can come several times for the same xdg_surface
 	// because we do several surface commits during the initial configuration,
 	// and each commit can trigger a configure event.

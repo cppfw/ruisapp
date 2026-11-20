@@ -328,11 +328,6 @@ public:
 
 	~xorg_window() override = default;
 
-	void destroy_x11_window()
-	{
-		this->window.destroy();
-	}
-
 	static_assert(std::is_integral_v<::Window>, "xorg lib's Window type is unexpectedly not integral");
 	using window_id_type = ::Window;
 

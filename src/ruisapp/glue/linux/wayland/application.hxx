@@ -128,8 +128,9 @@ public:
 	// TODO: make windowless shared egl context
 	const utki::shared_ref<native_window> shared_gl_context_native_window;
 #ifdef RUISAPP_RENDER_VULKAN
-	std::unique_ptr<ruis::render::vulkan::vulkan_device> vulkan_device;
-	const utki::shared_ref<const ruis::render::vulkan::surface_provider> vulkan_surface_provider;
+	// The Vulkan device is shared between the factory (resource creation) and the windows (surface creation).
+	// Surface extensions are needed for creating Vulkan surfaces (one per window) for presenting frames.
+	const utki::shared_ref<ruis::render::vulkan::vulkan_device> vulkan_device;
 #endif
 	const utki::shared_ref<const ruis::render::factory> render_factory;
 	const utki::shared_ref<const ruis::render::factory::shaders> common_shaders;
@@ -173,20 +174,18 @@ public:
 			)
 		),
 #ifdef RUISAPP_RENDER_VULKAN
-		vulkan_device(ruis::render::vulkan::vulkan_device::make(
+		vulkan_device(std::shared_ptr<ruis::render::vulkan::vulkan_device>(ruis::render::vulkan::vulkan_device::make(
 			{std::string(VK_KHR_SURFACE_EXTENSION_NAME), std::string(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME)
 			}, // instance extensions
 			{std::string(VK_KHR_SWAPCHAIN_EXTENSION_NAME)} // device extensions
-		)),
-		// Vulkan has no "current context" — no surface needed for resource loading
-		vulkan_surface_provider(utki::make_shared<const ruis::render::vulkan::surface_provider>(
-			*this->vulkan_device, //
-			VK_NULL_HANDLE
-		)),
+		))),
 #endif
 		render_factory(
 #ifdef RUISAPP_RENDER_VULKAN
-			utki::make_shared<ruis::render::vulkan::factory>(this->vulkan_surface_provider)
+			// Vulkan has no "current context" — a null surface is sufficient for the factory (resource creation)
+			utki::make_shared<ruis::render::vulkan::factory>(
+				utki::make_shared<ruis::render::vulkan::surface_provider>(this->vulkan_device.get(), VK_NULL_HANDLE)
+			)
 #elif defined(RUISAPP_RENDER_OPENGL)
 			utki::make_shared<ruis::render::opengl::factory>(this->shared_gl_context_native_window)
 #elif defined(RUISAPP_RENDER_OPENGLES)

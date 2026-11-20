@@ -48,10 +48,11 @@ class native_window : public ruis::render::native_window
 	xdg_toplevel_wrapper xdg_toplevel;
 	wayland_egl_window_wrapper wayland_egl_window;
 
-#ifndef RUISAPP_RENDER_VULKAN
+#if defined(RUISAPP_RENDER_OPENGL) || defined(RUISAPP_RENDER_OPENGLES)
 	egl_config_wrapper egl_config;
 	egl_context_wrapper egl_context;
-
+	// An offscreen pbuffer surface used as a fallback for the shared GL context
+	// when no real window surface is available (e.g. during resource loading).
 	std::optional<egl_pbuffer_surface_wrapper> egl_dummy_surface;
 	std::optional<egl_surface_wrapper> egl_surface;
 #endif
@@ -96,7 +97,7 @@ public:
 			this->wayland_surface, //
 			window_params.dims
 		),
-#ifndef RUISAPP_RENDER_VULKAN
+#if defined(RUISAPP_RENDER_OPENGL) || defined(RUISAPP_RENDER_OPENGLES)
 		egl_config(
 			this->display.get().egl_display, //
 			gl_version,
@@ -269,7 +270,8 @@ private:
 
 public:
 #ifdef RUISAPP_RENDER_VULKAN
-	// callback for presenting the Vulkan frame
+	// Callback for presenting the Vulkan frame. Set by the application glue
+	// (see application.cxx make_window) because the native window is graphics-agnostic.
 	std::function<void()> present_func;
 #endif
 
@@ -301,7 +303,7 @@ public:
 #ifdef RUISAPP_RENDER_VULKAN
 		(void)enabled;
 		// VSync is handled by the Vulkan present mode
-#else
+#elif defined(RUISAPP_RENDER_OPENGL) || defined(RUISAPP_RENDER_OPENGLES)
 		utki::assert(
 			[this]() {
 				return this->is_rendering_context_bound();
