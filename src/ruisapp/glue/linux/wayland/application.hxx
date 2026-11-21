@@ -182,9 +182,19 @@ public:
 	application_glue(const utki::version_duplet& gl_version) :
 		waitable(this->display.get().wayland_display),
 		gl_version(gl_version),
-		shared_gl_context_native_window( //
+		shared_gl_context_native_window(
+	// create a 1x1 hidden window; for Vulkan it is not used by the factory,
+	// but the member is a shared_ref which cannot be null
 #ifdef RUISAPP_RENDER_VULKAN
-			nullptr // Vulkan doesn't need a shared GL context window
+			utki::make_shared<native_window_type>(
+				this->display, //
+				ruisapp::window_parameters{
+					.dims = {1, 1},
+					.title = {},
+					.fullscreen = false,
+					.taskbar = false
+    }
+			)
 #else
 			utki::make_shared<native_window_type>(
 				this->display, //
@@ -192,9 +202,10 @@ public:
 				ruisapp::window_parameters{
 					.dims = {1, 1},
 					.title = {},
-					.fullscreen = false
+					.fullscreen = false,
+					.taskbar = false
 },
-				nullptr // no shared gl context
+				nullptr
 			)
 #endif
 		),

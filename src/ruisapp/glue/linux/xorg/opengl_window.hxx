@@ -332,7 +332,6 @@ struct glx_context_wrapper {
 	}
 };
 
-
 class opengl_native_window : public gl_visual_info, public xorg_window
 {
 public:
