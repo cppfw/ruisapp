@@ -32,8 +32,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #ifdef RUISAPP_RENDER_VULKAN
 #	include "vulkan_window.hxx"
+using native_window_type = vulkan_native_window;
 #else
 #	include "opengles_window.hxx"
+using native_window_type = opengles_native_window;
 #endif
 
 namespace {
@@ -48,11 +50,11 @@ public:
 		bool activated = false;
 	} actual_state;
 
-	utki::shared_ref<native_window> ruis_native_window;
+	utki::shared_ref<native_window_type> ruis_native_window;
 
 	app_window(
 		utki::shared_ref<ruis::context> ruis_context, //
-		utki::shared_ref<native_window> ruis_native_window
+		utki::shared_ref<native_window_type> ruis_native_window
 	) :
 		ruisapp::window(std::move(ruis_context)),
 		ruis_native_window(std::move(ruis_native_window))
@@ -145,7 +147,7 @@ public:
 	const utki::version_duplet gl_version;
 
 	// TODO: make windowless shared egl context
-	const utki::shared_ref<native_window> shared_gl_context_native_window;
+	const utki::shared_ref<native_window_type> shared_gl_context_native_window;
 #ifdef RUISAPP_RENDER_VULKAN
 	// The Vulkan device is shared between the factory (resource creation) and the windows (surface creation).
 	// Surface extensions are needed for creating Vulkan surfaces (one per window) for presenting frames.
@@ -159,7 +161,7 @@ public:
 
 private:
 	std::map<
-		native_window::window_id_type, //
+		native_window_type::window_id_type, //
 		utki::shared_ref<app_window> //
 		>
 		windows;
@@ -172,7 +174,7 @@ public:
 		return this->windows;
 	}
 
-	native_window::window_id_type get_shared_gl_context_window_id() const noexcept
+	native_window_type::window_id_type get_shared_gl_context_window_id() const noexcept
 	{
 		return this->shared_gl_context_native_window.get().get_id();
 	}
@@ -184,7 +186,7 @@ public:
 #ifdef RUISAPP_RENDER_VULKAN
 			nullptr // Vulkan doesn't need a shared GL context window
 #else
-			utki::make_shared<native_window>(
+			utki::make_shared<native_window_type>(
 				this->display, //
 				this->gl_version,
 				ruisapp::window_parameters{
@@ -236,7 +238,7 @@ public:
 	ruisapp::window& make_window(ruisapp::window_parameters window_params);
 	void destroy_window(app_window& w);
 
-	app_window* get_window(native_window::window_id_type id)
+	app_window* get_window(native_window_type::window_id_type id)
 	{
 		auto i = this->windows.find(id);
 		if (i == this->windows.end()) {

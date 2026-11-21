@@ -34,18 +34,18 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 namespace {
 
-class native_window : public xorg_window
+class vulkan_native_window : public xorg_window
 {
 public:
-	// a callback that presents the frame; set by the glue to call the Vulkan
-	// context's present()
-	std::function<void()> present_func;
+	// pointer to the owning Vulkan context; set by the glue after the context
+	// is created. swap_frame_buffers() calls present() on it if non-null.
+	ruis::render::vulkan::context* owner_context = nullptr;
 
-	native_window(
+	vulkan_native_window(
 		utki::shared_ref<display_wrapper> display, //
 		const utki::version_duplet&, // the GL version is not used by Vulkan
 		const ruisapp::window_parameters& window_params,
-		const native_window* shared
+		vulkan_native_window* shared
 	) :
 		xorg_window(
 			display, //
@@ -64,18 +64,18 @@ public:
 		)
 	{}
 
-	native_window(const native_window&) = delete;
-	native_window& operator=(const native_window&) = delete;
+	vulkan_native_window(const vulkan_native_window&) = delete;
+	vulkan_native_window& operator=(const vulkan_native_window&) = delete;
 
-	native_window(native_window&&) = delete;
-	native_window& operator=(native_window&&) = delete;
+	vulkan_native_window(vulkan_native_window&&) = delete;
+	vulkan_native_window& operator=(vulkan_native_window&&) = delete;
 
-	~native_window() override = default;
+	~vulkan_native_window() override = default;
 
 	void swap_frame_buffers() override
 	{
-		if (this->present_func) {
-			this->present_func();
+		if (this->owner_context) {
+			this->owner_context->present();
 		}
 	}
 };

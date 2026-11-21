@@ -87,14 +87,14 @@ public:
 	}
 };
 
-class native_window : public gl_visual_info, public xorg_window
+class opengles_native_window : public gl_visual_info, public xorg_window
 {
 public:
-	native_window(
+	opengles_native_window(
 		utki::shared_ref<display_wrapper> display, //
 		const utki::version_duplet& gl_version,
 		const ruisapp::window_parameters& window_params,
-		const native_window* shared_gl_context_native_window
+		opengles_native_window* shared_gl_context_native_window
 	) :
 		gl_visual_info(
 			display.get(), //
@@ -120,13 +120,13 @@ public:
 		)
 	{}
 
-	native_window(const native_window&) = delete;
-	native_window& operator=(const native_window&) = delete;
+	opengles_native_window(const opengles_native_window&) = delete;
+	opengles_native_window& operator=(const opengles_native_window&) = delete;
 
-	native_window(native_window&&) = delete;
-	native_window& operator=(native_window&&) = delete;
+	opengles_native_window(opengles_native_window&&) = delete;
+	opengles_native_window& operator=(opengles_native_window&&) = delete;
 
-	~native_window() override = default;
+	~opengles_native_window() override = default;
 
 	void bind_rendering_context() override
 	{

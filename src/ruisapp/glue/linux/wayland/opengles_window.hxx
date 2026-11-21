@@ -29,7 +29,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 namespace {
 // OpenGL ES-specific native window for Wayland.
-class native_window : public wayland_window
+class opengles_native_window : public wayland_window
 {
 	egl_config_wrapper egl_config;
 	egl_context_wrapper egl_context;
@@ -39,11 +39,11 @@ class native_window : public wayland_window
 	std::optional<egl_surface_wrapper> egl_surface;
 
 public:
-	native_window(
+	opengles_native_window(
 		utki::shared_ref<display_wrapper> display,
 		const utki::version_duplet& gl_version,
 		const ruisapp::window_parameters& window_params,
-		native_window* shared_gl_context_native_window
+		opengles_native_window* shared_gl_context_native_window
 	) :
 		wayland_window(
 			std::move(display), //

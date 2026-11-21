@@ -28,14 +28,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 namespace {
 // Vulkan-specific native window for Wayland.
-class native_window : public wayland_window
+class vulkan_native_window : public wayland_window
 {
 public:
-	// Callback for presenting the Vulkan frame. Set by the application glue
-	// (see application.cxx make_window) because the native window is graphics-agnostic.
-	std::function<void()> present_func;
+	// pointer to the owning Vulkan context; set by the glue after the context
+	// is created. swap_frame_buffers() calls present() on it if non-null.
+	ruis::render::vulkan::context* owner_context = nullptr;
 
-	native_window(
+	vulkan_native_window(
 		utki::shared_ref<display_wrapper> display,
 		const ruisapp::window_parameters& window_params
 	) :
@@ -47,10 +47,8 @@ public:
 
 	void swap_frame_buffers() override
 	{
-		// For Vulkan, the present is handled by the Vulkan context
-		// through the present_func callback.
-		if (this->present_func) {
-			this->present_func();
+		if (this->owner_context) {
+			this->owner_context->present();
 		}
 	}
 

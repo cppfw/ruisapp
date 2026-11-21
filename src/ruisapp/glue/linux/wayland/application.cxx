@@ -203,12 +203,12 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 	utki::logcat_debug("application_glue::make_window(): enter", '\n');
 
 #ifdef RUISAPP_RENDER_VULKAN
-	auto ruis_native_window = utki::make_shared<native_window>(
+	auto ruis_native_window = utki::make_shared<native_window_type>(
 		this->display, //
 		window_params
 	);
 #else
-	auto ruis_native_window = utki::make_shared<native_window>(
+	auto ruis_native_window = utki::make_shared<native_window_type>(
 		this->display, //
 		this->gl_version,
 		window_params,
@@ -271,15 +271,10 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 
 #ifdef RUISAPP_RENDER_VULKAN
 	{
-		// The Vulkan window presents frames via a callback (present_func) set here,
-		// because the native window is graphics-agnostic and does not know about the renderer.
-		// Use a raw pointer to avoid a circular shared_ref that would prevent destruction.
-		auto* win_ptr = &ruisapp_window.get();
-		ruisapp_window.get().ruis_native_window.get().present_func = [win_ptr]() {
-			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast, "the renderer is the Vulkan renderer in this build variant")
-			auto& ctx = static_cast<ruis::render::vulkan::context&>(win_ptr->gui.context.get().ren().ctx());
-			ctx.present();
-		};
+		// set the owning Vulkan context so that swap_frame_buffers() can call present()
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast, "the renderer is the Vulkan renderer in this build variant")
+		ruisapp_window.get().ruis_native_window.get().owner_context =
+			&static_cast<ruis::render::vulkan::context&>(ruisapp_window.get().gui.context.get().ren().ctx());
 	}
 #endif
 

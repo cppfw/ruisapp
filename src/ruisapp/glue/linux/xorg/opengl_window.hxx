@@ -332,14 +332,15 @@ struct glx_context_wrapper {
 	}
 };
 
-class native_window : public gl_visual_info, public xorg_window
+// review: rename to opengl_native_window, do simnilar with opengles_native_window and vulkan_native_window, also in wayland implementation
+class opengl_native_window : public gl_visual_info, public xorg_window
 {
 public:
-	native_window(
+	opengl_native_window(
 		utki::shared_ref<display_wrapper> display, //
 		const utki::version_duplet& gl_version,
 		const ruisapp::window_parameters& window_params,
-		const native_window* shared_gl_context_native_window
+		opengl_native_window* shared_gl_context_native_window
 	) :
 		gl_visual_info(
 			display.get(), //
@@ -369,13 +370,13 @@ public:
 		}
 	}
 
-	native_window(const native_window&) = delete;
-	native_window& operator=(const native_window&) = delete;
+	opengl_native_window(const opengl_native_window&) = delete;
+	opengl_native_window& operator=(const opengl_native_window&) = delete;
 
-	native_window(native_window&&) = delete;
-	native_window& operator=(native_window&&) = delete;
+	opengl_native_window(opengl_native_window&&) = delete;
+	opengl_native_window& operator=(opengl_native_window&&) = delete;
 
-	~native_window() override = default;
+	~opengl_native_window() override = default;
 
 	void bind_rendering_context() override
 	{

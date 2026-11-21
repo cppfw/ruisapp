@@ -67,6 +67,14 @@ using namespace std::string_view_literals;
 using namespace ruisapp;
 
 #ifdef RUISAPP_RENDER_VULKAN
+using native_window_type = vulkan_native_window;
+#elif defined(RUISAPP_RENDER_OPENGL)
+using native_window_type = opengl_native_window;
+#elif defined(RUISAPP_RENDER_OPENGLES)
+using native_window_type = opengles_native_window;
+#endif
+
+#ifdef RUISAPP_RENDER_VULKAN
 namespace {
 const utki::shared_ref<ruis::render::vulkan::device> make_device()
 {
@@ -84,11 +92,11 @@ namespace {
 class app_window : public ruisapp::window
 {
 public:
-	utki::shared_ref<native_window> ruis_native_window;
+	utki::shared_ref<native_window_type> ruis_native_window;
 
 	app_window(
 		utki::shared_ref<ruis::context> ruis_context, //
-		utki::shared_ref<native_window> ruis_native_window
+		utki::shared_ref<native_window_type> ruis_native_window
 	) :
 		ruisapp::window(std::move(ruis_context)),
 		ruis_native_window(std::move(ruis_native_window))
@@ -121,7 +129,7 @@ private:
 #endif
 	utki::version_duplet gl_version;
 
-	utki::shared_ref<native_window> shared_gl_context_native_window;
+	utki::shared_ref<native_window_type> shared_gl_context_native_window;
 	const utki::shared_ref<const ruis::render::factory> render_factory;
 	const utki::shared_ref<const ruis::render::factory::shaders> common_shaders;
 	utki::shared_ref<const ruis::render::renderer::objects> common_render_objects;
@@ -132,7 +140,7 @@ public:
 
 private:
 	std::map<
-		native_window::window_id_type, //
+		native_window_type::window_id_type, //
 		utki::shared_ref<app_window> //
 		>
 		windows;
@@ -151,7 +159,7 @@ public:
 #endif
 		gl_version(gl_version),
 		shared_gl_context_native_window( //
-			utki::make_shared<native_window>(
+			utki::make_shared<native_window_type>(
 				this->display, //
 				this->gl_version,
 				ruisapp::window_parameters{
@@ -207,7 +215,7 @@ public:
 
 	app_window& make_window(ruisapp::window_parameters window_params)
 	{
-		auto ruis_native_window = utki::make_shared<native_window>(
+		auto ruis_native_window = utki::make_shared<native_window_type>(
 			this->display, //
 			this->gl_version,
 			window_params,
@@ -288,14 +296,10 @@ public:
 
 		{
 #ifdef RUISAPP_RENDER_VULKAN
-			// use a raw pointer to avoid a circular shared_ref that would
-			// prevent the app_window from being destroyed
-			auto* win_ptr = &ruisapp_window.get();
-			nw.present_func = [win_ptr]() {
-				// NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast, "the renderer is the Vulkan renderer in this build variant")
-				auto& ctx = static_cast<ruis::render::vulkan::context&>(win_ptr->gui.context.get().ren().ctx());
-				ctx.present();
-			};
+			// set the owning Vulkan context so that swap_frame_buffers() can call present()
+			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast, "the renderer is the Vulkan renderer in this build variant")
+			nw.owner_context =
+				&static_cast<ruis::render::vulkan::context&>(ruisapp_window.get().gui.context.get().ren().ctx());
 #endif
 		}
 
@@ -334,7 +338,7 @@ public:
 		this->windows.erase(i);
 	}
 
-	app_window* get_window(native_window::window_id_type id)
+	app_window* get_window(native_window_type::window_id_type id)
 	{
 		auto i = this->windows.find(id);
 		if (i == this->windows.end()) {
@@ -412,13 +416,13 @@ ruis::mouse_button button_number_to_enum(unsigned number)
 
 class key_event_unicode_provider : public ruis::gui::input_string_provider
 {
-	const native_window& window;
+	const native_window_type& window;
 	// NOLINTNEXTLINE(clang-analyzer-webkit.NoUncountedMemberChecker, "false-positive")
 	XKeyEvent& event;
 
 public:
 	key_event_unicode_provider(
-		const native_window& window, //
+		const native_window_type& window, //
 		XKeyEvent& event
 	) :
 		window(window),
