@@ -153,7 +153,14 @@ public:
 	// Surface extensions are needed for creating Vulkan surfaces (one per window) for presenting frames.
 	const utki::shared_ref<ruis::render::vulkan::device> device;
 #endif
-	const utki::shared_ref<const ruis::render::factory> render_factory;
+	// concrete factory type, #ifdef by renderer
+#ifdef RUISAPP_RENDER_VULKAN
+	const utki::shared_ref<const ruis::render::vulkan::factory> render_factory;
+#elif defined(RUISAPP_RENDER_OPENGL)
+	const utki::shared_ref<const ruis::render::opengl::factory> render_factory;
+#elif defined(RUISAPP_RENDER_OPENGLES)
+	const utki::shared_ref<const ruis::render::opengles::factory> render_factory;
+#endif
 	const utki::shared_ref<const ruis::render::factory::shaders> common_shaders;
 	const utki::shared_ref<const ruis::render::renderer::objects> common_render_objects;
 	const utki::shared_ref<ruis::resource_loader> ruis_resource_loader;

@@ -130,7 +130,16 @@ private:
 	utki::version_duplet gl_version;
 
 	utki::shared_ref<native_window_type> shared_gl_context_native_window;
-	const utki::shared_ref<const ruis::render::factory> render_factory;
+
+	// concrete factory type, #ifdef by renderer
+#ifdef RUISAPP_RENDER_VULKAN
+	const utki::shared_ref<const ruis::render::vulkan::factory> render_factory;
+#elif defined(RUISAPP_RENDER_OPENGL)
+	const utki::shared_ref<const ruis::render::opengl::factory> render_factory;
+#elif defined(RUISAPP_RENDER_OPENGLES)
+	const utki::shared_ref<const ruis::render::opengles::factory> render_factory;
+#endif
+
 	const utki::shared_ref<const ruis::render::factory::shaders> common_shaders;
 	utki::shared_ref<const ruis::render::renderer::objects> common_render_objects;
 	utki::shared_ref<ruis::resource_loader> ruis_resource_loader;
@@ -222,6 +231,8 @@ public:
 			&this->shared_gl_context_native_window.get()
 		);
 
+		// create the render context before the ruis::context so we can save a pointer
+		// to it without a static_cast later (needed for Vulkan swap_frame_buffers)
 #ifdef RUISAPP_RENDER_VULKAN
 		auto win_surface = utki::make_shared<ruis::render::vulkan::surface>(this->device.get(), [&]() {
 			VkXlibSurfaceCreateInfoKHR ci{};
@@ -236,15 +247,22 @@ public:
 			);
 			return surface;
 		}());
-		auto vulkan_factory_ref =
-			utki::dynamic_reference_cast<const ruis::render::vulkan::factory>(this->render_factory);
-
-		// create the Vulkan context before the ruis::context so we can save a pointer
-		// to it without a static_cast later
-		auto vulkan_ctx = utki::make_shared<ruis::render::vulkan::context>(
+		auto render_context = utki::make_shared<ruis::render::vulkan::context>(
 			ruis_native_window, //
 			win_surface, //
-			vulkan_factory_ref
+			this->render_factory
+		);
+		// set the owning Vulkan context so that swap_frame_buffers() can call present()
+		ruis_native_window.get().owner_context = &render_context.get();
+#elif defined(RUISAPP_RENDER_OPENGL)
+		auto render_context = utki::make_shared<ruis::render::opengl::context>(
+			ruis_native_window, //
+			this->render_factory
+		);
+#else // RUISAPP_RENDER_OPENGLES
+		auto render_context = utki::make_shared<ruis::render::opengles::context>(
+			ruis_native_window, //
+			this->render_factory
 		);
 #endif
 
@@ -255,13 +273,7 @@ public:
 				},
 			.updater = this->updater,
 			.renderer = utki::make_shared<ruis::render::renderer>(
-#ifdef RUISAPP_RENDER_OPENGL
-				utki::make_shared<ruis::render::opengl::context>(ruis_native_window, this->render_factory),
-#elif defined(RUISAPP_RENDER_OPENGLES)
-				utki::make_shared<ruis::render::opengles::context>(ruis_native_window, this->render_factory),
-#elif defined(RUISAPP_RENDER_VULKAN)
-				vulkan_ctx,
-#endif
+				render_context,
 				this->common_shaders,
 				this->common_render_objects
 			),
@@ -293,15 +305,7 @@ public:
 			std::move(ruis_native_window)
 		);
 
-		// save a pointer to the native_window before the move
 		auto& nw = ruisapp_window.get().ruis_native_window.get();
-
-		{
-#ifdef RUISAPP_RENDER_VULKAN
-			// set the owning Vulkan context so that swap_frame_buffers() can call present()
-			nw.owner_context = &vulkan_ctx.get();
-#endif
-		}
 
 		ruisapp_window.get().gui.set_viewport( //
 			ruis::rect(
