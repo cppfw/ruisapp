@@ -332,7 +332,7 @@ struct glx_context_wrapper {
 	}
 };
 
-// review: rename to opengl_native_window, do simnilar with opengles_native_window and vulkan_native_window, also in wayland implementation
+
 class opengl_native_window : public gl_visual_info, public xorg_window
 {
 public:
