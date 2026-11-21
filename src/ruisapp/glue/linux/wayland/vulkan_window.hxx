@@ -56,8 +56,10 @@ public:
 	void set_vsync_enabled_internal(bool enabled) override
 	{
 		(void)enabled;
-		// VSync is handled by the Vulkan present mode,
-		// see pick_present_mode() in ruis-render-vulkan/src/ruis/render/vulkan/context.cpp
+		// VSync is handled by the Vulkan present mode (a swapchain creation parameter,
+		// not a runtime setting). ensure_swapchain_valid() is called every frame and if
+		// it detects a change in is_vsync_enabled() it re-creates the swapchain with
+		// the actual vsync state. See ruis-render-vulkan/src/ruis/render/vulkan/context.cpp
 	}
 };
 } // namespace
