@@ -238,6 +238,14 @@ public:
 		}());
 		auto vulkan_factory_ref =
 			utki::dynamic_reference_cast<const ruis::render::vulkan::factory>(this->render_factory);
+
+		// create the Vulkan context before the ruis::context so we can save a pointer
+		// to it without a static_cast later
+		auto vulkan_ctx = utki::make_shared<ruis::render::vulkan::context>(
+			ruis_native_window, //
+			win_surface, //
+			vulkan_factory_ref
+		);
 #endif
 
 		auto ruis_context = utki::make_shared<ruis::context>(ruis::context::parameters{
@@ -252,13 +260,7 @@ public:
 #elif defined(RUISAPP_RENDER_OPENGLES)
 				utki::make_shared<ruis::render::opengles::context>(ruis_native_window, this->render_factory),
 #elif defined(RUISAPP_RENDER_VULKAN)
-				// The Vulkan context needs the concrete factory (not the abstract one)
-				// because it accesses Vulkan-specific members (e.g. all_textures, pipeline caches).
-				utki::make_shared<ruis::render::vulkan::context>(
-					ruis_native_window, //
-					win_surface, //
-					vulkan_factory_ref
-				),
+				vulkan_ctx,
 #endif
 				this->common_shaders,
 				this->common_render_objects
@@ -297,9 +299,7 @@ public:
 		{
 #ifdef RUISAPP_RENDER_VULKAN
 			// set the owning Vulkan context so that swap_frame_buffers() can call present()
-			// NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast, "the renderer is the Vulkan renderer in this build variant")
-			nw.owner_context =
-				&static_cast<ruis::render::vulkan::context&>(ruisapp_window.get().gui.context.get().ren().ctx());
+			nw.owner_context = &vulkan_ctx.get();
 #endif
 		}
 

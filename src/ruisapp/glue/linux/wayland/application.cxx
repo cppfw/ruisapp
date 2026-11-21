@@ -216,6 +216,26 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 	);
 #endif
 
+	// for Vulkan, create the context before the ruis::context so we can save a
+	// pointer to it without a static_cast later
+#ifdef RUISAPP_RENDER_VULKAN
+	auto vulkan_ctx = [this](auto&& win_ref) -> utki::shared_ref<ruis::render::vulkan::context> {
+		auto wl_surf = win_ref.get().get_wl_surface();
+		auto wl_disp = win_ref.get().get_wl_display();
+		auto& vdev = this->device.get();
+		VkWaylandSurfaceCreateInfoKHR sci{};
+		sci.sType = VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR;
+		sci.display = wl_disp;
+		sci.surface = wl_surf;
+		VkSurfaceKHR vk_surf = VK_NULL_HANDLE;
+		vkCreateWaylandSurfaceKHR(vdev.get_instance(), &sci, nullptr, &vk_surf);
+		auto sp = utki::make_shared<const ruis::render::vulkan::surface>(vdev, vk_surf);
+		auto vulkan_factory_ref =
+			utki::dynamic_reference_cast<const ruis::render::vulkan::factory>(this->render_factory);
+		return utki::make_shared<ruis::render::vulkan::context>(win_ref, sp, vulkan_factory_ref);
+	}(ruis_native_window);
+#endif
+
 	auto ruis_context = utki::make_shared<ruis::context>(ruis::context::parameters{
 		.post_to_ui_thread_function =
 			[this](std::function<void()> proc) {
@@ -228,21 +248,7 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 #elif defined(RUISAPP_RENDER_OPENGLES)
 			utki::make_shared<ruis::render::opengles::context>(ruis_native_window, this->render_factory),
 #elif defined(RUISAPP_RENDER_VULKAN)
-			[&](auto&& win_ref) -> utki::shared_ref<ruis::render::context> {
-				auto wl_surf = win_ref.get().get_wl_surface();
-				auto wl_disp = win_ref.get().get_wl_display();
-				auto& vdev = this->device.get();
-				VkWaylandSurfaceCreateInfoKHR sci{};
-				sci.sType = VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR;
-				sci.display = wl_disp;
-				sci.surface = wl_surf;
-				VkSurfaceKHR vk_surf = VK_NULL_HANDLE;
-				vkCreateWaylandSurfaceKHR(vdev.get_instance(), &sci, nullptr, &vk_surf);
-				auto sp = utki::make_shared<const ruis::render::vulkan::surface>(vdev, vk_surf);
-				auto vulkan_factory_ref =
-					utki::dynamic_reference_cast<const ruis::render::vulkan::factory>(this->render_factory);
-				return utki::make_shared<ruis::render::vulkan::context>(win_ref, sp, vulkan_factory_ref);
-			}(ruis_native_window),
+			vulkan_ctx,
 #else
 #	error "Unknown graphics API"
 #endif
@@ -270,12 +276,8 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 	);
 
 #ifdef RUISAPP_RENDER_VULKAN
-	{
-		// set the owning Vulkan context so that swap_frame_buffers() can call present()
-		// NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast, "the renderer is the Vulkan renderer in this build variant")
-		ruisapp_window.get().ruis_native_window.get().owner_context =
-			&static_cast<ruis::render::vulkan::context&>(ruisapp_window.get().gui.context.get().ren().ctx());
-	}
+	// set the owning Vulkan context so that swap_frame_buffers() can call present()
+	ruisapp_window.get().ruis_native_window.get().owner_context = &vulkan_ctx.get();
 #endif
 
 	ruisapp_window.get().gui.set_viewport( //
