@@ -22,9 +22,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <ruis/render/native_window.hpp>
-#include <wayland-egl.h> // Wayland EGL MUST be included before EGL headers
-
-#include "../../egl_utils.hxx"
 
 #include "display.hxx"
 #include "wayland_egl_window.hxx"
@@ -33,31 +30,22 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "xdg_toplevel.hxx"
 
 namespace {
-class native_window : public ruis::render::native_window
+// Base class for the Wayland native window. Contains the common Wayland
+// surface, xdg-toplevel, and cursor handling. The graphics-specific code
+// (EGL or Vulkan) is in the derived leaf classes.
+class wayland_window : public ruis::render::native_window
 {
+protected:
 	const utki::shared_ref<display_wrapper> display;
-
 	wayland_surface_wrapper wayland_surface;
 	xdg_surface_wrapper xdg_surface;
 	xdg_toplevel_wrapper xdg_toplevel;
 	wayland_egl_window_wrapper wayland_egl_window;
-
-	egl_config_wrapper egl_config;
-	egl_context_wrapper egl_context;
-
-	std::optional<egl_pbuffer_surface_wrapper> egl_dummy_surface;
-	std::optional<egl_surface_wrapper> egl_surface;
-
 	wayland_surface_wrapper::scale_and_dpi scale_and_dpi;
+	ruis::mouse_cursor cur_mouse_cursor = ruis::mouse_cursor::arrow;
+	bool mouse_cursor_visible = true;
 
 public:
-	const unsigned sequence_number = []() {
-		static unsigned next_sequence_number = 0;
-		auto ret = next_sequence_number;
-		++next_sequence_number;
-		return ret;
-	}();
-
 	// keep track of current window dimensions for restoring them after fullscreen mode
 	r4::vector2<uint32_t> cur_window_dims;
 
@@ -67,12 +55,14 @@ public:
 
 	using window_id_type = const wl_surface*;
 
-	native_window(
-		utki::shared_ref<display_wrapper> display,
-		const utki::version_duplet& gl_version,
-		const ruisapp::window_parameters& window_params,
-		native_window* shared_gl_context_native_window
-	) :
+	const unsigned sequence_number = []() {
+		static unsigned next_sequence_number = 0;
+		auto ret = next_sequence_number;
+		++next_sequence_number;
+		return ret;
+	}();
+
+	wayland_window(utki::shared_ref<display_wrapper> display, const ruisapp::window_parameters& window_params) :
 		display(std::move(display)),
 		wayland_surface(this->display.get().wayland_compositor),
 		xdg_surface(
@@ -88,21 +78,10 @@ public:
 			this->wayland_surface, //
 			window_params.dims
 		),
-		egl_config(
-			this->display.get().egl_display, //
-			gl_version,
-			window_params
-		),
-		egl_context(
-			this->display.get().egl_display, //
-			gl_version,
-			this->egl_config,
-			shared_gl_context_native_window ? shared_gl_context_native_window->egl_context.context : EGL_NO_CONTEXT
-		),
 		cur_window_dims(window_params.dims)
 	{
 		utki::log_debug([](auto& o) {
-			o << "native_window constructed" << std::endl;
+			o << "wayland_window constructed" << std::endl;
 		});
 	}
 
@@ -123,74 +102,21 @@ public:
 		return this->wayland_surface.surface;
 	}
 
-	void create_egl_surface()
+	// get the raw wl_surface pointer for Vulkan surface creation
+	wl_surface* get_wl_surface() const noexcept
 	{
-		utki::assert(!this->is_egl_surface_created(), [](auto& o) {
-			o << "create_egl_surface() must not be called more than once";
-		});
-
-		this->egl_surface.emplace(
-			this->display.get().egl_display, //
-			this->egl_config,
-			this->wayland_egl_window.window
-		);
+		return this->wayland_surface.surface;
 	}
 
-	bool is_egl_surface_created() const noexcept
+	// get the raw wl_display pointer for Vulkan surface creation
+	wl_display* get_wl_display() const noexcept
 	{
-		return this->egl_surface.has_value();
+		return this->display.get().wayland_display.display;
 	}
 
-	void swap_frame_buffers() override
+	r4::vector2<unsigned> get_dims() const noexcept override
 	{
-		if (this->egl_surface.has_value()) {
-			this->egl_surface.value().swap_frame_buffers();
-		}
-	}
-
-	void bind_rendering_context() override
-	{
-		auto& egl_display = this->display.get().egl_display;
-
-		if (this->egl_surface.has_value()) {
-			if (eglMakeCurrent(
-					egl_display.display,
-					this->egl_surface.value().surface,
-					this->egl_surface.value().surface,
-					this->egl_context.context
-				) == EGL_FALSE)
-			{
-				throw std::runtime_error("eglMakeCurrent() failed");
-			}
-		} else {
-			if (egl_display.extensions.get(egl::extension::khr_surfaceless_context)) {
-				eglMakeCurrent(
-					egl_display.display, //
-					EGL_NO_SURFACE,
-					EGL_NO_SURFACE,
-					this->egl_context.context
-				);
-			} else {
-				// KHR_surfaceless_context EGL extension is not available, create a dummy pbuffer surface to make the context current
-				if (!this->egl_dummy_surface.has_value()) {
-					this->egl_dummy_surface.emplace(
-						egl_display, //
-						this->egl_config
-					);
-				}
-				eglMakeCurrent(
-					egl_display.display, //
-					this->egl_dummy_surface.value().surface,
-					this->egl_dummy_surface.value().surface,
-					this->egl_context.context
-				);
-			}
-		}
-	}
-
-	bool is_rendering_context_bound() const noexcept override
-	{
-		return eglGetCurrentContext() == this->egl_context.context;
+		return this->cur_window_dims * this->scale_and_dpi.scale;
 	}
 
 	void set_fullscreen_internal(bool enable) override
@@ -209,11 +135,6 @@ public:
 		}
 	}
 
-private:
-	ruis::mouse_cursor cur_mouse_cursor = ruis::mouse_cursor::arrow;
-	bool mouse_cursor_visible = true;
-
-public:
 	void update_mouse_cursor()
 	{
 		auto& wayland_pointer = this->display.get().wayland_seat.wayland_pointer;
@@ -235,18 +156,6 @@ public:
 	{
 		this->cur_mouse_cursor = cursor;
 		this->update_mouse_cursor();
-	}
-
-	void set_vsync_enabled_internal(bool enabled) override
-	{
-		utki::assert(
-			[this]() {
-				return this->is_rendering_context_bound();
-			},
-			SL
-		);
-
-		this->egl_context.set_vsync_enabled(enabled);
 	}
 
 	wl_callback* make_frame_callback()

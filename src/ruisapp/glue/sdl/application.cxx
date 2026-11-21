@@ -26,9 +26,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #ifdef RUISAPP_RENDER_OPENGL
 // #	include <GL/glew.h>
 #	include <ruis/render/opengl/context.hpp>
+#	include <ruis/render/opengl/factory.hpp>
 #elif defined(RUISAPP_RENDER_OPENGLES)
 // #	include <GLES2/gl2.h>
 #	include <ruis/render/opengles/context.hpp>
+#	include <ruis/render/opengles/factory.hpp>
 #else
 #	error "Unknown graphics API"
 #endif
@@ -51,27 +53,27 @@ application_glue::application_glue(const utki::version_duplet& gl_version) :
 			nullptr // no shared gl context
 		)
 	),
-	resource_loader_ruis_rendering_context(
+	render_factory(
 #	ifdef RUISAPP_RENDER_OPENGL
-		utki::make_shared<ruis::render::opengl::context>(this->shared_gl_context_native_window)
+		utki::make_shared<ruis::render::opengl::factory>(this->shared_gl_context_native_window)
 #	elif defined(RUISAPP_RENDER_OPENGLES)
-		utki::make_shared<ruis::render::opengles::context>(this->shared_gl_context_native_window)
+		utki::make_shared<ruis::render::opengles::factory>(this->shared_gl_context_native_window)
 #	else
 #		error "Unknown graphics API"
 #	endif
 	),
 	common_shaders( //
 		[&]() {
-			utki::assert(this->resource_loader_ruis_rendering_context.to_shared_ptr(), SL);
-			return this->resource_loader_ruis_rendering_context.get().make_shaders();
+			utki::assert(this->render_factory.to_shared_ptr(), SL);
+			return this->render_factory.get().make_shaders();
 		}()
 	),
 	common_render_objects( //
-		utki::make_shared<ruis::render::renderer::objects>(this->resource_loader_ruis_rendering_context)
+		utki::make_shared<ruis::render::renderer::objects>(this->render_factory.get())
 	),
 	ruis_resource_loader( //
 		utki::make_shared<ruis::resource_loader>(
-			this->resource_loader_ruis_rendering_context, //
+			this->render_factory, //
 			this->common_render_objects
 		)
 	),
@@ -146,13 +148,13 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 	);
 
 #if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
-	auto rendering_context = utki::make_shared<ruis::render::opengles::context>(ruis_native_window);
+	auto render_factory = utki::make_shared<ruis::render::opengles::factory>(ruis_native_window);
 
-	auto common_render_objects = utki::make_shared<ruis::render::renderer::objects>(rendering_context);
-	auto common_shaders = rendering_context.get().make_shaders();
+	auto common_render_objects = utki::make_shared<ruis::render::renderer::objects>(*render_factory);
+	auto common_shaders = render_factory.get().make_shaders();
 
 	auto ruis_resource_loader = utki::make_shared<ruis::resource_loader>(
-		rendering_context, //
+		render_factory, //
 		common_render_objects
 	);
 
@@ -171,16 +173,16 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 		.renderer =
 #if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
 			utki::make_shared<ruis::render::renderer>(
-				std::move(rendering_context),
+				utki::make_shared<ruis::render::opengles::context>(ruis_native_window, render_factory),
 				std::move(common_shaders),
 				std::move(common_render_objects)
 			),
 #else
 			utki::make_shared<ruis::render::renderer>(
 #	ifdef RUISAPP_RENDER_OPENGL
-				utki::make_shared<ruis::render::opengl::context>(ruis_native_window),
+				utki::make_shared<ruis::render::opengl::context>(ruis_native_window, this->render_factory),
 #	elif defined(RUISAPP_RENDER_OPENGLES)
-				utki::make_shared<ruis::render::opengles::context>(ruis_native_window),
+				utki::make_shared<ruis::render::opengles::context>(ruis_native_window, this->render_factory),
 #	else
 #		error "Unknown graphics API"
 #	endif

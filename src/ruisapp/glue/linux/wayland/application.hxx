@@ -30,7 +30,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../../../window.hpp"
 #include "../../unix_common.hxx"
 
-#include "window.hxx"
+#ifdef RUISAPP_RENDER_VULKAN
+#	include "vulkan_window.hxx"
+using native_window_type = vulkan_native_window;
+#else
+#	include "opengles_window.hxx"
+using native_window_type = opengles_native_window;
+#endif
 
 namespace {
 class app_window : public ruisapp::window
@@ -44,11 +50,11 @@ public:
 		bool activated = false;
 	} actual_state;
 
-	utki::shared_ref<native_window> ruis_native_window;
+	utki::shared_ref<native_window_type> ruis_native_window;
 
 	app_window(
 		utki::shared_ref<ruis::context> ruis_context, //
-		utki::shared_ref<native_window> ruis_native_window
+		utki::shared_ref<native_window_type> ruis_native_window
 	) :
 		ruisapp::window(std::move(ruis_context)),
 		ruis_native_window(std::move(ruis_native_window))
@@ -100,6 +106,21 @@ private:
 } // namespace
 
 namespace {
+#ifdef RUISAPP_RENDER_VULKAN
+const utki::shared_ref<ruis::render::vulkan::device> make_device()
+{
+	std::vector<std::string> instance_extensions = {
+		VK_KHR_SURFACE_EXTENSION_NAME,
+		VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME
+	};
+	std::vector<std::string> device_extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+	return utki::make_shared<ruis::render::vulkan::device>(
+		instance_extensions, //
+		device_extensions //
+	);
+}
+#endif
+
 class application_glue : public utki::destructable
 {
 public:
@@ -126,16 +147,28 @@ public:
 	const utki::version_duplet gl_version;
 
 	// TODO: make windowless shared egl context
-	const utki::shared_ref<native_window> shared_gl_context_native_window;
-	const utki::shared_ref<ruis::render::context> resource_loader_ruis_rendering_context;
-	const utki::shared_ref<const ruis::render::context::shaders> common_shaders;
+	const utki::shared_ref<native_window_type> shared_gl_context_native_window;
+#ifdef RUISAPP_RENDER_VULKAN
+	// The Vulkan device is shared between the factory (resource creation) and the windows (surface creation).
+	// Surface extensions are needed for creating Vulkan surfaces (one per window) for presenting frames.
+	const utki::shared_ref<ruis::render::vulkan::device> device;
+#endif
+	// concrete factory type, #ifdef by renderer
+#ifdef RUISAPP_RENDER_VULKAN
+	const utki::shared_ref<const ruis::render::vulkan::factory> render_factory;
+#elif defined(RUISAPP_RENDER_OPENGL)
+	const utki::shared_ref<const ruis::render::opengl::factory> render_factory;
+#elif defined(RUISAPP_RENDER_OPENGLES)
+	const utki::shared_ref<const ruis::render::opengles::factory> render_factory;
+#endif
+	const utki::shared_ref<const ruis::render::factory::shaders> common_shaders;
 	const utki::shared_ref<const ruis::render::renderer::objects> common_render_objects;
 	const utki::shared_ref<ruis::resource_loader> ruis_resource_loader;
 	const utki::shared_ref<ruis::style_provider> ruis_style_provider;
 
 private:
 	std::map<
-		native_window::window_id_type, //
+		native_window_type::window_id_type, //
 		utki::shared_ref<app_window> //
 		>
 		windows;
@@ -148,7 +181,7 @@ public:
 		return this->windows;
 	}
 
-	native_window::window_id_type get_shared_gl_context_window_id() const noexcept
+	native_window_type::window_id_type get_shared_gl_context_window_id() const noexcept
 	{
 		return this->shared_gl_context_native_window.get().get_id();
 	}
@@ -156,39 +189,62 @@ public:
 	application_glue(const utki::version_duplet& gl_version) :
 		waitable(this->display.get().wayland_display),
 		gl_version(gl_version),
-		shared_gl_context_native_window( //
-			utki::make_shared<native_window>(
+		shared_gl_context_native_window(
+	// create a 1x1 hidden window; for Vulkan it is not used by the factory,
+	// but the member is a shared_ref which cannot be null
+#ifdef RUISAPP_RENDER_VULKAN
+			utki::make_shared<native_window_type>(
+				this->display, //
+				ruisapp::window_parameters{
+					.dims = {1, 1},
+					.title = {},
+					.fullscreen = false,
+					.taskbar = false
+    }
+			)
+#else
+			utki::make_shared<native_window_type>(
 				this->display, //
 				this->gl_version,
 				ruisapp::window_parameters{
 					.dims = {1, 1},
 					.title = {},
-					.fullscreen = false
-    },
-				nullptr // no shared gl context
+					.fullscreen = false,
+					.taskbar = false
+},
+				nullptr
 			)
+#endif
 		),
-		resource_loader_ruis_rendering_context(
-#ifdef RUISAPP_RENDER_OPENGL
-			utki::make_shared<ruis::render::opengl::context>(this->shared_gl_context_native_window)
+#ifdef RUISAPP_RENDER_VULKAN
+		device(make_device()),
+#endif
+		render_factory(
+#ifdef RUISAPP_RENDER_VULKAN
+			// Vulkan has no "current context" — a null surface is sufficient for the factory (resource creation)
+			utki::make_shared<ruis::render::vulkan::factory>(
+				utki::make_shared<ruis::render::vulkan::surface>(this->device.get(), VK_NULL_HANDLE)
+			)
+#elif defined(RUISAPP_RENDER_OPENGL)
+			utki::make_shared<ruis::render::opengl::factory>(this->shared_gl_context_native_window)
 #elif defined(RUISAPP_RENDER_OPENGLES)
-			utki::make_shared<ruis::render::opengles::context>(this->shared_gl_context_native_window)
+			utki::make_shared<ruis::render::opengles::factory>(this->shared_gl_context_native_window)
 #else
 #	error "Unknown graphics API"
 #endif
 		),
 		common_shaders( //
 			[&]() {
-				utki::assert(this->resource_loader_ruis_rendering_context.to_shared_ptr(), SL);
-				return this->resource_loader_ruis_rendering_context.get().make_shaders();
+				utki::assert(this->render_factory.to_shared_ptr(), SL);
+				return this->render_factory.get().make_shaders();
 			}()
 		),
 		common_render_objects( //
-			utki::make_shared<ruis::render::renderer::objects>(this->resource_loader_ruis_rendering_context)
+			utki::make_shared<ruis::render::renderer::objects>(this->render_factory.get())
 		),
 		ruis_resource_loader( //
 			utki::make_shared<ruis::resource_loader>(
-				this->resource_loader_ruis_rendering_context, //
+				this->render_factory, //
 				this->common_render_objects
 			)
 		),
@@ -200,7 +256,7 @@ public:
 	ruisapp::window& make_window(ruisapp::window_parameters window_params);
 	void destroy_window(app_window& w);
 
-	app_window* get_window(native_window::window_id_type id)
+	app_window* get_window(native_window_type::window_id_type id)
 	{
 		auto i = this->windows.find(id);
 		if (i == this->windows.end()) {

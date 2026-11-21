@@ -29,9 +29,19 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #ifdef RUISAPP_RENDER_OPENGL
 #	include <ruis/render/opengl/context.hpp>
+#	include <ruis/render/opengl/factory.hpp>
 
 #elif defined(RUISAPP_RENDER_OPENGLES)
 #	include <ruis/render/opengles/context.hpp>
+#	include <ruis/render/opengles/factory.hpp>
+
+#elif defined(RUISAPP_RENDER_VULKAN)
+#	include <X11/Xlib.h>
+#	include <ruis/render/vulkan/context.hpp>
+#	include <vulkan/vulkan.h>
+#	include <vulkan/vulkan_xlib.h>
+#	include <ruis/render/vulkan/device.hpp>
+#	include <ruis/render/vulkan/surface.hpp>
 
 #else
 #	error "Unknown graphics API"
@@ -43,22 +53,50 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "cursor.hxx"
 #include "display.hxx"
 #include "key_code_map.hxx"
-#include "window.hxx"
+#ifdef RUISAPP_RENDER_VULKAN
+#	include "vulkan_window.hxx"
+#elif defined(RUISAPP_RENDER_OPENGL)
+#	include "opengl_window.hxx"
+#elif defined(RUISAPP_RENDER_OPENGLES)
+#	include "opengles_window.hxx"
+#endif
 
 using namespace std::string_literals;
 using namespace std::string_view_literals;
 
 using namespace ruisapp;
 
+#ifdef RUISAPP_RENDER_VULKAN
+using native_window_type = vulkan_native_window;
+#elif defined(RUISAPP_RENDER_OPENGL)
+using native_window_type = opengl_native_window;
+#elif defined(RUISAPP_RENDER_OPENGLES)
+using native_window_type = opengles_native_window;
+#endif
+
+#ifdef RUISAPP_RENDER_VULKAN
+namespace {
+const utki::shared_ref<ruis::render::vulkan::device> make_device()
+{
+	std::vector<std::string> instance_extensions = {VK_KHR_SURFACE_EXTENSION_NAME, VK_KHR_XLIB_SURFACE_EXTENSION_NAME};
+	std::vector<std::string> device_extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+	return utki::make_shared<ruis::render::vulkan::device>(
+		instance_extensions, //
+		device_extensions //
+	);
+}
+} // namespace
+#endif
+
 namespace {
 class app_window : public ruisapp::window
 {
 public:
-	utki::shared_ref<native_window> ruis_native_window;
+	utki::shared_ref<native_window_type> ruis_native_window;
 
 	app_window(
 		utki::shared_ref<ruis::context> ruis_context, //
-		utki::shared_ref<native_window> ruis_native_window
+		utki::shared_ref<native_window_type> ruis_native_window
 	) :
 		ruisapp::window(std::move(ruis_context)),
 		ruis_native_window(std::move(ruis_native_window))
@@ -84,11 +122,25 @@ public:
 	const utki::shared_ref<display_wrapper> display = utki::make_shared<display_wrapper>();
 
 private:
+#ifdef RUISAPP_RENDER_VULKAN
+	// The Vulkan device is shared between the factory (resource creation) and the windows (surface creation).
+	// Surface extensions are needed for creating Vulkan surfaces (one per window) for presenting frames.
+	const utki::shared_ref<ruis::render::vulkan::device> device;
+#endif
 	utki::version_duplet gl_version;
 
-	utki::shared_ref<native_window> shared_gl_context_native_window;
-	utki::shared_ref<ruis::render::context> resource_loader_ruis_rendering_context;
-	utki::shared_ref<const ruis::render::context::shaders> common_shaders;
+	utki::shared_ref<native_window_type> shared_gl_context_native_window;
+
+	// concrete factory type, #ifdef by renderer
+#ifdef RUISAPP_RENDER_VULKAN
+	const utki::shared_ref<const ruis::render::vulkan::factory> render_factory;
+#elif defined(RUISAPP_RENDER_OPENGL)
+	const utki::shared_ref<const ruis::render::opengl::factory> render_factory;
+#elif defined(RUISAPP_RENDER_OPENGLES)
+	const utki::shared_ref<const ruis::render::opengles::factory> render_factory;
+#endif
+
+	const utki::shared_ref<const ruis::render::factory::shaders> common_shaders;
 	utki::shared_ref<const ruis::render::renderer::objects> common_render_objects;
 	utki::shared_ref<ruis::resource_loader> ruis_resource_loader;
 
@@ -97,7 +149,7 @@ public:
 
 private:
 	std::map<
-		native_window::window_id_type, //
+		native_window_type::window_id_type, //
 		utki::shared_ref<app_window> //
 		>
 		windows;
@@ -111,40 +163,51 @@ public:
 	std::vector<utki::shared_ref<app_window>> windows_to_destroy;
 
 	application_glue(const utki::version_duplet& gl_version) :
+#ifdef RUISAPP_RENDER_VULKAN
+		device(make_device()),
+#endif
 		gl_version(gl_version),
 		shared_gl_context_native_window( //
-			utki::make_shared<native_window>(
+			utki::make_shared<native_window_type>(
 				this->display, //
 				this->gl_version,
 				ruisapp::window_parameters{
 					.dims = {1, 1},
 					.title = {},
-					.fullscreen = false
+					.fullscreen = false,
+					.taskbar = false
     },
 				nullptr
 			)
 		),
-		resource_loader_ruis_rendering_context(
-#ifdef RUISAPP_RENDER_OPENGL
-			utki::make_shared<ruis::render::opengl::context>(this->shared_gl_context_native_window)
+		// one shared render factory per application
+		render_factory(
+#ifdef RUISAPP_RENDER_VULKAN
+			// Vulkan has no "current context" — all GPU resources live on the VkDevice and
+			// are inherently shareable. No surface is needed for the shared factory.
+			utki::make_shared<ruis::render::vulkan::factory>(
+				utki::make_shared<ruis::render::vulkan::surface>(this->device.get(), VK_NULL_HANDLE)
+			)
+#elif defined(RUISAPP_RENDER_OPENGL)
+			utki::make_shared<ruis::render::opengl::factory>(this->shared_gl_context_native_window)
 #elif defined(RUISAPP_RENDER_OPENGLES)
-			utki::make_shared<ruis::render::opengles::context>(this->shared_gl_context_native_window)
+			utki::make_shared<ruis::render::opengles::factory>(this->shared_gl_context_native_window)
 #else
 #	error "Unknown graphics API"
 #endif
 		),
 		common_shaders( //
 			[&]() {
-				utki::assert(this->resource_loader_ruis_rendering_context.to_shared_ptr(), SL);
-				return this->resource_loader_ruis_rendering_context.get().make_shaders();
+				utki::assert(this->render_factory.to_shared_ptr(), SL);
+				return this->render_factory.get().make_shaders();
 			}()
 		),
 		common_render_objects( //
-			utki::make_shared<ruis::render::renderer::objects>(this->resource_loader_ruis_rendering_context)
+			utki::make_shared<ruis::render::renderer::objects>(this->render_factory.get())
 		),
 		ruis_resource_loader( //
 			utki::make_shared<ruis::resource_loader>(
-				this->resource_loader_ruis_rendering_context, //
+				this->render_factory, //
 				this->common_render_objects
 			)
 		),
@@ -161,12 +224,47 @@ public:
 
 	app_window& make_window(ruisapp::window_parameters window_params)
 	{
-		auto ruis_native_window = utki::make_shared<native_window>(
+		auto ruis_native_window = utki::make_shared<native_window_type>(
 			this->display, //
 			this->gl_version,
 			window_params,
 			&this->shared_gl_context_native_window.get()
 		);
+
+		// create the render context before the ruis::context so we can save a pointer
+		// to it without a static_cast later (needed for Vulkan swap_frame_buffers)
+#ifdef RUISAPP_RENDER_VULKAN
+		auto win_surface = utki::make_shared<ruis::render::vulkan::surface>(this->device.get(), [&]() {
+			VkXlibSurfaceCreateInfoKHR ci{};
+			ci.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
+			ci.dpy = this->display.get().xorg_display.display;
+			ci.window = ruis_native_window.get().get_id();
+			VkSurfaceKHR surface = VK_NULL_HANDLE;
+
+			::ruis::render::vulkan::check_vk_result(
+				vkCreateXlibSurfaceKHR(this->device.get().get_instance(), &ci, nullptr, &surface),
+				"vkCreateXlibSurfaceKHR"
+			);
+			return surface;
+		}());
+		auto render_context = utki::make_shared<ruis::render::vulkan::context>(
+			ruis_native_window, //
+			std::move(win_surface), //
+			this->render_factory
+		);
+#elif defined(RUISAPP_RENDER_OPENGL)
+		auto render_context = utki::make_shared<ruis::render::opengl::context>(
+			ruis_native_window, //
+			this->render_factory
+		);
+#elif defined(RUISAPP_RENDER_OPENGLES)
+		auto render_context = utki::make_shared<ruis::render::opengles::context>(
+			ruis_native_window, //
+			this->render_factory
+		);
+#else
+#	error "Unknown graphics API"
+#endif
 
 		auto ruis_context = utki::make_shared<ruis::context>(ruis::context::parameters{
 			.post_to_ui_thread_function =
@@ -175,13 +273,7 @@ public:
 				},
 			.updater = this->updater,
 			.renderer = utki::make_shared<ruis::render::renderer>(
-#ifdef RUISAPP_RENDER_OPENGL
-				utki::make_shared<ruis::render::opengl::context>(ruis_native_window),
-#elif defined(RUISAPP_RENDER_OPENGLES)
-				utki::make_shared<ruis::render::opengles::context>(ruis_native_window),
-#else
-#	error "Unknown graphics API"
-#endif
+				std::move(render_context),
 				this->common_shaders,
 				this->common_render_objects
 			),
@@ -213,6 +305,8 @@ public:
 			std::move(ruis_native_window)
 		);
 
+		auto& nw = ruisapp_window.get().ruis_native_window.get();
+
 		ruisapp_window.get().gui.set_viewport( //
 			ruis::rect(
 				0, //
@@ -224,7 +318,7 @@ public:
 
 		auto res = this->windows.insert( //
 			std::make_pair(
-				ruisapp_window.get().ruis_native_window.get().get_id(), //
+				nw.get_id(), //
 				std::move(ruisapp_window)
 			)
 		);
@@ -235,8 +329,11 @@ public:
 
 	void destroy_window(app_window& w)
 	{
-		auto i = this->windows.find(w.ruis_native_window.get().get_id());
-		utki::assert(i != this->windows.end(), SL);
+		auto id = w.ruis_native_window.get().get_id();
+		auto i = this->windows.find(id);
+		if (i == this->windows.end()) {
+			return;
+		}
 
 		// Defer actual window object destruction until next main loop cycle,
 		// for that put the window to the list of windows to destroy.
@@ -245,7 +342,7 @@ public:
 		this->windows.erase(i);
 	}
 
-	app_window* get_window(native_window::window_id_type id)
+	app_window* get_window(native_window_type::window_id_type id)
 	{
 		auto i = this->windows.find(id);
 		if (i == this->windows.end()) {
@@ -323,13 +420,13 @@ ruis::mouse_button button_number_to_enum(unsigned number)
 
 class key_event_unicode_provider : public ruis::gui::input_string_provider
 {
-	const native_window& window;
+	const native_window_type& window;
 	// NOLINTNEXTLINE(clang-analyzer-webkit.NoUncountedMemberChecker, "false-positive")
 	XKeyEvent& event;
 
 public:
 	key_event_unicode_provider(
-		const native_window& window, //
+		const native_window_type& window, //
 		XKeyEvent& event
 	) :
 		window(window),
@@ -489,6 +586,7 @@ int main(int argc, const char** argv)
 					// window dimensions and update the viewport later only once
 					w.new_win_dims.x() = ruis::real(event.xconfigure.width);
 					w.new_win_dims.y() = ruis::real(event.xconfigure.height);
+					break;
 					break;
 				case KeyPress:
 					{

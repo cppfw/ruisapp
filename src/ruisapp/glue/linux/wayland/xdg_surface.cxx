@@ -88,8 +88,9 @@ void xdg_surface_wrapper::xdg_surface_configure(
 	}
 
 	auto& win = *window;
-	auto& natwin = win.ruis_native_window.get();
 
+#if defined(RUISAPP_RENDER_OPENGL) || defined(RUISAPP_RENDER_OPENGLES)
+	auto& natwin = win.ruis_native_window.get();
 	// The configure event can come several times for the same xdg_surface
 	// because we do several surface commits during the initial configuration,
 	// and each commit can trigger a configure event.
@@ -98,14 +99,15 @@ void xdg_surface_wrapper::xdg_surface_configure(
 	if (!natwin.is_egl_surface_created()) {
 		natwin.create_egl_surface();
 	}
+#endif
 
 	// After initial configure event we need to do the initial surface commit,
 	// otherwise the surface will not be mapped to the screen.
-	// In case of EGL we have to call eglSwapBuffers(), which will do the surface commit for us.
-	// This makes the surface to be mapped to the screen.
-	// swap EGL frame buffers with the window's EGL context made current
+	// For EGL this calls eglSwapBuffers() which does the surface commit for us.
+	// For Vulkan this presents a frame (the compositor fires the frame callback
+	// only after compositing a surface that has a buffer).
 	win.gui.context.get().ren().ctx().apply([&]() {
-		natwin.swap_frame_buffers();
+		win.gui.context.get().ren().ctx().swap_frame_buffers();
 	});
 
 	// on some Wayland implementations just swapping EGL buffers is not enough and surface commit is needed

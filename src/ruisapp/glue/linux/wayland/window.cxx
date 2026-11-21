@@ -19,9 +19,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 /* ================ LICENSE END ================ */
 
-#include "window.hxx"
+#include "wayland_window.hxx"
 
-void native_window::resize(const r4::vector2<uint32_t>& dims)
+void wayland_window::resize(const r4::vector2<uint32_t>& dims)
 {
 	utki::logcat_debug("native_window::resize(): dims = ", dims, '\n');
 	this->cur_window_dims = dims;
