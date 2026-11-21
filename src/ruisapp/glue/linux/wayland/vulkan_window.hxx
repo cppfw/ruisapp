@@ -56,7 +56,8 @@ public:
 	void set_vsync_enabled_internal(bool enabled) override
 	{
 		(void)enabled;
-		// VSync is handled by the Vulkan present mode
+		// VSync is handled by the Vulkan present mode,
+		// see pick_present_mode() in ruis-render-vulkan/src/ruis/render/vulkan/context.cpp
 	}
 };
 } // namespace
