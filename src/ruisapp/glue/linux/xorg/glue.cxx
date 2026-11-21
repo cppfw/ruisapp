@@ -252,8 +252,6 @@ public:
 			std::move(win_surface), //
 			this->render_factory
 		);
-		// set the owning Vulkan context so that swap_frame_buffers() can call present()
-		ruis_native_window.get().owner_context = &render_context.get();
 #elif defined(RUISAPP_RENDER_OPENGL)
 		auto render_context = utki::make_shared<ruis::render::opengl::context>(
 			ruis_native_window, //

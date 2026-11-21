@@ -232,8 +232,6 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 		auto sp = utki::make_shared<const ruis::render::vulkan::surface>(vdev, vk_surf);
 		return utki::make_shared<ruis::render::vulkan::context>(win_ref, sp, this->render_factory);
 	}(ruis_native_window);
-	// set the owning Vulkan context so that swap_frame_buffers() can call present()
-	ruis_native_window.get().owner_context = &render_context.get();
 #elif defined(RUISAPP_RENDER_OPENGL)
 	auto render_context = utki::make_shared<ruis::render::opengl::context>(
 		ruis_native_window, //

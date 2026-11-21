@@ -37,10 +37,6 @@ namespace {
 class vulkan_native_window : public xorg_window
 {
 public:
-	// pointer to the owning Vulkan context; set by the glue after the context
-	// is created. swap_frame_buffers() calls present() on it if non-null.
-	ruis::render::vulkan::context* owner_context = nullptr;
-
 	vulkan_native_window(
 		utki::shared_ref<display_wrapper> display, //
 		const utki::version_duplet&, // the GL version is not used by Vulkan
@@ -71,13 +67,6 @@ public:
 	vulkan_native_window& operator=(vulkan_native_window&&) = delete;
 
 	~vulkan_native_window() override = default;
-
-	void swap_frame_buffers() override
-	{
-		if (this->owner_context) {
-			this->owner_context->present();
-		}
-	}
 };
 
 } // namespace

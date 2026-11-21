@@ -31,10 +31,6 @@ namespace {
 class vulkan_native_window : public wayland_window
 {
 public:
-	// pointer to the owning Vulkan context; set by the glue after the context
-	// is created. swap_frame_buffers() calls present() on it if non-null.
-	ruis::render::vulkan::context* owner_context = nullptr;
-
 	vulkan_native_window(
 		utki::shared_ref<display_wrapper> display,
 		const ruisapp::window_parameters& window_params
@@ -44,13 +40,6 @@ public:
 			window_params
 		)
 	{}
-
-	void swap_frame_buffers() override
-	{
-		if (this->owner_context) {
-			this->owner_context->present();
-		}
-	}
 
 	void bind_rendering_context() override
 	{
