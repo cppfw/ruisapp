@@ -249,7 +249,7 @@ public:
 		}());
 		auto render_context = utki::make_shared<ruis::render::vulkan::context>(
 			ruis_native_window, //
-			win_surface, //
+			std::move(win_surface), //
 			this->render_factory
 		);
 		// set the owning Vulkan context so that swap_frame_buffers() can call present()
@@ -275,7 +275,7 @@ public:
 				},
 			.updater = this->updater,
 			.renderer = utki::make_shared<ruis::render::renderer>(
-				render_context,
+				std::move(render_context),
 				this->common_shaders,
 				this->common_render_objects
 			),

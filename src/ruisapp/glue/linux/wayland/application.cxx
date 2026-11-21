@@ -255,7 +255,7 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 			},
 		.updater = this->updater,
 		.renderer = utki::make_shared<ruis::render::renderer>(
-			render_context,
+			std::move(render_context),
 			this->common_shaders,
 			this->common_render_objects
 		),
