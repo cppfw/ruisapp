@@ -259,11 +259,13 @@ public:
 			ruis_native_window, //
 			this->render_factory
 		);
-#else // RUISAPP_RENDER_OPENGLES
+#elif defined(RUISAPP_RENDER_OPENGLES)
 		auto render_context = utki::make_shared<ruis::render::opengles::context>(
 			ruis_native_window, //
 			this->render_factory
 		);
+#else
+#	error "Unknown graphics API"
 #endif
 
 		auto ruis_context = utki::make_shared<ruis::context>(ruis::context::parameters{
