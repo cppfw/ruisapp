@@ -103,6 +103,12 @@ public:
 			auto surf = gdk_surface_new_toplevel(disp);
 			utki::assert(surf, SL);
 			auto mon = gdk_display_get_monitor_at_surface(disp, surf);
+			if (!mon) {
+				// Fallback: use the first monitor
+				auto monitors = gdk_display_get_monitors(disp);
+				mon = GDK_MONITOR(g_list_model_get_item(monitors, 0));
+				g_object_unref(monitors);
+			}
 			utki::assert(mon, SL);
 			int sf = gdk_monitor_get_scale_factor(mon);
 

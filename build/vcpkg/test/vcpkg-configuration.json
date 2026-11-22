@@ -8,7 +8,7 @@
       {
         "kind": "git",
         "repository": "https://github.com/cppfw/vcpkg-repo/",
-        "baseline": "62a33c2ac159906219a69eba9965191b19f28b9c",
+        "baseline": "283f6670c92fbcd4681248b4a6cde4217adb5759",
         "reference": "main",
         "packages": [
           "myci",
@@ -28,7 +28,8 @@
           "tml",
           "veg",
           "ruis-render-opengl",
-          "ruis-render-opengles"
+          "ruis-render-opengles",
+          "ruis-render-vulkan"
         ]
       }
     ],

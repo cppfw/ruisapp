@@ -132,7 +132,7 @@ ruisapp::window& application::make_window(window_parameters window_params)
 	// By choice, the VSYNC is enabled by default.
 	// This call will synchornize the is_vsync_enabled_v field of the native window
 	// with the actual VSYNC state of the newly created window.
-	win.gui.context.get().ren().ctx().set_vsync_enabled(true);
+	win.gui.ctx().ren().ctx().set_vsync_enabled(true);
 
 	if (!this->get_shared_style_provider()) {
 		// The platform does not support shared style_provider.
@@ -140,7 +140,7 @@ ruisapp::window& application::make_window(window_parameters window_params)
 		// The platform should support only one window which has just been created.
 		utki::assert(this->get_windows().size() == size_t(1));
 
-		auto& sp = win.gui.context.get().style();
+		auto& sp = win.gui.ctx().style();
 
 		if (this->mount_ruis_res_pack) {
 			// The platform doesn't have shared style provider, so we need to
@@ -165,7 +165,7 @@ const std::shared_ptr<ruis::style_provider>& application::get_default_style_prov
 
 	auto windows = this->get_windows();
 	if (!windows.empty()) {
-		return windows.front().get().gui.context.get().style_provider.to_shared_ptr();
+		return windows.front().get().gui.ctx().style_provider.to_shared_ptr();
 	}
 
 	// return nullptr because shared style provider is nullptr

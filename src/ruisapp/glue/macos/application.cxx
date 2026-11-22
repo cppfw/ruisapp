@@ -22,6 +22,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "application.hxx"
 
 #include <ruis/render/opengl/context.hpp>
+#include <ruis/render/opengl/factory.hpp>
 #include <ruis/widget/widget.hpp>
 
 namespace {
@@ -94,19 +95,17 @@ application_glue::application_glue(const utki::version_duplet& gl_version) :
 },
 		nullptr // no shared gl context
 	)),
-	resource_loader_ruis_rendering_context([&]() {
+	render_factory([&]() {
 		utki::logcat_debug("application_glue::application_glue(): creating shared gl context", '\n');
-		auto c = utki::make_shared<ruis::render::opengl::context>(this->shared_gl_context_native_window);
+		auto c = utki::make_shared<ruis::render::opengl::factory>(this->shared_gl_context_native_window);
 		utki::logcat_debug("application_glue::application_glue(): shared gl context created", '\n');
 		return c;
 	}()),
-	common_shaders(this->resource_loader_ruis_rendering_context.get().make_shaders()),
-	common_render_objects(
-		utki::make_shared<ruis::render::renderer::objects>(this->resource_loader_ruis_rendering_context)
-	),
+	common_shaders(this->render_factory.get().make_shaders()),
+	common_render_objects(utki::make_shared<ruis::render::renderer::objects>(this->render_factory.get())),
 	ruis_resource_loader( //
 		utki::make_shared<ruis::resource_loader>(
-			this->resource_loader_ruis_rendering_context, //
+			this->render_factory, //
 			this->common_render_objects
 		)
 	),
@@ -134,7 +133,7 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 			},
 		.updater = this->updater,
 		.renderer = utki::make_shared<ruis::render::renderer>(
-			utki::make_shared<ruis::render::opengl::context>(ruis_native_window), //
+			utki::make_shared<ruis::render::opengl::context>(ruis_native_window, this->render_factory), //
 			this->common_shaders,
 			this->common_render_objects
 		),

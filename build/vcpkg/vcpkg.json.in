@@ -29,6 +29,7 @@
     {
       "name": "ruis-render-opengles",
       "platform": "!osx"
-    }
+    },
+    "ruis-render-vulkan"
   ]
 }

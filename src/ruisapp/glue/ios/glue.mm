@@ -32,6 +32,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <stdexcept>
 
 #include <ruis/render/opengles/context.hpp>
+#include <ruis/render/opengles/factory.hpp>
 
 // include implementations
 #include "application.cxx"
