@@ -126,7 +126,7 @@ class xorg_window : public ruis::render::native_window
 					PointerMotionMask | ButtonMotionMask | StructureNotifyMask | EnterWindowMask | LeaveWindowMask;
 				unsigned long fields = CWBorderPixel | CWColormap | CWEventMask | CWBackPixmap;
 
-				auto dims = (this->display.scale_factor * window_params.dims.to<ruis::real>()).to<int>();
+				auto dims = (this->display.scale_factor * window_params.dims.to<ruis::real>()).to<unsigned>();
 
 				auto w = XCreateWindow(
 					this->display.xorg_display.display,
@@ -137,7 +137,7 @@ class xorg_window : public ruis::render::native_window
 					dims.x(), // width
 					dims.y(), // height
 					0, // border width
-					depth, // window's depth
+					int(depth), // window's depth (bits per pixel)
 					InputOutput, // window's class
 					visual,
 					fields, // defined attributes
