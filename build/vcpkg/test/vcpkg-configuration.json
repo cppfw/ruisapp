@@ -28,7 +28,8 @@
           "tml",
           "veg",
           "ruis-render-opengl",
-          "ruis-render-opengles"
+          "ruis-render-opengles",
+          "ruis-render-vulkan"
         ]
       }
     ],
