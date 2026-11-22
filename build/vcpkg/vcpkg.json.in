@@ -30,6 +30,11 @@
       "name": "ruis-render-opengles",
       "platform": "!osx"
     },
-    "ruis-render-vulkan"
+    "ruis-render-vulkan",
+    {
+      "name": "vulkan-loader",
+      "features": ["xlib", "wayland"],
+      "platform": "linux"
+    }
   ]
 }
