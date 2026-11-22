@@ -103,6 +103,9 @@ if(LINUX)
         string(TOUPPER "${backend}" backend_upper)
 
         set(backend_deps PkgConfig::gtk4)
+        # GTK4 links against the Vulkan loader (it references vkCreate*SurfaceKHR),
+        # so any variant that links GTK4 must also link the Vulkan loader.
+        list(APPEND backend_deps Vulkan::Vulkan)
         if(backend STREQUAL "xorg")
             list(APPEND backend_deps PkgConfig::x11)
         elseif(backend STREQUAL "wayland")
