@@ -150,7 +150,7 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 #if CFG_OS_NAME == CFG_OS_NAME_EMSCRIPTEN
 	auto render_factory = utki::make_shared<ruis::render::opengles::factory>(ruis_native_window);
 
-	auto common_render_objects = utki::make_shared<ruis::render::renderer::objects>(*render_factory);
+	auto common_render_objects = utki::make_shared<ruis::render::renderer::objects>(render_factory.get());
 	auto common_shaders = render_factory.get().make_shaders();
 
 	auto ruis_resource_loader = utki::make_shared<ruis::resource_loader>(
