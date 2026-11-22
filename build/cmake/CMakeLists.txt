@@ -176,12 +176,8 @@ if(LINUX)
     ruisapp_declare_variant(opengles wayland)
     ruisapp_declare_variant(opengl sdl)
     ruisapp_declare_variant(opengles sdl)
-    find_package(ruis-render-vulkan CONFIG QUIET)
-    set(ruisapp_build_vulkan_variant ${ruis-render-vulkan_FOUND})
-    if(ruisapp_build_vulkan_variant)
-        ruisapp_declare_variant(vulkan xorg)
-        ruisapp_declare_variant(vulkan wayland)
-    endif()
+    ruisapp_declare_variant(vulkan xorg)
+    ruisapp_declare_variant(vulkan wayland)
 
     # Compatibility aliases: for now ruisapp-opengl / ruisapp-opengles refer to the xorg variants.
     # Note: the namespaced alias refers to the plain (non-namespaced) target, the same
@@ -289,14 +285,9 @@ if(LINUX)
             ${name}-opengles-wayland
             ${name}-opengl-sdl
             ${name}-opengles-sdl
+            ${name}-vulkan-xorg
+            ${name}-vulkan-wayland
     )
-    if(ruisapp_build_vulkan_variant)
-        myci_export(
-            TARGETS
-                ${name}-vulkan-xorg
-                ${name}-vulkan-wayland
-        )
-    endif()
 elseif(ruisapp_build_opengl_variant AND ruisapp_build_opengles_variant)
     myci_export(
         TARGETS
@@ -346,10 +337,8 @@ if(LINUX)
             ruisapp_declare_test_app(${renderer} ${backend})
         endforeach()
     endforeach()
-    if(ruisapp_build_vulkan_variant)
-        ruisapp_declare_test_app(vulkan xorg)
-        ruisapp_declare_test_app(vulkan wayland)
-    endif()
+    ruisapp_declare_test_app(vulkan xorg)
+    ruisapp_declare_test_app(vulkan wayland)
 else()
     if(ruisapp_build_opengl_variant)
         myci_declare_application(${name}-opengl-test
