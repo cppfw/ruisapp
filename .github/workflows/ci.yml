@@ -368,7 +368,7 @@ jobs:
           repo: deb https://gagis.hopto.org/repo/cppfw/${{ matrix.os }} ${{ matrix.codename }} main
           repo-name: cppfw
           keys-asc: https://gagis.hopto.org/repo/cppfw/pubkey.gpg
-          install: myci cmake git curl zip unzip tar nodejs pkg-config libgl1-mesa-dev libglu1-mesa-dev libgles2-mesa-dev libgtk-4-dev python3-jinja2
+          install: myci cmake git curl zip unzip tar nodejs pkg-config libgl1-mesa-dev libglu1-mesa-dev libgles2-mesa-dev libgtk-4-dev python3-jinja2 autoconf autoconf-archive automake libtool
       - name: git clone
         uses: myci-actions/checkout@main
       - name: install vcpkg
