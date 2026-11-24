@@ -23,7 +23,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include <atomic>
 #include <functional>
-#include <set>
 
 #include <utki/destructable.hpp>
 
@@ -42,18 +41,6 @@ public:
 		utki::shared_ref<ruis::context> ruis_context, //
 		utki::shared_ref<native_window> ruis_native_window
 	);
-
-	// needed for using with std::set
-	bool operator<(const app_window& w) const noexcept
-	{
-		return this < &w;
-	}
-
-	// needed for using with std::set
-	bool operator==(const app_window& w) const noexcept
-	{
-		return this == &w;
-	}
 
 	void resize(const ruis::vec2& dims);
 };
@@ -74,7 +61,7 @@ public:
 	const utki::shared_ref<ruis::style_provider> ruis_style_provider;
 
 private:
-	std::set<utki::shared_ref<app_window>> windows;
+	std::vector<utki::shared_ref<app_window>> windows;
 
 public:
 	std::atomic_bool quit_flag = false;

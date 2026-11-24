@@ -286,15 +286,12 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 		)
 	);
 
-	auto res = this->windows.insert( //
-		std::make_pair(
-			ruisapp_window.get().ruis_native_window.get().get_id(), //
-			std::move(ruisapp_window)
-		)
-	);
-	utki::assert(res.second, SL);
+	auto id = ruisapp_window.get().ruis_native_window.get().get_id();
+	// assert that the window with this id is not already in the list
+	utki::assert(this->find_window(id) == this->windows.end(), SL);
+	this->windows.emplace_back(id, std::move(ruisapp_window));
 
-	auto& ret_win = res.first->second.get();
+	auto& ret_win = this->windows.back().second.get();
 
 #if defined(RUISAPP_RENDER_OPENGL) || defined(RUISAPP_RENDER_OPENGLES)
 	// EGL surface for the window is not created yet at this point.
@@ -323,7 +320,7 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 
 void application_glue::destroy_window(app_window& w)
 {
-	auto i = this->windows.find(w.ruis_native_window.get().get_id());
+	auto i = this->find_window(w.ruis_native_window.get().get_id());
 	utki::assert(i != this->windows.end(), SL);
 
 	// TODO: add comment explaining why deferring is needed, do it in all glue implementations

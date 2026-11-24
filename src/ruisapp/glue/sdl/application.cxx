@@ -83,9 +83,19 @@ application_glue::application_glue(const utki::version_duplet& gl_version) :
 #endif
 {}
 
+auto application_glue::find_window(native_window::window_id_type id)
+{
+	for (auto i = this->windows.begin(); i != this->windows.end(); ++i) {
+		if (i->first == id) {
+			return i;
+		}
+	}
+	return this->windows.end();
+}
+
 app_window* application_glue::get_window(native_window::window_id_type id)
 {
-	auto i = this->windows.find(id);
+	auto i = this->find_window(id);
 	if (i == this->windows.end()) {
 		return nullptr;
 	}
@@ -222,20 +232,17 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 		ruis::rect({0, 0}, ruisapp_window.get().ruis_native_window.get().get_dims().to<ruis::real>())
 	);
 
-	auto res = this->windows.insert( //
-		std::make_pair(
-			ruisapp_window.get().ruis_native_window.get().get_id(), //
-			std::move(ruisapp_window)
-		)
-	);
-	utki::assert(res.second, SL);
+	auto id = ruisapp_window.get().ruis_native_window.get().get_id();
+	// assert that the window with this id is not already in the list
+	utki::assert(this->find_window(id) == this->windows.end(), SL);
+	this->windows.emplace_back(id, std::move(ruisapp_window));
 
-	return res.first->second.get();
+	return this->windows.back().second.get();
 }
 
 void application_glue::destroy_window(native_window::window_id_type id)
 {
-	auto i = this->windows.find(id);
+	auto i = this->find_window(id);
 	utki::assert(i != this->windows.end(), SL);
 
 	this->windows_to_destroy.push_back(std::move(i->second));
