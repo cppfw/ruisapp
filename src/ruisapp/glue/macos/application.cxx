@@ -175,19 +175,33 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 		)
 	);
 
-	utki::logcat_debug("application_glue::make_window(): inserting window to set", '\n');
-
-	auto res = this->windows.insert(std::move(ruisapp_window));
-	utki::assert(res.second, SL);
+	// assert that the window is not already in the list
+	utki::assert(
+		std::none_of(
+			this->windows.begin(), //
+			this->windows.end(), //
+			[&ruisapp_window](const auto& win) {
+				return &win.get() == &ruisapp_window.get();
+			}
+		),
+		SL
+	);
+	this->windows.push_back(std::move(ruisapp_window));
 
 	utki::logcat_debug("application_glue::make_window(): window created", '\n');
 
-	return res.first->get();
+	return this->windows.back().get();
 }
 
 void application_glue::destroy_window(app_window& w)
 {
-	auto i = std::find(this->windows.begin(), this->windows.end(), w);
+	auto i = std::find_if(
+		this->windows.begin(), //
+		this->windows.end(), //
+		[&w](const auto& win) {
+			return &win.get() == &w;
+		}
+	);
 	utki::assert(i != this->windows.end(), SL);
 
 	// Defer actual window object destruction until next main loop cycle,

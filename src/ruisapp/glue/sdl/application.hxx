@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include <atomic>
 #include <functional>
+#include <utility>
 
 #include <utki/destructable.hpp>
 
@@ -76,11 +77,11 @@ public:
 	const utki::shared_ref<ruis::style_provider> ruis_style_provider;
 #endif
 
-	std::map<
-		native_window::window_id_type, //
-		utki::shared_ref<app_window> //
-		>
-		windows;
+	// std::vector is used instead of std::map to preserve the order in which
+	// the windows were created, so that application::get_windows() returns the
+	// windows in a stable order. The number of windows is small (2-3), so
+	// linear lookup by window id is fast enough.
+	std::vector<std::pair<native_window::window_id_type, utki::shared_ref<app_window>>> windows;
 
 	std::vector<utki::shared_ref<app_window>> windows_to_destroy;
 
@@ -97,6 +98,8 @@ public:
 
 	ruisapp::window& make_window(ruisapp::window_parameters window_params);
 	void destroy_window(native_window::window_id_type id);
+
+	auto find_window(native_window::window_id_type id);
 
 	app_window* get_window(native_window::window_id_type id);
 
