@@ -160,12 +160,12 @@ void application_glue::post_to_ui_thread(std::function<void()> procedure)
 
 auto application_glue::find_window(native_window::window_id_type id)
 {
-	for (auto i = this->windows.begin(); i != this->windows.end(); ++i) {
-		if (i->first == id) {
-			return i;
+	return std::ranges::find_if(
+		this->windows, //
+		[id](const auto& wp) {
+			return wp.first == id;
 		}
-	}
-	return this->windows.end();
+	);
 }
 
 app_window* application_glue::get_window(native_window::window_id_type id)

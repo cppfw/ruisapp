@@ -149,6 +149,10 @@ public:
 	utki::shared_ref<ruis::style_provider> ruis_style_provider;
 
 private:
+	// std::vector is used instead of std::map to preserve the order in which
+	// the windows were created, so that application::get_windows() returns the
+	// windows in a stable order. The number of windows is small (2-3), so
+	// linear lookup by window id is fast enough.
 	std::vector<std::pair<native_window_type::window_id_type, utki::shared_ref<app_window>>> windows;
 
 public:
@@ -159,12 +163,12 @@ public:
 
 	auto find_window(native_window_type::window_id_type id)
 	{
-		for (auto i = this->windows.begin(); i != this->windows.end(); ++i) {
-			if (i->first == id) {
-				return i;
+		return std::ranges::find_if(
+			this->windows, //
+			[id](const auto& wp) {
+				return wp.first == id;
 			}
-		}
-		return this->windows.end();
+		);
 	}
 
 	std::vector<utki::shared_ref<app_window>> windows_to_destroy;

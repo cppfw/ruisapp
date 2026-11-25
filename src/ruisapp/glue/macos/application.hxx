@@ -61,6 +61,9 @@ public:
 	const utki::shared_ref<ruis::style_provider> ruis_style_provider;
 
 private:
+	// std::vector is used instead of std::set to preserve the order in which
+	// the windows were created, so that application::get_windows() returns the
+	// windows in a stable order.
 	std::vector<utki::shared_ref<app_window>> windows;
 
 public:
