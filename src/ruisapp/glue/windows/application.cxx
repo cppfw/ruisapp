@@ -104,6 +104,8 @@ application_glue::application_glue(const utki::version_duplet& gl_version) :
 	shared_gl_context_native_window(utki::make_shared<native_window>(
 		this->display,
 #ifdef RUISAPP_RENDER_VULKAN
+		// Create a 1x1 hidden window; for Vulkan it is not used by the factory,
+		// but the member is a shared_ref which cannot be null (same as the wayland glue).
 		ruisapp::window_parameters{
 			.dims = {1, 1},
 			.fullscreen = false
@@ -119,7 +121,7 @@ application_glue::application_glue(const utki::version_duplet& gl_version) :
 #endif
 	)),
 #ifdef RUISAPP_RENDER_VULKAN
-	device(make_device()),
+	device(make_vulkan_device()),
 #endif
 	render_factory([&]() {
 #ifdef RUISAPP_RENDER_VULKAN
