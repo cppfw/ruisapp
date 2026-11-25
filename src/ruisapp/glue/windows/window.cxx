@@ -326,15 +326,13 @@ native_window::opengl_context_wrapper::~opengl_context_wrapper()
 #ifdef RUISAPP_RENDER_VULKAN
 native_window::native_window(
 	utki::shared_ref<display_wrapper> display,
-	const ruisapp::window_parameters& window_params,
-	native_window* shared_gl_context_native_window
+	const ruisapp::window_parameters& window_params
 ) :
 	display(std::move(display)),
 	window(
-		shared_gl_context_native_window ? this->display.get().regular_window_class
-										: this->display.get().dummy_window_class, //
+		this->display.get().regular_window_class, //
 		window_params,
-		shared_gl_context_native_window != nullptr
+		true // visible
 	),
 	device_context(this->window)
 {

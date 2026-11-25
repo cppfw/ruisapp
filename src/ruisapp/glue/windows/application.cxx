@@ -101,25 +101,17 @@ ruisapp::application::directories get_application_directories(std::string_view a
 
 application_glue::application_glue(const utki::version_duplet& gl_version) :
 	gl_version(gl_version),
+#ifndef RUISAPP_RENDER_VULKAN
 	shared_gl_context_native_window(utki::make_shared<native_window>(
 		this->display,
-#ifdef RUISAPP_RENDER_VULKAN
-		// Create a 1x1 hidden window; for Vulkan it is not used by the factory,
-		// but the member is a shared_ref which cannot be null (same as the wayland glue).
-		ruisapp::window_parameters{
-			.dims = {1, 1},
-			.fullscreen = false
-},
-		nullptr // no shared gl context
-#else
 		this->gl_version,
 		ruisapp::window_parameters{
 			.dims = {1, 1},
 			.fullscreen = false
 },
 		nullptr // no shared gl context
-#endif
 	)),
+#endif
 #ifdef RUISAPP_RENDER_VULKAN
 	device(make_vulkan_device()),
 #endif
@@ -201,8 +193,7 @@ app_window* application_glue::get_window(native_window::window_id_type id)
 ruisapp::window& application_glue::make_window(ruisapp::window_parameters window_params)
 {
 #ifdef RUISAPP_RENDER_VULKAN
-	auto ruis_native_window =
-		utki::make_shared<native_window>(this->display, window_params, &this->shared_gl_context_native_window.get());
+	auto ruis_native_window = utki::make_shared<native_window>(this->display, window_params);
 #else
 	auto ruis_native_window = utki::make_shared<native_window>(
 		this->display,

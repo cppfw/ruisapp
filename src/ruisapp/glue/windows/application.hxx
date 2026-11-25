@@ -97,7 +97,9 @@ class application_glue : public utki::destructable
 
 	utki::shared_ref<display_wrapper> display = utki::make_shared<display_wrapper>();
 
+#ifndef RUISAPP_RENDER_VULKAN
 	const utki::shared_ref<native_window> shared_gl_context_native_window;
+#endif
 #ifdef RUISAPP_RENDER_VULKAN
 	// The Vulkan device is shared between the factory (resource creation) and the windows (surface creation).
 	const utki::shared_ref<ruis::render::vulkan::device> device;
