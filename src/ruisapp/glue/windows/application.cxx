@@ -103,25 +103,43 @@ application_glue::application_glue(const utki::version_duplet& gl_version) :
 	gl_version(gl_version),
 	shared_gl_context_native_window(utki::make_shared<native_window>(
 		this->display,
+#ifdef RUISAPP_RENDER_VULKAN
+		ruisapp::window_parameters{
+			.dims = {1, 1},
+			.fullscreen = false
+},
+		nullptr // no shared gl context
+#else
 		this->gl_version,
 		ruisapp::window_parameters{
 			.dims = {1, 1},
 			.fullscreen = false
 },
 		nullptr // no shared gl context
-	)),
-	render_factory([&]() {
-		utki::logcat_debug("application_glue::application_glue(): creating shared gl context", '\n');
-#ifdef RUISAPP_RENDER_OPENGL
-		using factory_type = ruis::render::opengl::factory;
-#elif defined(RUISAPP_RENDER_OPENGLES)
-		using factory_type = ruis::render::opengles::factory;
-#else
-#	error "Unknown graphics API"
 #endif
+	)),
+#ifdef RUISAPP_RENDER_VULKAN
+	device(make_device()),
+#endif
+	render_factory([&]() {
+#ifdef RUISAPP_RENDER_VULKAN
+		// Vulkan has no "current context" — a null surface is sufficient for the factory (resource creation)
+		return utki::make_shared<ruis::render::vulkan::factory>(
+			utki::make_shared<ruis::render::vulkan::surface>(this->device.get(), VK_NULL_HANDLE)
+		);
+#else
+		utki::logcat_debug("application_glue::application_glue(): creating shared gl context", '\n');
+#	ifdef RUISAPP_RENDER_OPENGL
+		using factory_type = ruis::render::opengl::factory;
+#	elif defined(RUISAPP_RENDER_OPENGLES)
+		using factory_type = ruis::render::opengles::factory;
+#	else
+#		error "Unknown graphics API"
+#	endif
 		auto c = utki::make_shared<factory_type>(this->shared_gl_context_native_window);
 		utki::logcat_debug("application_glue::application_glue(): shared gl context created", '\n');
 		return c;
+#endif
 	}()),
 	common_shaders(this->render_factory.get().make_shaders()),
 	common_render_objects(utki::make_shared<ruis::render::renderer::objects>(this->render_factory.get())),
@@ -180,12 +198,17 @@ app_window* application_glue::get_window(native_window::window_id_type id)
 
 ruisapp::window& application_glue::make_window(ruisapp::window_parameters window_params)
 {
+#ifdef RUISAPP_RENDER_VULKAN
+	auto ruis_native_window =
+		utki::make_shared<native_window>(this->display, window_params, &this->shared_gl_context_native_window.get());
+#else
 	auto ruis_native_window = utki::make_shared<native_window>(
 		this->display,
 		this->gl_version,
 		window_params,
 		&this->shared_gl_context_native_window.get()
 	);
+#endif
 
 	auto ruis_context = utki::make_shared<ruis::context>(ruis::context::parameters{
 		.post_to_ui_thread_function =
@@ -194,7 +217,28 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 			},
 		.updater = this->updater,
 		.renderer = utki::make_shared<ruis::render::renderer>(
-#ifdef RUISAPP_RENDER_OPENGL
+#ifdef RUISAPP_RENDER_VULKAN
+			utki::make_shared<ruis::render::vulkan::context>(
+				ruis_native_window,
+				[&]() {
+					// Create a VK_KHR_win32_surface from the window handle. The surface is owned
+					// by the surface provider (destroyed together with the render context).
+					VkWin32SurfaceCreateInfoKHR sci{};
+					sci.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+					sci.hinstance = GetModuleHandle(nullptr);
+					sci.hwnd = ruis_native_window.get().get_hwnd();
+					VkSurfaceKHR vk_surface = VK_NULL_HANDLE;
+					vkCreateWin32SurfaceKHR(
+						this->device.get().get_instance(), //
+						&sci,
+						nullptr,
+						&vk_surface
+					);
+					return utki::make_shared<const ruis::render::vulkan::surface>(this->device.get(), vk_surface);
+				}(),
+				this->render_factory
+			),
+#elif defined(RUISAPP_RENDER_OPENGL)
 			utki::make_shared<ruis::render::opengl::context>(ruis_native_window, this->render_factory),
 #elif defined(RUISAPP_RENDER_OPENGLES)
 			utki::make_shared<ruis::render::opengles::context>(ruis_native_window, this->render_factory),
