@@ -151,9 +151,6 @@ ifeq ($(os), linux)
 
     $(eval $(call ruisapp_rules,opengles,sdl))
 
-else ifeq ($(os), windows)
-    $(eval $(call ruisapp_rules,opengl,))
-    $(eval $(call ruisapp_rules,vulkan,))
 else
     $(eval $(call ruisapp_rules,opengl,))
 endif

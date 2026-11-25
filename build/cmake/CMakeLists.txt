@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.30)
 
-set(name ruisapp)
-project(${name})
+project(ruisapp)
 
 # !!! find_package must go after project() declaration !!!
 # Otherwise VCPKG does not set the CMAKE_PREFIX_PATH to find packages.
@@ -10,27 +9,27 @@ find_package(myci CONFIG REQUIRED)
 set(srcs)
 myci_add_source_files(srcs
     DIRECTORY
-        ../../src/${name}
+        ../../src/${PROJECT_NAME}
     RECURSIVE
 )
 
 if(IOS)
     enable_language(OBJCXX)
-    list(APPEND srcs ../../src/${name}/glue/ios/glue.mm)
+    list(APPEND srcs ../../src/${PROJECT_NAME}/glue/ios/glue.mm)
 
     set(ruisapp_build_opengl_variant False)
     set(ruisapp_build_opengles_variant True)
 
     set(ruisapp_opengl_install_include_directory) # opengl variant will not be built, no headers to install
-    set(ruisapp_opengles_install_include_directory ../../src/${name})
+    set(ruisapp_opengles_install_include_directory ../../src/${PROJECT_NAME})
 elseif(APPLE)
     enable_language(OBJCXX)
-    list(APPEND srcs ../../src/${name}/glue/macos/glue.mm)
+    list(APPEND srcs ../../src/${PROJECT_NAME}/glue/macos/glue.mm)
 
     set(ruisapp_build_opengl_variant True)
     set(ruisapp_build_opengles_variant False)
 
-    set(ruisapp_opengl_install_include_directory ../../src/${name})
+    set(ruisapp_opengl_install_include_directory ../../src/${PROJECT_NAME})
     set(ruisapp_opengles_install_include_directory) # opengles variant will not be built, no headers to install
 elseif(LINUX)
     set(ruisapp_build_opengl_variant True)
@@ -40,20 +39,22 @@ elseif(LINUX)
     # the headers are installed by the opengl-xorg variant, see below.
     set(ruisapp_opengl_install_include_directory)
     set(ruisapp_opengles_install_include_directory)
-else()
+elseif(WIN32)
+    set(ruisapp_build_opengl_variant True)
+    set(ruisapp_build_opengles_variant True)
+    set(ruisapp_build_vulkan_variant True) # VK_KHR_win32_surface
+
+    set(ruisapp_opengl_install_include_directory ../../src/${PROJECT_NAME})
+    set(ruisapp_opengles_install_include_directory) # opengl variant is also built and will install the headers
+    set(ruisapp_vulkan_install_include_directory) # opengl variant is also built and will install the headers
+elseif(EMSCRIPTEN)
     set(ruisapp_build_opengl_variant True)
     set(ruisapp_build_opengles_variant True)
 
-    # The Vulkan variant is built on Windows (VK_KHR_win32_surface).
-    # On other platforms in this branch the platform glue does not support Vulkan yet.
-    set(ruisapp_build_vulkan_variant False)
-    if(WIN32)
-        set(ruisapp_build_vulkan_variant True)
-    endif()
-
-    set(ruisapp_opengl_install_include_directory ../../src/${name})
+    set(ruisapp_opengl_install_include_directory ../../src/${PROJECT_NAME})
     set(ruisapp_opengles_install_include_directory) # opengl variant is also built and will install the headers
-    set(ruisapp_vulkan_install_include_directory) # opengl variant is also built and will install the headers
+else()
+    message(FATAL_ERROR "Unknown OS")
 endif()
 
 # ====================
@@ -141,10 +142,10 @@ if(LINUX)
 
         set(install_include_directories)
         if(arg_INSTALL_HEADERS)
-            set(install_include_directories ../../src/${name})
+            set(install_include_directories ../../src/${PROJECT_NAME})
         endif()
 
-        myci_declare_library(${name}-${renderer}-${backend}
+        myci_declare_library(${PROJECT_NAME}-${renderer}-${backend}
             SOURCES
                 ${srcs}
             PUBLIC_INCLUDE_DIRECTORIES
@@ -171,7 +172,7 @@ if(LINUX)
         if(backend STREQUAL "wayland")
             # the generated xdg-shell client protocol source is added after the library
             # declaration, so that it is not picked up by the format targets
-            target_sources(${name}-${renderer}-${backend}
+            target_sources(${PROJECT_NAME}-${renderer}-${backend}
                 PRIVATE
                     ${wayland_xdg_shell_protocol_source}
             )
@@ -190,14 +191,14 @@ if(LINUX)
     # Compatibility aliases: for now ruisapp-opengl / ruisapp-opengles refer to the xorg variants.
     # Note: the namespaced alias refers to the plain (non-namespaced) target, the same
     # convention that myci_declare_library() uses for the ${PROJECT_NAME}::<name> alias.
-    add_library(${name}-opengl ALIAS ${name}-opengl-xorg)
-    add_library(${PROJECT_NAME}::${name}-opengl ALIAS ${name}-opengl-xorg)
-    add_library(${name}-opengles ALIAS ${name}-opengles-xorg)
-    add_library(${PROJECT_NAME}::${name}-opengles ALIAS ${name}-opengles-xorg)
+    add_library(${PROJECT_NAME}-opengl ALIAS ${PROJECT_NAME}-opengl-xorg)
+    add_library(${PROJECT_NAME}::${PROJECT_NAME}-opengl ALIAS ${PROJECT_NAME}-opengl-xorg)
+    add_library(${PROJECT_NAME}-opengles ALIAS ${PROJECT_NAME}-opengles-xorg)
+    add_library(${PROJECT_NAME}::${PROJECT_NAME}-opengles ALIAS ${PROJECT_NAME}-opengles-xorg)
 
 else()
     if(ruisapp_build_opengl_variant)
-        myci_declare_library(${name}-opengl
+        myci_declare_library(${PROJECT_NAME}-opengl
             SOURCES
                 ${srcs}
             PUBLIC_INCLUDE_DIRECTORIES
@@ -221,7 +222,7 @@ else()
 
         if(APPLE)
             # link to Cocoa framework
-            target_link_libraries(${name}-opengl
+            target_link_libraries(${PROJECT_NAME}-opengl
                 PRIVATE
                     # Link the Cocoa framework directly using the -framework flag string.
                     # The quotes are important so CMake passes it as a single linker argument.
@@ -229,15 +230,15 @@ else()
             )
 
             # TODO: Define the GL_SILENCE_DEPRECATION macro to silence OpenGL deprecation warnings on Apple platforms. Need to move to Metal eventually.
-            target_compile_definitions(${name}-opengl PRIVATE GL_SILENCE_DEPRECATION)
+            target_compile_definitions(${PROJECT_NAME}-opengl PRIVATE GL_SILENCE_DEPRECATION)
 
             # TODO: some stuff (e.g. NSOpenGLContext) is deprecated on MacOS, so suppress the warnings for now. Need to use new APIs eventually.
-            target_compile_options(${name}-opengl PRIVATE -Wno-deprecated-declarations)
+            target_compile_options(${PROJECT_NAME}-opengl PRIVATE -Wno-deprecated-declarations)
         endif()
     endif()
 
     if(ruisapp_build_opengles_variant)
-        myci_declare_library(${name}-opengles
+        myci_declare_library(${PROJECT_NAME}-opengles
             SOURCES
                 ${srcs}
             PUBLIC_INCLUDE_DIRECTORIES
@@ -263,7 +264,7 @@ else()
         )
 
         if(IOS)
-            target_link_libraries(${name}-opengles
+            target_link_libraries(${PROJECT_NAME}-opengles
                 PRIVATE
                     # Link the iOS frameworks directly using the -framework flag string.
                     # The quotes are important so CMake passes it as a single linker argument.
@@ -273,15 +274,15 @@ else()
             )
 
             # TODO: Define the GLES_SILENCE_DEPRECATION macro to silence OpenGL ES deprecation warnings on Apple platforms. Need to move to Metal eventually.
-            target_compile_definitions(${name}-opengles PRIVATE GLES_SILENCE_DEPRECATION)
+            target_compile_definitions(${PROJECT_NAME}-opengles PRIVATE GLES_SILENCE_DEPRECATION)
 
             # TODO: some stuff (e.g. UI_USER_INTERFACE_IDIOM) is deprecated on iOS, so suppress the warnings for now. Need to use new APIs eventually.
-            target_compile_options(${name}-opengles PRIVATE -Wno-deprecated-declarations)
+            target_compile_options(${PROJECT_NAME}-opengles PRIVATE -Wno-deprecated-declarations)
         endif()
     endif()
 
     if(ruisapp_build_vulkan_variant)
-        myci_declare_library(${name}-vulkan
+        myci_declare_library(${PROJECT_NAME}-vulkan
             SOURCES
                 ${srcs}
             PUBLIC_INCLUDE_DIRECTORIES
@@ -308,25 +309,25 @@ endif()
 if(LINUX)
     myci_export(
         TARGETS
-            ${name}-opengl-xorg
-            ${name}-opengles-xorg
-            ${name}-opengl-wayland
-            ${name}-opengles-wayland
-            ${name}-opengl-sdl
-            ${name}-opengles-sdl
-            ${name}-vulkan-xorg
-            ${name}-vulkan-wayland
+            ${PROJECT_NAME}-opengl-xorg
+            ${PROJECT_NAME}-opengles-xorg
+            ${PROJECT_NAME}-opengl-wayland
+            ${PROJECT_NAME}-opengles-wayland
+            ${PROJECT_NAME}-opengl-sdl
+            ${PROJECT_NAME}-opengles-sdl
+            ${PROJECT_NAME}-vulkan-xorg
+            ${PROJECT_NAME}-vulkan-wayland
     )
 else()
     set(ruisapp_export_targets)
     if(ruisapp_build_opengl_variant)
-        list(APPEND ruisapp_export_targets ${name}-opengl)
+        list(APPEND ruisapp_export_targets ${PROJECT_NAME}-opengl)
     endif()
     if(ruisapp_build_opengles_variant)
-        list(APPEND ruisapp_export_targets ${name}-opengles)
+        list(APPEND ruisapp_export_targets ${PROJECT_NAME}-opengles)
     endif()
     if(ruisapp_build_vulkan_variant)
-        list(APPEND ruisapp_export_targets ${name}-vulkan)
+        list(APPEND ruisapp_export_targets ${PROJECT_NAME}-vulkan)
     endif()
     myci_export(
         TARGETS
@@ -345,7 +346,7 @@ myci_add_source_files(app_srcs
 )
 # Declare a GUI test app for the given ruisapp-<renderer>-<backend> library variant.
 function(ruisapp_declare_test_app renderer backend)
-    set(test_app_name "${name}-${renderer}-${backend}-test")
+    set(test_app_name "${PROJECT_NAME}-${renderer}-${backend}-test")
     myci_declare_application(${test_app_name}
         GUI
         SOURCES
@@ -353,7 +354,7 @@ function(ruisapp_declare_test_app renderer backend)
         RESOURCE_DIRECTORY
             ../../tests/app/res
         DEPENDENCIES
-            ${PROJECT_NAME}::${name}-${renderer}-${backend}
+            ${PROJECT_NAME}::${PROJECT_NAME}-${renderer}-${backend}
     )
 endfunction()
 
@@ -369,7 +370,7 @@ if(LINUX)
     ruisapp_declare_test_app(vulkan wayland)
 else()
     if(ruisapp_build_opengl_variant)
-        myci_declare_application(${name}-opengl-test
+        myci_declare_application(${PROJECT_NAME}-opengl-test
             GUI
             SOURCES
                 ${app_srcs}
@@ -380,14 +381,14 @@ else()
         )
 
         if(APPLE)
-            set_target_properties(${name}-opengl-test PROPERTIES
+            set_target_properties(${PROJECT_NAME}-opengl-test PROPERTIES
                 XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "io.github.cppfw.ruisapp-opengl-test"
             )
         endif()
     endif()
 
     if(ruisapp_build_opengles_variant)
-        myci_declare_application(${name}-opengles-test
+        myci_declare_application(${PROJECT_NAME}-opengles-test
             GUI
             SOURCES
                 ${app_srcs}
@@ -398,9 +399,9 @@ else()
         )
 
         if(APPLE)
-            set_target_properties(${name}-opengles-test PROPERTIES
-                MACOSX_BUNDLE_GUI_IDENTIFIER "io.github.cppfw.${name}-opengles-test"    
-                XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "io.github.cppfw.${name}-opengles-test"
+            set_target_properties(${PROJECT_NAME}-opengles-test PROPERTIES
+                MACOSX_BUNDLE_GUI_IDENTIFIER "io.github.cppfw.${PROJECT_NAME}-opengles-test"    
+                XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "io.github.cppfw.${PROJECT_NAME}-opengles-test"
                 XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "948FQ58W9M"
                 XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic"
             )
@@ -408,14 +409,14 @@ else()
     endif()
 
     if(ruisapp_build_vulkan_variant)
-        myci_declare_application(${name}-vulkan-test
+        myci_declare_application(${PROJECT_NAME}-vulkan-test
             GUI
             SOURCES
                 ${app_srcs}
             RESOURCE_DIRECTORY
                 ../../tests/app/res
             DEPENDENCIES
-                ruisapp::${name}-vulkan
+                ruisapp::${PROJECT_NAME}-vulkan
         )
     endif()
 endif()

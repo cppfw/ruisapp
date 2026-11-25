@@ -80,7 +80,7 @@ namespace {
 // The Vulkan device (instance, physical device, logical device and graphics queue) is shared
 // across the render factory and all the windows, the same way it is done by the other
 // ruisapp glue implementations that support Vulkan (e.g. Wayland and X11).
-const utki::shared_ref<ruis::render::vulkan::device> make_device()
+const utki::shared_ref<ruis::render::vulkan::device> make_vulkan_device()
 {
 	std::vector<std::string> instance_extensions = {VK_KHR_SURFACE_EXTENSION_NAME, VK_KHR_WIN32_SURFACE_EXTENSION_NAME};
 	std::vector<std::string> device_extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
