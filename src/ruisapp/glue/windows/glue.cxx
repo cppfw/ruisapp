@@ -27,7 +27,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <utki/destructable.hpp>
 #include <utki/windows.hpp>
 
-#ifdef RUISAPP_RENDER_OPENGL
+#ifdef RUISAPP_RENDER_VULKAN
+#	include <vulkan/vulkan.h>
+#	include <vulkan/vulkan_win32.h>
+
+#	include <ruis/render/vulkan/context.hpp>
+#	include <ruis/render/vulkan/factory.hpp>
+#	include <ruis/render/vulkan/device.hpp>
+#	include <ruis/render/vulkan/surface.hpp>
+#elif defined(RUISAPP_RENDER_OPENGL)
 #	include <ruis/render/opengl/context.hpp>
 #	include <ruis/render/opengl/factory.hpp>
 #elif defined(RUISAPP_RENDER_OPENGLES)

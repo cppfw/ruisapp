@@ -44,8 +44,16 @@ else()
     set(ruisapp_build_opengl_variant True)
     set(ruisapp_build_opengles_variant True)
 
+    # The Vulkan variant is built on Windows (VK_KHR_win32_surface).
+    # On other platforms in this branch the platform glue does not support Vulkan yet.
+    set(ruisapp_build_vulkan_variant False)
+    if(WIN32)
+        set(ruisapp_build_vulkan_variant True)
+    endif()
+
     set(ruisapp_opengl_install_include_directory ../../src/${name})
     set(ruisapp_opengles_install_include_directory) # opengl variant is also built and will install the headers
+    set(ruisapp_vulkan_install_include_directory) # opengl variant is also built and will install the headers
 endif()
 
 # ====================
@@ -271,6 +279,27 @@ else()
             target_compile_options(${name}-opengles PRIVATE -Wno-deprecated-declarations)
         endif()
     endif()
+
+    if(ruisapp_build_vulkan_variant)
+        myci_declare_library(${name}-vulkan
+            SOURCES
+                ${srcs}
+            PUBLIC_INCLUDE_DIRECTORIES
+                ../../src
+            INSTALL_INCLUDE_DIRECTORIES
+                ${ruisapp_vulkan_install_include_directory}
+            PREPROCESSOR_DEFINITIONS
+                "RUISAPP_RENDER_VULKAN"
+            DEPENDENCIES
+                nitki
+                ruis
+                ruis-render-vulkan
+                opros
+                setka
+                tml
+            NO_EXPORT
+        )
+    endif()
 endif()
 
 # ====================
@@ -288,21 +317,20 @@ if(LINUX)
             ${name}-vulkan-xorg
             ${name}-vulkan-wayland
     )
-elseif(ruisapp_build_opengl_variant AND ruisapp_build_opengles_variant)
+else()
+    set(ruisapp_export_targets)
+    if(ruisapp_build_opengl_variant)
+        list(APPEND ruisapp_export_targets ${name}-opengl)
+    endif()
+    if(ruisapp_build_opengles_variant)
+        list(APPEND ruisapp_export_targets ${name}-opengles)
+    endif()
+    if(ruisapp_build_vulkan_variant)
+        list(APPEND ruisapp_export_targets ${name}-vulkan)
+    endif()
     myci_export(
         TARGETS
-            ${name}-opengl
-            ${name}-opengles
-    )
-elseif(ruisapp_build_opengl_variant)
-    myci_export(
-        TARGETS
-            ${name}-opengl
-    )
-elseif(ruisapp_build_opengles_variant)
-    myci_export(
-        TARGETS
-            ${name}-opengles
+            ${ruisapp_export_targets}
     )
 endif()
 
@@ -377,5 +405,17 @@ else()
                 XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic"
             )
         endif()
+    endif()
+
+    if(ruisapp_build_vulkan_variant)
+        myci_declare_application(${name}-vulkan-test
+            GUI
+            SOURCES
+                ${app_srcs}
+            RESOURCE_DIRECTORY
+                ../../tests/app/res
+            DEPENDENCIES
+                ruisapp::${name}-vulkan
+        )
     endif()
 endif()

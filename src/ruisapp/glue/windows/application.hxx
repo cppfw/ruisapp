@@ -24,8 +24,16 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <atomic>
 #include <functional>
 #include <utility>
+#include <vector>
 
 #include "../../application.hpp"
+
+#ifdef RUISAPP_RENDER_VULKAN
+#	include <ruis/render/vulkan/device.hpp>
+#	include <ruis/render/vulkan/surface.hpp>
+#	include <vulkan/vulkan.h>
+#	include <vulkan/vulkan_win32.h>
+#endif
 
 #include "display.hxx"
 #include "window.hxx"
@@ -68,6 +76,21 @@ public:
 } // namespace
 
 namespace {
+#ifdef RUISAPP_RENDER_VULKAN
+// The Vulkan device (instance, physical device, logical device and graphics queue) is shared
+// across the render factory and all the windows, the same way it is done by the other
+// ruisapp glue implementations that support Vulkan (e.g. Wayland and X11).
+const utki::shared_ref<ruis::render::vulkan::device> make_device()
+{
+	std::vector<std::string> instance_extensions = {VK_KHR_SURFACE_EXTENSION_NAME, VK_KHR_WIN32_SURFACE_EXTENSION_NAME};
+	std::vector<std::string> device_extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+	return utki::make_shared<ruis::render::vulkan::device>(
+		instance_extensions, //
+		device_extensions //
+	);
+}
+#endif
+
 class application_glue : public utki::destructable
 {
 	const utki::version_duplet gl_version;
@@ -75,7 +98,20 @@ class application_glue : public utki::destructable
 	utki::shared_ref<display_wrapper> display = utki::make_shared<display_wrapper>();
 
 	const utki::shared_ref<native_window> shared_gl_context_native_window;
-	const utki::shared_ref<const ruis::render::factory> render_factory;
+#ifdef RUISAPP_RENDER_VULKAN
+	// The Vulkan device is shared between the factory (resource creation) and the windows (surface creation).
+	const utki::shared_ref<ruis::render::vulkan::device> device;
+#endif
+	// concrete factory type, #ifdef by renderer
+#ifdef RUISAPP_RENDER_VULKAN
+	const utki::shared_ref<const ruis::render::vulkan::factory> render_factory;
+#elif defined(RUISAPP_RENDER_OPENGL)
+	const utki::shared_ref<const ruis::render::opengl::factory> render_factory;
+#elif defined(RUISAPP_RENDER_OPENGLES)
+	const utki::shared_ref<const ruis::render::opengles::factory> render_factory;
+#else
+#	error "Unknown graphics API"
+#endif
 	const utki::shared_ref<const ruis::render::factory::shaders> common_shaders;
 	const utki::shared_ref<const ruis::render::renderer::objects> common_render_objects;
 	const utki::shared_ref<ruis::resource_loader> ruis_resource_loader;
