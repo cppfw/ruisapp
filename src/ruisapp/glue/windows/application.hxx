@@ -148,8 +148,8 @@ class application_glue : public utki::destructable
 	const utki::shared_ref<ruis::resource_loader> ruis_resource_loader;
 
 #ifndef RUISAPP_RENDER_VULKAN
-	// Declared after all owners of shared GL objects (and thus destroyed
-	// before them), so that the shared GL context is re-bound before the
+	// Must be declared after common_render_objects (and thus destroyed
+	// before it), so that the shared GL context is re-bound before the
 	// shared GL objects are destroyed.
 	const restore_shared_gl_context_on_destruction shared_gl_context_restorer;
 #endif
