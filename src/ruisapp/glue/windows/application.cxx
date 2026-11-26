@@ -145,7 +145,11 @@ application_glue::application_glue(const utki::version_duplet& gl_version) :
 	),
 	ruis_style_provider( //
 		utki::make_shared<ruis::style_provider>(this->ruis_resource_loader)
-	)
+	),
+	// the glue is created on the UI thread (the thread running the main loop);
+	// post_to_ui_thread() uses this id to post procedures to the UI thread's
+	// message queue
+	ui_thread_id(::GetCurrentThreadId())
 {}
 
 void application_glue::render()
@@ -158,15 +162,15 @@ void application_glue::render()
 void application_glue::post_to_ui_thread(std::function<void()> procedure)
 {
 	if ( //
-		PostMessage( //
-			NULL, // post message to UI thread's message queue
+		PostThreadMessage( //
+			this->ui_thread_id, // post message to the UI thread's message queue
 			WM_USER,
 			0, // no wParam
 			// NOLINTNEXTLINE(cppcoreguidelines-owning-memory, cppcoreguidelines-pro-type-reinterpret-cast)
 			reinterpret_cast<LPARAM>(new std::function<void()>(std::move(procedure)))
 		) == 0)
 	{
-		throw std::runtime_error("PostMessage(): failed");
+		throw std::runtime_error("PostThreadMessage(): failed");
 	}
 }
 
