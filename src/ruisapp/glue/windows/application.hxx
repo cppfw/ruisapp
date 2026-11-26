@@ -88,12 +88,12 @@ public:
 class restore_shared_gl_context_on_destruction
 {
 	native_window& shared_gl_context_window;
+
 public:
-	explicit restore_shared_gl_context_on_destruction(
-		native_window& shared_gl_context_window
-	) :
+	explicit restore_shared_gl_context_on_destruction(native_window& shared_gl_context_window) :
 		shared_gl_context_window(shared_gl_context_window)
 	{}
+
 	restore_shared_gl_context_on_destruction(const restore_shared_gl_context_on_destruction&) = delete;
 	restore_shared_gl_context_on_destruction& operator=(const restore_shared_gl_context_on_destruction&) = delete;
 
@@ -147,15 +147,17 @@ class application_glue : public utki::destructable
 	const utki::shared_ref<const ruis::render::renderer::objects> common_render_objects;
 	const utki::shared_ref<ruis::resource_loader> ruis_resource_loader;
 
-public:
-	const utki::shared_ref<ruis::style_provider> ruis_style_provider;
-
-private:
+#ifndef RUISAPP_RENDER_VULKAN
 	// Declared after all owners of shared GL objects (and thus destroyed
 	// before them), so that the shared GL context is re-bound before the
 	// shared GL objects are destroyed.
 	const restore_shared_gl_context_on_destruction shared_gl_context_restorer;
+#endif
 
+public:
+	const utki::shared_ref<ruis::style_provider> ruis_style_provider;
+
+private:
 	// std::vector is used instead of std::map to preserve the order in which
 	// the windows were created, so that application::get_windows() returns the
 	// windows in a stable order. The number of windows is small (2-3), so
