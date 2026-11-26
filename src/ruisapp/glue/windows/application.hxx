@@ -65,6 +65,35 @@ public:
 	 */
 	void update_units_from_system();
 };
+
+/**
+ * @brief Re-binds the shared GL context on destruction.
+ *
+ * Rendering makes each window's GL context current, and the window contexts
+ * are destroyed together with the windows. After that, no GL context is
+ * current on this thread. The shared GL objects (common shaders, common
+ * render objects, shared resource textures) are destroyed after the windows
+ * and still need a current context of the shared group to be released, so
+ * this guard restores the shared context (which outlives the shared objects)
+ * right before they are destroyed.
+ */
+class restore_shared_gl_context_on_destruction
+{
+	native_window& shared_gl_context_window;
+public:
+	explicit restore_shared_gl_context_on_destruction(
+		native_window& shared_gl_context_window
+	) :
+		shared_gl_context_window(shared_gl_context_window)
+	{}
+	restore_shared_gl_context_on_destruction(const restore_shared_gl_context_on_destruction&) = delete;
+	restore_shared_gl_context_on_destruction& operator=(const restore_shared_gl_context_on_destruction&) = delete;
+
+	~restore_shared_gl_context_on_destruction()
+	{
+		this->shared_gl_context_window.bind_rendering_context();
+	}
+};
 } // namespace
 
 namespace {
@@ -84,6 +113,11 @@ public:
 	const utki::shared_ref<ruis::style_provider> ruis_style_provider;
 
 private:
+	// Declared after all owners of shared GL objects (and thus destroyed
+	// before them), so that the shared GL context is re-bound before the
+	// shared GL objects are destroyed.
+	const restore_shared_gl_context_on_destruction shared_gl_context_restorer;
+
 	std::map<native_window::window_id_type, utki::shared_ref<app_window>> windows;
 
 public:

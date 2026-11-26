@@ -133,7 +133,8 @@ application_glue::application_glue(const utki::version_duplet& gl_version) :
 	),
 	ruis_style_provider( //
 		utki::make_shared<ruis::style_provider>(this->ruis_resource_loader)
-	)
+	),
+	shared_gl_context_restorer(this->shared_gl_context_native_window.get())
 {}
 
 void application_glue::render()
