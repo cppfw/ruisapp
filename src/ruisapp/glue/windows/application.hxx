@@ -131,6 +131,11 @@ private:
 public:
 	std::atomic_bool quit_flag = false;
 
+	// the id of the UI thread (the thread that created the glue and runs the
+	// main loop); post_to_ui_thread() uses it to post procedures to the UI
+	// thread's message queue
+	const DWORD ui_thread_id;
+
 	const utki::shared_ref<ruis::updater> updater = utki::make_shared<ruis::updater>();
 
 	std::vector<utki::shared_ref<app_window>> windows_to_destroy;
