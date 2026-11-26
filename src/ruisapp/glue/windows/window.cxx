@@ -323,6 +323,24 @@ native_window::opengl_context_wrapper::~opengl_context_wrapper()
 }
 #endif
 
+#ifdef RUISAPP_RENDER_VULKAN
+native_window::native_window(
+	utki::shared_ref<display_wrapper> display,
+	const ruisapp::window_parameters& window_params
+) :
+	display(std::move(display)),
+	window(
+		this->display.get().regular_window_class, //
+		window_params,
+		true // visible
+	),
+	device_context(this->window)
+{
+	// No rendering context is created here: the Vulkan renderer creates a
+	// VkSurfaceKHR from the window handle (see application.cxx) and presentation
+	// is handled by the Vulkan render context (vkQueuePresentKHR).
+}
+#else
 native_window::native_window(
 	utki::shared_ref<display_wrapper> display,
 	const utki::version_duplet& gl_version,
@@ -337,7 +355,7 @@ native_window::native_window(
 		shared_gl_context_native_window != nullptr
 	),
 	device_context(this->window),
-#ifdef RUISAPP_RENDER_OPENGL
+#	ifdef RUISAPP_RENDER_OPENGL
 	opengl_context(
 		this->display,
 		this->device_context, //
@@ -345,7 +363,7 @@ native_window::native_window(
 		gl_version,
 		shared_gl_context_native_window ? shared_gl_context_native_window->opengl_context.context : NULL
 	)
-#elif defined(RUISAPP_RENDER_OPENGLES)
+#	elif defined(RUISAPP_RENDER_OPENGLES)
 	egl_config(
 		this->display.get().egl_display, //
 		gl_version,
@@ -362,9 +380,9 @@ native_window::native_window(
 		this->egl_config,
 		shared_gl_context_native_window ? shared_gl_context_native_window->egl_context.context : EGL_NO_CONTEXT
 	)
-#endif
+#	endif
 {
-#ifdef RUISAPP_RENDER_OPENGL
+#	ifdef RUISAPP_RENDER_OPENGL
 	if (wglGetCurrentContext() == NULL) {
 		auto res = wglMakeCurrent(
 			this->device_context.context, //
@@ -379,12 +397,16 @@ native_window::native_window(
 			throw std::runtime_error("GLEW initialization failed");
 		}
 	}
-#endif
+#	endif
 }
+#endif
 
 void native_window::bind_rendering_context()
 {
-#ifdef RUISAPP_RENDER_OPENGL
+#ifdef RUISAPP_RENDER_VULKAN
+	// For Vulkan, there's no concept of binding a rendering context.
+	// The Vulkan context is thread-safe and doesn't need to be made current.
+#elif defined(RUISAPP_RENDER_OPENGL)
 	auto res = wglMakeCurrent(
 		this->device_context.context, //
 		this->opengl_context.context
@@ -409,7 +431,10 @@ void native_window::bind_rendering_context()
 
 void native_window::swap_frame_buffers()
 {
-#ifdef RUISAPP_RENDER_OPENGL
+#ifdef RUISAPP_RENDER_VULKAN
+	// Not used by the Vulkan renderer: presentation is handled by the Vulkan
+	// render context itself (vkQueuePresentKHR).
+#elif defined(RUISAPP_RENDER_OPENGL)
 	SwapBuffers(this->device_context.context);
 #elif defined(RUISAPP_RENDER_OPENGLES)
 	this->egl_surface.swap_frame_buffers();

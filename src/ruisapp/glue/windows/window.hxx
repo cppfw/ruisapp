@@ -112,12 +112,27 @@ public:
 		return this->window.handle;
 	}
 
+	/**
+	 * @brief The native window handle.
+	 * Used by the Vulkan renderer to create a VK_KHR_win32_surface for presenting frames.
+	 */
+	HWND get_hwnd() const noexcept
+	{
+		return this->window.handle;
+	}
+
+#ifdef RUISAPP_RENDER_VULKAN
+	// The Vulkan renderer does not create any GL context, so the constructor
+	// does not take a GL version or a shared GL context window.
+	native_window(utki::shared_ref<display_wrapper> display, const ruisapp::window_parameters& window_params);
+#else
 	native_window(
 		utki::shared_ref<display_wrapper> display,
 		const utki::version_duplet& gl_version,
 		const ruisapp::window_parameters& window_params,
 		native_window* shared_gl_context_native_window
 	);
+#endif
 
 	void bind_rendering_context() override;
 

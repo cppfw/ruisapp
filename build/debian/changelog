@@ -1,3 +1,9 @@
+libruisapp (0.2.150) unstable; urgency=medium
+
+  * keep plain list of windows
+
+ -- Ivan Gagis <igagis@gmail.com>  Wed, 25 Nov 2026 16:08:22 +0200
+
 libruisapp (0.2.149) unstable; urgency=medium
 
   * update

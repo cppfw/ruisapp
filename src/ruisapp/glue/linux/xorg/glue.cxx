@@ -21,6 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include <array>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include <nitki/queue.hpp>
@@ -148,16 +149,26 @@ public:
 	utki::shared_ref<ruis::style_provider> ruis_style_provider;
 
 private:
-	std::map<
-		native_window_type::window_id_type, //
-		utki::shared_ref<app_window> //
-		>
-		windows;
+	// std::vector is used instead of std::map to preserve the order in which
+	// the windows were created, so that application::get_windows() returns the
+	// windows in a stable order. The number of windows is small (2-3), so
+	// linear lookup by window id is fast enough.
+	std::vector<std::pair<native_window_type::window_id_type, utki::shared_ref<app_window>>> windows;
 
 public:
 	const auto& get_windows()
 	{
 		return this->windows;
+	}
+
+	auto find_window(native_window_type::window_id_type id)
+	{
+		return std::ranges::find_if(
+			this->windows, //
+			[id](const auto& wp) {
+				return wp.first == id;
+			}
+		);
 	}
 
 	std::vector<utki::shared_ref<app_window>> windows_to_destroy;
@@ -316,21 +327,18 @@ public:
 			)
 		);
 
-		auto res = this->windows.insert( //
-			std::make_pair(
-				nw.get_id(), //
-				std::move(ruisapp_window)
-			)
-		);
-		utki::assert(res.second, SL);
+		auto id = nw.get_id();
+		// assert that the window with this id is not already in the list
+		utki::assert(this->find_window(id) == this->windows.end(), SL);
+		this->windows.emplace_back(id, std::move(ruisapp_window));
 
-		return res.first->second.get();
+		return this->windows.back().second.get();
 	}
 
 	void destroy_window(app_window& w)
 	{
 		auto id = w.ruis_native_window.get().get_id();
-		auto i = this->windows.find(id);
+		auto i = this->find_window(id);
 		if (i == this->windows.end()) {
 			return;
 		}
@@ -344,7 +352,7 @@ public:
 
 	app_window* get_window(native_window_type::window_id_type id)
 	{
-		auto i = this->windows.find(id);
+		auto i = this->find_window(id);
 		if (i == this->windows.end()) {
 			return nullptr;
 		}

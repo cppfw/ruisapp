@@ -22,7 +22,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <atomic>
-#include <map>
+#include <utility>
 
 #include <nitki/queue.hpp>
 
@@ -167,11 +167,11 @@ public:
 	const utki::shared_ref<ruis::style_provider> ruis_style_provider;
 
 private:
-	std::map<
-		native_window_type::window_id_type, //
-		utki::shared_ref<app_window> //
-		>
-		windows;
+	// std::vector is used instead of std::map to preserve the order in which
+	// the windows were created, so that application::get_windows() returns the
+	// windows in a stable order. The number of windows is small (2-3), so
+	// linear lookup by window id is fast enough.
+	std::vector<std::pair<native_window_type::window_id_type, utki::shared_ref<app_window>>> windows;
 
 public:
 	std::vector<utki::shared_ref<app_window>> windows_to_destroy;
@@ -256,9 +256,19 @@ public:
 	ruisapp::window& make_window(ruisapp::window_parameters window_params);
 	void destroy_window(app_window& w);
 
+	auto find_window(native_window_type::window_id_type id)
+	{
+		return std::ranges::find_if(
+			this->windows, //
+			[id](const auto& wp) {
+				return wp.first == id;
+			}
+		);
+	}
+
 	app_window* get_window(native_window_type::window_id_type id)
 	{
-		auto i = this->windows.find(id);
+		auto i = this->find_window(id);
 		if (i == this->windows.end()) {
 			return nullptr;
 		}

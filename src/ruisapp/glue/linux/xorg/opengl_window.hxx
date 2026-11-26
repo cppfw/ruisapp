@@ -420,11 +420,28 @@ public:
 		);
 		if (this->is_vsync_enabled()) {
 			// With glFinish() call here it works better when VSYNC is enabled.
-			// This is noticable when an app renders a mouse cursor itself,
+			// This is noticeable when an app renders a mouse cursor itself,
 			// the cursor moves with less latency.
-			// For some reason, the effect is only present if calling the glFinish()
-			// right after swapping buffers, if calling it before swapping buffers,
-			// the effect is not present.
+			//
+			// Why: with VSYNC on, glXSwapBuffers() only queues the present
+			// (render -> wait for vertical blank -> present) and returns immediately,
+			// so the event loop resumes while a present is still in flight.
+			// A new mouse-move event then re-renders the cursor at the new position,
+			// but those commands are queued behind the previous frame's pending
+			// present, so the new cursor frame latches to a later vsync boundary,
+			// adding a frame or two of visible lag.
+			//
+			// glFinish() blocks the CPU until all previously submitted GPU work,
+			// including the presentation just queued by glXSwapBuffers, is done.
+			// By the time the next event is processed the GPU queue is empty,
+			// so the new frame starts immediately and latches to the earliest
+			// possible vsync boundary.
+			//
+			// The effect is only present if calling the glFinish() right after
+			// swapping buffers: a glFinish() before the swap only guarantees the
+			// rendering is done, the present (and its vblank wait) is still queued
+			// and in flight when the event loop resumes, so the new cursor frame
+			// is still queued behind that pending present.
 			glFinish();
 		}
 	}
