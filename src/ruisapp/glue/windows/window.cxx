@@ -336,15 +336,15 @@ native_window::native_window(
 	),
 	device_context(this->window)
 {
-#ifdef RUISAPP_RENDER_VULKAN
+#	ifdef RUISAPP_RENDER_VULKAN
 	// No rendering context is created here: the Vulkan renderer creates a
 	// VkSurfaceKHR from the window handle (see application.cxx) and presentation
 	// is handled by the Vulkan render context (vkQueuePresentKHR).
-#else
+#	else
 	// No rendering context is created here: the render context creates the
 	// DXGI swapchain from the window handle (see application.cxx) and
 	// presentation is handled by the render context (IDXGISwapChain::Present).
-#endif
+#	endif
 }
 #else
 native_window::native_window(

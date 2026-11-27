@@ -86,14 +86,8 @@ define ruisapp_rules
 
     else ifeq ($(os), windows)
         this_ldlibs += -l gdi32
-        ifeq ($1,directx)
-            this_ldlibs += -l d3d12
-            this_ldlibs += -l dxgi
-            this_ldlibs += -l d3dcompiler
-        else
-            this_ldlibs += -l opengl32
-            this_ldlibs += -l glew32
-        endif
+        this_ldlibs += -l opengl32
+        this_ldlibs += -l glew32
 
     else ifeq ($(os), macosx)
         this_ldlibs += -l GLEW
@@ -159,9 +153,6 @@ ifeq ($(os), linux)
 
 else
     $(eval $(call ruisapp_rules,opengl,))
-    ifeq ($(os), windows)
-        $(eval $(call ruisapp_rules,directx,))
-    endif
 endif
 
 # clear variable

@@ -43,11 +43,11 @@ elseif(WIN32)
     set(ruisapp_build_opengl_variant True)
     set(ruisapp_build_opengles_variant True)
     set(ruisapp_build_vulkan_variant True) # VK_KHR_win32_surface
-    # DXGI swapchain; disabled for the vcpkg port build because the
-    # ruis-render-directx vcpkg port does not exist yet
-    set(ruisapp_build_directx_variant True)
-    if(IS_VCPKG_PORT_BUILD)
-        set(ruisapp_build_directx_variant False)
+    # the DirectX 12 variant requires the ruis-render-directx renderer,
+    # which has no vcpkg port yet and is only available as a target when
+    # building inside the cppfw monorepo, where it is added before ruisapp
+    if(TARGET ruis-render-directx)
+        set(ruisapp_build_directx_variant True)
     endif()
 
     set(ruisapp_opengl_install_include_directory ../../src/${PROJECT_NAME})
