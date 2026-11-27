@@ -35,6 +35,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #	include <ruis/render/vulkan/factory.hpp>
 #	include <ruis/render/vulkan/device.hpp>
 #	include <ruis/render/vulkan/surface.hpp>
+#elif defined(RUISAPP_RENDER_DIRECTX)
+#	include <ruis/render/directx/context.hpp>
+#	include <ruis/render/directx/factory.hpp>
+#	include <ruis/render/directx/device.hpp>
+#	include <ruis/render/directx/surface.hpp>
 #elif defined(RUISAPP_RENDER_OPENGL)
 #	include <ruis/render/opengl/context.hpp>
 #	include <ruis/render/opengl/factory.hpp>

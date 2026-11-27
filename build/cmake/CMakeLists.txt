@@ -43,10 +43,17 @@ elseif(WIN32)
     set(ruisapp_build_opengl_variant True)
     set(ruisapp_build_opengles_variant True)
     set(ruisapp_build_vulkan_variant True) # VK_KHR_win32_surface
+    # DXGI swapchain; disabled for the vcpkg port build because the
+    # ruis-render-directx vcpkg port does not exist yet
+    set(ruisapp_build_directx_variant True)
+    if(IS_VCPKG_PORT_BUILD)
+        set(ruisapp_build_directx_variant False)
+    endif()
 
     set(ruisapp_opengl_install_include_directory ../../src/${PROJECT_NAME})
     set(ruisapp_opengles_install_include_directory) # opengl variant is also built and will install the headers
     set(ruisapp_vulkan_install_include_directory) # opengl variant is also built and will install the headers
+    set(ruisapp_directx_install_include_directory) # opengl variant is also built and will install the headers
 elseif(EMSCRIPTEN)
     set(ruisapp_build_opengl_variant True)
     set(ruisapp_build_opengles_variant True)
@@ -301,6 +308,30 @@ else()
             NO_EXPORT
         )
     endif()
+
+    if(ruisapp_build_directx_variant)
+        myci_declare_library(${PROJECT_NAME}-directx
+            SOURCES
+                ${srcs}
+            PUBLIC_INCLUDE_DIRECTORIES
+                ../../src
+            INSTALL_INCLUDE_DIRECTORIES
+                ${ruisapp_directx_install_include_directory}
+            PREPROCESSOR_DEFINITIONS
+                "RUISAPP_RENDER_DIRECTX"
+            DEPENDENCIES
+                nitki
+                ruis
+                ruis-render-directx
+                opros
+                setka
+                tml
+            NO_EXPORT
+        )
+
+        # link the Windows SDK DirectX 12 libraries (not available via vcpkg)
+        target_link_libraries(${PROJECT_NAME}-directx PRIVATE d3d12 dxgi d3dcompiler)
+    endif()
 endif()
 
 # ====================
@@ -328,6 +359,9 @@ else()
     endif()
     if(ruisapp_build_vulkan_variant)
         list(APPEND ruisapp_export_targets ${PROJECT_NAME}-vulkan)
+    endif()
+    if(ruisapp_build_directx_variant)
+        list(APPEND ruisapp_export_targets ${PROJECT_NAME}-directx)
     endif()
     myci_export(
         TARGETS
@@ -417,6 +451,18 @@ else()
                 ../../tests/app/res
             DEPENDENCIES
                 ruisapp::${PROJECT_NAME}-vulkan
+        )
+    endif()
+
+    if(ruisapp_build_directx_variant)
+        myci_declare_application(${PROJECT_NAME}-directx-test
+            GUI
+            SOURCES
+                ${app_srcs}
+            RESOURCE_DIRECTORY
+                ../../tests/app/res
+            DEPENDENCIES
+                ruisapp::${PROJECT_NAME}-directx
         )
     endif()
 endif()

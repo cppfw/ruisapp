@@ -33,6 +33,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #	include <ruis/render/vulkan/surface.hpp>
 #	include <vulkan/vulkan.h>
 #	include <vulkan/vulkan_win32.h>
+#elif defined(RUISAPP_RENDER_DIRECTX)
+#	include <ruis/render/directx/device.hpp>
+#	include <ruis/render/directx/surface.hpp>
 #endif
 
 #include "display.hxx"
@@ -91,22 +94,37 @@ const utki::shared_ref<ruis::render::vulkan::device> make_vulkan_device()
 }
 #endif
 
+#ifdef RUISAPP_RENDER_DIRECTX
+// The D3D12 device and the shared command queue are created once per process
+// and shared by the render factory and all the render contexts (windows).
+const utki::shared_ref<ruis::render::directx::device> make_directx_device()
+{
+	return utki::make_shared<ruis::render::directx::device>();
+}
+#endif
+
 class application_glue : public utki::destructable
 {
 	const utki::version_duplet gl_version;
 
 	utki::shared_ref<display_wrapper> display = utki::make_shared<display_wrapper>();
 
-#ifndef RUISAPP_RENDER_VULKAN
+#if !defined(RUISAPP_RENDER_VULKAN) && !defined(RUISAPP_RENDER_DIRECTX)
 	const utki::shared_ref<native_window> shared_gl_context_native_window;
 #endif
 #ifdef RUISAPP_RENDER_VULKAN
 	// The Vulkan device is shared between the factory (resource creation) and the windows (surface creation).
 	const utki::shared_ref<ruis::render::vulkan::device> device;
 #endif
+#ifdef RUISAPP_RENDER_DIRECTX
+	// The DirectX 12 device is shared between the factory (resource creation) and the windows (swapchain creation).
+	const utki::shared_ref<ruis::render::directx::device> device;
+#endif
 	// concrete factory type, #ifdef by renderer
 #ifdef RUISAPP_RENDER_VULKAN
 	const utki::shared_ref<const ruis::render::vulkan::factory> render_factory;
+#elif defined(RUISAPP_RENDER_DIRECTX)
+	const utki::shared_ref<const ruis::render::directx::factory> render_factory;
 #elif defined(RUISAPP_RENDER_OPENGL)
 	const utki::shared_ref<const ruis::render::opengl::factory> render_factory;
 #elif defined(RUISAPP_RENDER_OPENGLES)

@@ -323,7 +323,7 @@ native_window::opengl_context_wrapper::~opengl_context_wrapper()
 }
 #endif
 
-#ifdef RUISAPP_RENDER_VULKAN
+#if defined(RUISAPP_RENDER_VULKAN) || defined(RUISAPP_RENDER_DIRECTX)
 native_window::native_window(
 	utki::shared_ref<display_wrapper> display,
 	const ruisapp::window_parameters& window_params
@@ -336,9 +336,15 @@ native_window::native_window(
 	),
 	device_context(this->window)
 {
+#ifdef RUISAPP_RENDER_VULKAN
 	// No rendering context is created here: the Vulkan renderer creates a
 	// VkSurfaceKHR from the window handle (see application.cxx) and presentation
 	// is handled by the Vulkan render context (vkQueuePresentKHR).
+#else
+	// No rendering context is created here: the render context creates the
+	// DXGI swapchain from the window handle (see application.cxx) and
+	// presentation is handled by the render context (IDXGISwapChain::Present).
+#endif
 }
 #else
 native_window::native_window(
@@ -403,9 +409,9 @@ native_window::native_window(
 
 void native_window::bind_rendering_context()
 {
-#ifdef RUISAPP_RENDER_VULKAN
-	// For Vulkan, there's no concept of binding a rendering context.
-	// The Vulkan context is thread-safe and doesn't need to be made current.
+#if defined(RUISAPP_RENDER_VULKAN) || defined(RUISAPP_RENDER_DIRECTX)
+	// For Vulkan and DirectX 12 there's no concept of binding a rendering context.
+	// The render contexts don't need to be made current.
 #elif defined(RUISAPP_RENDER_OPENGL)
 	auto res = wglMakeCurrent(
 		this->device_context.context, //
@@ -431,9 +437,9 @@ void native_window::bind_rendering_context()
 
 void native_window::swap_frame_buffers()
 {
-#ifdef RUISAPP_RENDER_VULKAN
-	// Not used by the Vulkan renderer: presentation is handled by the Vulkan
-	// render context itself (vkQueuePresentKHR).
+#if defined(RUISAPP_RENDER_VULKAN) || defined(RUISAPP_RENDER_DIRECTX)
+	// Not used by the Vulkan and DirectX 12 renderers: presentation is handled
+	// by the render context itself (vkQueuePresentKHR / IDXGISwapChain::Present).
 #elif defined(RUISAPP_RENDER_OPENGL)
 	SwapBuffers(this->device_context.context);
 #elif defined(RUISAPP_RENDER_OPENGLES)

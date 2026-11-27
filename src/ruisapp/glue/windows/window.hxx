@@ -121,9 +121,9 @@ public:
 		return this->window.handle;
 	}
 
-#ifdef RUISAPP_RENDER_VULKAN
-	// The Vulkan renderer does not create any GL context, so the constructor
-	// does not take a GL version or a shared GL context window.
+#if defined(RUISAPP_RENDER_VULKAN) || defined(RUISAPP_RENDER_DIRECTX)
+	// The Vulkan and DirectX 12 renderers do not create any GL context, so the
+	// constructor does not take a GL version or a shared GL context window.
 	native_window(utki::shared_ref<display_wrapper> display, const ruisapp::window_parameters& window_params);
 #else
 	native_window(
