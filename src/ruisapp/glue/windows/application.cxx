@@ -101,7 +101,7 @@ ruisapp::application::directories get_application_directories(std::string_view a
 
 application_glue::application_glue(const utki::version_duplet& gl_version) :
 	gl_version(gl_version),
-#ifndef RUISAPP_RENDER_VULKAN
+#if !defined(RUISAPP_RENDER_VULKAN) && !defined(RUISAPP_RENDER_DIRECTX)
 	shared_gl_context_native_window(utki::make_shared<native_window>(
 		this->display,
 		this->gl_version,
@@ -115,11 +115,20 @@ application_glue::application_glue(const utki::version_duplet& gl_version) :
 #ifdef RUISAPP_RENDER_VULKAN
 	device(make_vulkan_device()),
 #endif
+#ifdef RUISAPP_RENDER_DIRECTX
+	device(make_directx_device()),
+#endif
 	render_factory([&]() {
 #ifdef RUISAPP_RENDER_VULKAN
 		// Vulkan has no "current context" — a null surface is sufficient for the factory (resource creation)
 		return utki::make_shared<ruis::render::vulkan::factory>(
 			utki::make_shared<ruis::render::vulkan::surface>(this->device.get(), VK_NULL_HANDLE)
+		);
+#elif defined(RUISAPP_RENDER_DIRECTX)
+		// DirectX 12 has no "current context" — a null surface (no window) is sufficient
+		// for the factory (resource creation); the swapchains are created by the render contexts.
+		return utki::make_shared<ruis::render::directx::factory>(
+			utki::make_shared<const ruis::render::directx::surface>(this->device.get(), nullptr)
 		);
 #else
 		utki::logcat_debug("application_glue::application_glue(): creating shared gl context", '\n');
@@ -196,7 +205,7 @@ app_window* application_glue::get_window(native_window::window_id_type id)
 
 ruisapp::window& application_glue::make_window(ruisapp::window_parameters window_params)
 {
-#ifdef RUISAPP_RENDER_VULKAN
+#if defined(RUISAPP_RENDER_VULKAN) || defined(RUISAPP_RENDER_DIRECTX)
 	auto ruis_native_window = utki::make_shared<native_window>(this->display, window_params);
 #else
 	auto ruis_native_window = utki::make_shared<native_window>(
@@ -233,6 +242,17 @@ ruisapp::window& application_glue::make_window(ruisapp::window_parameters window
 					);
 					return utki::make_shared<const ruis::render::vulkan::surface>(this->device.get(), vk_surface);
 				}(),
+				this->render_factory
+			),
+#elif defined(RUISAPP_RENDER_DIRECTX)
+			utki::make_shared<ruis::render::directx::context>(
+				ruis_native_window,
+				// The surface just holds the window handle; the render context creates
+				// the DXGI swapchain from it (owned by the context, destroyed with it).
+				utki::make_shared<const ruis::render::directx::surface>(
+					this->device.get(), //
+					ruis_native_window.get().get_hwnd()
+				),
 				this->render_factory
 			),
 #elif defined(RUISAPP_RENDER_OPENGL)

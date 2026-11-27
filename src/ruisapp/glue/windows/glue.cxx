@@ -19,6 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 /* ================ LICENSE END ================ */
 
+#include <cstdlib>
 #include <ratio>
 
 #include <fsif/native_file.hpp>
@@ -26,6 +27,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <ruis/util/util.hpp>
 #include <utki/destructable.hpp>
 #include <utki/windows.hpp>
+
+#if CFG_COMPILER == CFG_COMPILER_MSVC
+#	include <crtdbg.h>
+#endif
 
 #ifdef RUISAPP_RENDER_VULKAN
 #	include <vulkan/vulkan.h>
@@ -35,6 +40,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #	include <ruis/render/vulkan/factory.hpp>
 #	include <ruis/render/vulkan/device.hpp>
 #	include <ruis/render/vulkan/surface.hpp>
+#elif defined(RUISAPP_RENDER_DIRECTX)
+#	include <ruis/render/directx/context.hpp>
+#	include <ruis/render/directx/factory.hpp>
+#	include <ruis/render/directx/device.hpp>
+#	include <ruis/render/directx/surface.hpp>
 #elif defined(RUISAPP_RENDER_OPENGL)
 #	include <ruis/render/opengl/context.hpp>
 #	include <ruis/render/opengl/factory.hpp>
@@ -58,11 +68,50 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 using namespace ruisapp;
 
 namespace {
+
+// configure the process crash behavior for easier development: no modal error
+// dialogs, all runtime messages go to the standard error stream
+void configure_crash_behavior()
+{
+	// disable the windows crash and critical error dialogs
+	SetErrorMode(
+		SEM_FAILCRITICALERRORS | //
+		SEM_NOGPFAULTERRORBOX | //
+		SEM_NOOPENFILEERRORBOX
+	);
+
+	// send the CRT error messages to the standard error stream instead of message boxes
+#if CFG_COMPILER == CFG_COMPILER_MSVC || CFG_COMPILER == CFG_COMPILER_GCC
+	_set_error_mode(_OUT_TO_STDERR);
+#endif
+
+	// MSVC-specific crash behavior
+#if CFG_COMPILER == CFG_COMPILER_MSVC
+	// make abort() terminate without the CRT or the WER dialogs
+	_set_abort_behavior(
+		0, //
+		_WRITE_ABORT_MSG | _CALL_REPORTFAULT
+	);
+
+	// send the CRT assertion and error reports to the standard error stream
+	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
+	_CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDERR);
+
+	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_FILE);
+	_CrtSetReportFile(_CRT_ERROR, _CRTDBG_FILE_STDERR);
+
+	_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_FILE);
+	_CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);
+#endif
+}
+
 void winmain(
 	int argc, //
 	const char** argv
 )
 {
+	configure_crash_behavior();
+
 	// Make the process per-monitor DPI aware (v2) as early as possible, before any windows
 	// are created, so that the effective screen scale factor can be queried per monitor.
 	SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
